@@ -247,7 +247,7 @@ public:
 		D3D12_INDEX_BUFFER_VIEW IndexBufferView = {};
 		D3D12_SAMPLER_DESC Samplers[16] = {};
 		ComPtr<ID3D12RootSignature> RootSignature;
-		ScenePipelineState Pipelines[32];
+		ScenePipelineState Pipelines[64];
 		ScenePipelineState LinePipeline[2];
 		ScenePipelineState PointPipeline[2];
 		FLOAT LODBias = 0.0f;
@@ -538,7 +538,7 @@ inline void UD3D12RenderDevice::SetDescriptorSet(DWORD PolyFlags, CachedTexture*
 inline DWORD ApplyPrecedenceRules(DWORD PolyFlags)
 {
 	// Adjust PolyFlags according to Unreal's precedence rules.
-	if (!(PolyFlags & (PF_Translucent | PF_Modulated)))
+	if (!(PolyFlags & (PF_Translucent | PF_Modulated | PF_Highlighted | PF_AlphaBlend)))
 		PolyFlags |= PF_Occlude;
 	else if (PolyFlags & PF_Translucent)
 		PolyFlags &= ~PF_Masked;

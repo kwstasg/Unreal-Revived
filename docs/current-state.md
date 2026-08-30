@@ -24,8 +24,10 @@ history.
 
 The renderer builds, deploys, and loads without XOpenGL fallback. Native and
 lower logical resolutions, borderless letterboxing, menu coordinate mapping,
-HD lightmaps, normal startup, and campaign metadata discovery have been
-implemented and validated.
+HD lightmaps, RGB10A2 textures, 227 alpha-blended geometry, normal startup, and
+campaign metadata discovery have been implemented and validated. The Video
+preferences page also exposes a persistent checkbox for 227's built-in FPS
+statistics.
 
 OpenXR rendering, VR input, comfort features, the portable launcher, and
 automated renderer tests are not implemented.
@@ -38,6 +40,7 @@ From the repository root:
 cmake -S . -B local/build -A x64
 cmake --build local/build --config Release
 cmake --build local/build --target deploy-d3d12drv --config Release
+cmake --build local/build --target deploy-modern-menu --config Release
 powershell -NoProfile -File scripts/check-repository.ps1
 ```
 
@@ -59,11 +62,14 @@ select the intended profile during testing.
   renderer's wrapper is still installed.
 - Keep 227-specific host adaptations behind `UNREAL_227` where practical.
 - Do not enable the inherited lightmap atlas for this target.
-- Keep the corrected 227 texture enum, realtime `RenderTag`, and RGB10A2
-  lightmap paths intact unless replacement behavior is validated.
+- Keep the corrected 227 texture enum, realtime `RenderTag`, RGB10A2 channel
+  layout, lightmap conversion, and `PF_AlphaBlend` pipeline intact unless
+  replacement behavior is validated.
 - The New Game menu's `IntDescIterator` reads campaign registrations from
   `System/`. Deployment must mirror localized `UnrealShare.int` and `UPak.int`
   there from `SystemLocalized/int/`.
+- Early startup recovery runs before normal localization lookup is reliable.
+  Deployment must mirror `Startup.int` into both `System/` and `System64/`.
 - Never track files under `local/` or deploy into the original game install.
 
 ## Next priorities

@@ -44,8 +44,20 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${UE1_GAME_ROOT}/SystemLocalized/int/UPak.int"
             "${UE1_GAME_ROOT}/System/UPak.int"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${UE1_GAME_ROOT}/SystemLocalized/int/Startup.int"
+            "${UE1_GAME_ROOT}/System/Startup.int"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${UE1_GAME_ROOT}/SystemLocalized/int/Startup.int"
+            "${UE1_GAME_ROOT}/System64/Startup.int"
         DEPENDS D3D12Drv
         COMMENT "Deploying D3D12Drv to the disposable 227k_15 System64 runtime"
+    )
+    add_custom_target(deploy-modern-menu
+        COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/build-modern-menu.ps1"
+            -GameRoot "${UE1_GAME_ROOT}"
+        COMMENT "Building and deploying the ModernMenu UnrealScript package"
     )
 else()
     message(STATUS "deploy-d3d12drv unavailable: ${UE1_GAME_ROOT}/System64/Unreal.exe not found")

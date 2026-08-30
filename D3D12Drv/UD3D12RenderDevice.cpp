@@ -1045,7 +1045,7 @@ void UD3D12RenderDevice::CreateScenePass()
 	rasterizerState.DepthClipEnable = FALSE; // Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
 	rasterizerState.MultisampleEnable = SceneBuffers.Multisample > 1 ? TRUE : FALSE;
 
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < 64; i++)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 		psoDesc.pRootSignature = ScenePass.RootSignature;
@@ -1054,7 +1054,7 @@ void UD3D12RenderDevice::CreateScenePass()
 		psoDesc.VS.pShaderBytecode = vertexShader.data();
 		psoDesc.VS.BytecodeLength = vertexShader.size();
 
-		if (i & 16) // PF_Masked
+		if (i & 32) // PF_Masked
 		{
 			psoDesc.PS.pShaderBytecode = pixelShaderAlphaTest.data();
 			psoDesc.PS.BytecodeLength = pixelShaderAlphaTest.size();
@@ -1076,7 +1076,7 @@ void UD3D12RenderDevice::CreateScenePass()
 
 		psoDesc.BlendState.IndependentBlendEnable = TRUE;
 		psoDesc.BlendState.RenderTarget[0].BlendEnable = TRUE;
-		switch (i & 3)
+		switch (i & 7)
 		{
 		case 0: // PF_Translucent
 			psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
@@ -1102,7 +1102,15 @@ void UD3D12RenderDevice::CreateScenePass()
 			psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 			psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 			break;
-		case 3: // Hmm, is it faster to keep the blend mode enabled or to toggle it?
+		case 4: // PF_AlphaBlend
+			psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+			psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+			psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+			psoDesc.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_SRC_ALPHA;
+			psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+			psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
+			break;
+		default: // Hmm, is it faster to keep the blend mode enabled or to toggle it?
 			psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 			psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
 			psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
@@ -1111,7 +1119,7 @@ void UD3D12RenderDevice::CreateScenePass()
 			psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
 			break;
 		}
-		if (i & 4) // PF_Invisible
+		if (i & 8) // PF_Invisible
 			psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = 0;
 		else
 			psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
@@ -1120,7 +1128,7 @@ void UD3D12RenderDevice::CreateScenePass()
 
 		psoDesc.DepthStencilState.DepthEnable = TRUE;
 		psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-		if (i & 8) // PF_Occlude
+		if (i & 16) // PF_Occlude
 			psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 		else
 			psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
@@ -1413,6 +1421,10 @@ UD3D12RenderDevice::ScenePipelineState* UD3D12RenderDevice::GetPipeline(DWORD Po
 	{
 		index = 1;
 	}
+	else if (PolyFlags & PF_AlphaBlend)
+	{
+		index = 4;
+	}
 	else if (PolyFlags & PF_Highlighted)
 	{
 		index = 2;
@@ -1424,15 +1436,15 @@ UD3D12RenderDevice::ScenePipelineState* UD3D12RenderDevice::GetPipeline(DWORD Po
 
 	if (PolyFlags & PF_Invisible)
 	{
-		index |= 4;
+		index |= 8;
 	}
 	if (PolyFlags & PF_Occlude)
 	{
-		index |= 8;
+		index |= 16;
 	}
 	if (PolyFlags & PF_Masked)
 	{
-		index |= 16;
+		index |= 32;
 	}
 
 	return &ScenePass.Pipelines[index];
@@ -2740,9 +2752,9 @@ void UD3D12RenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Inf
 
 	float UMult = GetUMult(Info);
 	float VMult = GetVMult(Info);
-	int flags = (PolyFlags & (PF_RenderFog | PF_Translucent | PF_Modulated)) == PF_RenderFog ? 16 : 0;
+	int flags = (PolyFlags & (PF_RenderFog | PF_Translucent | PF_Modulated | PF_AlphaBlend)) == PF_RenderFog ? 16 : 0;
 
-	if ((PolyFlags & (PF_Translucent | PF_Modulated)) == 0 && LightMode == 2) flags |= 32;
+	if ((PolyFlags & (PF_Translucent | PF_Modulated | PF_AlphaBlend)) == 0 && LightMode == 2) flags |= 32;
 
 	auto alloc = ReserveVertices(NumPts, (NumPts - 2) * 3);
 	if (alloc.vptr)
@@ -2772,7 +2784,7 @@ void UD3D12RenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Inf
 				vertex->Color.r = 1.0f;
 				vertex->Color.g = 1.0f;
 				vertex->Color.b = 1.0f;
-				vertex->Color.a = 1.0f;
+				vertex->Color.a = (PolyFlags & PF_AlphaBlend) ? P->Light.W : 1.0f;
 				vertex++;
 			}
 		}
@@ -2862,9 +2874,9 @@ void UD3D12RenderDevice::DrawGouraudTriangles(const FSceneNode* Frame, const FTe
 
 	float UMult = GetUMult(Info);
 	float VMult = GetVMult(Info);
-	int flags = (PolyFlags & (PF_RenderFog | PF_Translucent | PF_Modulated)) == PF_RenderFog ? 16 : 0;
+	int flags = (PolyFlags & (PF_RenderFog | PF_Translucent | PF_Modulated | PF_AlphaBlend)) == PF_RenderFog ? 16 : 0;
 
-	if ((PolyFlags & (PF_Translucent | PF_Modulated)) == 0 && LightMode == 2) flags |= 32;
+	if ((PolyFlags & (PF_Translucent | PF_Modulated | PF_AlphaBlend)) == 0 && LightMode == 2) flags |= 32;
 
 	if (PolyFlags & PF_Environment)
 	{
@@ -2903,7 +2915,7 @@ void UD3D12RenderDevice::DrawGouraudTriangles(const FSceneNode* Frame, const FTe
 				vertex->Color.r = 1.0f;
 				vertex->Color.g = 1.0f;
 				vertex->Color.b = 1.0f;
-				vertex->Color.a = 1.0f;
+				vertex->Color.a = (PolyFlags & PF_AlphaBlend) ? P->Light.W : 1.0f;
 				vertex++;
 			}
 		}

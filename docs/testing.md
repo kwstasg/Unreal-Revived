@@ -19,6 +19,7 @@ reference, binary, log, save, and build artifacts have not entered the project.
 cmake -S . -B local/build -A x64
 cmake --build local/build --config Release
 cmake --build local/build --target deploy-d3d12drv --config Release
+cmake --build local/build --target deploy-modern-menu --config Release
 ```
 
 The deploy target is available only when the configured game root contains
@@ -75,6 +76,22 @@ Direct3D errors, assertions, or unexpected relaunches.
 If the campaign combo is empty, verify that `System/UnrealShare.int` and
 `System/UPak.int` match the files in `SystemLocalized/int/`. The deployment
 target maintains those copies for the disposable runtime.
+
+## Video menu checklist
+
+- Open **Options > Preferences > Video**.
+- Confirm **Show FPS Statistics** appears directly below **Show Fullscreen**
+  and scrolls with the other video controls.
+- Enable it and confirm the built-in TimeDemo statistics appear during play.
+- Disable it and confirm the overlay is removed.
+- Change a setting, use **Restart**, and confirm the relaunched process retains
+  the `D3D12Test.ini` and `D3D12TestUser.ini` command-line arguments.
+- Reopen Video preferences after Restart and confirm the FPS checkbox retains
+  its saved state.
+- Open **Options > Preferences > Game** and confirm **Console** displays
+  **Standard Unreal Console** and cannot open or select another console.
+- Confirm Restart leaves `Engine.Engine.Console=UMenu.UnrealConsole` and Escape
+  continues to open the windowed UMenu interface.
 
 ## Reporting results
 

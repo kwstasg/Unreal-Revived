@@ -43,6 +43,19 @@ technical guides; use this file for the chronological record.
 - Removed black and magenta corruption from BSP lightmaps.
 - Validated representative gameplay surfaces in the disposable runtime.
 
+### Corrected RGB10A2 source reads
+
+- Fixed the normalized and unsigned-integer RGB10A2 uploaders to decode each
+  source pixel instead of reading uninitialized destination upload memory and
+  corrected the 227 packed channel positions to `R/G/B/A` bits `0/10/20/30`.
+- Added a dedicated `PF_AlphaBlend` pipeline permutation, excluded alpha-blended
+  geometry from automatic depth writes, and retained Gouraud vertex alpha.
+- Reverted separate upload-ordering, clipping, and chunking experiments after
+  focused runtime checks exposed performance or precache regressions.
+- Validated Debug and Release compilation, Debug deployment, successful
+  precaching, and the `Unreal.unr` flyby. The previously black content rendered
+  correctly and the reflected scene remained visible at the reported angle.
+
 ### Corrected borderless resolution behavior
 
 - Preserved the selected logical resolution while presenting at the physical
@@ -69,6 +82,46 @@ technical guides; use this file for the chronological record.
   that directory.
 - Validated that the iterator returns both `Unreal` and `Return to Na Pali` and
   that the D3D12 runtime remains responsive without fallback.
+
+### Restored recovery dialog localization
+
+- Updated deployment to mirror the complete 227 `Startup.int` from
+  `SystemLocalized/int/` into both `System/` and `System64/`.
+- Confirmed the existing `Unreal Gold D3D12` desktop shortcut already targets
+  the disposable x64 executable with the correct map, INI arguments, and
+  working directory, so no shortcut mutation was needed.
+- Triggered recovery mode through the actual desktop shortcut and verified the
+  window title resolves to `Unreal Recovery Mode`; normal cancellation removed
+  the temporary recovery marker.
+
+### Added an FPS checkbox to Video preferences
+
+- Added a standalone `ModernMenu` UnrealScript package that preserves the 227
+  Video preferences page and inserts **Show FPS Statistics** directly below
+  **Show Fullscreen**.
+- Routed the disposable D3D12 console through a custom root window without
+  rebuilding or replacing the network-sensitive `UMenu.u` package.
+- Added `deploy-modern-menu` to compile with the disposable x64 `UCC.exe`,
+  deploy `ModernMenu.u`, and maintain the required test-profile entries.
+- Validated clean package compilation with zero warnings, clean visual layout,
+  and runtime activation of the engine's `TimeDemo` object.
+- Persisted the FPS preference in the active engine profile and restored
+  TimeDemo during menu-root startup; validated that the checkbox remains
+  checked after the actual Preferences Restart flow.
+- Updated the Preferences Restart action to save normally and relaunch with the
+  explicit D3D12 engine and user profiles instead of losing them to 227's bare
+  `RELAUNCH` behavior.
+- Prevented Restart from applying stale Game-tab console selection state, which
+  had replaced the windowed UMenu with `UPakConsole` or `UBrowserConsole`.
+  Restored `UMenu.UnrealConsole` and validated it remains selected after the
+  actual Restart flow.
+- Replaced the stock Game preferences page with a compatible subclass that
+  displays and locks **Standard Unreal Console**. Validated that the selector
+  cannot open, Restart retains both custom INI arguments, all three disposable
+  engine profiles remain on `UMenu.UnrealConsole`, and normal shutdown leaves
+  no `Running.ini` marker.
+- Promoted the current ignored D3D12 engine and user profiles to the disposable
+  x64 runtime defaults after backing up the prior defaults under `local/`.
 
 ### Added project documentation
 

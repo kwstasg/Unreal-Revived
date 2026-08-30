@@ -339,11 +339,11 @@ void TextureUploader_RGB10A2::UploadRect(void* dst, FMipmapBase* mip, int x, int
 	{
 		for (int j = 0; j < w; j++)
 		{
-			uint32_t c = *Ptr;
-			uint32_t r = (c >> 22) & 0x3ff;
-			uint32_t g = (c >> 12) & 0x3ff;
-			uint32_t b = (c >> 2) & 0x3ff;
-			uint32_t a = c & 0x3;
+			uint32_t c = src[j];
+			uint32_t r = c & 0x3ff;
+			uint32_t g = (c >> 10) & 0x3ff;
+			uint32_t b = (c >> 20) & 0x3ff;
+			uint32_t a = (c >> 30) & 0x3;
 
 			r = r * 0xffff / 0x3ff;
 			g = g * 0xffff / 0x3ff;
@@ -375,11 +375,11 @@ void TextureUploader_RGB10A2_UI::UploadRect(void* dst, FMipmapBase* mip, int x, 
 	{
 		for (int j = 0; j < w; j++)
 		{
-			uint32_t c = *Ptr;
-			uint32_t r = (c >> 22) & 0x3ff;
-			uint32_t g = (c >> 12) & 0x3ff;
-			uint32_t b = (c >> 2) & 0x3ff;
-			uint32_t a = c & 0x3;
+			uint32_t c = src[j];
+			uint32_t r = c & 0x3ff;
+			uint32_t g = (c >> 10) & 0x3ff;
+			uint32_t b = (c >> 20) & 0x3ff;
+			uint32_t a = (c >> 30) & 0x3;
 
 			*(Ptr++) = r;
 			*(Ptr++) = g;

@@ -26,6 +26,22 @@ starting the command line with `ini=D3D12Test.ini` parses the value as a network
 URL, while `-ini=` is not honored as the intended profile override. `Unreal.unr`
 is the normal shell map and does not force the player into a campaign level.
 
+## FPS display
+
+After deploying `ModernMenu`, open **Options > Preferences > Video** and use
+**Show FPS Statistics** directly below **Show Fullscreen**. The checkbox
+controls 227's built-in `TIMEDEMO` statistics overlay and remains synchronized
+when the Video page is reopened. Its `bShowFPS` value is saved in the active
+engine profile and restores the overlay when the game starts or restarts.
+
+The custom Preferences **Restart** action saves the open pages and relaunches
+with `Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini`. This preserves
+the disposable D3D12 profile instead of falling back to `Unreal.ini`. Restart
+does not reapply the Game tab's transient console-combo default. The custom
+Game page locks the disabled **Console** field to **Standard Unreal Console**
+(`UMenu.UnrealConsole`) because the Browser and deprecated Gold consoles replace
+the windowed UMenu interface.
+
 ## Renderer settings
 
 Settings belong under:

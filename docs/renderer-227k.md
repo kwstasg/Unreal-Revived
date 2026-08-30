@@ -82,6 +82,16 @@ normalizes its 9-bit lighting channels into the renderer's 16-bit upload
 format, and supplies the expected alpha. This removed the black and magenta BSP
 lightmap corruption seen during the initial port.
 
+The normalized and unsigned-integer RGB10A2 uploaders also read each packed
+pixel from the source row and decode 227's `R/G/B/A` fields from bits
+`0/10/20/30`. Reading the destination pointer and using the reversed field
+layout produced nondeterministic colors and invalid alpha.
+
+227 `PF_AlphaBlend` geometry uses a dedicated standard-alpha pipeline. It does
+not gain `PF_Occlude`, and Gouraud vertices retain `FTransTexture::Light.W` as
+their alpha. This prevents alpha-blended meshes from becoming opaque black
+depth occluders.
+
 ## Borderless presentation
 
 227 distinguishes logical viewport dimensions from physical presentation

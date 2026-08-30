@@ -64,6 +64,7 @@ target:
 
 ```powershell
 cmake --build local/build --target deploy-d3d12drv --config Release
+cmake --build local/build --target deploy-modern-menu --config Release
 ```
 
 The target performs these operations in the disposable game installation:
@@ -71,14 +72,27 @@ The target performs these operations in the disposable game installation:
 1. Copies `D3D12Drv.dll` and `D3D12Drv.int` to `System64/`.
 2. Copies the localized `UnrealShare.int` and `UPak.int` files from
    `SystemLocalized/int/` to `System/`.
+3. Copies the complete localized `Startup.int` to both `System/` and
+   `System64/` so early recovery dialogs can resolve their text before normal
+   localization paths are available.
 
 The second operation is required because 227's `IntDescIterator` discovers the
 single-player campaign registrations beside the game packages in `System/`.
 Without it, the New Game campaign combo is empty even though localization paths
 include `SystemLocalized/`.
 
+The `Startup.int` copies replace the truncated legacy file in `System/` and put
+the same resource beside the x64 executable. Without the `System64/` copy, the
+recovery dialog displays localization keys instead of labels.
+
 Never deploy into the original Steam installation. Preserve it as the recovery
 source and test only against the disposable copy.
+
+The `deploy-modern-menu` target compiles the standalone `ModernMenu.u` package
+with the disposable runtime's x64 `UCC.exe`. It deploys the package to
+`System64/` and updates `D3D12Test.ini` to load the custom root window and menu
+package. It does not rebuild or replace OldUnreal's network-sensitive core
+packages.
 
 ## Repository safety
 
