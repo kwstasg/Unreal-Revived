@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "unreal-gold-227k_15-win64",
+  "release": {
+    "repository": "OldUnreal/Unreal-testing",
+    "tag": "v227k_15",
+    "commit": "2ea5408e2aa7c955eb087a6f8d2fcce318747d2f",
+    "archive": "OldUnreal-UnrealPatch227k-Windows.zip",
+    "archiveSha256": "88c49adef88e5a88c74f9fc80d89f0a2fe473d040578979aeb4425de32da12fc"
+  },
+  "platform": {
+    "os": "windows",
+    "architecture": "x64",
+    "peMachine": "0x8664"
+  },
+  "metadata": {
+    "unrealExeFileVersion": "2.2.7.10",
+    "unrealExeDescription": "Unreal 227k_12 by www.oldunreal.com",
+    "note": "The v227k_15 archive retains an older Unreal.exe version description; identify this host by hashes."
+  },
+  "modules": {
+    "Core.dll": "4eaa8e2681ef1067e4eed3e1f43ac34d9d203c3c24a029a2b5db1c592151d52a",
+    "Engine.dll": "4d89a56d64eb838f30752378d96ea030841232bdfb3efd5c1dec425b5cffe60a",
+    "Render.dll": "e27d213a6acc1d978504f814b109ebfeffe7d6d4fa73af01fa8af09294a60bb3",
+    "Unreal.exe": "85d1fc17d4d4afa3e02e5a5b9f94880b3124d51663528da60235eeb042b4bcbf",
+    "WinDrv.dll": "73a6a593dfdcc9421f295074be91146fa2664158ec61ce0b931fa9c8cca8fd7f"
+  }
+}

@@ -1,0 +1,43 @@
+# Local game, SDK, downloads, references, and generated runtime data.
+/local/*
+!/local/README.md
+
+# Build systems and IDE state.
+/.vs/
+/Build/
+/build/
+/out/
+/cmake-build-*/
+CMakeUserPresets.json
+*.user
+*.suo
+
+# Generated native artifacts.
+*.dll
+*.exe
+*.exp
+*.ilk
+*.lib
+*.obj
+*.pdb
+
+# Runtime and diagnostic output.
+*.dmp
+*.log
+*.usa
+Screenshots/
+Saved/
+
+# Downloaded archives and packages.
+*.7z
+*.cab
+*.rar
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+
+# OS metadata.
+.DS_Store
+Thumbs.db
+Desktop.ini
