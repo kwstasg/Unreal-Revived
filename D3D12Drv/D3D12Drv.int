@@ -1,0 +1,9 @@
+[Public]
+Object=(Name=D3D12Drv.D3D12RenderDevice,Class=Class,MetaClass=Engine.RenderDevice,Autodetect=d3d12.dll)
+Preferences=(Caption="Rendering",Parent="Advanced Options")
+Preferences=(Caption="Direct3D 12",Parent="Rendering",Class=D3D12Drv.D3D12RenderDevice,Immediate=True)
+
+[D3D12RenderDevice]
+ClassCaption="Direct3D 12"
+AskInstalled=Do you want to use Direct3D 12?
+AskUse=
