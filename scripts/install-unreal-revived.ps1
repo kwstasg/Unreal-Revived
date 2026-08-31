@@ -48,6 +48,10 @@ foreach ($requiredDirectory in @($systemDirectory, $system64Directory)) {
         throw "The patched installation is missing $requiredDirectory"
     }
 }
+$revivedIcon = Join-Path $destinationRoot 'UnrealRevived\UnrealRevived-Icon-v1.ico'
+if (-not (Test-Path -LiteralPath $revivedIcon -PathType Leaf)) {
+    throw "The bundled Unreal Revived icon is missing: $revivedIcon"
+}
 
 Copy-Item -LiteralPath $rendererDll -Destination (Join-Path $system64Directory 'D3D12Drv.dll') -Force
 Copy-Item -LiteralPath $rendererInt -Destination (Join-Path $system64Directory 'D3D12Drv.int') -Force
@@ -79,11 +83,28 @@ $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'WindowedRenderD
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'Console' 'UMenu.UnrealConsole'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'UnrealRevived.ini'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'UnrealRevivedUser.ini'
 $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'FullscreenViewportX' '1920'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'FullscreenViewportY' '1080'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'Brightness' '0.600000'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'MinDesiredFrameRate' '60.000000'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'LightMapLOD' '8'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'SkyBoxFogMode' 'FOGDETAIL_High'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.PlayerPawn' 'NetSpeed' '50000'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'AntialiasMode' 'Off'
-$iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'UseVSync' 'True'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'UseVSync' 'False'
 Set-Content -LiteralPath (Join-Path $system64Directory 'UnrealRevived.ini') -Value $iniLines -Encoding ASCII
-Copy-Item -LiteralPath $defaultUserIni -Destination (Join-Path $system64Directory 'UnrealRevivedUser.ini') -Force
+$userIniLines = Get-Content -LiteralPath $defaultUserIni
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'NetSpeed' '50000'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'LanSpeed' '20000'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PawnShadow' 'ShadowDetailRes' '1024'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'HudMode' '0'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'Crosshair' '0'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'HudScaler' '1.500000'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'CrosshairScale' '1.500000'
+Set-Content -LiteralPath (Join-Path $system64Directory 'UnrealRevivedUser.ini') -Value $userIniLines -Encoding ASCII
 
 $installedModules = @{}
 $hostManifest = Get-Content -LiteralPath $hostManifestPath -Raw | ConvertFrom-Json

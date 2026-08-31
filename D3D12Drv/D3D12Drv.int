@@ -5,5 +5,5 @@ Preferences=(Caption="Direct3D 12",Parent="Rendering",Class=D3D12Drv.D3D12Render
 
 [D3D12RenderDevice]
 ClassCaption="Direct3D 12"
-AskInstalled=Do you want to use Direct3D 12?
-AskUse=
+AskInstalled=Do you have a Direct3D 12 compatible graphics card installed?
+AskUse=Do you want Unreal Revived to use Direct3D 12?

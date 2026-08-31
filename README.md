@@ -161,7 +161,8 @@ The generated installer and checksum are written to
 - runs without an unnecessary administrator request or visible PowerShell
 	window;
 - offers uninstall, repair/update, or cancel when rerun; and
-- backs up saves and dedicated profiles during uninstall.
+- offers a default-checked **Keep save games** uninstall option while backing
+  up saves and dedicated profiles either way.
 
 The installer does not write to the selected original game directory.
 

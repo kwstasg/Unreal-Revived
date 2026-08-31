@@ -8,6 +8,7 @@
 
 #define ProductName "Unreal Revived"
 #define ProductVersion "0.1.0"
+#define ProductIconName "UnrealRevived-Icon-v1.ico"
 
 [Setup]
 AppId={{8D6614ED-8854-4D0E-9666-A891EC92713B}
@@ -27,21 +28,17 @@ ArchitecturesAllowed=x64compatible
 CloseApplications=yes
 UninstallDisplayName={#ProductName}
 SetupLogging=yes
+UninstallDisplayIcon={app}\UnrealRevived\{#ProductIconName}
 
 [Files]
 Source: "{#StageRoot}\payload\copy-original-game.ps1"; Flags: dontcopy
+Source: "{#StageRoot}\payload\unreal-revived-install-content-v1.json"; Flags: dontcopy
 Source: "{#StageRoot}\payload\*"; DestDir: "{tmp}\UnrealRevived-Payload"; Excludes: "copy-original-game.ps1"; Flags: ignoreversion recursesubdirs createallsubdirs deleteafterinstall
 Source: "{#StageRoot}\patch\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "Unreal.unr ini=UnrealRevived.ini userini=UnrealRevivedUser.ini"; WorkingDir: "{app}\System64"
-Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "Unreal.unr ini=UnrealRevived.ini userini=UnrealRevivedUser.ini"; WorkingDir: "{app}\System64"; Tasks: desktopicon
-
-[Tasks]
-Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: checkedonce
-
-[UninstallRun]
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\UnrealRevived\backup-unreal-revived-user-data.ps1"" -InstallRoot ""{app}"""; Flags: runhidden waituntilterminated; RunOnceId: "BackupUserData"
+Name: "{autoprograms}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "Unreal.unr ini=UnrealRevived.ini userini=UnrealRevivedUser.ini"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
+Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "Unreal.unr ini=UnrealRevived.ini userini=UnrealRevivedUser.ini"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
@@ -52,6 +49,162 @@ const
 
 var
   SourcePage: TInputDirWizardPage;
+  KeepSaveGames: Boolean;
+  UninstallOptionsAccepted: Boolean;
+  PreservedSaveDirectory: String;
+
+function InitializeUninstall: Boolean;
+begin
+  KeepSaveGames := True;
+  UninstallOptionsAccepted := True;
+  Result := True;
+end;
+
+procedure InitializeUninstallProgressForm;
+var
+  OptionsPanel: TPanel;
+  DescriptionLabel: TNewStaticText;
+  KeepSavesCheck: TNewCheckBox;
+  UninstallButton: TNewButton;
+  CancelButton: TNewButton;
+  ButtonWidth: Integer;
+begin
+  if UninstallSilent then
+    Exit;
+
+  UninstallProgressForm.Caption := 'Uninstall Unreal Revived';
+
+  OptionsPanel := TPanel.Create(UninstallProgressForm);
+  OptionsPanel.Parent := UninstallProgressForm;
+  OptionsPanel.SetBounds(0, 0, UninstallProgressForm.ClientWidth,
+    UninstallProgressForm.ClientHeight);
+  OptionsPanel.BevelOuter := bvNone;
+  OptionsPanel.Color := clWindow;
+  OptionsPanel.Anchors := [akLeft, akTop, akRight, akBottom];
+
+  DescriptionLabel := TNewStaticText.Create(OptionsPanel);
+  DescriptionLabel.Parent := OptionsPanel;
+  DescriptionLabel.SetBounds(ScaleX(12), ScaleY(12),
+    OptionsPanel.ClientWidth - ScaleX(24), ScaleY(48));
+  DescriptionLabel.AutoSize := False;
+  DescriptionLabel.WordWrap := True;
+  DescriptionLabel.Caption :=
+    'Choose whether save games remain in the Unreal Revived folder for a ' +
+    'future installation. A Documents backup is created either way.';
+
+  KeepSavesCheck := TNewCheckBox.Create(OptionsPanel);
+  KeepSavesCheck.Parent := OptionsPanel;
+  KeepSavesCheck.SetBounds(ScaleX(12), ScaleY(68),
+    OptionsPanel.ClientWidth - ScaleX(24), ScaleY(20));
+  KeepSavesCheck.Caption := 'Keep save games';
+  KeepSavesCheck.Checked := True;
+
+  UninstallButton := TNewButton.Create(OptionsPanel);
+  UninstallButton.Parent := OptionsPanel;
+  UninstallButton.Caption := 'Uninstall';
+  UninstallButton.ModalResult := mrOk;
+  UninstallButton.Default := True;
+
+  CancelButton := TNewButton.Create(OptionsPanel);
+  CancelButton.Parent := OptionsPanel;
+  CancelButton.Caption := 'Cancel';
+  CancelButton.ModalResult := mrCancel;
+  CancelButton.Cancel := True;
+
+  ButtonWidth := UninstallProgressForm.CalculateButtonWidth([UninstallButton.Caption,
+    CancelButton.Caption]);
+  UninstallButton.SetBounds(
+    OptionsPanel.ClientWidth - ScaleX(12) - (ButtonWidth * 2) - ScaleX(8),
+    OptionsPanel.ClientHeight - ScaleY(35), ButtonWidth, ScaleY(23));
+  CancelButton.SetBounds(OptionsPanel.ClientWidth - ScaleX(12) - ButtonWidth,
+    OptionsPanel.ClientHeight - ScaleY(35), ButtonWidth, ScaleY(23));
+  UninstallProgressForm.ActiveControl := KeepSavesCheck;
+  OptionsPanel.BringToFront;
+
+  UninstallOptionsAccepted := UninstallProgressForm.ShowModal() = mrOk;
+  if UninstallOptionsAccepted then
+    KeepSaveGames := KeepSavesCheck.Checked;
+  OptionsPanel.Hide;
+end;
+
+procedure BackupUninstallUserData;
+var
+  ResultCode: Integer;
+  PowerShell: String;
+  Arguments: String;
+begin
+  PowerShell := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
+  Arguments := '-NoProfile -ExecutionPolicy Bypass -File "' +
+    ExpandConstant('{app}\UnrealRevived\backup-unreal-revived-user-data.ps1') +
+    '" -InstallRoot "' + ExpandConstant('{app}') + '"';
+  if not Exec(PowerShell, Arguments, '', SW_HIDE,
+    ewWaitUntilTerminated, ResultCode) then
+    RaiseException('Could not start the user-data backup.');
+  if ResultCode <> 0 then
+    RaiseException(Format('User-data backup failed with exit code %d.', [ResultCode]));
+end;
+
+procedure PreserveInstalledSaveGames;
+var
+  SaveDirectory: String;
+begin
+  if not KeepSaveGames then
+    Exit;
+
+  SaveDirectory := AddBackslash(ExpandConstant('{app}')) + 'Save';
+  if not DirExists(SaveDirectory) then
+    Exit;
+
+  PreservedSaveDirectory := ExpandConstant('{app}') +
+    '.UnrealRevived-Save-' +
+    GetDateTimeString('yyyymmdd-hhnnss', '-', '-');
+  if not RenameFile(SaveDirectory, PreservedSaveDirectory) then
+    RaiseException('Could not preserve the save-game directory.');
+end;
+
+procedure RestoreInstalledSaveGames;
+var
+  SaveDirectory: String;
+begin
+  if (PreservedSaveDirectory = '') or
+    (not DirExists(PreservedSaveDirectory)) then
+    Exit;
+
+  SaveDirectory := AddBackslash(ExpandConstant('{app}')) + 'Save';
+  if (not ForceDirectories(ExpandConstant('{app}'))) or
+    (not RenameFile(PreservedSaveDirectory, SaveDirectory)) then
+    MsgBox('Save games could not be restored automatically. They remain at:' + #13#10 +
+      PreservedSaveDirectory, mbError, MB_OK);
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usUninstall then
+  begin
+    if not UninstallOptionsAccepted then
+      Abort;
+    BackupUninstallUserData;
+    PreserveInstalledSaveGames;
+  end
+  else if CurUninstallStep = usPostUninstall then
+    RestoreInstalledSaveGames;
+end;
+
+function ExtractUninstallerExecutable(const Command: String): String;
+var
+  ClosingQuote: Integer;
+begin
+  Result := Trim(Command);
+  if (Length(Result) > 0) and (Result[1] = '"') then
+  begin
+    Delete(Result, 1, 1);
+    ClosingQuote := Pos('"', Result);
+    if ClosingQuote > 0 then
+      Result := Copy(Result, 1, ClosingQuote - 1);
+  end
+  else
+    Result := RemoveQuotes(Result);
+end;
 
 function FindExistingUninstaller(var Uninstaller: String): Boolean;
 begin
@@ -62,7 +215,7 @@ begin
       Uninstaller);
   if Result then
   begin
-    Uninstaller := RemoveQuotes(Uninstaller);
+    Uninstaller := ExtractUninstallerExecutable(Uninstaller);
     Result := FileExists(Uninstaller);
   end;
 end;
@@ -85,7 +238,7 @@ begin
     mbConfirmation, MB_YESNOCANCEL, IDNO);
   if Choice = IDYES then
   begin
-    if not Exec(Uninstaller, '/SILENT /SUPPRESSMSGBOXES /NORESTART', '',
+    if not Exec(Uninstaller, '/SUPPRESSMSGBOXES /NORESTART', '',
       SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
     begin
       MsgBox('Could not start the Unreal Revived uninstaller.', mbError, MB_OK);
@@ -257,11 +410,14 @@ end;
   begin
     Result := '';
     ExtractTemporaryFile('copy-original-game.ps1');
+    ExtractTemporaryFile('unreal-revived-install-content-v1.json');
     PowerShell := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
     Arguments := '-NoProfile -ExecutionPolicy Bypass -File "' +
       ExpandConstant('{tmp}\copy-original-game.ps1') +
       '" -InstallRoot "' + ExpandConstant('{app}') +
-      '" -OriginalGameRoot "' + SourcePage.Values[0] + '"';
+      '" -OriginalGameRoot "' + SourcePage.Values[0] +
+      '" -ContentManifest "' +
+      ExpandConstant('{tmp}\unreal-revived-install-content-v1.json') + '"';
 
     WizardForm.StatusLabel.Caption :=
       'Copying your original game files. This may take a few minutes...';
@@ -308,4 +464,8 @@ begin
   end;
   if ResultCode <> 0 then
     RaiseException(Format('Offline installation failed with exit code %d. See the setup log for details.', [ResultCode]));
+
+  if not RegWriteStringValue(HKCU, UninstallKey, 'UninstallString',
+    '"' + ExpandConstant('{uninstallexe}') + '" /SUPPRESSMSGBOXES') then
+    RaiseException('Could not configure the registered uninstaller.');
 end;

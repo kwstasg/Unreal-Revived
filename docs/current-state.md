@@ -44,10 +44,26 @@ desktop.
 
 OpenXR rendering, VR input, comfort features, and the portable launcher are not
 implemented. The offline installer includes visual source selection, hidden
-original-game copying, and direct Inno installation of the build-time-extracted
-patch tree; dedicated launch profiles, Start Menu shortcut, and uninstall
-backup are implemented. Rerunning Setup offers uninstall, repair/update, or
-cancel. Runtime smoke automation exercises representative maps, renderer
+manifest-filtered original-game copying, and direct Inno installation of the
+filtered build-time-extracted patch tree. The policy removes only validated
+historical distribution media, copied state, and obsolete D3D7, D3D9, Glide,
+software, Metal, and ICBINDx11 renderers while retaining both campaigns,
+multiplayer/server support, all languages, standard OpenGL, and XOpenGL
+recovery. Video Preferences and recovery register only Direct3D 12, OpenGL,
+and XOpenGL. Direct x86 binaries under `System` and end-user editor/setup assets
+are filtered, while the required `.u` packages, localized registrations, x64
+native modules, and `System64/UCC.exe` dedicated-server entry point remain.
+ALAudio with bundled OpenAL Soft is the sole supported audio engine; deprecated
+Galaxy and experimental SwFMOD are filtered with their registrations. The
+first-time configuration page defaults to D3D12, describes it in every locale,
+and uses tracked original Unreal Revived artwork; installed shortcuts use the
+tracked project-owned multi-resolution icon. Dedicated
+launch profiles, Start Menu shortcut, and uninstall
+backup are implemented. Interactive uninstall keeps saves by default through a
+checked option embedded in the native uninstall window, which transitions into
+progress in place; explicit silent uninstall uses the same default. Rerunning Setup opens that interactive uninstaller for uninstall,
+or offers repair/update and cancel. A retained save-only installation directory is accepted on
+reinstall and protected from the original-game copy. Runtime smoke automation exercises representative maps, renderer
 settings, menu state profiles, and display profiles. Retained screenshots cover
 the currently validated menu layout and input alignment; external click
 automation is unavailable because UWindow exposes no automation elements and

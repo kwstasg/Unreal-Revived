@@ -48,6 +48,12 @@ Game page locks the disabled **Console** field to **Standard Unreal Console**
 (`UMenu.UnrealConsole`) because the Browser and deprecated Gold consoles replace
 the windowed UMenu interface.
 
+Installer profiles configure the same action to relaunch with
+`Unreal.unr ini=UnrealRevived.ini userini=UnrealRevivedUser.ini`. The restart
+profile names are stored under `[ModernMenu.ModernOptionsClientWindow]`, so the
+shared `ModernMenu.u` package preserves the active environment instead of
+opening First-Time Configuration or falling back to OldUnreal defaults.
+
 ## Renderer settings
 
 Settings belong under:
@@ -97,3 +103,30 @@ and maps mouse coordinates back into logical menu space. On a physical 4K
 monitor or a 4K DSR mode, presentation uses the monitor's 3840x2160 dimensions.
 Do not treat `Viewport->SizeX/SizeY` and `Viewport->PhysicalSizeX/PhysicalSizeY`
 as interchangeable when changing this code.
+
+## Installer profile defaults
+
+The offline installer creates dedicated `UnrealRevived.ini` and
+`UnrealRevivedUser.ini` profiles from the pinned host defaults. It applies the
+following initial preferences without changing the original game installation
+or preventing the player from changing them later:
+
+| Setting | Initial value |
+| --- | ---: |
+| Fullscreen resolution | `1920x1080` |
+| Brightness | `0.600000` |
+| Minimum desired frame rate | `60.000000` |
+| Lightmap LOD | `8` |
+| Skybox fog detail | `FOGDETAIL_High` |
+| Network speed | `50000` |
+| LAN speed | `20000` |
+| VSync | `False` |
+| Shadow detail resolution | `1024` |
+| HUD mode | `0` |
+| Crosshair | `0` |
+| HUD scale | `1.500000` |
+| Crosshair scale | `1.500000` |
+
+These are installer profile choices, not changes to the render device's
+registered defaults. Existing profiles retain their saved values during normal
+game use.

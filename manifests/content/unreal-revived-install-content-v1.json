@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "id": "unreal-revived-install-content-v1",
+  "productBoundary": {
+    "campaigns": [
+      "Unreal",
+      "Return to Na Pali"
+    ],
+    "multiplayerClient": true,
+    "dedicatedServer": true,
+    "webAdmin": true,
+    "localizations": "all",
+    "renderers": [
+      "D3D12Drv",
+      "XOpenGLDrv"
+    ]
+  },
+  "exclusions": {
+    "directories": [
+      "Compress",
+      "directx9c",
+      "Manual",
+      "System/editorres",
+      "System/ICBINDx11Drv",
+      "System64/editorres",
+      "System64/ICBINDx11Drv"
+    ],
+    "directoryContentsExcept": [
+      {
+        "path": "Help",
+        "keep": [
+          "Logo.bmp",
+          "SetupLogo.bmp"
+        ]
+      }
+    ],
+    "files": [
+      "installscript.vdf",
+      "System/ConfigLogo.bmp",
+      "System/D3D9Drv.dll",
+      "System/D3DDrv.dll",
+      "System/D3DDrv.int",
+      "System/glide2x.dll",
+      "System/GlideDrv.dll",
+      "System/GlideDrv.int",
+      "System/ICBINDx11Drv.dll",
+      "System/DefaultUnrealED.ini",
+      "System/EdSplash.bmp",
+      "System/Manifest.ini",
+      "System/MeTaLDrv.dll",
+      "System/SHALinkerCache.ini",
+      "System/SoftDrv.dll",
+      "System/SoftDrv.int",
+      "System/Unreal.ini",
+      "System/Unreal.log",
+      "System/User.ini",
+      "System64/D3D9Drv.dll",
+      "System64/D3DDrv.dll",
+      "System64/glide2x.dll",
+      "System64/GlideDrv.dll",
+      "System64/ICBINDx11Drv.dll",
+      "System64/DefaultUnrealED.ini",
+      "System64/EdSplash.bmp",
+      "System64/fmodex64.dll",
+      "System64/Galaxy.dll",
+      "System64/Setup.exe",
+      "System64/SoftDrv.dll",
+      "System64/SwFMOD.dll",
+      "System64/UCC.log",
+      "System64/UnrealEd.exe",
+      "System64/Unreal.log",
+      "System64/User.ini"
+    ],
+    "directFileExtensions": [
+      {
+        "path": "System",
+        "extensions": [
+          ".dll",
+          ".exe"
+        ]
+      }
+    ]
+  },
+  "metadataFiltering": {
+    "rendererRegistrationBaseNames": [
+      "D3D8Drv",
+      "D3D9Drv",
+      "D3DDrv",
+      "GlideDrv",
+      "ICBINDx11Drv",
+      "MeTaLDrv",
+      "SglDrv",
+      "SoftDrv",
+      "XMesaGLDrv"
+    ],
+    "audioRegistrationBaseNames": [
+      "Galaxy",
+      "SwFMOD"
+    ],
+    "startupDescriptionPrefixes": [
+      "D3D8Drv.",
+      "D3D9Drv.",
+      "D3DDrv.",
+      "GlideDrv.",
+      "ICBINDx11Drv.",
+      "MetalDrv.",
+      "MeTaLDrv.",
+      "SglDrv.",
+      "SoftDrv.",
+      "XMesaGLDrv.",
+      "Galaxy.",
+      "SwFMOD."
+    ]
+  }
+}

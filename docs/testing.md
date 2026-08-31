@@ -15,6 +15,70 @@ powershell -NoProfile -File scripts/check-repository.ps1
 This must pass before committing or packaging. It ensures ignored game, SDK,
 reference, binary, log, save, and build artifacts have not entered the project.
 
+## Content audit
+
+Inventory the effective disposable runtime against its recorded original-game
+source and the extracted pinned patch:
+
+```powershell
+powershell -NoProfile -File scripts/audit-game-content.ps1
+```
+
+The read-only audit writes `files.csv`, `inventory.json`, and `report.md` under
+`local/logs/content-audit/<timestamp>/`. Each effective runtime file records its
+size, SHA-256, origin, conservative classification, rationale, and matching
+engine `Paths=` or `LangPaths=` rule where applicable. The reported file and
+byte totals are reconciled against direct filesystem enumeration before output
+is accepted.
+
+`candidate` means suitable for reversible quarantine testing, not approved for
+removal. `unknown` always means retain. Runtime logs, saves, and other generated
+state are included, so exact totals may change between snapshots. The audit
+does not modify the original Steam installation, disposable runtime, extracted
+patch, installer copy rules, or staged payload.
+
+The installer currently consumes
+`manifests/content/unreal-revived-install-content-v1.json`. Validate a policy
+change first in the separate `local/game-content-audit/` runtime, then assemble
+the original copy, staged patch, and installer payload under an ignored scratch
+root and run the content suite with `UE1_GAME_ROOT` pointed at that root.
+For renderer policy changes, enumerate `Object=(Name=...RenderDevice...)`
+entries across the final tree and verify the set is exactly D3D12Drv,
+OpenGLDrv, and XOpenGLDrv. Confirm every localized `Startup.*` file and the
+mirrored `System/Startup.int` and `System64/Startup.int` omit descriptions for
+removed renderer classes.
+
+Launch a disposable profile with `[FirstRun] FirstRun=0` and verify the native
+configuration window initially selects Direct3D 12. Selecting it must display
+the Unreal Revived D3D12 recommendation. Confirm the window loads the branded
+343x84 `Help/SetupLogo.bmp`, and inspect the tracked shortcut ICO for 16, 24,
+32, 48, 64, 128, and 256 pixel frames.
+
+For audio policy changes, enumerate `Engine.AudioSubsystem` registrations
+across every locale and require ALAudio to be the only result. Confirm the
+final `System64` tree retains `ALAudio.dll`, `OpenAL32.dll`, `libxmp.dll`,
+`sndfile.dll`, `mpg123.dll`, and `libmp3lame.dll`. Each representative runtime
+log must contain both `Bound to ALAudio.dll` and `ALAudio subsystem initialized.`
+
+For `System` pruning, inspect PE machine fields before excluding native files.
+The supported x64 installation must retain `System/*.u` and localized `.int`
+registrations even when direct x86 `.dll` and `.exe` files are omitted. Run the
+full D3D12 suite and start a dedicated server with
+`System64/UCC.exe server DmDeck16?game=UnrealShare.DeathMatchGame`; require
+`IpDrv`, `UWebAdmin`, the expected mutator, and port binding. The pinned host
+currently logs a missing optional `UnrealIntegrity` package in both full and
+filtered runtimes; do not treat other missing-package warnings as baseline.
+
+Use explicit inputs when evaluating a runtime other than `local/game/`:
+
+```powershell
+powershell -NoProfile -File scripts/audit-game-content.ps1 `
+  -RuntimeRoot <runtime> `
+  -OriginalGameRoot <original> `
+  -PatchRoot <extracted-patch> `
+  -OutputRoot <ignored-report-directory>
+```
+
 ## Build validation
 
 ```powershell
@@ -162,12 +226,31 @@ target maintains those copies for the disposable runtime.
 - Disable it and confirm the overlay is removed.
 - Change a setting, use **Restart**, and confirm the relaunched process retains
   the `D3D12Test.ini` and `D3D12TestUser.ini` command-line arguments.
+- In an installer-created runtime, use **Restart** and confirm the relaunched
+  process retains `UnrealRevived.ini` and `UnrealRevivedUser.ini`, does not open
+  First-Time Configuration, and keeps the ModernMenu root and saved settings.
 - Reopen Video preferences after Restart and confirm the FPS checkbox retains
   its saved state.
 - Open **Options > Preferences > Game** and confirm **Console** displays
   **Standard Unreal Console** and cannot open or select another console.
 - Confirm Restart leaves `Engine.Engine.Console=UMenu.UnrealConsole` and Escape
   continues to open the windowed UMenu interface.
+
+## Installer uninstall checklist
+
+- Create a sentinel file under the installed `Save` directory.
+- Start interactive uninstall and confirm **Keep save games** is checked by
+  default in the native uninstall window.
+- Click **Uninstall** and confirm the same window transitions to progress with
+  no additional confirmation dialog.
+- Complete uninstall and confirm only the retained `Save` directory remains
+  under the former installation path, including the sentinel file.
+- Confirm a timestamped `Unreal Revived Backup` under Documents contains the
+  saves and dedicated profiles.
+- Reinstall and confirm the retained saves remain available.
+- In an isolated test installation, uncheck **Keep save games**, complete
+  uninstall, and confirm the installation copy is removed after backup.
+- Confirm an explicit `/SILENT` uninstall retains saves without prompting.
 
 ## Reporting results
 

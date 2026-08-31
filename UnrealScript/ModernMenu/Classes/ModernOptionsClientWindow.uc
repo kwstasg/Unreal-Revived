@@ -1,4 +1,8 @@
-class ModernOptionsClientWindow extends UMenuOptionsClientWindow;
+class ModernOptionsClientWindow extends UMenuOptionsClientWindow
+	config;
+
+var config string RestartIni;
+var config string RestartUserIni;
 
 function Created()
 {
@@ -45,7 +49,13 @@ function MessageBoxDone(UWindowMessageBox W, MessageBoxResult Result)
 
 			GetParent(class'UWindowFramedWindow').Close();
 			Root.Console.CloseUWindow();
-			GetPlayerOwner().ConsoleCommand("RELAUNCH Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini");
+			GetPlayerOwner().ConsoleCommand("RELAUNCH Unreal.unr ini=" $ RestartIni $ " userini=" $ RestartUserIni);
 		}
 	}
+}
+
+defaultproperties
+{
+	RestartIni="D3D12Test.ini"
+	RestartUserIni="D3D12TestUser.ini"
 }

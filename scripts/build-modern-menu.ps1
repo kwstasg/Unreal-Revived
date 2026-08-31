@@ -2,7 +2,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $GameRoot,
 
-    [string] $IniName = 'D3D12Test.ini'
+    [string] $IniName = 'D3D12Test.ini',
+
+    [string] $UserIniName = 'D3D12TestUser.ini'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -28,6 +30,8 @@ foreach ($requiredPath in @($sourceDirectory, $systemDirectory, $system64Directo
 $iniLines = Get-Content -LiteralPath $iniPath
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' $IniName
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' $UserIniName
 $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
 Set-Content -LiteralPath $iniPath -Value $iniLines -Encoding ASCII
 

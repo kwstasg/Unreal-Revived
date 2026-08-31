@@ -4,6 +4,161 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-08-31
+
+### Began evidence-based installer content auditing
+
+- Added a read-only effective-runtime inventory that compares each installed
+  path with the original Unreal Gold source and extracted pinned 227k_15 patch.
+- Recorded per-file hashes, sizes, origin, conservative classification,
+  rationale, and matching engine package or localization search path.
+- Reconciled all 2,382 files and 867,626,440 bytes in the latest disposable
+  runtime snapshot. Classified 150 files totaling 130,055,289 bytes as
+  candidates for later reversible quarantine testing; no exclusions were
+  approved or applied, and 165 unknown files remain retained by default.
+- Extended runtime smoke-test failure detection to reject missing-file,
+  missing-package, package-not-found, and failed-load diagnostics.
+- Validated report reconciliation and representative `Maps`, `System`, and
+  `SystemLocalized` search-path evidence, then passed a focused `NyLeve` D3D12
+  launch with the strengthened failure detector.
+
+### Applied conservative installer content pruning
+
+- Added a shared tracked content manifest consumed during original-game copy
+  and patch staging. It excludes historical DirectX/setup media, manuals,
+  release notes, setup artwork, copied logs, source profiles, and linker cache
+  state while retaining `Help/Logo.bmp`, which runtime evidence proved is used.
+- Kept editor tools, 32-bit host modules, alternate patch renderers, both
+  campaigns, multiplayer/server and web-admin support, all languages, and
+  XOpenGL recovery pending broader feature-specific evidence.
+- Quarantined the complete 150-file candidate set in a separate disposable
+  runtime and passed all 26 automated content, setting, menu, and display cases.
+- Applied only the conservative 102-file subset totaling 92,638,383 bytes in
+  the measured source snapshot, built the filtered final tree from exact staged
+  inputs, and passed all six representative content cases on that tree.
+
+### Removed obsolete renderer payloads
+
+- Removed 66 audited D3D7, D3D9, Glide, software, Metal, and ICBINDx11 renderer
+  binaries and companion shader/cache assets from `System` and `System64`.
+- Retained D3D12 as the primary renderer plus XOpenGL and standard OpenGL for
+  recovery. An explicit temporary XOpenGL profile loaded `NyLeve`, completed a
+  clean bind/unbind cycle, and logged no missing content.
+- Passed all six D3D12 content cases before policy changes and again on a fresh
+  final installation assembled through the updated copy and patch-stage rules.
+- Increased the measured total exclusion set to 168 paths and 100,893,743
+  bytes. The rebuilt installer is 94,207,979 bytes.
+- Removed the obsolete renderer `.int` registrations that still populated
+  Video Preferences and filtered their descriptions from all ten localized
+  recovery files while preserving UTF-8 BOM encoding.
+- Assembled a fresh final tree and verified its complete render-device
+  registration set contains exactly Direct3D 12, OpenGL, and XOpenGL, with no
+  stale descriptions in localized or mirrored recovery metadata.
+
+### Removed unused x86 host and editor/setup files
+
+- Confirmed from PE headers that all 42 direct `.dll` and `.exe` files under
+  `System` are x86 and omitted them from the supported x64 installer while
+  retaining all architecture-independent `.u` packages and registrations.
+- Removed end-user UnrealEd/setup executables, duplicated editor resources,
+  editor splash/config assets, and the original install manifest. Retained x64
+  `Editor.dll` because Chizra and Dug load it during normal gameplay.
+- Retained `System64/UCC.exe` and validated the actual dedicated-server entry
+  point on `DmDeck16`: it bound `IpDrv`, `UWebAdmin`, and port 7778. The only
+  missing package was `UnrealIntegrity`, reproduced identically in the full
+  runtime baseline.
+- Passed all 26 automated content, renderer-setting, menu, and display cases on
+  the quarantine tree and all six content cases on a fresh policy-built final
+  tree. The additional pass removes 113 paths and 31,177,744 bytes, bringing
+  the measured total to 281 paths and 132,071,487 bytes.
+
+### Standardized on ALAudio
+
+- Retained ALAudio as the sole supported audio engine with OpenAL Soft 1.24.3,
+  EFX initialization, and HRTF capability. PE import inspection confirmed its
+  required codec chain includes `libxmp`, `sndfile`, `mpg123`, and
+  `libmp3lame`, so all remain packaged.
+- Removed deprecated Galaxy, experimental SwFMOD, FMOD Ex 4.44.57, and their
+  English and localized registrations and recovery descriptions. Galaxy also
+  imported Visual C++ debug runtimes, making it unsuitable as a general
+  distribution fallback.
+- Passed all six representative content cases on a fresh policy-filtered tree;
+  every case bound `ALAudio.dll` and initialized the subsystem. This removes
+  another 24 files and 2,713,159 bytes, bringing the measured total to 305
+  paths and 134,784,646 bytes.
+
+### Branded first-time configuration and shortcuts
+
+- Added D3D12 recommendation text to all ten localized `Startup.*` files and
+  set both generic default profiles to D3D12, in addition to the existing
+  dedicated Unreal Revived profile defaults.
+- Restored the host-required 343x84 `SetupLogo.bmp` that the content policy had
+  incorrectly removed.
+- Added original project-owned `Logo.bmp`, `SetupLogo.bmp`, and a seven-frame,
+  16-through-256-pixel shortcut icon under the tracked `branding/` directory.
+  Packaging copies these files directly and no longer derives artwork from the
+  user's original installation.
+- Added `scripts/build-unreal-revived-branding.ps1` as the editable,
+  deterministic source for regenerating the tracked baseline artwork.
+- Validated the exact 719x200 and 343x84 bitmap dimensions, all seven icon
+  frames, byte-for-byte deterministic regeneration, and byte-identical staged
+  copies. Rebuilt the offline installer with SHA-256
+  `A1008CB9AD5452143830DDF9FE8F04E60F7E1A739DC2A7CDA404E42B90B53387`.
+- Made desktop shortcut creation unconditional during install and repair, and
+  changed the installed icon path to `UnrealRevived-Icon-v1.ico` so Explorer
+  refreshes the icon instead of retaining a cached image from the old path.
+- Completed a fresh installer run and confirmed the desktop shortcut was
+  recreated with the versioned icon path, the installed icon matched the
+  tracked asset by SHA-256, and uninstall metadata used the same icon. The
+  corrected installer SHA-256 is
+  `C647B1B449E4B9EA64B9BC30D0E43E9A2076D3930AA0E2A40920B6B91D4A9334`.
+- Validated the native first-time window selects Direct3D 12. The exact engine
+  localization lookup and native selection-change notification display the new
+  D3D12 description.
+
+### Established installer profile defaults
+
+- Added explicit initial fullscreen, brightness, frame-rate, visual-detail,
+  network, VSync, and shadow-detail preferences to the dedicated profiles
+  created by the offline installer.
+- Kept the preferences isolated from the original game installation and
+  editable after installation.
+- Validated profile generation in an ignored staged host tree and asserted all
+  15 generated INI values, including the user-profile network and HUD values
+  that the host otherwise creates from runtime defaults.
+
+### Preserved installer profiles across Preferences Restart
+
+- Replaced the development-only profile names hardcoded in ModernMenu's
+  Restart action with config-backed engine and user profile names.
+- Configured development deployment to retain `D3D12Test.ini` and
+  `D3D12TestUser.ini`, while installer profiles use `UnrealRevived.ini` and
+  `UnrealRevivedUser.ini`.
+- Validated a zero-warning ModernMenu compile and asserted both development and
+  production restart-profile configuration values.
+
+### Added opt-out save preservation during uninstall
+
+- Added an interactive **Keep save games** checkbox that is checked by default;
+  silent maintenance uninstall uses the same keep behavior.
+- Moved the save directory atomically outside the deletion root after the
+  existing Documents backup, then restored it under the former installation
+  path after uninstall so a future reinstall can reuse it.
+- Preserved the timestamped Documents backup regardless of the checkbox choice
+  and made backup failure stop removal instead of silently deleting user data.
+- Removed forced silent flags from Setup's maintenance uninstall so the checked
+  save-retention option is visible, accepted a retained save-only destination
+  on reinstall, and excluded original-game saves when retained saves exist.
+- Made the save-options form the sole uninstall confirmation by suppressing
+  Inno's redundant prompt in maintenance and registered uninstall commands.
+- Replaced the standalone options form with controls embedded in
+  `UninstallProgressForm`; the native window collects the choice, then
+  transitions in place to standard uninstall progress.
+- Validated the reinstall copy path with an isolated sentinel save: the retained
+  file was unchanged, source saves were excluded, and other game files copied.
+- Validated the complete Inno Setup definition with compiler version 6.7.3;
+  isolated end-to-end uninstall behavior remains to be exercised.
+
 ## 2026-08-30
 
 ### Established a reproducible 227k_15 host

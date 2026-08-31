@@ -181,6 +181,54 @@ Setup. The ZIP itself is not embedded. The generated single-file installer and
 its SHA-256 sidecar are written under
 `local/package/offline-installer/output/`.
 
+The tracked `manifests/content/unreal-revived-install-content-v1.json` policy is
+applied to both the original-game copy and extracted patch before packaging.
+It omits historical DirectX redistributables, manuals, patch release notes,
+setup artwork, copied logs, source user profiles, and linker cache state.
+`Help/Logo.bmp` and `Help/SetupLogo.bmp` are retained because runtime tracing
+and host source confirm the x64 executable loads them during startup and
+first-time configuration. Both campaigns, multiplayer and dedicated-server
+content, web administration, all localizations, D3D12, XOpenGL recovery, editor
+runtime packages, and the x64 dedicated-server path remain installed.
+
+Validated obsolete D3D7, D3D9, Glide, software, Metal, and ICBINDx11 renderer
+binaries and companion assets are also omitted from both `System` and
+`System64`. D3D12 is the primary renderer; XOpenGL and standard OpenGL remain
+available for recovery. Obsolete renderer registration files and localized
+recovery descriptions are filtered as well, so Video Preferences and recovery
+advertise only Direct3D 12, OpenGL, and XOpenGL.
+
+The supported host is x64, so direct `.dll` and `.exe` files under `System`
+are omitted after PE inspection confirmed all 42 are x86. The `System`
+directory itself remains essential: the x64 engine loads its architecture-
+independent `.u` packages and localization registrations from there. End-user
+UnrealEd/setup executables, editor resource directories, editor splash/config
+files, and the original install manifest are also omitted. `System64/UCC.exe`,
+`Editor.dll`, and `ScriptedAIEd.dll` remain because UCC is the supported
+dedicated-server entry point and normal gameplay maps can load `Editor.dll`.
+
+ALAudio is the sole distributed audio engine. It uses the bundled OpenAL Soft
+and retains `OpenAL32.dll`, `libxmp.dll`, `sndfile.dll`, `mpg123.dll`, and
+`libmp3lame.dll`. Deprecated Galaxy and experimental SwFMOD registrations,
+localized descriptions, binaries, and the FMOD Ex library are omitted.
+
+Packaging replaces both retained logo bitmaps with the original project-owned
+artwork tracked under `branding/`. It also installs the tracked seven-frame,
+16-through-256-pixel `UnrealRevived.ico` for shortcuts and uninstall metadata.
+The installed icon uses a versioned filename so Windows Explorer cannot reuse a
+stale cached image, and setup recreates the desktop shortcut on every install
+or repair.
+The baseline assets can be regenerated deterministically with
+`scripts/build-unreal-revived-branding.ps1`; packaging copies the tracked files
+directly and does not read original-game artwork. Both generic defaults and the
+dedicated launch profile select D3D12, and every localized first-time
+configuration page carries the D3D12 recommendation text.
+
+The validated source snapshot omitted 305 audited paths totaling 134,784,646
+bytes, although generated files and source-install differences can change the
+exact installed reduction. Original Steam files are read only and are never
+removed.
+
 The Unreal Revived installer detects Steam App ID 13250 across registered Steam
 libraries and preselects that installation on an **Original Game** page. The
 user can browse to another Unreal Gold installation containing
@@ -198,14 +246,21 @@ and profile generation also run hidden, so no console window opens. The
 installer never writes into the original source. It launches with dedicated
 `UnrealRevived.ini` and `UnrealRevivedUser.ini` profiles. Uninstall backs up
 saves and those profiles to a timestamped `Unreal Revived Backup` directory
-under Documents before removing the side-by-side installation.
+under Documents before removing the side-by-side installation. Interactive
+uninstall embeds a default-checked **Keep save games** option in Inno's native
+uninstall window; the same window transitions into removal progress after the
+user confirms. When checked, the `Save` directory is retained under the installation path for a future reinstall.
+Explicit silent uninstall keeps saves by default. Unchecking the option removes
+the installation copy after the Documents backup is created.
+Reinstall accepts a retained `Save` directory and excludes the original game's
+save folder from the copy so newer retained saves are not overwritten.
 
 Rerunning the same installer detects the registered Unreal Revived App ID and
 opens a maintenance prompt. **Yes** runs the existing uninstaller, preserves
-the configured user-data backup, and closes Setup. **No** continues into the
-normal wizard to repair or update the installation. **Cancel** exits without
-making changes. Both machine-wide and earlier per-user registrations are
-detected.
+the configured user-data backup, shows the save-retention choice, and closes
+Setup. **No** continues into the normal wizard to repair or update the
+installation. **Cancel** exits without making changes. Both machine-wide and
+earlier per-user registrations are detected.
 
 ## Repository safety
 

@@ -16,6 +16,7 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $hostManifestPath = Join-Path $repositoryRoot 'manifests\hosts\unreal-gold-227k_15-win64.json'
+$contentManifestPath = Join-Path $repositoryRoot 'manifests\content\unreal-revived-install-content-v1.json'
 Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Integrity.psm1') -Force
 if (-not $PatchArchive) {
     $PatchArchive = Join-Path $repositoryRoot 'local\downloads\OldUnreal-UnrealPatch227k-Windows.zip'
@@ -29,11 +30,16 @@ $modernMenu = Join-Path $GameRoot 'System64\ModernMenu.u'
 $installScript = Join-Path $repositoryRoot 'scripts\install-unreal-revived.ps1'
 $copyScript = Join-Path $repositoryRoot 'scripts\copy-original-game.ps1'
 $backupScript = Join-Path $repositoryRoot 'scripts\backup-unreal-revived-user-data.ps1'
+$brandingRoot = Join-Path $repositoryRoot 'branding'
+$brandingLogo = Join-Path $brandingRoot 'Logo.bmp'
+$brandingSetupLogo = Join-Path $brandingRoot 'SetupLogo.bmp'
+$brandingIcon = Join-Path $brandingRoot 'UnrealRevived.ico'
+$installedBrandingIconName = 'UnrealRevived-Icon-v1.ico'
 $iniModule = Join-Path $repositoryRoot 'scripts\UnrealRevived.Ini.psm1'
 $permissions = Join-Path $repositoryRoot 'PERMISSIONS.md'
 $installerDefinition = Join-Path $repositoryRoot 'packaging\UnrealRevived.iss'
 
-foreach ($requiredPath in @($hostManifestPath, $PatchArchive, $RendererDll, $rendererInt, $modernMenu, $installScript, $copyScript, $backupScript, $iniModule, $permissions)) {
+foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $rendererInt, $modernMenu, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $brandingIcon, $iniModule, $permissions)) {
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Missing offline package input: $requiredPath"
     }
@@ -62,6 +68,96 @@ New-Item -ItemType Directory -Path $payloadRoot, $patchRoot, $outputRoot -Force 
 Write-Host 'Extracting the verified patch for direct Inno Setup packaging'
 Expand-Archive -LiteralPath $PatchArchive -DestinationPath $patchRoot -Force
 Assert-UnrealRevivedHostModules -HostRoot $patchRoot -HostManifest $hostManifest
+Copy-Item -LiteralPath $brandingLogo -Destination (Join-Path $patchRoot 'Help\Logo.bmp') -Force
+Copy-Item -LiteralPath $brandingSetupLogo -Destination (Join-Path $patchRoot 'Help\SetupLogo.bmp') -Force
+$stagedBrandingRoot = Join-Path $patchRoot 'UnrealRevived'
+New-Item -ItemType Directory -Path $stagedBrandingRoot -Force | Out-Null
+Copy-Item -LiteralPath $brandingIcon -Destination (Join-Path $stagedBrandingRoot $installedBrandingIconName) -Force
+
+$contentPolicy = Get-Content -LiteralPath $contentManifestPath -Raw | ConvertFrom-Json
+if ($contentPolicy.schema -ne 1) {
+    throw "Unsupported install content manifest schema: $($contentPolicy.schema)"
+}
+foreach ($relativePath in @($contentPolicy.exclusions.directories)) {
+    Remove-Item -LiteralPath (Join-Path $patchRoot ([string]$relativePath).Replace('/', '\')) -Recurse -Force -ErrorAction SilentlyContinue
+}
+foreach ($rule in @($contentPolicy.exclusions.directoryContentsExcept)) {
+    $directory = Join-Path $patchRoot ([string]$rule.path).Replace('/', '\')
+    if (-not (Test-Path -LiteralPath $directory -PathType Container)) {
+        continue
+    }
+    $keep = @($rule.keep | ForEach-Object { [string]$_ })
+    Get-ChildItem -LiteralPath $directory -File -Recurse -Force | Where-Object {
+        $relativePath = $_.FullName.Substring($directory.Length).TrimStart('\')
+        $relativePath -notin $keep
+    } | Remove-Item -Force
+}
+foreach ($relativePath in @($contentPolicy.exclusions.files)) {
+    Remove-Item -LiteralPath (Join-Path $patchRoot ([string]$relativePath).Replace('/', '\')) -Force -ErrorAction SilentlyContinue
+}
+foreach ($rule in @($contentPolicy.exclusions.directFileExtensions)) {
+    $directory = Join-Path $patchRoot ([string]$rule.path).Replace('/', '\')
+    if (-not (Test-Path -LiteralPath $directory -PathType Container)) {
+        continue
+    }
+    $extensions = @($rule.extensions | ForEach-Object { ([string]$_).ToLowerInvariant() })
+    Get-ChildItem -LiteralPath $directory -File -Force | Where-Object {
+        $_.Extension.ToLowerInvariant() -in $extensions
+    } | Remove-Item -Force
+}
+$registrationBaseNames = @(
+    $contentPolicy.metadataFiltering.rendererRegistrationBaseNames
+    $contentPolicy.metadataFiltering.audioRegistrationBaseNames
+) | ForEach-Object { [string]$_ }
+if ($registrationBaseNames.Count -gt 0) {
+    Get-ChildItem -LiteralPath $patchRoot -File -Recurse -Filter '*.int' -Force | Where-Object {
+        $_.BaseName -in $registrationBaseNames
+    } | Remove-Item -Force
+    $localizedMetadataRoot = Join-Path $patchRoot 'SystemLocalized'
+    if (Test-Path -LiteralPath $localizedMetadataRoot -PathType Container) {
+        Get-ChildItem -LiteralPath $localizedMetadataRoot -File -Recurse -Force | Where-Object {
+            $_.BaseName -in $registrationBaseNames
+        } | Remove-Item -Force
+    }
+}
+$startupDescriptionPrefixes = @($contentPolicy.metadataFiltering.startupDescriptionPrefixes | ForEach-Object { [string]$_ })
+if ($startupDescriptionPrefixes.Count -gt 0) {
+    $d3d12Description = 'D3D12Drv.D3D12RenderDevice="Use Unreal Revived''s native Direct3D 12 renderer. Recommended for modern Windows systems, with high-resolution texture support, HD lightmaps, and MSAA."'
+    foreach ($startupFile in Get-ChildItem -LiteralPath $patchRoot -File -Recurse -Filter 'Startup.*' -Force) {
+        $filteredLines = @(Get-Content -LiteralPath $startupFile.FullName | Where-Object {
+            $line = $_
+            -not ($startupDescriptionPrefixes | Where-Object { $line.StartsWith($_, [StringComparison]::OrdinalIgnoreCase) }) -and
+                -not $line.StartsWith('D3D12Drv.D3D12RenderDevice=', [StringComparison]::OrdinalIgnoreCase)
+        })
+        if (-not ($filteredLines | Where-Object { $_ -ieq '[Descriptions]' })) {
+            throw "Startup localization has no Descriptions section: $($startupFile.FullName)"
+        }
+        $inDescriptions = $false
+        $localizedLines = @($filteredLines | ForEach-Object {
+            if ($_ -ieq '[Descriptions]') {
+                $inDescriptions = $true
+            }
+            elseif ($inDescriptions -and $_ -match '^\[.+\]$') {
+                $d3d12Description
+                $inDescriptions = $false
+            }
+            $_
+        })
+        if ($inDescriptions) {
+            $localizedLines += $d3d12Description
+        }
+        Set-Content -LiteralPath $startupFile.FullName -Value $localizedLines -Encoding UTF8
+    }
+}
+
+Import-Module $iniModule -Force
+foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
+    $defaultProfilePath = Join-Path $patchRoot $defaultProfile
+    $defaultProfileLines = Get-Content -LiteralPath $defaultProfilePath
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'GameRenderDevice' 'D3D12Drv.D3D12RenderDevice'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'WindowedRenderDevice' 'D3D12Drv.D3D12RenderDevice'
+    Set-Content -LiteralPath $defaultProfilePath -Value $defaultProfileLines -Encoding ASCII
+}
 
 $payloadSources = [ordered]@{
     'D3D12Drv.dll' = $RendererDll
@@ -72,6 +168,7 @@ $payloadSources = [ordered]@{
     'UnrealRevived.Ini.psm1' = $iniModule
     'PERMISSIONS.md' = $permissions
     'unreal-gold-227k_15-win64.json' = $hostManifestPath
+    'unreal-revived-install-content-v1.json' = $contentManifestPath
 }
 
 foreach ($entry in $payloadSources.GetEnumerator()) {

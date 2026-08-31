@@ -276,7 +276,8 @@ if ($Maps) {
 }
 
 $rendererSection = 'D3D12Drv.D3D12RenderDevice'
-$failurePattern = 'Critical Error|Assertion|ResizeTarget failed|ResizeViewport failed|Could not resize scene buffers|Could not flush d3d12 renderer|CreateCommittedResource.*failed|Bound to XOpenGLDrv'
+$failurePattern = "Critical Error|Assertion|ResizeTarget failed|ResizeViewport failed|Could not resize scene buffers|Could not flush d3d12 renderer|CreateCommittedResource.*failed|Bound to XOpenGLDrv|Can't find file|Failed to load|Missing package|Package .* not found"
+$knownEntryFallbackPattern = "(?m)^Warning: Failed to load 'EntryIII\.unr': Can't find file 'EntryIII\.unr'\r?\n?|^Warning: Failed to load 'Level None\.MyLevel': Can't find file 'EntryIII\.unr'\r?\n?"
 $sourceHash = (Get-FileHash -LiteralPath $sourceIni -Algorithm SHA256).Hash
 $userHash = (Get-FileHash -LiteralPath $userIni -Algorithm SHA256).Hash
 $results = @()
@@ -344,6 +345,7 @@ try {
         $caseLog = Join-Path $caseDir 'Unreal.log'
         Copy-Item -LiteralPath $runtimeLog -Destination $caseLog
         $logText = Get-Content -LiteralPath $caseLog -Raw
+        $failureText = $logText -replace $knownEntryFallbackPattern, ''
         $expectedMap = "LoadMap: $($case.Map)"
         if (-not $logText.Contains($expectedMap)) {
             throw "$($case.Name) did not load $($case.Map)."
@@ -351,7 +353,7 @@ try {
         if (-not $logText.Contains('Bound to D3D12Drv.dll') -or -not $logText.Contains('Unbound to D3D12Drv.dll')) {
             throw "$($case.Name) did not complete a clean D3D12 bind/unbind cycle."
         }
-        if ($logText -match $failurePattern) {
+        if ($failureText -match $failurePattern) {
             throw "$($case.Name) contains a renderer failure signature."
         }
         if (($case.Settings.ContainsKey('AntialiasMode') -or $case.Name -match '^display-(2560x1440|3840x2160)') -and $logText -notmatch 'requested MSAA \d+x, effective MSAA \d+x') {
