@@ -478,6 +478,20 @@ function Export-DerivedBranding {
             $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
             $graphics.DrawImage($logoArtwork, 0, 0, 719, 200)
             $logo.Save((Join-Path $OutputRoot 'Logo.bmp'), [Drawing.Imaging.ImageFormat]::Bmp)
+
+            $setupLogo = New-Object Drawing.Bitmap(343, 84, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+            $setupGraphics = [Drawing.Graphics]::FromImage($setupLogo)
+            try {
+                $setupGraphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+                $setupGraphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+                $setupGraphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+                $setupGraphics.DrawImage($logo, 0, 0, 343, 84)
+                $setupLogo.Save((Join-Path $OutputRoot 'SetupLogo.bmp'), [Drawing.Imaging.ImageFormat]::Bmp)
+            }
+            finally {
+                $setupGraphics.Dispose()
+                $setupLogo.Dispose()
+            }
         }
         finally {
             $graphics.Dispose()

@@ -57,6 +57,7 @@ private:
 
 UD3D12RenderDevice::UD3D12RenderDevice()
 {
+	QueryPerformanceFrequency(&Performance.Frequency);
 }
 
 void UD3D12RenderDevice::StaticConstructor()
@@ -218,6 +219,9 @@ UBOOL UD3D12RenderDevice::Init(UViewport* InViewport, INT NewX, INT NewY, INT Ne
 
 	Viewport = InViewport;
 	ActiveHdr = Hdr;
+	Performance.Enabled = GetEnvironmentVariableW(L"UNREAL_REVIVED_MEASURE_PERFORMANCE", nullptr, 0) > 0;
+	if (Performance.Enabled)
+		debugf(TEXT("D3D12Drv performance measurement enabled"));
 
 	GetOutputRect();
 
@@ -800,6 +804,23 @@ void UD3D12RenderDevice::Exit()
 	DebugController.reset();
 
 	unguard;
+}
+
+void UD3D12RenderDevice::LogPerformanceSummary()
+{
+	std::vector<double> SortedFrameTimes = Performance.FrameTimesMs;
+	std::sort(SortedFrameTimes.begin(), SortedFrameTimes.end());
+	double TotalFrameTime = 0.0;
+	for (double FrameTime : SortedFrameTimes)
+		TotalFrameTime += FrameTime;
+	auto Percentile = [&SortedFrameTimes](double Value)
+	{
+		size_t Index = (size_t)std::ceil(Value * SortedFrameTimes.size()) - 1;
+		return SortedFrameTimes[Min(Index, SortedFrameTimes.size() - 1)];
+	};
+	double AverageFrameTime = TotalFrameTime / SortedFrameTimes.size();
+	debugf(TEXT("D3D12Drv performance: samples=%u average_ms=%.3f median_ms=%.3f p95_ms=%.3f p99_ms=%.3f max_ms=%.3f average_fps=%.2f"),
+		(unsigned int)SortedFrameTimes.size(), AverageFrameTime, Percentile(0.50), Percentile(0.95), Percentile(0.99), SortedFrameTimes.back(), 1000.0 / AverageFrameTime);
 }
 
 void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
@@ -2392,6 +2413,26 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 			Batch.SceneIndexStart = 0;
 
 			SubmitCommands(true);
+
+			if (Performance.Enabled)
+			{
+				LARGE_INTEGER PresentTime;
+				QueryPerformanceCounter(&PresentTime);
+				if (Performance.LastPresent.QuadPart != 0)
+				{
+					if (Performance.WarmupFrames > 0)
+						Performance.WarmupFrames--;
+					else
+					{
+						Performance.FrameTimesMs.push_back((PresentTime.QuadPart - Performance.LastPresent.QuadPart) * 1000.0 / Performance.Frequency.QuadPart);
+						if (Performance.FrameTimesMs.size() == 1)
+							debugf(TEXT("D3D12Drv performance sampling started"));
+						if (Performance.FrameTimesMs.size() % 120 == 0)
+							LogPerformanceSummary();
+					}
+				}
+				Performance.LastPresent = PresentTime;
+			}
 
 			// Flush the descriptors if we are running out
 			if (Heaps.Common->GetUsedCount() * 100 / Heaps.Common->GetHeapSize() > 75)

@@ -237,11 +237,11 @@ for other viewport ratios, so replacement artwork is never stretched.
 
 To import user-authored artwork, supply a 16:9 PNG, BMP, or JPEG to
 `scripts/build-unreal-revived-branding.ps1 -MenuBackgroundSource <path>`. Add
-`-DeriveBranding` to crop the source's circular crest into the seven-frame ICO
-and its lower wordmark into the 719x200 setup banner. `SetupLogo.bmp` remains
-independent. Without that switch, only the canonical menu bitmap and twelve
-tiles change. Wider viewports crop the top and bottom; narrower viewports crop
-the sides.
+`-DeriveBranding` to crop the source's circular crest into the seven-frame ICO,
+crop its lower wordmark into the 719x200 banner, and resize that banner into the
+343x84 first-time configuration logo. Without that switch, only the canonical
+menu bitmap and twelve tiles change. Wider viewports crop the top and bottom;
+narrower viewports crop the sides.
 
 The validated source snapshot omitted 305 audited paths totaling 134,784,646
 bytes, although generated files and source-install differences can change the

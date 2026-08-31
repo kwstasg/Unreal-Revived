@@ -433,6 +433,7 @@ private:
 
 	void WaitDeviceIdle();
 	void WaitForFence(UINT64 value);
+	void LogPerformanceSummary();
 	void SubmitCommands(bool present);
 	void TransitionResourceBarrier(ID3D12GraphicsCommandList* cmdlist, ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
 	void TransitionResourceBarrier(ID3D12GraphicsCommandList* cmdlist, ID3D12Resource* resource0, D3D12_RESOURCE_STATES before0, D3D12_RESOURCE_STATES after0, ID3D12Resource* resource1, D3D12_RESOURCE_STATES before1, D3D12_RESOURCE_STATES after1);
@@ -470,6 +471,15 @@ private:
 
 	bool IsLocked = false;
 	bool ActiveHdr = false;
+
+	struct
+	{
+		LARGE_INTEGER Frequency = {};
+		LARGE_INTEGER LastPresent = {};
+		int WarmupFrames = 30;
+		bool Enabled = false;
+		std::vector<double> FrameTimesMs;
+	} Performance;
 
 	struct
 	{

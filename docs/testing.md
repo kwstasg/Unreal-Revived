@@ -148,6 +148,24 @@ For a focused check, provide one or more map names:
 powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Maps NyLeve -RunSeconds 8
 ```
 
+Add opt-in present-cadence measurement to any suite or focused run:
+
+```powershell
+powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 `
+  -Maps NyLeve `
+  -RunSeconds 8 `
+  -MeasurePerformance
+```
+
+Performance mode foregrounds the game, ignores the first 30 present intervals,
+and records cumulative average, median, p95, p99, maximum frame time, and
+average FPS in `results.csv`. It requires at least one 120-sample summary and
+fails when the renderer does not emit telemetry. The metric is present-to-present
+wall-clock cadence, so it includes engine work, renderer submission, and frame
+pacing; it is not isolated GPU execution time. Compare like-for-like runs and
+use a demanding setting or resolution that falls below the host's approximately
+240 FPS ceiling when measuring GPU headroom.
+
 Capture screenshots without comparing them:
 
 ```powershell
@@ -184,6 +202,10 @@ from the desktop because this 227 build did not produce an image through F9,
 `EXEC=SHOT`, or `LEVACT_SaveScreenshot`. Avoid covering the game window while
 capture mode runs. A passing comparison detects broad visual changes but does
 not replace review for subtle rendering errors.
+
+Set `UE1_GAME_ROOT` explicitly when testing another disposable tree. A
+persistent override can otherwise direct the harness to an older staged
+renderer even after `deploy-d3d12drv` updates `local/game`.
 
 Use automation for map, renderer-setting, menu-profile, and display-profile
 smoke checks. UWindow controls do not expose Windows UI Automation elements and

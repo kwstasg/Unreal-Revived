@@ -14,10 +14,13 @@ param(
     [double]$MaxMeanChannelDelta = 12,
 
     [ValidateRange(0, 1)]
-    [double]$MaxChangedSampleRatio = 0.12
+    [double]$MaxChangedSampleRatio = 0.12,
+
+    [switch]$MeasurePerformance
 )
 
 $ErrorActionPreference = 'Stop'
+$repoRoot = Split-Path -Parent $PSScriptRoot
 
 if ($ScreenshotMode -ne 'Off') {
     Add-Type -AssemblyName System.Drawing
@@ -43,7 +46,6 @@ public static class ScreenshotInput
 '@
 }
 
-$repoRoot = Split-Path -Parent $PSScriptRoot
 $gameRoot = if ($env:UE1_GAME_ROOT) { [IO.Path]::GetFullPath($env:UE1_GAME_ROOT) } else { Join-Path $repoRoot 'local/game' }
 $null = & (Join-Path $PSScriptRoot 'assert-development-runtime.ps1') -GameRoot $gameRoot
 $systemDir = Join-Path $gameRoot 'System64'
@@ -282,9 +284,16 @@ $sourceHash = (Get-FileHash -LiteralPath $sourceIni -Algorithm SHA256).Hash
 $userHash = (Get-FileHash -LiteralPath $userIni -Algorithm SHA256).Hash
 $results = @()
 $process = $null
+$previousPerformanceEnvironment = $env:UNREAL_REVIVED_MEASURE_PERFORMANCE
 New-Item -ItemType Directory -Force -Path $evidenceRoot | Out-Null
 
 try {
+    if ($MeasurePerformance) {
+        $env:UNREAL_REVIVED_MEASURE_PERFORMANCE = '1'
+    } else {
+        Remove-Item Env:\UNREAL_REVIVED_MEASURE_PERFORMANCE -ErrorAction SilentlyContinue
+    }
+
     foreach ($case in $cases) {
         $caseDir = Join-Path $evidenceRoot $case.Name
         New-Item -ItemType Directory -Force -Path $caseDir | Out-Null
@@ -304,6 +313,13 @@ try {
         $arguments = @($case.Map, "ini=$temporaryIniName", 'userini=D3D12TestUser.ini', '-nosplash')
         Write-Host ("Running {0}: {1}" -f $case.Name, ($arguments -join ' '))
         $process = Start-Process -FilePath $unrealExe -ArgumentList $arguments -WorkingDirectory $systemDir -PassThru
+        if ($MeasurePerformance) {
+            $null = $process.WaitForInputIdle(5000)
+            $shell = New-Object -ComObject WScript.Shell
+            if (-not $shell.AppActivate($process.Id)) {
+                throw "$($case.Name) could not activate the Unreal window for performance measurement."
+            }
+        }
         if ($process.WaitForExit($RunSeconds * 1000)) {
             throw "$($case.Name) exited before its $RunSeconds-second observation window."
         }
@@ -360,6 +376,15 @@ try {
             throw "$($case.Name) did not log requested and effective MSAA."
         }
 
+        $performanceMatch = $null
+        if ($MeasurePerformance) {
+            $performanceMatches = [regex]::Matches($logText, 'D3D12Drv performance: samples=(\d+) average_ms=([\d.]+) median_ms=([\d.]+) p95_ms=([\d.]+) p99_ms=([\d.]+) max_ms=([\d.]+) average_fps=([\d.]+)')
+            if ($performanceMatches.Count -eq 0) {
+                throw "$($case.Name) did not log D3D12 performance telemetry."
+            }
+            $performanceMatch = $performanceMatches[$performanceMatches.Count - 1]
+        }
+
         $results += [pscustomobject]@{
             Case = $case.Name
             Map = $case.Map
@@ -369,10 +394,22 @@ try {
             ScreenshotComparison = $comparisonStatus
             MeanChannelDelta = if ($comparison) { $comparison.MeanChannelDelta } else { '' }
             ChangedSampleRatio = if ($comparison) { $comparison.ChangedSampleRatio } else { '' }
+            PerformanceSamples = if ($performanceMatch) { [int]$performanceMatch.Groups[1].Value } else { '' }
+            AverageFrameMs = if ($performanceMatch) { [double]$performanceMatch.Groups[2].Value } else { '' }
+            MedianFrameMs = if ($performanceMatch) { [double]$performanceMatch.Groups[3].Value } else { '' }
+            P95FrameMs = if ($performanceMatch) { [double]$performanceMatch.Groups[4].Value } else { '' }
+            P99FrameMs = if ($performanceMatch) { [double]$performanceMatch.Groups[5].Value } else { '' }
+            MaxFrameMs = if ($performanceMatch) { [double]$performanceMatch.Groups[6].Value } else { '' }
+            AverageFps = if ($performanceMatch) { [double]$performanceMatch.Groups[7].Value } else { '' }
             Result = 'Passed'
         }
     }
 } finally {
+    if ($null -ne $previousPerformanceEnvironment) {
+        $env:UNREAL_REVIVED_MEASURE_PERFORMANCE = $previousPerformanceEnvironment
+    } else {
+        Remove-Item Env:\UNREAL_REVIVED_MEASURE_PERFORMANCE -ErrorAction SilentlyContinue
+    }
     if ($process -and -not $process.HasExited) {
         $process.CloseMainWindow() | Out-Null
         if (-not $process.WaitForExit(5000)) {

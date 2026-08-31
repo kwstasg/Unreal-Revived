@@ -192,6 +192,32 @@ technical guides; use this file for the chronological record.
   15 generated INI values, including the user-profile network and HUD values
   that the host otherwise creates from runtime defaults.
 
+### Added automated frame-cadence measurement
+
+- Added opt-in D3D12 present-to-present telemetry and integrated average,
+  median, p95, p99, maximum frame time, sample count, and average FPS into the
+  runtime harness evidence CSV. Ordinary launches retain no sampling overhead.
+- Repeated NyLeve and DmDeck16 three times at 1024x768. Both held 239.49-239.53
+  FPS, p95 remained 4.40-4.46 ms, and the worst observed interval was 7.20 ms.
+- Exercised the complete settings and display matrices. Bloom, 2x/4x/8x MSAA,
+  2560x1440, 3840x2160, and 3840x2160 with effective 8x MSAA all retained the
+  host's approximately 240 FPS ceiling; the 4K 8x case recorded 4.65 ms p95,
+  4.82 ms p99, and 6.07 ms maximum over 600 measured intervals.
+- Found no sustained throughput loss or material frame-time spikes in these
+  static automated cases. The metric includes engine and pacing time and does
+  not establish isolated GPU headroom while the host ceiling is active.
+- Rebuilt the offline installer with the measured renderer; its SHA-256 is
+  `99B4D0997A62091050E98F87B46CB149E43DD6A63B8E36F58428346C2F75494E`.
+
+### Unified setup branding
+
+- Changed source-derived branding to resize the current 719x200 wordmark banner
+  into the host-required 343x84 setup logo, replacing the older independent
+  Unreal Revived panel and preventing it from returning on future regeneration.
+- Deployed the corrected setup logo byte-identically, compiled ModernMenu with
+  zero warnings, and rebuilt the offline installer with SHA-256
+  `5CEBBD32B2EED484D76BFB87440EBE1F858E56C7AA2F2B5BD97F6EAFFDB319C3`.
+
 ### Preserved installer profiles across Preferences Restart
 
 - Replaced the development-only profile names hardcoded in ModernMenu's

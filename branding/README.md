@@ -32,9 +32,9 @@ powershell -NoProfile -File scripts/build-unreal-revived-branding.ps1 `
 This validates the aspect ratio, upscales the source into a tracked 24-bit
 3840x2160 `MenuBackground.bmp`, and recreates the twelve tracked menu tiles.
 It also crops the circular crest into every frame of `UnrealRevived.ico` with
-transparent corners and crops the lower wordmark into the 719x200 `Logo.bmp`.
-`SetupLogo.bmp` remains independent. Omit `-DeriveBranding` to update only the
-menu background and tiles.
+transparent corners, crops the lower wordmark into the 719x200 `Logo.bmp`, and
+resizes that same banner into the 343x84 `SetupLogo.bmp`. Omit
+`-DeriveBranding` to update only the menu background and tiles.
 
 The runtime restores the source's native 16:9 proportions and uses centered
 cover scaling for other viewport ratios. Wider displays crop the top and

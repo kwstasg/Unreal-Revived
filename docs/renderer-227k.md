@@ -120,6 +120,20 @@ The hit-resolve pipeline targets R32_UINT, matching the single-sample hit
 buffer used for readback. Postprocessing and presentation remain single-sample
 after the color and hit resolves.
 
+## Performance telemetry
+
+The renderer has opt-in present-cadence telemetry for automated performance
+checks. `UNREAL_REVIVED_MEASURE_PERFORMANCE` enables it only for the launched
+test process; ordinary launches do not allocate samples or query the frame
+timer. After 30 warmup presents, the renderer emits cumulative summaries every
+120 frames with average, median, p95, p99, and maximum frame time plus average
+FPS.
+
+Samples span consecutive completed `Unlock(Blit)` submissions. They therefore
+measure end-to-end engine, D3D12 submission, and pacing behavior rather than
+GPU-only duration. The runtime harness owns the environment switch and parses
+the latest summary into its evidence CSV.
+
 ## Menu coordinate mapping
 
 The present shader scales and centers lower logical resolutions inside the
