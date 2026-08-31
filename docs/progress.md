@@ -253,9 +253,77 @@ technical guides; use this file for the chronological record.
 - Passed all 13 renderer settings cases after HUD isolation, including 2x, 4x,
   and 8x MSAA resolve paths. Evidence is under
   `local/logs/automated-20260831-224625/`.
+- Added a separate UWindow boundary because full-screen menus can render
+  without first entering `RenderOverlays`. The renderer captures immediately
+  before the first mouse-visible, no-smoothing `Z=1` menu tile. In same-process
+  Escape-menu captures at bloom 0 and 255, the bright logo and menu bar had zero
+  pixel difference and the full frame mean RGB delta was 0.099. Evidence is
+  under `local/logs/live-bloom-menu-20260901-011229/`.
+- Passed all 13 renderer settings cases and all eight menu/display cases after
+  UWindow isolation, including logical 4K plus MSAA 8x. Evidence is under
+  `local/logs/automated-20260901-011329/` and
+  `local/logs/automated-20260901-011516/`.
+- Reproduced bloom on the `Unreal.unr` intro logos and found that this
+  canvas-only path did not expose the assumed native overlay marker at a usable
+  renderer callback. The failed paused comparison is preserved under
+  `local/logs/live-bloom-intro-20260901-012748/`.
+- Added `D3D12 BLOOMSOURCE` and invoked it at the start of
+  `ModernIntroHud.PostRender`, before all intro UI. In the corrected paused
+  comparison, the NVIDIA badge had zero pixel difference between bloom 0 and
+  255, **Press ESC to begin** had no changed samples, and the vendor logos no
+  longer generated halos. Evidence is under
+  `local/logs/live-bloom-intro-20260901-012925/`.
+- Passed all 13 renderer settings cases and all eight menu/display cases with
+  the explicit intro boundary, including bloom endpoints, logical 4K, and MSAA
+  8x. Evidence is under `local/logs/automated-20260901-013407/` and
+  `local/logs/automated-20260901-013608/`.
 - Rebuilt the offline installer with the active-renderer command, final
-  threshold/intensity mapping, and world-only bloom extraction; its SHA-256 is
-  `A2FFB7E92A12A7109EE4A9D5F84EDAE933670C21C55DD1684085196B9ECF8B57`.
+  threshold/intensity mapping, and explicit HUD/UWindow/intro bloom isolation;
+  its SHA-256 is
+  `D708FE827B77E211F4EC4E8F3A24891DE13184334E2262269477A73D43893CC4`.
+- Expanded the existing slider's upper range with progressive `8n(1+n)` gain,
+  reaching about 6x at amount 128 and 16x at 255 while retaining the existing
+  radius and extraction-threshold mappings. Same-process frozen NyLeve captures
+  at 0, 128, and 255 showed a controlled midpoint, a substantially stronger
+  maximum fixture halo without whole-frame washout, and sharp HUD overlays.
+  Evidence is under `local/logs/live-bloom-curve-20260901-014429/`.
+- Passed all 13 renderer settings cases and all eight menu/display cases with
+  the expanded gain curve, including bloom endpoints, logical 4K, and MSAA 8x.
+  Evidence is under `local/logs/automated-20260901-014626/` and
+  `local/logs/automated-20260901-014832/`.
+- Rebuilt the offline installer with the expanded bloom curve; its SHA-256 is
+  `D615FA53924E5296B08A87FCB4EB08CDF97EC772C8F66619FF9D96E87058D30F`.
+
+### Added contrast and saturation to Video Preferences
+
+- Added D3D12-only Contrast and Saturation sliders directly below Brightness,
+  matching its width and track geometry. Both expose the renderer's existing
+  byte settings, show the current value, disable on other renderers, and save
+  to the active engine profile.
+- Added `D3D12 CONTRAST` and `D3D12 SATURATION` commands for immediate active-
+  renderer updates. Frozen NyLeve captures verified maximum contrast and the
+  grayscale saturation midpoint in one clean process. Evidence is under
+  `local/logs/live-color-controls-20260901-020421/`.
+- Runtime layout testing exposed that the stock page finalizes Brightness's
+  vertical position during paint. Anchoring the custom rows during
+  `BeforePaint` corrected the initial overlap; the final page shows clean
+  Brightness, Contrast, and Saturation ordering under
+  `local/logs/video-color-layout-20260901-021135/`.
+- Foreground UI interaction changed both numeric labels, invoked both live
+  commands, and persisted `Contrast=129` and `Saturation=254` in an isolated
+  temporary profile. Evidence is under
+  `local/logs/video-color-interaction-20260901-021247/`.
+- Added isolated contrast and saturation startup cases and passed all 15
+  renderer settings cases plus all eight menu/display cases, including logical
+  4K and MSAA 8x. Evidence is under
+  `local/logs/automated-20260901-022250/` and
+  `local/logs/automated-20260901-022809/`.
+- Corrected ModernMenu deployment to seed `bShowFPS=False` when the class config
+  section is absent, preventing later package rebuilds or temporary-profile UI
+  tests from leaving menu automation without its required source setting.
+- Rebuilt the offline installer with the color controls and deployment repair;
+  its SHA-256 is
+  `B0F595DBEFF60A91ACC01F1796B9AE8EA01EEFE83F392269E225953F524B4B36`.
 
 ### Preserved installer profiles across Preferences Restart
 

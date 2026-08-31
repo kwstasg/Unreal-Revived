@@ -134,12 +134,22 @@ measure end-to-end engine, D3D12 submission, and pacing behavior rather than
 GPU-only duration. The runtime harness owns the environment switch and parses
 the latest summary into its evidence CSV.
 
+## Present color controls
+
+The final present shader applies the renderer's existing contrast and
+saturation correction before gamma correction. `Contrast` maps byte value 128
+to neutral, lower values toward reduced contrast, and 255 to 4x contrast.
+`Saturation` maps 255 to normal color, approximately 128 to grayscale, and 0
+to inverse chroma. ModernMenu persists both bytes and sends `D3D12 CONTRAST`
+or `D3D12 SATURATION` so the active renderer changes without a restart.
+
 ## Bloom postprocessing
 
 `BloomAmount` controls blur radius, highlight extraction, and final additive
-gain. The byte range maps linearly from no contribution at 0 to 8x gain at 255,
-while the extraction threshold falls from 1.0 to 0.5 so ordinary SDR highlights
-can bloom. The renderer skips the bloom pass when either `Bloom` is disabled or
+gain. With normalized amount `n`, gain follows `8n(1+n)`: no contribution at 0,
+about 6x gain at the midpoint, and 16x gain at 255. The extraction threshold
+falls from 1.0 to 0.5 so ordinary SDR highlights can bloom. The renderer skips
+the bloom pass when either `Bloom` is disabled or
 the amount is zero, so the Video Preferences slider's off position has no bloom
 cost. The `D3D12 BLOOM <0-255>` renderer command updates the active instance;
 ModernMenu uses it for immediate slider changes while persisting the profile.
@@ -152,6 +162,18 @@ keeps HUD, weapon-overlay, and menu pixels from generating bloom without
 changing their normal drawing path, and works with both single-sample and MSAA
 scene buffers. Frames without an overlay boundary fall back to extracting from
 the completed scene.
+
+UWindow does not consistently enter the `RenderOverlays` phase before drawing
+its full-screen menu. The renderer therefore also recognizes UWindow's first
+menu tile from the mouse-visible viewport, no-smoothing canvas mode, and `Z=1`
+draw state, then captures the world immediately before that tile. Requiring all
+three signals avoids treating world tiles such as coronas as a menu boundary.
+
+The 227 intro HUD is a separate canvas-only path whose `bZRangeHack` state is
+not reliably observable through `SetSceneNode` or its first tile. ModernIntroHud
+therefore sends `D3D12 BLOOMSOURCE` at the start of `PostRender`, before
+`HUDSetup` or any text and image draws. The renderer resolves the world once per
+frame when that command is received; redundant boundaries are ignored.
 
 ## Menu coordinate mapping
 

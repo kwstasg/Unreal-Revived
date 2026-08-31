@@ -248,6 +248,8 @@ $settingsCases = @(
     New-TestCase -Name 'setting-xopengl-gamma' -Map 'NyLeve' -Settings @{ GammaMode = 'XOpenGL'; GammaOffset = '0.3' }
     New-TestCase -Name 'setting-lod-negative' -Map 'DmDeck16' -Settings @{ LODBias = '-1.0' }
     New-TestCase -Name 'setting-lod-positive' -Map 'DmDeck16' -Settings @{ LODBias = '1.0' }
+    New-TestCase -Name 'setting-contrast' -Map 'NyLeve' -Settings @{ Contrast = '255' }
+    New-TestCase -Name 'setting-saturation' -Map 'NyLeve' -Settings @{ Saturation = '128' }
     New-TestCase -Name 'setting-bloom-off' -Map 'NyLeve' -Settings @{ Bloom = 'False'; BloomAmount = '0' }
     New-TestCase -Name 'setting-bloom' -Map 'NyLeve' -Settings @{ Bloom = 'True'; BloomAmount = '255' }
     New-TestCase -Name 'setting-occluded-lines' -Map 'DmDeck16' -Settings @{ OccludeLines = 'True' }

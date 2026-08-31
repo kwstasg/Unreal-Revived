@@ -1567,9 +1567,10 @@ void UD3D12RenderDevice::CopySceneToPostProcess(int imageIndex)
 void UD3D12RenderDevice::RunBloomPass(const DescriptorSet& source)
 {
 	float blurAmount = 0.6f + BloomAmount * (1.9f / 255.0f);
+	float bloomLevel = BloomAmount / 255.0f;
 	BloomPushConstants pushconstants;
 	ComputeBlurSamples(7, blurAmount, pushconstants.SampleWeights);
-	pushconstants.Intensity = BloomAmount * (8.0f / 255.0f);
+	pushconstants.Intensity = 8.0f * bloomLevel * (1.0f + bloomLevel);
 	pushconstants.Threshold = 1.0f - BloomAmount * (0.5f / 255.0f);
 
 	Commands.Current->Draw->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -2127,12 +2128,36 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 
 	if (ParseCommand(&Cmd, TEXT("D3D12")))
 	{
-		if (ParseCommand(&Cmd, TEXT("BLOOM")))
+		if (ParseCommand(&Cmd, TEXT("BLOOMSOURCE")))
+		{
+			if (Bloom && BloomAmount > 0 && !BloomSourceCaptured)
+			{
+				DrawBatches();
+				CopySceneToPostProcess(1);
+				BloomSourceCaptured = true;
+			}
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("BLOOM")))
 		{
 			BloomAmount = Clamp<INT>(appAtoi(Cmd), 0, 255);
 			Bloom = BloomAmount > 0;
 			debugf(TEXT("D3D12Drv: live bloom amount %d"), (INT)BloomAmount);
 			Ar.Logf(TEXT("%d"), (INT)BloomAmount);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("CONTRAST")))
+		{
+			Contrast = Clamp<INT>(appAtoi(Cmd), 0, 255);
+			debugf(TEXT("D3D12Drv: live contrast %d"), (INT)Contrast);
+			Ar.Logf(TEXT("%d"), (INT)Contrast);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("SATURATION")))
+		{
+			Saturation = Clamp<INT>(appAtoi(Cmd), 0, 255);
+			debugf(TEXT("D3D12Drv: live saturation %d"), (INT)Saturation);
+			Ar.Logf(TEXT("%d"), (INT)Saturation);
 			return 1;
 		}
 		return 0;
@@ -3123,6 +3148,16 @@ void UD3D12RenderDevice::DrawGouraudTriangles(const FSceneNode* Frame, const FTe
 void UD3D12RenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, FLOAT X, FLOAT Y, FLOAT XL, FLOAT YL, FLOAT U, FLOAT V, FLOAT UL, FLOAT VL, class FSpanBuffer* Span, FLOAT Z, FPlane Color, FPlane Fog, DWORD PolyFlags)
 {
 	guardSlow(UD3D12RenderDevice::DrawTile);
+
+	UCanvas* canvas = Frame->Viewport->Canvas;
+	bool renderOverlay = canvas && canvas->bZRangeHack;
+	bool renderUWindow = canvas && Frame->Viewport->bShowWindowsMouse && canvas->bNoSmooth && Abs(Z - 1.0f) <= SMALL_NUMBER;
+	if (Bloom && BloomAmount > 0 && !BloomSourceCaptured && (renderOverlay || renderUWindow))
+	{
+		DrawBatches();
+		CopySceneToPostProcess(1);
+		BloomSourceCaptured = true;
+	}
 
 	// stijn: fix for invisible actor icons in ortho viewports
 	if (GIsEditor && Frame->Viewport->Actor && (Frame->Viewport->IsOrtho() || Abs(Z) <= SMALL_NUMBER))

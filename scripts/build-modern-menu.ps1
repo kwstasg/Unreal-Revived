@@ -39,6 +39,9 @@ $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UnrealConsole' 'RootWindo
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' $IniName
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' $UserIniName
+if (-not ($iniLines -match '^bShowFPS=')) {
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernVideoClientWindow' 'bShowFPS' 'False'
+}
 $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
 $iniLines = Remove-UnrealRevivedIniValue $iniLines 'Engine.GameEngine' 'ServerActors' 'ModernMenu.ModernIntroTweak'
 Set-Content -LiteralPath $iniPath -Value $iniLines -Encoding ASCII

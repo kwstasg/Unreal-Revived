@@ -6,6 +6,7 @@ simulated function PostRender(Canvas Canvas)
 {
 	local float StartX, IconScale;
 
+	PlayerPawn(Owner).ConsoleCommand("D3D12 BLOOMSOURCE");
 	HUDSetup(Canvas);
 
 	if ((PlayerPawn(Owner) != None) && PlayerPawn(Owner).bShowMenu)

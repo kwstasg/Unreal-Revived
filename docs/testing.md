@@ -264,11 +264,18 @@ target maintains those copies for the disposable runtime.
 - Open **Options > Preferences > Video**.
 - Confirm **Show FPS Statistics** appears directly below **Show Fullscreen**
   and scrolls with the other video controls.
+- With D3D12Drv active, confirm **Contrast** and **Saturation** appear directly
+  below Brightness without overlapping adjacent rows, update the rendered scene
+  immediately, display their current byte values, and retain changes after the
+  Video page is reopened. Confirm both controls are disabled on other renderers.
 - With D3D12Drv active, confirm **Bloom Amount** appears below the FPS control,
   displays values from 0 through 255, disables bloom at 0, changes bright-light
   glow immediately without a restart, leaves HUD glyphs and icons sharply
-  rendered without bloom halos, and retains a positive amount after reopening
-  Video preferences.
+  rendered without bloom halos, does not brighten the Escape menu artwork or
+  text, and retains a positive amount after reopening Video preferences.
+- On the `Unreal.unr` intro, compare bloom 0 and 255 while paused. Confirm the
+  vendor logos, center logo, NVIDIA badge, FPS text, and **Press ESC to begin**
+  do not become bloom emitters while highlights in the 3D background still do.
 - With D3D12Drv active, confirm **Antialiasing** offers Off, 2x, 4x, and 8x and
   retains the selected mode after reopening Video preferences.
 - Enable it and confirm the built-in TimeDemo statistics appear during play.

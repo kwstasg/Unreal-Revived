@@ -40,16 +40,27 @@ flushes the renderer immediately. Unsupported sample counts automatically fall
 back to the highest lower count supported by the scene color, hit, and depth
 formats.
 
+D3D12 **Contrast** and **Saturation** sliders appear immediately below the
+built-in Brightness control and use the renderer's existing `0` through `255`
+config ranges. Contrast is neutral at `128`; saturation is normal at `255` and
+reaches grayscale near `128`. Changes update the active renderer immediately
+and persist to the active engine profile. The controls are disabled when a
+different render device is selected.
+
 The D3D12-only **Bloom Amount** slider uses the renderer's complete byte range
 from `0` to `255`. Setting it to `0` disables bloom; any positive amount enables
 bloom and controls blur spread, highlight extraction, and additive intensity.
-The extraction threshold falls from `1.0` to `0.5` and gain reaches 8x at the
-maximum. The current numeric value is shown in the slider label and reloads
+The extraction threshold falls from `1.0` to `0.5`. Additive gain follows a
+progressive curve, reaching about 6x at the midpoint and 16x at the maximum.
+The current numeric value is shown in the slider label and reloads
 from the active engine profile when Video Preferences is reopened. Changes are
 applied directly to the active D3D12 render device and saved to the profile, so
 they are visible immediately and survive restart. Bloom extraction uses the 3D
 scene captured before 227 begins `RenderOverlays`, so HUD and menu pixels do
-not become bloom emitters.
+not become bloom emitters. When UWindow is active, the renderer also captures
+before its first menu tile. The custom intro HUD explicitly marks its world/UI
+boundary before drawing text and logos because that 227 path does not expose a
+reliable native overlay transition.
 
 The custom Preferences **Restart** action saves the open pages and relaunches
 with `Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini`. This preserves
