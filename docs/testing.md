@@ -62,6 +62,15 @@ viewport ratios must use centered cover cropping rather than stretching or
 image-specific side extensions. The runtime log must contain no missing
 texture or package warnings.
 
+Open the Help menu and confirm **Technical Support** appears between **Unreal
+Gold Credits** and the separator above **About Epic Games**. There must not be
+two consecutive separators.
+
+During the Unreal intro flyby, confirm the original Epic, GT Interactive,
+Digital Extremes, and Unreal logos remain visible while the dynamic OpenAL and
+PhysX driver-credit logos are absent. Start a normal gameplay map afterward and
+confirm its HUD is unchanged.
+
 After source-derived branding changes, confirm `MenuBackground.bmp` is a
 3840x2160 24-bit bitmap and `Logo.bmp` is a 719x200 24-bit bitmap. Inspect the
 ICO directory for 16, 24, 32, 48, 64, 128, and 256 pixel frames and verify the

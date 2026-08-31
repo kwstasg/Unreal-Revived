@@ -40,6 +40,18 @@ installer must obtain those assets from the end user's existing Unreal Gold
 installation. Unrelated future third-party components still require their own
 provenance and redistribution review.
 
+## NVIDIA intro logo
+
+The project owner confirms written permission to modify and redistribute the
+NVIDIA logo as part of Unreal Revived, including the generated runtime texture
+and offline installer packages. Its official source, immutable hashes,
+transformation, scope, and required notices are recorded in
+`manifests/provenance/nvidia-intro-logo.json`.
+
+NVIDIA and the NVIDIA logo are trademarks and/or registered trademarks of
+NVIDIA Corporation in the United States and other countries. The NVIDIA logo
+remains the property of NVIDIA Corporation.
+
 Source-control exclusions for archives and binaries remain intentional. The
 pinned patch may be supplied from ignored local release inputs and embedded in
 generated installer artifacts without committing it to the source tree.

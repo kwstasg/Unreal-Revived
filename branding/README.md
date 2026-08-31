@@ -1,6 +1,6 @@
 # Unreal Revived branding
 
-These are original Unreal Revived project assets and are tracked directly:
+These Unreal Revived branding assets are tracked directly:
 
 - `Logo.bmp`: 719x200 setup banner.
 - `SetupLogo.bmp`: 343x84 first-time configuration banner.
@@ -9,6 +9,10 @@ These are original Unreal Revived project assets and are tracked directly:
 - `MenuBackground.jpg`: authored 16:9 source artwork.
 - `MenuBackground.bmp`: 3840x2160 canonical artwork for the in-game menu
     desktop when imported from the authored source.
+- `NvidiaIntroLogo.png`: high-resolution NVIDIA source artwork.
+- `NvidiaIntroLogoRuntime.png`: generated transparent 256x256 UE1 intro
+    texture. NVIDIA ownership, permission, and notices are recorded in
+    `manifests/provenance/nvidia-intro-logo.json`.
 
 The generator slices `MenuBackground.bmp` into twelve tracked 256x256 textures
 under `branding/MenuTiles`. The ModernMenu build stages them into its temporary
@@ -62,3 +66,14 @@ Running the generator without `-MenuBackgroundSource` recreates all placeholder
 branding images and menu tiles. `-DeriveBranding` requires a menu source. Keep
 the documented dimensions and ICO frame sizes because the OldUnreal host,
 ModernMenu package, and Windows shortcuts expect them.
+
+Regenerate only the NVIDIA intro texture from its high-resolution master with:
+
+```powershell
+powershell -NoProfile -File scripts/build-unreal-revived-branding.ps1 `
+    -IntroNvidiaSource branding\NvidiaIntroLogo.png
+```
+
+The source and generated texture must continue to match the immutable hashes
+in the provenance manifest. Update that record only when authorized replacement
+artwork is deliberately adopted.

@@ -17,6 +17,7 @@ $sourcePackageDirectory = Join-Path $repositoryRoot 'UnrealScript\ModernMenu'
 $sourceDirectory = Join-Path $sourcePackageDirectory 'Classes'
 $brandingDirectory = Join-Path $repositoryRoot 'branding'
 $menuTextureDirectory = Join-Path $repositoryRoot 'branding\MenuTiles'
+$introNvidiaTexture = Join-Path $brandingDirectory 'NvidiaIntroLogoRuntime.png'
 $brandingLogo = Join-Path $brandingDirectory 'Logo.bmp'
 $brandingSetupLogo = Join-Path $brandingDirectory 'SetupLogo.bmp'
 $systemDirectory = Join-Path $GameRoot 'System'
@@ -27,7 +28,7 @@ $iniPath = Join-Path $system64Directory $IniName
 $runtimePackageDirectory = Join-Path $GameRoot 'ModernMenu'
 $outputPackage = Join-Path $system64Directory 'ModernMenu.u'
 
-foreach ($requiredPath in @($sourcePackageDirectory, $sourceDirectory, $menuTextureDirectory, $brandingLogo, $brandingSetupLogo, $systemDirectory, $system64Directory, $helpDirectory, $ucc, $iniPath)) {
+foreach ($requiredPath in @($sourcePackageDirectory, $sourceDirectory, $menuTextureDirectory, $introNvidiaTexture, $brandingLogo, $brandingSetupLogo, $systemDirectory, $system64Directory, $helpDirectory, $ucc, $iniPath)) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
         throw "Missing ModernMenu build input: $requiredPath"
     }
@@ -39,11 +40,13 @@ $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMe
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' $IniName
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' $UserIniName
 $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
+$iniLines = Remove-UnrealRevivedIniValue $iniLines 'Engine.GameEngine' 'ServerActors' 'ModernMenu.ModernIntroTweak'
 Set-Content -LiteralPath $iniPath -Value $iniLines -Encoding ASCII
 
 Remove-Item -LiteralPath $runtimePackageDirectory -Recurse -Force -ErrorAction SilentlyContinue
 Copy-Item -LiteralPath $sourcePackageDirectory -Destination $runtimePackageDirectory -Recurse
 Copy-Item -LiteralPath $menuTextureDirectory -Destination (Join-Path $runtimePackageDirectory 'Textures') -Recurse
+Copy-Item -LiteralPath $introNvidiaTexture -Destination (Join-Path $runtimePackageDirectory 'Textures\NvidiaIntroLogoRuntime.png') -Force
 
 $stagedPackages = [Collections.Generic.List[string]]::new()
 try {

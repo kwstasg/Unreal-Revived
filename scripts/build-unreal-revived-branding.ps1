@@ -5,7 +5,9 @@ param(
 
     [string] $MenuBackgroundSource,
 
-    [switch] $DeriveBranding
+    [switch] $DeriveBranding,
+
+    [string] $IntroNvidiaSource
 )
 
 $ErrorActionPreference = 'Stop'
@@ -488,6 +490,50 @@ function Export-DerivedBranding {
     }
 }
 
+function Export-IntroNvidiaLogo {
+    param(
+        [string] $Source,
+        [string] $Output
+    )
+
+    $sourcePath = [IO.Path]::GetFullPath($Source)
+    if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+        throw "NVIDIA intro logo source not found: $sourcePath"
+    }
+
+    $image = [Drawing.Bitmap]::FromFile($sourcePath)
+    $outputBitmap = New-Object Drawing.Bitmap(256, 256, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $graphics = [Drawing.Graphics]::FromImage($outputBitmap)
+    try {
+        $graphics.Clear([Drawing.Color]::Transparent)
+        $graphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+        $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $sourceRectangle = [Drawing.Rectangle]::new(260, 250, 1640, 1510)
+        $graphics.DrawImage($image, [Drawing.Rectangle]::new(8, 8, 240, 240), $sourceRectangle, [Drawing.GraphicsUnit]::Pixel)
+    }
+    finally {
+        $graphics.Dispose()
+        $image.Dispose()
+    }
+
+    for ($y = 0; $y -lt $outputBitmap.Height; $y++) {
+        for ($x = 0; $x -lt $outputBitmap.Width; $x++) {
+            $pixel = $outputBitmap.GetPixel($x, $y)
+            if ($pixel.R -ge 230 -and $pixel.G -ge 230 -and $pixel.B -ge 230) {
+                $outputBitmap.SetPixel($x, $y, [Drawing.Color]::Transparent)
+            }
+        }
+    }
+
+    try {
+        $outputBitmap.Save($Output, [Drawing.Imaging.ImageFormat]::Png)
+    }
+    finally {
+        $outputBitmap.Dispose()
+    }
+}
+
 function Export-MenuBackgroundTiles {
     param([string] $Source)
 
@@ -529,6 +575,15 @@ New-Item -ItemType Directory -Path $OutputRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $MenuTextureRoot -Force | Out-Null
 
 $menuBackgroundOutput = Join-Path $OutputRoot 'MenuBackground.bmp'
+if ($IntroNvidiaSource) {
+    $introNvidiaOutput = Join-Path $OutputRoot 'NvidiaIntroLogoRuntime.png'
+    if ([IO.Path]::GetFullPath($IntroNvidiaSource) -eq [IO.Path]::GetFullPath($introNvidiaOutput)) {
+        throw 'NVIDIA intro logo source must not be the generated runtime texture.'
+    }
+    Export-IntroNvidiaLogo $IntroNvidiaSource $introNvidiaOutput
+    Write-Host "NVIDIA intro logo imported from $([IO.Path]::GetFullPath($IntroNvidiaSource))"
+}
+
 if ($MenuBackgroundSource) {
     Import-MenuBackground $MenuBackgroundSource $menuBackgroundOutput
     Export-MenuBackgroundTiles $menuBackgroundOutput
@@ -536,6 +591,10 @@ if ($MenuBackgroundSource) {
         Export-DerivedBranding $menuBackgroundOutput
     }
     Write-Host "Menu background imported and tiled from $([IO.Path]::GetFullPath($MenuBackgroundSource))"
+    return
+}
+
+if ($IntroNvidiaSource) {
     return
 }
 

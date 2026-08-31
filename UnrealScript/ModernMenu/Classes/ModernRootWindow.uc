@@ -16,6 +16,18 @@ class ModernRootWindow extends UMenuRootWindow;
 function Created()
 {
 	local class<GameInfo> GameClass;
+	local PlayerPawn PlayerOwner;
+
+	if (class'UMenuHelpMenu'.Default.SupportURLName == "-")
+		class'UMenuHelpMenu'.Default.SupportURLName = "Technical Support";
+
+	PlayerOwner = GetPlayerOwner();
+	if (PlayerOwner.MyHUD != None && PlayerOwner.MyHUD.Class == class'UnrealI.IntroNullHud')
+	{
+		PlayerOwner.MyHUD.Destroy();
+		PlayerOwner.HUDType = class'ModernIntroHud';
+		PlayerOwner.MyHUD = GetLevel().Spawn(class'ModernIntroHud', PlayerOwner);
+	}
 
 	if (GetLevel().Game != None)
 	{

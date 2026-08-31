@@ -80,4 +80,27 @@ function Add-UnrealRevivedIniValue {
     return $result.ToArray()
 }
 
-Export-ModuleMember -Function Set-UnrealRevivedIniValue, Add-UnrealRevivedIniValue
+function Remove-UnrealRevivedIniValue {
+    param(
+        [string[]] $Lines,
+        [string] $Section,
+        [string] $Key,
+        [string] $Value
+    )
+
+    $result = [Collections.Generic.List[string]]::new()
+    $inSection = $false
+
+    foreach ($line in $Lines) {
+        if ($line -match '^\[(.+)\]$') {
+            $inSection = $Matches[1] -eq $Section
+        }
+        if ($inSection -and $line -eq "$Key=$Value") {
+            continue
+        }
+        $result.Add($line)
+    }
+    return $result.ToArray()
+}
+
+Export-ModuleMember -Function Set-UnrealRevivedIniValue, Add-UnrealRevivedIniValue, Remove-UnrealRevivedIniValue

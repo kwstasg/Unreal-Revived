@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "component": "NVIDIA intro logo",
+  "owner": "NVIDIA Corporation",
+  "source": {
+    "page": "https://nvidianews.nvidia.com/multimedia/corporate/nvidia-logos",
+    "retrievedAt": "2026-08-31",
+    "path": "branding/NvidiaIntroLogo.png",
+    "size": 79554,
+    "sha256": "fffb822cedd4c53ae4b685114c1bba95d6ac94f988f39248e89e9ff72f06b181"
+  },
+  "redistributionBasis": {
+    "type": "written-permission",
+    "confirmedBy": "Unreal Revived project owner",
+    "confirmedAt": "2026-08-31",
+    "scope": "Modify and redistribute the NVIDIA logo as part of Unreal Revived, including generated runtime textures and offline installer packages."
+  },
+  "generatedArtifact": {
+    "path": "branding/NvidiaIntroLogoRuntime.png",
+    "size": 14062,
+    "sha256": "6ad088f5a6d8c61e697aaf3af579f6d26444748b30eb732837262b1b319f3bb2",
+    "transformation": "Crop the source composition, scale it into a 256x256 ARGB texture, and make near-white pixels transparent."
+  },
+  "notices": [
+    "NVIDIA and the NVIDIA logo are trademarks and/or registered trademarks of NVIDIA Corporation in the United States and other countries.",
+    "The NVIDIA logo remains the property of NVIDIA Corporation."
+  ]
+}

@@ -160,6 +160,26 @@ technical guides; use this file for the chronological record.
   disposable runtime. Verified `local/game/Help/Logo.bmp` and `SetupLogo.bmp`
   byte-for-byte, and recreated both local development shortcuts against the
   matching hash-derived circular ICO.
+- Restored the Help menu's missing **Technical Support** caption when legacy
+  localization replaces it with a separator, eliminating the consecutive
+  duplicate separator without replacing the host menu classes.
+- Added an intro-only HUD replacement that retains the original cinematic
+  branding but omits dynamic OpenAL and PhysX driver-credit logos. Validated
+  both changes in 1366x768 D3D12 captures and passed the normal `NyLeve`
+  gameplay smoke case with its standard HUD path unchanged. Rebuilt and
+  installed the offline installer with SHA-256
+  `F064CF414E2EDBC0C85BD0A53737A3A562915E1FBB39983DDE8122854655343A`;
+  the tested, staged, and installed `ModernMenu.u` hashes are identical.
+- Added a transparent NVIDIA mark in the former PhysX bottom-right intro slot.
+  Preserved the high-resolution official newsroom source separately from its
+  generated 256x256 UE1 texture, and recorded immutable hashes, transformation,
+  trademark notices, and the project owner's written-permission confirmation
+  in `manifests/provenance/nvidia-intro-logo.json`. The improved source compiled
+  into ModernMenu with zero warnings and rendered in D3D12 without a white box
+  or opaque internal cutouts. Rebuilt and installed the offline installer with
+  SHA-256
+  `0BA3ADC7B5166A0470258B15EB6BD14020062A8E0AB6FC8A28C5DA816657C57E`;
+  the tested, staged, and installed ModernMenu packages are byte-identical.
 
 ### Established installer profile defaults
 
