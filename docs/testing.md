@@ -62,13 +62,42 @@ For a focused check, provide one or more map names:
 powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Maps NyLeve -RunSeconds 8
 ```
 
+Capture screenshots without comparing them:
+
+```powershell
+powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite Content -ScreenshotMode Capture
+```
+
+Create or deliberately replace ignored local baselines only after reviewing the
+captured images, then compare future runs:
+
+```powershell
+powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite Content -ScreenshotMode Update
+powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite Content -ScreenshotMode Compare
+```
+
+Baselines are stored under `local/logs/screenshot-baselines/` and are specific
+to the validated host, display, game data, profile, and capture timing. They are
+not committed because they contain game assets. `Update` is intentionally
+explicit so a normal test run cannot bless changed output.
+
+Comparison samples the central gameplay region, excluding dynamic title/FPS
+and lower HUD bands. It fails when mean RGB channel delta exceeds `12` or more
+than `12%` of sampled pixels differ by over `32` channel levels. Override these
+thresholds only when calibration evidence justifies it. `Vortex2` is captured
+but reported as `SkippedDynamic` because its scripted intro changes camera and
+player state between runs.
+
 The harness works only in the ignored disposable runtime. It copies
 `D3D12Test.ini` to a temporary automation profile, launches maps directly,
 requests a normal window close, validates `Unreal.log`, and stores each run
 under `local/logs/automated-<timestamp>/`. It verifies that the normal profile
-did not change and never modifies the normal game shortcut. A passing result
-proves only that frames were presented without a detected crash or log error;
-it does not prove visual correctness.
+and user profile did not change and never modifies the normal game shortcut.
+Screenshot mode activates Unreal briefly and captures its exact window bounds
+from the desktop because this 227 build did not produce an image through F9,
+`EXEC=SHOT`, or `LEVACT_SaveScreenshot`. Avoid covering the game window while
+capture mode runs. A passing comparison detects broad visual changes but does
+not replace review for subtle rendering errors.
 
 Use automation for map, renderer-setting, menu-profile, and display-profile
 smoke checks. UWindow controls do not expose Windows UI Automation elements and

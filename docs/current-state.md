@@ -36,6 +36,11 @@ the currently validated menu layout and input alignment; external click
 automation is unavailable because UWindow exposes no automation elements and
 ignores background window messages.
 
+Optional window screenshot capture and tolerant sampled-pixel comparison are
+available through `scripts/test-d3d12-runtime.ps1`. Ignored host-specific
+baselines live under `local/logs/screenshot-baselines/`; `Vortex2` remains
+capture-only because its scripted intro is nondeterministic.
+
 ## Verified commands
 
 From the repository root:
@@ -46,6 +51,7 @@ cmake --build local/build --config Release
 cmake --build local/build --target deploy-d3d12drv --config Release
 cmake --build local/build --target deploy-modern-menu --config Release
 powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite All
+powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite Content -ScreenshotMode Compare
 powershell -NoProfile -File scripts/check-repository.ps1
 ```
 
@@ -79,7 +85,7 @@ select the intended profile during testing.
 
 ## Next priorities
 
-1. Expand screenshot and image-comparison coverage for visual regressions.
+1. Add deterministic camera control for currently dynamic visual cases.
 2. Expand automated checks where engine integration permits stronger
   assertions than process and log validation.
 3. Design the portable installation and profile launcher.

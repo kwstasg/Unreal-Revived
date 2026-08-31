@@ -183,6 +183,25 @@ technical guides; use this file for the chronological record.
   deployed DLL hashes; matched the pinned 227k_15 host hashes; and passed the
   repository safety check.
 
+### Added screenshot regression testing
+
+- Extended `scripts/test-d3d12-runtime.ps1` with explicit screenshot capture,
+  baseline update, and comparison modes. Captures and baselines remain under
+  ignored `local/logs/` storage and do not alter the normal shortcut or INIs.
+- Captured the exact Unreal window from the desktop after map settlement,
+  validated image dimensions and non-uniform sample pixels, and preserved each
+  image beside its case log and effective test profile.
+- Added tolerant sampled-pixel comparison with separate mean-channel and
+  changed-sample thresholds. Dynamic title/FPS and lower HUD bands are excluded
+  from comparison.
+- Verified that F9, `EXEC=SHOT`, and direct `LEVACT_SaveScreenshot` requests do
+  not produce an image on this 227k_15 host, so desktop window capture is the
+  documented supported path.
+- Created and reviewed ignored local baselines for all six content maps. Fresh
+  comparisons passed for `NyLeve`, `DmDeck16`, `Chizra`, `Dug`, and
+  `Terraniux`. `Vortex2` remains capture-only and is explicitly reported as
+  `SkippedDynamic` because its scripted intro changes camera and player state.
+
 ## Entry template
 
 Add new entries in this form:

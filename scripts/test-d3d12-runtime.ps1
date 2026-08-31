@@ -5,10 +5,43 @@ param(
     [string[]]$Maps,
 
     [ValidateRange(3, 120)]
-    [int]$RunSeconds = 8
+    [int]$RunSeconds = 8,
+
+    [ValidateSet('Off', 'Capture', 'Update', 'Compare')]
+    [string]$ScreenshotMode = 'Off',
+
+    [ValidateRange(0, 255)]
+    [double]$MaxMeanChannelDelta = 12,
+
+    [ValidateRange(0, 1)]
+    [double]$MaxChangedSampleRatio = 0.12
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($ScreenshotMode -ne 'Off') {
+    Add-Type -AssemblyName System.Drawing
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+
+public static class ScreenshotInput
+{
+    [DllImport("user32.dll")]
+    public static extern bool GetWindowRect(IntPtr window, out WindowRect rect);
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WindowRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+}
+'@
+}
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $systemDir = Join-Path $repoRoot 'local/game/System64'
@@ -19,6 +52,7 @@ $temporaryIniName = 'D3D12Automation.ini'
 $temporaryIni = Join-Path $systemDir $temporaryIniName
 $runtimeLog = Join-Path $systemDir 'Unreal.log'
 $evidenceRoot = Join-Path $repoRoot (Join-Path 'local/logs' ("automated-{0}" -f (Get-Date -Format 'yyyyMMdd-HHmmss')))
+$screenshotBaselineRoot = Join-Path $repoRoot 'local/logs/screenshot-baselines'
 
 foreach ($requiredPath in @($unrealExe, $sourceIni, $userIni)) {
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
@@ -65,7 +99,8 @@ function New-TestCase {
         [string]$Name,
         [string]$Map,
         [hashtable]$Settings = @{},
-        [hashtable]$ProfileSettings = @{}
+        [hashtable]$ProfileSettings = @{},
+        [bool]$CompareScreenshot = $true
     )
 
     [pscustomobject]@{
@@ -73,6 +108,119 @@ function New-TestCase {
         Map = $Map
         Settings = $Settings
         ProfileSettings = $ProfileSettings
+        CompareScreenshot = $CompareScreenshot
+    }
+}
+
+function Wait-Interval([int]$Milliseconds) {
+    $event = [System.Threading.ManualResetEventSlim]::new($false)
+    try {
+        $null = $event.Wait($Milliseconds)
+    } finally {
+        $event.Dispose()
+    }
+}
+
+function Save-CaseScreenshot {
+    param(
+        [System.Diagnostics.Process]$Process,
+        [string]$CaseDir
+    )
+
+    $Process.Refresh()
+    if ($Process.MainWindowHandle -eq [IntPtr]::Zero) {
+        throw 'Unreal has no viewport window for screenshot capture.'
+    }
+
+    $shell = New-Object -ComObject WScript.Shell
+    if (-not $shell.AppActivate($Process.Id)) {
+        throw 'Could not activate the Unreal window for screenshot capture.'
+    }
+    Wait-Interval 500
+
+    $rect = New-Object ScreenshotInput+WindowRect
+    if (-not [ScreenshotInput]::GetWindowRect($Process.MainWindowHandle, [ref]$rect)) {
+        throw 'Could not read the Unreal window bounds.'
+    }
+    $width = $rect.Right - $rect.Left
+    $height = $rect.Bottom - $rect.Top
+    if ($width -lt 320 -or $height -lt 200) {
+        throw "Unreal window dimensions are unexpectedly small: ${width}x${height}."
+    }
+
+    $caseScreenshot = Join-Path $CaseDir 'screenshot.png'
+    $image = [System.Drawing.Bitmap]::new($width, $height)
+    $graphics = [System.Drawing.Graphics]::FromImage($image)
+    try {
+        $graphics.CopyFromScreen($rect.Left, $rect.Top, 0, 0, $image.Size)
+        $image.Save($caseScreenshot, [System.Drawing.Imaging.ImageFormat]::Png)
+        $samples = @(
+            $image.GetPixel([int]($image.Width * 0.25), [int]($image.Height * 0.25)).ToArgb(),
+            $image.GetPixel([int]($image.Width * 0.50), [int]($image.Height * 0.50)).ToArgb(),
+            $image.GetPixel([int]($image.Width * 0.75), [int]($image.Height * 0.75)).ToArgb()
+        )
+        if (($samples | Select-Object -Unique).Count -lt 2) {
+            throw 'Screenshot sample pixels are blank or uniform.'
+        }
+    } finally {
+        $graphics.Dispose()
+        $image.Dispose()
+    }
+
+    return $caseScreenshot
+}
+
+function Compare-CaseScreenshot {
+    param(
+        [string]$ActualPath,
+        [string]$BaselinePath
+    )
+
+    if (-not (Test-Path -LiteralPath $BaselinePath -PathType Leaf)) {
+        throw "Screenshot baseline is missing: $BaselinePath. Run with -ScreenshotMode Update after reviewing the captured images."
+    }
+
+    $actual = [System.Drawing.Bitmap]::FromFile($ActualPath)
+    $baseline = [System.Drawing.Bitmap]::FromFile($BaselinePath)
+    try {
+        if ($actual.Width -ne $baseline.Width -or $actual.Height -ne $baseline.Height) {
+            throw "Screenshot dimensions differ: actual $($actual.Width)x$($actual.Height), baseline $($baseline.Width)x$($baseline.Height)."
+        }
+
+        $stepX = [Math]::Max(1, [int]($actual.Width / 128))
+        $stepY = [Math]::Max(1, [int]($actual.Height / 72))
+        $startY = [int]($actual.Height * 0.18)
+        $endY = [int]($actual.Height * 0.90)
+        $channelDelta = 0.0
+        $changedSamples = 0
+        $sampleCount = 0
+        for ($y = $startY; $y -lt $endY; $y += $stepY) {
+            for ($x = 0; $x -lt $actual.Width; $x += $stepX) {
+                $actualPixel = $actual.GetPixel($x, $y)
+                $baselinePixel = $baseline.GetPixel($x, $y)
+                $sampleDelta = (
+                    [Math]::Abs($actualPixel.R - $baselinePixel.R) +
+                    [Math]::Abs($actualPixel.G - $baselinePixel.G) +
+                    [Math]::Abs($actualPixel.B - $baselinePixel.B)
+                ) / 3.0
+                $channelDelta += $sampleDelta
+                if ($sampleDelta -gt 32) {
+                    $changedSamples++
+                }
+                $sampleCount++
+            }
+        }
+
+        $meanChannelDelta = $channelDelta / $sampleCount
+        $changedSampleRatio = $changedSamples / $sampleCount
+        return [pscustomobject]@{
+            MeanChannelDelta = [Math]::Round($meanChannelDelta, 3)
+            ChangedSampleRatio = [Math]::Round($changedSampleRatio, 4)
+            Passed = $meanChannelDelta -le $MaxMeanChannelDelta -and $changedSampleRatio -le $MaxChangedSampleRatio
+        }
+    } finally {
+        $actual.Dispose()
+        $baseline.Dispose()
     }
 }
 
@@ -80,7 +228,7 @@ $contentCases = @(
     New-TestCase -Name 'content-nyleve' -Map 'NyLeve'
     New-TestCase -Name 'content-dmdeck16' -Map 'DmDeck16'
     New-TestCase -Name 'content-chizra' -Map 'Chizra'
-    New-TestCase -Name 'content-vortex2' -Map 'Vortex2'
+    New-TestCase -Name 'content-vortex2' -Map 'Vortex2' -CompareScreenshot $false
     New-TestCase -Name 'content-dug' -Map 'Dug'
     New-TestCase -Name 'content-terraniux' -Map 'Terraniux'
 )
@@ -124,7 +272,9 @@ if ($Maps) {
 $rendererSection = 'D3D12Drv.D3D12RenderDevice'
 $failurePattern = 'Critical Error|Assertion|ResizeTarget failed|ResizeViewport failed|Could not resize scene buffers|Could not flush d3d12 renderer|Bound to XOpenGLDrv'
 $sourceHash = (Get-FileHash -LiteralPath $sourceIni -Algorithm SHA256).Hash
+$userHash = (Get-FileHash -LiteralPath $userIni -Algorithm SHA256).Hash
 $results = @()
+$process = $null
 New-Item -ItemType Directory -Force -Path $evidenceRoot | Out-Null
 
 try {
@@ -151,12 +301,36 @@ try {
             throw "$($case.Name) exited before its $RunSeconds-second observation window."
         }
 
+        $caseScreenshot = ''
+        $comparison = $null
+        $comparisonStatus = ''
+        if ($ScreenshotMode -ne 'Off') {
+            $caseScreenshot = Save-CaseScreenshot -Process $process -CaseDir $caseDir
+            $baselinePath = Join-Path $screenshotBaselineRoot ("{0}.png" -f $case.Name)
+            if ($ScreenshotMode -eq 'Update') {
+                New-Item -ItemType Directory -Force -Path $screenshotBaselineRoot | Out-Null
+                Copy-Item -LiteralPath $caseScreenshot -Destination $baselinePath -Force
+                $comparisonStatus = 'Updated'
+            } elseif ($ScreenshotMode -eq 'Compare' -and -not $case.CompareScreenshot) {
+                $comparisonStatus = 'SkippedDynamic'
+            } elseif ($ScreenshotMode -eq 'Compare') {
+                $comparison = Compare-CaseScreenshot -ActualPath $caseScreenshot -BaselinePath $baselinePath
+                if (-not $comparison.Passed) {
+                    throw "$($case.Name) screenshot regression: mean channel delta $($comparison.MeanChannelDelta), changed sample ratio $($comparison.ChangedSampleRatio)."
+                }
+                $comparisonStatus = 'Passed'
+            } else {
+                $comparisonStatus = 'Captured'
+            }
+        }
+
         if (-not $process.CloseMainWindow()) {
             throw "$($case.Name) did not expose a window that could be closed normally."
         }
         if (-not $process.WaitForExit(15000)) {
             throw "$($case.Name) did not exit within 15 seconds after a normal close request."
         }
+        $process = $null
         if (-not (Test-Path -LiteralPath $runtimeLog -PathType Leaf)) {
             throw "$($case.Name) did not produce Unreal.log."
         }
@@ -180,16 +354,29 @@ try {
             Map = $case.Map
             Settings = (($case.Settings.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ';')
             ProfileSettings = (($case.ProfileSettings.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ';')
+            Screenshot = if ($caseScreenshot) { Split-Path $caseScreenshot -Leaf } else { '' }
+            ScreenshotComparison = $comparisonStatus
+            MeanChannelDelta = if ($comparison) { $comparison.MeanChannelDelta } else { '' }
+            ChangedSampleRatio = if ($comparison) { $comparison.ChangedSampleRatio } else { '' }
             Result = 'Passed'
         }
     }
 } finally {
+    if ($process -and -not $process.HasExited) {
+        $process.CloseMainWindow() | Out-Null
+        if (-not $process.WaitForExit(5000)) {
+            Stop-Process -Id $process.Id -Force
+        }
+    }
     Remove-Item -LiteralPath $temporaryIni -Force -ErrorAction SilentlyContinue
 }
 
 $finalSourceHash = (Get-FileHash -LiteralPath $sourceIni -Algorithm SHA256).Hash
 if ($finalSourceHash -ne $sourceHash) {
     throw 'D3D12Test.ini changed during automated testing.'
+}
+if ((Get-FileHash -LiteralPath $userIni -Algorithm SHA256).Hash -ne $userHash) {
+    throw 'D3D12TestUser.ini changed during automated testing.'
 }
 
 $results | Export-Csv -LiteralPath (Join-Path $evidenceRoot 'results.csv') -NoTypeInformation
