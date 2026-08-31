@@ -151,6 +151,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	new(AntialiasModes->Names)FName(TEXT("Off"));
 	new(AntialiasModes->Names)FName(TEXT("MSAA_2x"));
 	new(AntialiasModes->Names)FName(TEXT("MSAA_4x"));
+	new(AntialiasModes->Names)FName(TEXT("MSAA_8x"));
 	new(GetClass(), TEXT("AntialiasMode"), RF_Public) UByteProperty(CPP_PROPERTY(AntialiasMode), TEXT("Display"), CPF_Config, AntialiasModes);
 
 	UEnum* GammaModes = new(GetClass(), TEXT("GammaModes"))UEnum(nullptr);
@@ -175,7 +176,40 @@ int UD3D12RenderDevice::GetSettingsMultisample()
 	case 0: return 0;
 	case 1: return 2;
 	case 2: return 4;
+	case 3: return 8;
 	}
+}
+
+int UD3D12RenderDevice::GetSupportedMultisample(int requestedMultisample)
+{
+	const DXGI_FORMAT formats[] =
+	{
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		DXGI_FORMAT_R32_UINT,
+		DXGI_FORMAT_D32_FLOAT
+	};
+
+	for (int multisample = std::max(requestedMultisample, 1); multisample > 1; multisample /= 2)
+	{
+		bool supported = true;
+		for (DXGI_FORMAT format : formats)
+		{
+			D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS levels = {};
+			levels.Format = format;
+			levels.SampleCount = multisample;
+			levels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
+			if (FAILED(Device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &levels, sizeof(levels))) || levels.NumQualityLevels == 0)
+			{
+				supported = false;
+				break;
+			}
+		}
+
+		if (supported)
+			return multisample;
+	}
+
+	return 1;
 }
 
 UBOOL UD3D12RenderDevice::Init(UViewport* InViewport, INT NewX, INT NewY, INT NewColorBytes, UBOOL Fullscreen)
@@ -185,10 +219,7 @@ UBOOL UD3D12RenderDevice::Init(UViewport* InViewport, INT NewX, INT NewY, INT Ne
 	Viewport = InViewport;
 	ActiveHdr = Hdr;
 
-	HDC screenDC = GetDC(0);
-	DesktopResolution.Width = GetDeviceCaps(screenDC, HORZRES);
-	DesktopResolution.Height = GetDeviceCaps(screenDC, VERTRES);
-	ReleaseDC(0, screenDC);
+	GetOutputRect();
 
 	try
 	{
@@ -391,6 +422,23 @@ public:
 	bool& value;
 };
 
+RECT UD3D12RenderDevice::GetOutputRect()
+{
+	RECT outputRect = { 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
+	if (Viewport && Viewport->GetWindow())
+	{
+		HMONITOR monitor = MonitorFromWindow((HWND)Viewport->GetWindow(), MONITOR_DEFAULTTONEAREST);
+		MONITORINFO monitorInfo = {};
+		monitorInfo.cbSize = sizeof(monitorInfo);
+		if (monitor && GetMonitorInfo(monitor, &monitorInfo))
+			outputRect = monitorInfo.rcMonitor;
+	}
+
+	DesktopResolution.Width = outputRect.right - outputRect.left;
+	DesktopResolution.Height = outputRect.bottom - outputRect.top;
+	return outputRect;
+}
+
 #if defined(UNREAL_227)
 void UD3D12RenderDevice::MapMenuCoordinates(FLOAT& X, FLOAT& Y) const
 {
@@ -473,13 +521,14 @@ UBOOL UD3D12RenderDevice::SetRes(INT NewX, INT NewY, INT NewColorBytes, UBOOL Fu
 		FullscreenState.Style = GetWindowLong((HWND)Viewport->GetWindow(), GWL_STYLE);
 		FullscreenState.ExStyle = GetWindowLong((HWND)Viewport->GetWindow(), GWL_EXSTYLE);
 
-		int screenWidth = DesktopResolution.Width;
-		int screenHeight = DesktopResolution.Height;
+		RECT outputRect = GetOutputRect();
+		int screenWidth = outputRect.right - outputRect.left;
+		int screenHeight = outputRect.bottom - outputRect.top;
 
 		// Create borderless full screen window (our present shader will letterbox any resolution to fit)
 		SetWindowLong((HWND)Viewport->GetWindow(), GWL_STYLE, WS_OVERLAPPED | WS_VISIBLE);
 		SetWindowLong((HWND)Viewport->GetWindow(), GWL_EXSTYLE, WS_EX_APPWINDOW);
-		SetWindowPos((HWND)Viewport->GetWindow(), HWND_TOP, 0, 0, screenWidth, screenHeight, SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_NOACTIVATE | SWP_NOZORDER);
+		SetWindowPos((HWND)Viewport->GetWindow(), HWND_TOP, outputRect.left, outputRect.top, screenWidth, screenHeight, SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_NOACTIVATE | SWP_NOZORDER);
 		#if defined(UNREAL_227)
 		Viewport->PhysicalSizeX = screenWidth;
 		Viewport->PhysicalSizeY = screenHeight;
@@ -540,10 +589,9 @@ bool UD3D12RenderDevice::UpdateSwapChain()
 	int height = CurrentSizeY;
 	if (FullscreenState.Enabled)
 	{
-		HDC screenDC = GetDC(0);
-		width = GetDeviceCaps(screenDC, HORZRES);
-		height = GetDeviceCaps(screenDC, VERTRES);
-		ReleaseDC(0, screenDC);
+		RECT outputRect = GetOutputRect();
+		width = outputRect.right - outputRect.left;
+		height = outputRect.bottom - outputRect.top;
 	}
 
 	UINT flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -757,9 +805,21 @@ void UD3D12RenderDevice::Exit()
 void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 {
 	multisample = std::max(multisample, 1);
+	int requestedMultisample = multisample;
+	if (SceneBuffers.Width == width && SceneBuffers.Height == height && requestedMultisample == SceneBuffers.RequestedMultisample && SceneBuffers.ColorBuffer && SceneBuffers.HitBuffer && SceneBuffers.PPHitBuffer && SceneBuffers.StagingHitBuffer && SceneBuffers.DepthBuffer && SceneBuffers.PPImage[0] && SceneBuffers.PPImage[1])
+		return;
+
+	multisample = GetSupportedMultisample(multisample);
+	if (multisample != requestedMultisample)
+		debugf(TEXT("D3D12Drv: requested MSAA %dx, using %dx because one or more scene formats do not support the requested sample count"), requestedMultisample, multisample);
 
 	if (SceneBuffers.Width == width && SceneBuffers.Height == height && multisample == SceneBuffers.Multisample && SceneBuffers.ColorBuffer && SceneBuffers.HitBuffer && SceneBuffers.PPHitBuffer && SceneBuffers.StagingHitBuffer && SceneBuffers.DepthBuffer && SceneBuffers.PPImage[0] && SceneBuffers.PPImage[1])
+	{
+		SceneBuffers.RequestedMultisample = requestedMultisample;
 		return;
+	}
+
+	debugf(TEXT("D3D12Drv: logical render size %dx%d, requested MSAA %dx, effective MSAA %dx"), width, height, requestedMultisample, multisample);
 
 	SubmitCommands(false);
 	WaitDeviceIdle();
@@ -767,6 +827,7 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 
 	SceneBuffers.Width = width;
 	SceneBuffers.Height = height;
+	SceneBuffers.RequestedMultisample = requestedMultisample;
 	SceneBuffers.Multisample = multisample;
 
 	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
@@ -1818,7 +1879,7 @@ void UD3D12RenderDevice::CreatePresentPass()
 	psoDesc.SampleDesc.Count = 1;
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8_UINT;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R32_UINT;
 	result = Device->CreateGraphicsPipelineState(&psoDesc, PresentPass.HitResolve.GetIID(), PresentPass.HitResolve.InitPtr());
 	ThrowIfFailed(result, "CreateGraphicsPipelineState(HitResolve) failed");
 
@@ -2038,7 +2099,10 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 		std::set<Resolution> resolutions;
 
 		// Always include what the monitor is currently using
+		GetOutputRect();
 		resolutions.insert({ DesktopResolution.Width, DesktopResolution.Height });
+		resolutions.insert({ 2560, 1440 });
+		resolutions.insert({ 3840, 2160 });
 
 		IDXGIOutput* output = nullptr;
 		HRESULT result = SwapChain3->GetContainingOutput(&output);

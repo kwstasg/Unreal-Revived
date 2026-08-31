@@ -229,6 +229,7 @@ public:
 		PPBlurLevel BlurLevels[NumBloomLevels];
 		int Width = 0;
 		int Height = 0;
+		int RequestedMultisample = 1;
 		int Multisample = 1;
 	} SceneBuffers;
 
@@ -356,6 +357,7 @@ public:
 private:
 	void ReleaseSwapChainResources();
 	bool UpdateSwapChain();
+	RECT GetOutputRect();
 	void SetColorSpace();
 	void ResizeSceneBuffers(int width, int height, int multisample);
 	void ClearTextureCache();
@@ -418,6 +420,7 @@ private:
 	}
 
 	int GetSettingsMultisample();
+	int GetSupportedMultisample(int requestedMultisample);
 
 	ScenePipelineState* GetPipeline(DWORD PolyFlags);
 

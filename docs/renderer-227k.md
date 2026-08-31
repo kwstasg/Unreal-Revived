@@ -97,12 +97,28 @@ depth occluders.
 227 distinguishes logical viewport dimensions from physical presentation
 dimensions. During borderless fullscreen, `SetRes` preserves the selected
 logical resolution and sets `Viewport->PhysicalSizeX/PhysicalSizeY` to the
-desktop resolution used by the swap chain.
+resolution of the monitor containing the game window. Monitor placement uses
+the monitor rectangle as well as its dimensions, so secondary monitors with
+nonzero or negative origins are handled. `GetRes` always includes 2560x1440
+and 3840x2160 as logical rendering choices even when the physical display does
+not advertise those modes.
 
 WinDrv emits a synthetic windowed resize while borderless mode is being
 established. `IgnoreBorderlessResize`, together with the existing `SetRes`
 call lock, suppresses that one re-entrant resize so a lower logical resolution
 is not promoted back to desktop size.
+
+## Multisample antialiasing
+
+`AntialiasMode` supports Off, 2x, 4x, and 8x MSAA. Before scene resources or
+pipeline states are rebuilt, the renderer checks the requested sample count
+against the RGBA16F scene color, R32_UINT hit, and D32 depth formats. It steps
+down through lower sample counts if any required format is unsupported and
+logs the requested and effective values when buffers resize.
+
+The hit-resolve pipeline targets R32_UINT, matching the single-sample hit
+buffer used for readback. Postprocessing and presentation remain single-sample
+after the color and hit resolves.
 
 ## Menu coordinate mapping
 

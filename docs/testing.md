@@ -84,9 +84,9 @@ explicit so a normal test run cannot bless changed output.
 Comparison samples the central gameplay region, excluding dynamic title/FPS
 and lower HUD bands. It fails when mean RGB channel delta exceeds `12` or more
 than `12%` of sampled pixels differ by over `32` channel levels. Override these
-thresholds only when calibration evidence justifies it. `Vortex2` is captured
-but reported as `SkippedDynamic` because its scripted intro changes camera and
-player state between runs.
+thresholds only when calibration evidence justifies it. `Vortex2` and
+`Terraniux` are captured but reported as `SkippedDynamic` because their camera
+or player state changes between runs.
 
 The harness works only in the ignored disposable runtime. It copies
 `D3D12Test.ini` to a temporary automation profile, launches maps directly,
@@ -118,7 +118,8 @@ when a menu or input behavior changes and cannot be established another way.
   frames.
 - Verify precaching enabled and disabled.
 - Verify screenshots with gamma correction enabled and disabled.
-- Exercise `Off`, `MSAA_2x`, and `MSAA_4x` antialiasing.
+- Exercise `Off`, `MSAA_2x`, `MSAA_4x`, and `MSAA_8x` antialiasing and inspect
+  the requested/effective sample-count diagnostic.
 - Exercise VSync enabled and disabled and confirm intended high-refresh or
   uncapped presentation behavior with an external frame-rate measurement.
 
@@ -129,6 +130,10 @@ when a menu or input behavior changes and cannot be established another way.
 - Confirm the image remains centered and correctly letterboxed.
 - Confirm menu hover and click targets align at native and lower resolutions.
 - Confirm the lower logical resolution is not reset to desktop dimensions.
+- Exercise logical 2560x1440 and 3840x2160; include 3840x2160 with MSAA 8x when
+  the GPU memory budget permits.
+- On 4K hardware or with DSR enabled, confirm the physical swap chain and
+  borderless window also use 3840x2160.
 - Switch between windowed, fullscreen, and borderless modes.
 - Alt-tab repeatedly and verify rendering and input recover.
 - Resize a window and verify swap-chain recreation does not hang or crash.
@@ -151,6 +156,8 @@ target maintains those copies for the disposable runtime.
 - Open **Options > Preferences > Video**.
 - Confirm **Show FPS Statistics** appears directly below **Show Fullscreen**
   and scrolls with the other video controls.
+- With D3D12Drv active, confirm **Antialiasing** offers Off, 2x, 4x, and 8x and
+  retains the selected mode after reopening Video preferences.
 - Enable it and confirm the built-in TimeDemo statistics appear during play.
 - Disable it and confirm the overlay is removed.
 - Change a setting, use **Restart**, and confirm the relaunched process retains

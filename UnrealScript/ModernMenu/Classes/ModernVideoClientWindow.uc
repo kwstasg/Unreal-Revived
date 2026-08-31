@@ -40,6 +40,33 @@ function WindowShown()
 	ShowFPSCheck.bChecked = bShowFPS;
 }
 
+function LoadConditionallySupportedSettings()
+{
+	local string CurrentMode;
+
+	Super.LoadConditionallySupportedSettings();
+	if (!(GetVideoDriverClassName() ~= "D3D12Drv.D3D12RenderDevice"))
+		return;
+
+	AntialiasingComboOptions = "AntialiasMode=Off AntialiasMode=MSAA_2x AntialiasMode=MSAA_4x AntialiasMode=MSAA_8x";
+	AntialiasingCombo.Clear();
+	AntialiasingCombo.AddItem(AntialiasingModes[0], "AntialiasMode=Off");
+	AntialiasingCombo.AddItem(ReplaceStr(AntialiasingModes[2], "%N", "2"), "AntialiasMode=MSAA_2x");
+	AntialiasingCombo.AddItem(ReplaceStr(AntialiasingModes[2], "%N", "4"), "AntialiasMode=MSAA_4x");
+	AntialiasingCombo.AddItem(ReplaceStr(AntialiasingModes[2], "%N", "8"), "AntialiasMode=MSAA_8x");
+	AntialiasingCombo.SetDisabled(False);
+
+	CurrentMode = GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice AntialiasMode");
+	if (CurrentMode ~= "MSAA_8x" || CurrentMode == "3")
+		AntialiasingCombo.SetSelectedIndex(3);
+	else if (CurrentMode ~= "MSAA_4x" || CurrentMode == "2")
+		AntialiasingCombo.SetSelectedIndex(2);
+	else if (CurrentMode ~= "MSAA_2x" || CurrentMode == "1")
+		AntialiasingCombo.SetSelectedIndex(1);
+	else
+		AntialiasingCombo.SetSelectedIndex(0);
+}
+
 function Notify(UWindowDialogControl C, byte E)
 {
 	Super.Notify(C, E);

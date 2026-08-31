@@ -202,6 +202,30 @@ technical guides; use this file for the chronological record.
   `Terraniux`. `Vortex2` remains capture-only and is explicitly reported as
   `SkippedDynamic` because its scripted intro changes camera and player state.
 
+### Added logical 4K and capability-checked MSAA 8x
+
+- Extended `AntialiasMode` with MSAA 8x and selected the highest supported
+  sample count across the scene color, hit, and depth formats before rebuilding
+  resources and pipeline states.
+- Corrected the hit-resolve pipeline target to R32_UINT to match its resolved
+  render target and readback path.
+- Made borderless placement and swap-chain sizing follow the monitor containing
+  the Unreal window, including secondary-monitor origins, while preserving the
+  logical and physical viewport split.
+- Added 2560x1440 and 3840x2160 to the renderer's resolution list regardless of
+  physical display modes and exposed Off/2x/4x/8x through the existing Video
+  preferences Antialiasing row when D3D12Drv is active.
+- Added automated MSAA 8x, logical 1440p, logical 4K, and logical 4K plus MSAA
+  8x cases. Release builds and the Settings and MenuDisplay runtime suites
+  passed; logs confirmed effective 8x at 1920x1080 and 3840x2160 on the RTX
+  3060. ModernMenu compiled with zero warnings.
+- Physical 4K presentation is implemented but not validated because the
+  current desktop is 1920x1080 and no 4K DSR mode was active.
+- Final screenshot comparison passed for the four deterministic content maps.
+  `Terraniux` was changed to capture-only after retained images confirmed its
+  player yaw varies between runs; `Vortex2` remains capture-only for the same
+  class of nondeterminism.
+
 ## Entry template
 
 Add new entries in this form:

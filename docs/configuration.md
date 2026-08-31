@@ -34,6 +34,12 @@ controls 227's built-in `TIMEDEMO` statistics overlay and remains synchronized
 when the Video page is reopened. Its `bShowFPS` value is saved in the active
 engine profile and restores the overlay when the game starts or restarts.
 
+The same Video page exposes the D3D12 renderer's existing **Antialiasing** row
+as **Off**, **2x**, **4x**, and **8x**. Changing it updates `AntialiasMode` and
+flushes the renderer immediately. Unsupported sample counts automatically fall
+back to the highest lower count supported by the scene color, hit, and depth
+formats.
+
 The custom Preferences **Restart** action saves the open pages and relaunches
 with `Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini`. This preserves
 the disposable D3D12 profile instead of falling back to `Unreal.ini`. Restart
@@ -56,7 +62,7 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | --- | ---: | --- |
 | `UseVSync` | `True` | Synchronize presentation to the display. |
 | `UsePrecache` | `True` | Precache renderer resources. |
-| `AntialiasMode` | `Off` | `Off`, `MSAA_2x`, or `MSAA_4x`. |
+| `AntialiasMode` | `Off` | `Off`, `MSAA_2x`, `MSAA_4x`, or `MSAA_8x`. |
 | `GammaMode` | `D3D9` | `D3D9` or `XOpenGL` response. |
 | `GammaOffset` | `0.0` | Global gamma offset. |
 | `GammaOffsetRed` | `0.0` | Red-channel gamma offset. |
@@ -84,7 +90,10 @@ for this target.
 ## Resolution behavior
 
 In borderless fullscreen, the engine keeps the selected logical resolution
-while the renderer presents to the physical desktop resolution. The renderer
-letterboxes the image and maps mouse coordinates back into logical menu space.
+while the renderer presents to the physical resolution of the monitor that
+contains the game window. The renderer always offers 2560x1440 and 3840x2160
+as logical modes, letterboxes or downsamples the image to the selected monitor,
+and maps mouse coordinates back into logical menu space. On a physical 4K
+monitor or a 4K DSR mode, presentation uses the monitor's 3840x2160 dimensions.
 Do not treat `Viewport->SizeX/SizeY` and `Viewport->PhysicalSizeX/PhysicalSizeY`
 as interchangeable when changing this code.

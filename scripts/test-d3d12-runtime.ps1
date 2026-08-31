@@ -230,12 +230,13 @@ $contentCases = @(
     New-TestCase -Name 'content-chizra' -Map 'Chizra'
     New-TestCase -Name 'content-vortex2' -Map 'Vortex2' -CompareScreenshot $false
     New-TestCase -Name 'content-dug' -Map 'Dug'
-    New-TestCase -Name 'content-terraniux' -Map 'Terraniux'
+    New-TestCase -Name 'content-terraniux' -Map 'Terraniux' -CompareScreenshot $false
 )
 
 $settingsCases = @(
     New-TestCase -Name 'setting-msaa2' -Map 'NyLeve' -Settings @{ AntialiasMode = 'MSAA_2x' }
     New-TestCase -Name 'setting-msaa4' -Map 'NyLeve' -Settings @{ AntialiasMode = 'MSAA_4x' }
+    New-TestCase -Name 'setting-msaa8' -Map 'NyLeve' -Settings @{ AntialiasMode = 'MSAA_8x' }
     New-TestCase -Name 'setting-no-precache' -Map 'DmDeck16' -Settings @{ UsePrecache = 'False' }
     New-TestCase -Name 'setting-vsync' -Map 'NyLeve' -Settings @{ UseVSync = 'True' }
     New-TestCase -Name 'setting-one-x-lighting' -Map 'DmDeck16' -Settings @{ LightMode = 'OneXBlending' }
@@ -252,6 +253,9 @@ $menuDisplayCases = @(
     New-TestCase -Name 'menu-fps-disabled' -Map 'Unreal.unr' -ProfileSettings @{ 'ModernMenu.ModernVideoClientWindow|bShowFPS' = 'False' }
     New-TestCase -Name 'display-1280x720' -Map 'Unreal.unr' -ProfileSettings @{ 'WinDrv.WindowsClient|FullscreenViewportX' = '1280'; 'WinDrv.WindowsClient|FullscreenViewportY' = '720' }
     New-TestCase -Name 'display-1024x768' -Map 'Unreal.unr' -ProfileSettings @{ 'WinDrv.WindowsClient|FullscreenViewportX' = '1024'; 'WinDrv.WindowsClient|FullscreenViewportY' = '768' }
+    New-TestCase -Name 'display-2560x1440' -Map 'Unreal.unr' -ProfileSettings @{ 'WinDrv.WindowsClient|FullscreenViewportX' = '2560'; 'WinDrv.WindowsClient|FullscreenViewportY' = '1440' }
+    New-TestCase -Name 'display-3840x2160' -Map 'Unreal.unr' -ProfileSettings @{ 'WinDrv.WindowsClient|FullscreenViewportX' = '3840'; 'WinDrv.WindowsClient|FullscreenViewportY' = '2160' }
+    New-TestCase -Name 'display-3840x2160-msaa8' -Map 'NyLeve' -Settings @{ AntialiasMode = 'MSAA_8x' } -ProfileSettings @{ 'WinDrv.WindowsClient|FullscreenViewportX' = '3840'; 'WinDrv.WindowsClient|FullscreenViewportY' = '2160' }
     New-TestCase -Name 'display-windowed-1600x1024' -Map 'Unreal.unr' -ProfileSettings @{ 'WinDrv.WindowsClient|StartupFullscreen' = 'False'; 'WinDrv.WindowsClient|WindowedViewportX' = '1600'; 'WinDrv.WindowsClient|WindowedViewportY' = '1024' }
 )
 
@@ -270,7 +274,7 @@ if ($Maps) {
 }
 
 $rendererSection = 'D3D12Drv.D3D12RenderDevice'
-$failurePattern = 'Critical Error|Assertion|ResizeTarget failed|ResizeViewport failed|Could not resize scene buffers|Could not flush d3d12 renderer|Bound to XOpenGLDrv'
+$failurePattern = 'Critical Error|Assertion|ResizeTarget failed|ResizeViewport failed|Could not resize scene buffers|Could not flush d3d12 renderer|CreateCommittedResource.*failed|Bound to XOpenGLDrv'
 $sourceHash = (Get-FileHash -LiteralPath $sourceIni -Algorithm SHA256).Hash
 $userHash = (Get-FileHash -LiteralPath $userIni -Algorithm SHA256).Hash
 $results = @()
@@ -347,6 +351,9 @@ try {
         }
         if ($logText -match $failurePattern) {
             throw "$($case.Name) contains a renderer failure signature."
+        }
+        if (($case.Settings.ContainsKey('AntialiasMode') -or $case.Name -match '^display-(2560x1440|3840x2160)') -and $logText -notmatch 'requested MSAA \d+x, effective MSAA \d+x') {
+            throw "$($case.Name) did not log requested and effective MSAA."
         }
 
         $results += [pscustomobject]@{

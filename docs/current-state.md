@@ -26,8 +26,12 @@ The renderer builds, deploys, and loads without XOpenGL fallback. Native and
 lower logical resolutions, borderless letterboxing, menu coordinate mapping,
 HD lightmaps, RGB10A2 textures, 227 alpha-blended geometry, normal startup, and
 campaign metadata discovery have been implemented and validated. The Video
-preferences page also exposes a persistent checkbox for 227's built-in FPS
-statistics.
+preferences page exposes a persistent checkbox for 227's built-in FPS
+statistics and the D3D12 Off/2x/4x/8x antialiasing modes. Logical 2560x1440 and
+3840x2160 rendering, including 4K with MSAA 8x, is validated on the current
+RTX 3060 host. Borderless physical sizing follows the monitor containing the
+game window; true physical 4K output remains unvalidated on the current 1080p
+desktop.
 
 OpenXR rendering, VR input, comfort features, and the portable launcher are not
 implemented. Runtime smoke automation exercises representative maps, renderer
@@ -38,8 +42,9 @@ ignores background window messages.
 
 Optional window screenshot capture and tolerant sampled-pixel comparison are
 available through `scripts/test-d3d12-runtime.ps1`. Ignored host-specific
-baselines live under `local/logs/screenshot-baselines/`; `Vortex2` remains
-capture-only because its scripted intro is nondeterministic.
+baselines live under `local/logs/screenshot-baselines/`; `Vortex2` and
+`Terraniux` remain capture-only because their camera or player state is
+nondeterministic.
 
 ## Verified commands
 
