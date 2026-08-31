@@ -5,7 +5,7 @@
 ```text
 D3D12Drv/                    OldUnreal 227k adapter and native package project
 cmake/                       Deployment and packaging target declarations
-manifests/developer/         Pinned developer-bundle release identity
+manifests/developer/         Optional developer-bundle artifact identity
 manifests/hosts/             Supported host fingerprints
 packaging/                   Offline installer definition
 PERMISSIONS.md               Pinned payload authorization and packaging scope

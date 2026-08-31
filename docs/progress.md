@@ -264,7 +264,7 @@ technical guides; use this file for the chronological record.
 ### Added one-command development bootstrap
 
 - Pinned structured runtime and SDK asset URLs, sizes, and SHA-256 values in the
-  host manifest and added a release manifest for
+  host manifest and added an artifact manifest for the optional
   `UnrealRevived-DeveloperBundle-227k_15-v1.zip`.
 - Added verified original-source archive acquisition with cache reuse and
   partial-download cleanup. Owner-controlled MEGA links provide manual recovery

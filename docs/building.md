@@ -42,6 +42,34 @@ Use `-SkipToolchainInstall` only when the prerequisites are already available,
 marked development runtime. `-Force` never permits deletion of an unmarked
 directory.
 
+## Archive acquisition and recovery
+
+Bootstrap acquires each pinned archive in this order:
+
+1. Reuse a matching file from `local/downloads/`.
+2. Download it from the original OldUnreal `v227k_15` release.
+3. If the original source is unavailable, report the owner-controlled MEGA
+    recovery link and required cache filename.
+
+| Archive | Original source | Recovery mirror |
+| --- | --- | --- |
+| `OldUnreal-UnrealPatch227k-Windows.zip` | [OldUnreal release](https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-Windows.zip) | [MEGA](https://mega.nz/file/dE41QYbA#uiyeYtIkmubYh0LPHTpMuS3InMcuTW4QDUKV3Wd_hCk) |
+| `OldUnreal-UnrealPatch227k-SDK-Windows.zip` | [OldUnreal release](https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-SDK-Windows.zip) | [MEGA](https://mega.nz/file/1JBUGJAT#WHDv2Tqj_BwElg3I2ZoAViSHbW3mQig_7muB67m6XCk) |
+
+MEGA share links require browser-side decryption, so fallback is intentionally
+manual. Save both files under `local/downloads/` with the exact names above and
+rerun bootstrap. Size and SHA-256 verification is mandatory regardless of
+source.
+
+Archives stored elsewhere can be supplied explicitly:
+
+```powershell
+powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1 `
+   -RuntimeArchive 'E:\OldUnreal-UnrealPatch227k-Windows.zip' `
+   -SdkArchive 'E:\OldUnreal-UnrealPatch227k-SDK-Windows.zip' `
+   -SkipDownload
+```
+
 The SDK root must contain these files:
 
 ```text
@@ -129,18 +157,12 @@ Place both pinned upstream archives under `local/downloads/`, then run:
 powershell -NoProfile -File scripts/package-developer-bundle.ps1
 ```
 
-The optional bundle script verifies archive sizes and SHA-256 values, extracts and validates
-the host and SDK, rejects generated/user data, and writes the release asset,
-checksum sidecar, and generated release manifest under
+The optional bundle script verifies archive sizes and SHA-256 values, extracts
+and validates the host and SDK, rejects generated/user data, and writes the
+bundle, checksum sidecar, and generated artifact manifest under
 `local/package/developer-bundle/`. The tracked manifest pins its size and
 SHA-256 for optional `-BundlePath` use; no hosted bundle URL is configured or
 required by the default bootstrap.
-
-The host manifest also records owner-controlled MEGA mirrors for both original
-pinned archives. MEGA share links require client-side decryption and are manual
-recovery sources. If an original download fails, bootstrap reports the matching
-mirror and exact cache filename. Download it there with a browser, then rerun;
-the same size and SHA-256 checks apply before extraction.
 
 ## Build the offline installer
 

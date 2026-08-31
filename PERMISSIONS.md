@@ -6,13 +6,19 @@ The project owner confirms that this project has the rights required to
 redistribute, mirror, and bundle the pinned OldUnreal 227k_15 Windows patch
 files in the fully offline Unreal Revived installer.
 
-The covered payload is identified immutably by
+The covered runtime and SDK inputs are identified immutably by
 `manifests/hosts/unreal-gold-227k_15-win64.json`:
 
-- Archive: `OldUnreal-UnrealPatch227k-Windows.zip`
 - Release tag: `v227k_15`
 - Release commit: `2ea5408e2aa7c955eb087a6f8d2fcce318747d2f`
-- SHA-256: `88c49adef88e5a88c74f9fc80d89f0a2fe473d040578979aeb4425de32da12fc`
+- Runtime archive: `OldUnreal-UnrealPatch227k-Windows.zip`
+- Runtime SHA-256: `88c49adef88e5a88c74f9fc80d89f0a2fe473d040578979aeb4425de32da12fc`
+- SDK archive: `OldUnreal-UnrealPatch227k-SDK-Windows.zip`
+- SDK SHA-256: `68a2fe383d426e2ed54197bafffaa0047757d4b32960d63bd0ce82eb7d84e913`
+
+The original OldUnreal release URLs are the primary acquisition source. The
+owner-controlled MEGA links recorded in the host manifest are recovery mirrors
+for the same hash-verified files.
 
 This authorization is an established project requirement and is not an open
 implementation question. Contributors and automated agents must not request
