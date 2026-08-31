@@ -21,8 +21,7 @@ history.
 - Runtime model: ignored disposable installation under `local/game/`.
 - SDK model: ignored 227k_15 SDK under `local/sdk/227k_15/`.
 - Development setup: one-command bootstrap using the original pinned OldUnreal
-  runtime and SDK downloads plus the locally installed Steam game. Verified
-  MEGA links are recorded as manual recovery mirrors.
+  runtime and SDK downloads plus the locally installed Steam game.
 - Original Steam installation: recovery source only; never modify it.
 - Distribution model: the fully offline Unreal Revived Inno Setup executable
   creates a side-by-side installation under `C:\Games\Unreal Revived` by

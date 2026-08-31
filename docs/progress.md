@@ -267,8 +267,8 @@ technical guides; use this file for the chronological record.
   host manifest and added an artifact manifest for the optional
   `UnrealRevived-DeveloperBundle-227k_15-v1.zip`.
 - Added verified original-source archive acquisition with cache reuse and
-  partial-download cleanup. Owner-controlled MEGA links provide manual recovery
-  mirrors, while local/USB developer bundles remain optional.
+  partial-download cleanup. Explicit local archives and local/USB developer
+  bundles remain available for offline use.
 - Added Steam App ID 13250 discovery, full physical runtime copying, verified
   host and SDK extraction, generated D3D12 test profiles, and a development
   marker that deployment and runtime automation enforce.
@@ -276,6 +276,10 @@ technical guides; use this file for the chronological record.
   Git, CMake, Visual Studio 2022 C++ Build Tools, and Inno Setup 6.
 - Added `scripts/bootstrap-dev-environment.ps1` to compose setup, configure,
   build, deploy, and optional smoke testing from a fresh clone.
+- Reworked the root README as a first-time visitor guide with an honest feature
+  boundary, complete bootstrap and launch paths, archive acquisition policy,
+  installer behavior, safety constraints, repository map, and documentation
+  index.
 - Consolidated shared INI and integrity helpers, moved public CMake deployment
   targets into `cmake/`, excluded generated/vendor trees from VS Code indexing,
   and removed only four verified-empty obsolete scaffold directories.

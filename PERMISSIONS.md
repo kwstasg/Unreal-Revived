@@ -9,16 +9,25 @@ files in the fully offline Unreal Revived installer.
 The covered runtime and SDK inputs are identified immutably by
 `manifests/hosts/unreal-gold-227k_15-win64.json`:
 
-- Release tag: `v227k_15`
-- Release commit: `2ea5408e2aa7c955eb087a6f8d2fcce318747d2f`
-- Runtime archive: `OldUnreal-UnrealPatch227k-Windows.zip`
+- Release: [Unreal v227k_15](https://github.com/OldUnreal/Unreal-testing/releases/tag/v227k_15)
+- Release tag: [`v227k_15`](https://github.com/OldUnreal/Unreal-testing/tree/v227k_15)
+- Release commit: [`2ea5408e2aa7c955eb087a6f8d2fcce318747d2f`](https://github.com/OldUnreal/Unreal-testing/commit/2ea5408e2aa7c955eb087a6f8d2fcce318747d2f)
+- Runtime archive: [OldUnreal-UnrealPatch227k-Windows.zip](https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-Windows.zip)
 - Runtime SHA-256: `88c49adef88e5a88c74f9fc80d89f0a2fe473d040578979aeb4425de32da12fc`
-- SDK archive: `OldUnreal-UnrealPatch227k-SDK-Windows.zip`
+- SDK archive: [OldUnreal-UnrealPatch227k-SDK-Windows.zip](https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-SDK-Windows.zip)
 - SDK SHA-256: `68a2fe383d426e2ed54197bafffaa0047757d4b32960d63bd0ce82eb7d84e913`
 
-The original OldUnreal release URLs are the primary acquisition source. The
-owner-controlled MEGA links recorded in the host manifest are recovery mirrors
-for the same hash-verified files.
+The original OldUnreal release URLs recorded in the host manifest are the
+acquisition source for these hash-verified files.
+
+## Upstream references
+
+- [OldUnreal official website](https://www.oldunreal.com/)
+- [OldUnreal organization](https://github.com/OldUnreal)
+- [OldUnreal 227 testing and releases](https://github.com/OldUnreal/Unreal-testing)
+- [OldUnreal public source](https://github.com/OldUnreal/Unreal-PubSrc)
+- [OldUnreal 227 localization project](https://github.com/OldUnreal/Unreal-Localization)
+- [OldUnreal 227k_15 license](https://github.com/OldUnreal/Unreal-testing/blob/v227k_15/LICENSE.md)
 
 This authorization is an established project requirement and is not an open
 implementation question. Contributors and automated agents must not request

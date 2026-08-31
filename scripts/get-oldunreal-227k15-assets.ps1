@@ -66,12 +66,7 @@ function Resolve-PinnedAsset {
         Move-Item -LiteralPath $partialPath -Destination $path -Force
     }
     catch {
-        $mirror = @($Asset.mirrors) | Select-Object -First 1
-        $message = "Could not acquire $($Asset.archive) from its original source."
-        if ($mirror) {
-            $message += " Download the recovery mirror and save it as '$path': $mirror"
-        }
-        throw "$message`n$($_.Exception.Message)"
+        throw "Could not acquire $($Asset.archive) from the original OldUnreal release.`n$($_.Exception.Message)"
     }
     finally {
         Remove-Item -LiteralPath $partialPath -Force -ErrorAction SilentlyContinue

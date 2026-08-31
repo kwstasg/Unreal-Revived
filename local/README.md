@@ -24,8 +24,8 @@ powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
 Bootstrap physically copies the original game into `local/game/`, overlays the
 verified host, installs the SDK, and writes the required development marker.
 It reuses verified archives in `local/downloads/` or fetches them from the
-original OldUnreal release. If that source is unavailable, the error identifies
-the pinned MEGA recovery mirror and exact filename to place in this directory.
+original OldUnreal release. Previously downloaded archives can also be placed
+in this directory for verified offline use.
 
 Recommended environment variables:
 

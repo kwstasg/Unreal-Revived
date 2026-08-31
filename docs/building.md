@@ -17,7 +17,7 @@ workload, and Inno Setup 6 when they are missing. Original Steam game assets
 are never downloaded or distributed; they are copied into the ignored,
 disposable runtime. The authorized OldUnreal host and SDK are supplied by the
 pinned original OldUnreal release downloads. Verified copies are cached under
-`local/downloads/`; the host manifest records MEGA recovery mirrors.
+`local/downloads/`.
 
 ## One-command setup
 
@@ -42,24 +42,19 @@ Use `-SkipToolchainInstall` only when the prerequisites are already available,
 marked development runtime. `-Force` never permits deletion of an unmarked
 directory.
 
-## Archive acquisition and recovery
+## Archive acquisition and offline use
 
 Bootstrap acquires each pinned archive in this order:
 
 1. Reuse a matching file from `local/downloads/`.
 2. Download it from the original OldUnreal `v227k_15` release.
-3. If the original source is unavailable, report the owner-controlled MEGA
-    recovery link and required cache filename.
 
-| Archive | Original source | Recovery mirror |
-| --- | --- | --- |
-| `OldUnreal-UnrealPatch227k-Windows.zip` | [OldUnreal release](https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-Windows.zip) | [MEGA](https://mega.nz/file/dE41QYbA#uiyeYtIkmubYh0LPHTpMuS3InMcuTW4QDUKV3Wd_hCk) |
-| `OldUnreal-UnrealPatch227k-SDK-Windows.zip` | [OldUnreal release](https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-SDK-Windows.zip) | [MEGA](https://mega.nz/file/1JBUGJAT#WHDv2Tqj_BwElg3I2ZoAViSHbW3mQig_7muB67m6XCk) |
+| Archive | Original source |
+| --- | --- |
+| `OldUnreal-UnrealPatch227k-Windows.zip` | [OldUnreal release](https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-Windows.zip) |
+| `OldUnreal-UnrealPatch227k-SDK-Windows.zip` | [OldUnreal release](https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-SDK-Windows.zip) |
 
-MEGA share links require browser-side decryption, so fallback is intentionally
-manual. Save both files under `local/downloads/` with the exact names above and
-rerun bootstrap. Size and SHA-256 verification is mandatory regardless of
-source.
+Size and SHA-256 verification is mandatory for cached and explicit inputs.
 
 Archives stored elsewhere can be supplied explicitly:
 
