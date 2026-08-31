@@ -147,8 +147,9 @@ shortcut paths are refreshed.
 The `deploy-modern-menu` target compiles the standalone `ModernMenu.u` package
 with the disposable runtime's x64 `UCC.exe`. It deploys the package to
 `System64/` and updates `D3D12Test.ini` to load the custom root window and menu
-package. It does not rebuild or replace OldUnreal's network-sensitive core
-packages.
+package. It also refreshes the tracked setup logos under `Help/` and recreates
+the development shortcuts with a hash-derived copy of the tracked icon. It
+does not rebuild or replace OldUnreal's network-sensitive core packages.
 
 ## Build the developer bundle
 
@@ -215,14 +216,32 @@ localized descriptions, binaries, and the FMOD Ex library are omitted.
 Packaging replaces both retained logo bitmaps with the original project-owned
 artwork tracked under `branding/`. It also installs the tracked seven-frame,
 16-through-256-pixel `UnrealRevived.ico` for shortcuts and uninstall metadata.
-The installed icon uses a versioned filename so Windows Explorer cannot reuse a
-stale cached image, and setup recreates the desktop shortcut on every install
-or repair.
+The installed icon filename includes a prefix of its SHA-256 hash so Windows
+Explorer cannot reuse a stale cached image after artwork changes, and setup
+recreates the desktop shortcut on every install or repair.
 The baseline assets can be regenerated deterministically with
 `scripts/build-unreal-revived-branding.ps1`; packaging copies the tracked files
 directly and does not read original-game artwork. Both generic defaults and the
 dedicated launch profile select D3D12, and every localized first-time
 configuration page carries the D3D12 recommendation text.
+
+The same generator imports tracked 16:9 source artwork into a 3840x2160 in-game
+menu master and twelve 256x256 tiles under `branding/MenuTiles`. It resamples
+the complete image once
+into the package's encoded canvas before extracting tiles, which avoids seams
+from independently resampled edges. Building ModernMenu stages and imports the
+tiles into `ModernMenu.u`; `ModernRootWindow` displays them in place of the
+OldUnreal Edition desktop whenever the menu hides the game world. The runtime
+restores the source's native 16:9 proportions and uses centered cover scaling
+for other viewport ratios, so replacement artwork is never stretched.
+
+To import user-authored artwork, supply a 16:9 PNG, BMP, or JPEG to
+`scripts/build-unreal-revived-branding.ps1 -MenuBackgroundSource <path>`. Add
+`-DeriveBranding` to crop the source's circular crest into the seven-frame ICO
+and its lower wordmark into the 719x200 setup banner. `SetupLogo.bmp` remains
+independent. Without that switch, only the canonical menu bitmap and twelve
+tiles change. Wider viewports crop the top and bottom; narrower viewports crop
+the sides.
 
 The validated source snapshot omitted 305 audited paths totaling 134,784,646
 bytes, although generated files and source-install differences can change the

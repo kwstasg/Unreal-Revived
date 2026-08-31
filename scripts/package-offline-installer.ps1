@@ -34,7 +34,6 @@ $brandingRoot = Join-Path $repositoryRoot 'branding'
 $brandingLogo = Join-Path $brandingRoot 'Logo.bmp'
 $brandingSetupLogo = Join-Path $brandingRoot 'SetupLogo.bmp'
 $brandingIcon = Join-Path $brandingRoot 'UnrealRevived.ico'
-$installedBrandingIconName = 'UnrealRevived-Icon-v1.ico'
 $iniModule = Join-Path $repositoryRoot 'scripts\UnrealRevived.Ini.psm1'
 $permissions = Join-Path $repositoryRoot 'PERMISSIONS.md'
 $installerDefinition = Join-Path $repositoryRoot 'packaging\UnrealRevived.iss'
@@ -44,6 +43,9 @@ foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchi
         throw "Missing offline package input: $requiredPath"
     }
 }
+
+$brandingIconHash = (Get-FileHash -LiteralPath $brandingIcon -Algorithm SHA256).Hash.ToLowerInvariant()
+$installedBrandingIconName = "UnrealRevived-Icon-$($brandingIconHash.Substring(0, 12)).ico"
 
 $hostManifest = Get-Content -LiteralPath $hostManifestPath -Raw | ConvertFrom-Json
 $archiveHash = Assert-UnrealRevivedFileIntegrity -Path $PatchArchive `
@@ -193,6 +195,7 @@ $payloadManifest = [ordered]@{
     schema = 1
     product = 'Unreal Revived'
     sourceRevision = $gitRevision
+    brandingIconName = $installedBrandingIconName
     patch = $hostManifest.release
     extractedPatchFiles = @(Get-ChildItem -LiteralPath $patchRoot -File -Recurse).Count
     files = @($payloadFiles)
@@ -227,7 +230,7 @@ if (-not $isccPath) {
     throw 'Inno Setup 6 is required to build the installer. Install package JRSoftware.InnoSetup, then rerun the package-offline-installer target.'
 }
 
-& $isccPath "/DStageRoot=$stagePath" "/DOutputDir=$outputRoot" $installerDefinition
+& $isccPath "/DStageRoot=$stagePath" "/DOutputDir=$outputRoot" "/DProductIconName=$installedBrandingIconName" $installerDefinition
 if ($LASTEXITCODE -ne 0) {
     throw "Inno Setup failed with exit code $LASTEXITCODE."
 }

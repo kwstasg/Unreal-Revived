@@ -54,6 +54,19 @@ the Unreal Revived D3D12 recommendation. Confirm the window loads the branded
 343x84 `Help/SetupLogo.bmp`, and inspect the tracked shortcut ICO for 16, 24,
 32, 48, 64, 128, and 256 pixel frames.
 
+Open the in-game menu with Escape while `ModernMenu.ModernRootWindow` is active.
+Confirm the Unreal Revived background renders as a seamless 4x3 tile grid, the
+menu and status bars remain visible, and the 16:9 source remains proportional.
+A 16:9 viewport must fill without cropping or stretching. Other
+viewport ratios must use centered cover cropping rather than stretching or
+image-specific side extensions. The runtime log must contain no missing
+texture or package warnings.
+
+After source-derived branding changes, confirm `MenuBackground.bmp` is a
+3840x2160 24-bit bitmap and `Logo.bmp` is a 719x200 24-bit bitmap. Inspect the
+ICO directory for 16, 24, 32, 48, 64, 128, and 256 pixel frames and verify the
+circular crest has transparent corners.
+
 For audio policy changes, enumerate `Engine.AudioSubsystem` registrations
 across every locale and require ALAudio to be the only result. Confirm the
 final `System64` tree retains `ALAudio.dll`, `OpenAL32.dll`, `libxmp.dll`,

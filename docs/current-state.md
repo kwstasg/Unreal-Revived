@@ -57,7 +57,8 @@ ALAudio with bundled OpenAL Soft is the sole supported audio engine; deprecated
 Galaxy and experimental SwFMOD are filtered with their registrations. The
 first-time configuration page defaults to D3D12, describes it in every locale,
 and uses tracked original Unreal Revived artwork; installed shortcuts use the
-tracked project-owned multi-resolution icon. Dedicated
+tracked project-owned multi-resolution icon. The in-game menu desktop uses a
+tracked Unreal Revived background embedded in `ModernMenu.u`. Dedicated
 launch profiles, Start Menu shortcut, and uninstall
 backup are implemented. Interactive uninstall keeps saves by default through a
 checked option embedded in the native uninstall window, which transitions into

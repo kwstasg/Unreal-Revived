@@ -8,7 +8,9 @@
 
 #define ProductName "Unreal Revived"
 #define ProductVersion "0.1.0"
-#define ProductIconName "UnrealRevived-Icon-v1.ico"
+#ifndef ProductIconName
+  #error ProductIconName must identify the staged content-addressed icon
+#endif
 
 [Setup]
 AppId={{8D6614ED-8854-4D0E-9666-A891EC92713B}

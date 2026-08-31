@@ -48,7 +48,10 @@ foreach ($requiredDirectory in @($systemDirectory, $system64Directory)) {
         throw "The patched installation is missing $requiredDirectory"
     }
 }
-$revivedIcon = Join-Path $destinationRoot 'UnrealRevived\UnrealRevived-Icon-v1.ico'
+if (-not $payloadManifest.brandingIconName) {
+    throw 'Installer payload does not identify its bundled Unreal Revived icon.'
+}
+$revivedIcon = Join-Path $destinationRoot "UnrealRevived\$($payloadManifest.brandingIconName)"
 if (-not (Test-Path -LiteralPath $revivedIcon -PathType Leaf)) {
     throw "The bundled Unreal Revived icon is missing: $revivedIcon"
 }

@@ -105,8 +105,8 @@ technical guides; use this file for the chronological record.
   copies. Rebuilt the offline installer with SHA-256
   `A1008CB9AD5452143830DDF9FE8F04E60F7E1A739DC2A7CDA404E42B90B53387`.
 - Made desktop shortcut creation unconditional during install and repair, and
-  changed the installed icon path to `UnrealRevived-Icon-v1.ico` so Explorer
-  refreshes the icon instead of retaining a cached image from the old path.
+  changed the installed icon path so Explorer refreshes the icon instead of
+  retaining a cached image from the old path.
 - Completed a fresh installer run and confirmed the desktop shortcut was
   recreated with the versioned icon path, the installed icon matched the
   tracked asset by SHA-256, and uninstall metadata used the same icon. The
@@ -115,6 +115,51 @@ technical guides; use this file for the chronological record.
 - Validated the native first-time window selects Direct3D 12. The exact engine
   localization lookup and native selection-change notification display the new
   D3D12 description.
+
+### Unreal Revived menu background
+
+- Replaced the inherited OldUnreal Edition menu desktop with original tracked
+  Unreal Revived artwork generated as a 1280x720 source and twelve UE1-compatible
+  256x256 bitmap tiles.
+- Updated the ModernMenu build to stage package textures and embedded them in
+  `ModernMenu.u` without changing the original Steam installation.
+- Compiled 430 UnrealScript lines with zero warnings, opened the menu through
+  the disposable D3D12 runtime, and captured a seamless rendered background
+  with the menu and status bars intact. Rebuilt the offline installer with
+  SHA-256
+  `B503CD9F6EDBB9A5D321310755081CEF789E50976E9BBB55FF3BBD16490C72CF`.
+- Replaced placeholder-specific mirrored edges with generic centered cover
+  scaling. Native 16:9 artwork remains proportional and fills arbitrary
+  viewports through predictable cropping rather than stretching.
+- Added `-MenuBackgroundSource` for importing non-generated 1280x720 PNG, BMP,
+  or JPEG artwork without touching other branding. Validated same-path import,
+  twelve-tile regeneration, unchanged logo/icon hashes, and rejection of wrong
+  dimensions before modifying the canonical background.
+- Imported the supplied 1280x720 JPEG, changed tile generation to resample the
+  complete image before extraction, and compiled 425 UnrealScript lines with
+  zero warnings. A 1365x768 D3D12 capture filled the viewport with the source's
+  original proportions and no black bars, stretching, or tile seams.
+- Extended source import to accept exact 16:9 artwork and produce a 3840x2160
+  canonical master. Added optional source-derived branding that crops the
+  circular crest into all seven ICO frames with transparent corners and the
+  lower wordmark into the 719x200 setup banner while leaving `SetupLogo.bmp`
+  independent. Validated both bitmap dimensions and the complete ICO frame
+  table. Rebuilt the offline installer, verified all staged branding payloads
+  byte-for-byte, and confirmed its checksum sidecar matches SHA-256
+  `C2A4C37AEE58DA6A97B35E814A1EA46ADC5D448ACD03AE53F17F24C670C0E374`.
+- Replaced the fixed installed icon version with a SHA-256-derived filename
+  carried through the payload manifest and Inno Setup definition. This gives
+  every changed ICO a new Explorer cache key while install-time validation,
+  desktop shortcuts, Start Menu shortcuts, and uninstall metadata all use the
+  same exact asset name. Rebuilt the installer with SHA-256
+  `567E256E310E9FB79B396746C134230D9A6473AF1415A11B204AB1B9D1B46203`,
+  completed a silent repair, and verified the desktop shortcut, installed icon
+  hash, and uninstall metadata all reference
+  `UnrealRevived-Icon-1c272b56e343.ico`.
+- Extended ModernMenu deployment to refresh the same tracked branding in the
+  disposable runtime. Verified `local/game/Help/Logo.bmp` and `SetupLogo.bmp`
+  byte-for-byte, and recreated both local development shortcuts against the
+  matching hash-derived circular ICO.
 
 ### Established installer profile defaults
 

@@ -13,15 +13,21 @@ $null = & (Join-Path $PSScriptRoot 'assert-development-runtime.ps1') -GameRoot $
 Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Ini.psm1') -Force
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$sourceDirectory = Join-Path $repositoryRoot 'UnrealScript\ModernMenu\Classes'
+$sourcePackageDirectory = Join-Path $repositoryRoot 'UnrealScript\ModernMenu'
+$sourceDirectory = Join-Path $sourcePackageDirectory 'Classes'
+$brandingDirectory = Join-Path $repositoryRoot 'branding'
+$menuTextureDirectory = Join-Path $repositoryRoot 'branding\MenuTiles'
+$brandingLogo = Join-Path $brandingDirectory 'Logo.bmp'
+$brandingSetupLogo = Join-Path $brandingDirectory 'SetupLogo.bmp'
 $systemDirectory = Join-Path $GameRoot 'System'
 $system64Directory = Join-Path $GameRoot 'System64'
+$helpDirectory = Join-Path $GameRoot 'Help'
 $ucc = Join-Path $system64Directory 'UCC.exe'
 $iniPath = Join-Path $system64Directory $IniName
-$runtimeSourceDirectory = Join-Path $GameRoot 'ModernMenu\Classes'
+$runtimePackageDirectory = Join-Path $GameRoot 'ModernMenu'
 $outputPackage = Join-Path $system64Directory 'ModernMenu.u'
 
-foreach ($requiredPath in @($sourceDirectory, $systemDirectory, $system64Directory, $ucc, $iniPath)) {
+foreach ($requiredPath in @($sourcePackageDirectory, $sourceDirectory, $menuTextureDirectory, $brandingLogo, $brandingSetupLogo, $systemDirectory, $system64Directory, $helpDirectory, $ucc, $iniPath)) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
         throw "Missing ModernMenu build input: $requiredPath"
     }
@@ -35,9 +41,9 @@ $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientW
 $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
 Set-Content -LiteralPath $iniPath -Value $iniLines -Encoding ASCII
 
-New-Item -ItemType Directory -Path $runtimeSourceDirectory -Force | Out-Null
-Remove-Item -LiteralPath $runtimeSourceDirectory -Recurse -Force
-Copy-Item -LiteralPath $sourceDirectory -Destination $runtimeSourceDirectory -Recurse
+Remove-Item -LiteralPath $runtimePackageDirectory -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -LiteralPath $sourcePackageDirectory -Destination $runtimePackageDirectory -Recurse
+Copy-Item -LiteralPath $menuTextureDirectory -Destination (Join-Path $runtimePackageDirectory 'Textures') -Recurse
 
 $stagedPackages = [Collections.Generic.List[string]]::new()
 try {
@@ -70,5 +76,9 @@ finally {
 if (-not (Test-Path -LiteralPath $outputPackage)) {
     throw "UCC did not produce $outputPackage"
 }
+
+Copy-Item -LiteralPath $brandingLogo -Destination (Join-Path $helpDirectory 'Logo.bmp') -Force
+Copy-Item -LiteralPath $brandingSetupLogo -Destination (Join-Path $helpDirectory 'SetupLogo.bmp') -Force
+& (Join-Path $PSScriptRoot 'install-development-shortcuts.ps1') -GameRoot $GameRoot
 
 Write-Host "ModernMenu deployed to $outputPackage"

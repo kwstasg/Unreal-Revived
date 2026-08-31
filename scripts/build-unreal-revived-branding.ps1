@@ -1,5 +1,11 @@
 param(
-    [string] $OutputRoot = (Join-Path (Split-Path -Parent $PSScriptRoot) 'branding')
+    [string] $OutputRoot = (Join-Path (Split-Path -Parent $PSScriptRoot) 'branding'),
+
+    [string] $MenuTextureRoot = (Join-Path (Split-Path -Parent $PSScriptRoot) 'branding\MenuTiles'),
+
+    [string] $MenuBackgroundSource,
+
+    [switch] $DeriveBranding
 )
 
 $ErrorActionPreference = 'Stop'
@@ -197,40 +203,66 @@ function Convert-BitmapToIconFrame {
 }
 
 function New-BrandIcon {
-    param([string] $Output)
+    param(
+        [string] $Output,
+        [Drawing.Bitmap] $Artwork
+    )
 
     $size = 256
-    $source = New-Object Drawing.Bitmap($size, $size, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
-    $graphics = [Drawing.Graphics]::FromImage($source)
-    $fontFamily = Get-BrandFontFamily
-    try {
-        $graphics.Clear([Drawing.Color]::Transparent)
-        $graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
-        $points = [Drawing.PointF[]]@(
-            (New-Object Drawing.PointF(128, 10)), (New-Object Drawing.PointF(226, 67)),
-            (New-Object Drawing.PointF(226, 189)), (New-Object Drawing.PointF(128, 246)),
-            (New-Object Drawing.PointF(30, 189)), (New-Object Drawing.PointF(30, 67)))
-        $fill = New-Object Drawing.Drawing2D.LinearGradientBrush(
-            (New-Object Drawing.Point(20, 20)), (New-Object Drawing.Point(236, 236)),
-            [Drawing.Color]::FromArgb(255, 78, 88, 92), [Drawing.Color]::FromArgb(255, 15, 20, 23))
-        $outline = New-Object Drawing.Pen([Drawing.Color]::FromArgb(255, 229, 166, 57), 12)
-        $inner = New-Object Drawing.Pen([Drawing.Color]::FromArgb(255, 32, 37, 39), 4)
+    if ($Artwork) {
+        $source = New-Object Drawing.Bitmap($size, $size, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+        $graphics = [Drawing.Graphics]::FromImage($source)
         try {
-            $graphics.FillPolygon($fill, $points)
-            $graphics.DrawPolygon($outline, $points)
-            $graphics.DrawPolygon($inner, $points)
+            $graphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+            $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+            $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+            $clip = New-Object Drawing.Drawing2D.GraphicsPath
+            try {
+                $clip.AddEllipse(2, 2, $size - 4, $size - 4)
+                $graphics.SetClip($clip)
+                $graphics.DrawImage($Artwork, 0, 0, $size, $size)
+            }
+            finally {
+                $clip.Dispose()
+            }
         }
         finally {
-            $inner.Dispose()
-            $outline.Dispose()
-            $fill.Dispose()
+            $graphics.Dispose()
         }
-        Add-BrandText $graphics $fontFamily 'UR' (New-Object Drawing.RectangleF(38, 58, 180, 134)) 92 ([Drawing.FontStyle]::Bold)
-        Add-BrandText $graphics $fontFamily 'REVIVED' (New-Object Drawing.RectangleF(48, 174, 160, 35)) 19 ([Drawing.FontStyle]::Regular)
     }
-    finally {
-        $fontFamily.Dispose()
-        $graphics.Dispose()
+    else {
+        $source = New-Object Drawing.Bitmap($size, $size, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+        $graphics = [Drawing.Graphics]::FromImage($source)
+        $fontFamily = Get-BrandFontFamily
+        try {
+            $graphics.Clear([Drawing.Color]::Transparent)
+            $graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
+            $points = [Drawing.PointF[]]@(
+                (New-Object Drawing.PointF(128, 10)), (New-Object Drawing.PointF(226, 67)),
+                (New-Object Drawing.PointF(226, 189)), (New-Object Drawing.PointF(128, 246)),
+                (New-Object Drawing.PointF(30, 189)), (New-Object Drawing.PointF(30, 67)))
+            $fill = New-Object Drawing.Drawing2D.LinearGradientBrush(
+                (New-Object Drawing.Point(20, 20)), (New-Object Drawing.Point(236, 236)),
+                [Drawing.Color]::FromArgb(255, 78, 88, 92), [Drawing.Color]::FromArgb(255, 15, 20, 23))
+            $outline = New-Object Drawing.Pen([Drawing.Color]::FromArgb(255, 229, 166, 57), 12)
+            $inner = New-Object Drawing.Pen([Drawing.Color]::FromArgb(255, 32, 37, 39), 4)
+            try {
+                $graphics.FillPolygon($fill, $points)
+                $graphics.DrawPolygon($outline, $points)
+                $graphics.DrawPolygon($inner, $points)
+            }
+            finally {
+                $inner.Dispose()
+                $outline.Dispose()
+                $fill.Dispose()
+            }
+            Add-BrandText $graphics $fontFamily 'UR' (New-Object Drawing.RectangleF(38, 58, 180, 134)) 92 ([Drawing.FontStyle]::Bold)
+            Add-BrandText $graphics $fontFamily 'REVIVED' (New-Object Drawing.RectangleF(48, 174, 160, 35)) 19 ([Drawing.FontStyle]::Regular)
+        }
+        finally {
+            $fontFamily.Dispose()
+            $graphics.Dispose()
+        }
     }
 
     $sizes = @(16, 24, 32, 48, 64, 128, 256)
@@ -265,9 +297,256 @@ function New-BrandIcon {
     }
 }
 
+function New-PlaceholderMenuBackground {
+    param([string] $Output)
+
+    $width = 1280
+    $height = 720
+    $bitmap = New-Object Drawing.Bitmap($width, $height, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+    $graphics = [Drawing.Graphics]::FromImage($bitmap)
+    $fontFamily = Get-BrandFontFamily
+    try {
+        $graphics.ScaleTransform(1.25, 0.9375)
+        $graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
+        $background = New-Object Drawing.Drawing2D.LinearGradientBrush(
+            (New-Object Drawing.Point(0, 0)),
+            (New-Object Drawing.Point($width, $height)),
+            [Drawing.Color]::FromArgb(255, 10, 17, 20),
+            [Drawing.Color]::FromArgb(255, 86, 96, 96))
+        try {
+            $graphics.FillRectangle($background, 0, 0, $width, $height)
+        }
+        finally {
+            $background.Dispose()
+        }
+
+        $random = New-Object Random 227
+        for ($index = 0; $index -lt 900; $index++) {
+            $alpha = $random.Next(7, 25)
+            $tone = $random.Next(50, 155)
+            $pen = New-Object Drawing.Pen([Drawing.Color]::FromArgb($alpha, $tone, $tone, $tone), $random.Next(1, 4))
+            try {
+                $x = $random.Next(-100, $width)
+                $y = $random.Next(0, $height)
+                $graphics.DrawLine($pen, $x, $y, $x + $random.Next(20, 220), $y + $random.Next(-8, 9))
+            }
+            finally {
+                $pen.Dispose()
+            }
+        }
+
+        $panel = New-Object Drawing.Drawing2D.LinearGradientBrush(
+            ([Drawing.Rectangle]::new(92, 58, 840, 652)),
+            [Drawing.Color]::FromArgb(225, 36, 47, 50),
+            [Drawing.Color]::FromArgb(235, 11, 16, 18),
+            90.0)
+        $outer = New-Object Drawing.Pen([Drawing.Color]::FromArgb(255, 195, 137, 42), 7)
+        $inner = New-Object Drawing.Pen([Drawing.Color]::FromArgb(220, 4, 7, 8), 3)
+        try {
+            $graphics.FillRectangle($panel, 92, 58, 840, 652)
+            $graphics.DrawRectangle($outer, 92, 58, 840, 652)
+            $graphics.DrawRectangle($inner, 108, 74, 808, 620)
+        }
+        finally {
+            $inner.Dispose()
+            $outer.Dispose()
+            $panel.Dispose()
+        }
+
+        $emblemPoints = [Drawing.PointF[]]@(
+            [Drawing.PointF]::new(512, 112), [Drawing.PointF]::new(652, 193),
+            [Drawing.PointF]::new(652, 355), [Drawing.PointF]::new(512, 436),
+            [Drawing.PointF]::new(372, 355), [Drawing.PointF]::new(372, 193))
+        $emblem = New-Object Drawing.Drawing2D.LinearGradientBrush(
+            (New-Object Drawing.Point(370, 110)), (New-Object Drawing.Point(655, 440)),
+            [Drawing.Color]::FromArgb(255, 95, 108, 110), [Drawing.Color]::FromArgb(255, 13, 20, 22))
+        $emblemOuter = New-Object Drawing.Pen([Drawing.Color]::FromArgb(255, 237, 176, 67), 13)
+        $emblemInner = New-Object Drawing.Pen([Drawing.Color]::FromArgb(255, 25, 30, 31), 4)
+        try {
+            $graphics.FillPolygon($emblem, $emblemPoints)
+            $graphics.DrawPolygon($emblemOuter, $emblemPoints)
+            $graphics.DrawPolygon($emblemInner, $emblemPoints)
+        }
+        finally {
+            $emblemInner.Dispose()
+            $emblemOuter.Dispose()
+            $emblem.Dispose()
+        }
+
+        Add-BrandText $graphics $fontFamily 'UR' ([Drawing.RectangleF]::new(382, 174, 260, 178)) 128 ([Drawing.FontStyle]::Bold)
+        Add-BrandText $graphics $fontFamily 'UNREAL REVIVED' ([Drawing.RectangleF]::new(142, 468, 740, 112)) 65 ([Drawing.FontStyle]::Bold)
+        Add-BrandText $graphics $fontFamily 'NATIVE DIRECT3D 12' ([Drawing.RectangleF]::new(302, 590, 420, 54)) 25 ([Drawing.FontStyle]::Regular)
+
+        foreach ($point in @(@(119, 85), @(877, 85), @(119, 649), @(877, 649))) {
+            $rivet = New-Object Drawing.Drawing2D.LinearGradientBrush(
+                ([Drawing.Rectangle]::new($point[0], $point[1], 28, 28)),
+                [Drawing.Color]::FromArgb(255, 230, 232, 222),
+                [Drawing.Color]::FromArgb(255, 37, 42, 43),
+                45.0)
+            try {
+                $graphics.FillEllipse($rivet, $point[0], $point[1], 28, 28)
+            }
+            finally {
+                $rivet.Dispose()
+            }
+        }
+    }
+    finally {
+        $fontFamily.Dispose()
+        $graphics.Dispose()
+    }
+
+    try {
+        $bitmap.Save($Output, [Drawing.Imaging.ImageFormat]::Bmp)
+    }
+    finally {
+        $bitmap.Dispose()
+    }
+}
+
+function Import-MenuBackground {
+    param(
+        [string] $Source,
+        [string] $Output
+    )
+
+    $sourcePath = [IO.Path]::GetFullPath($Source)
+    if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+        throw "Menu background source not found: $sourcePath"
+    }
+
+    $image = [Drawing.Image]::FromFile($sourcePath)
+    try {
+        if (($image.Width * 9) -ne ($image.Height * 16)) {
+            throw "Menu background must use a 16:9 aspect ratio; source is $($image.Width)x$($image.Height): $sourcePath"
+        }
+
+        $bitmap = New-Object Drawing.Bitmap(3840, 2160, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+        $graphics = [Drawing.Graphics]::FromImage($bitmap)
+        try {
+            $graphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+            $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+            $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+            $graphics.DrawImage($image, 0, 0, 3840, 2160)
+        }
+        finally {
+            $graphics.Dispose()
+        }
+    }
+    finally {
+        $image.Dispose()
+    }
+
+    try {
+        $bitmap.Save($Output, [Drawing.Imaging.ImageFormat]::Bmp)
+    }
+    finally {
+        $bitmap.Dispose()
+    }
+}
+
+function Export-DerivedBranding {
+    param([string] $Source)
+
+    $image = [Drawing.Bitmap]::FromFile($Source)
+    try {
+        $scaleX = $image.Width / 1280.0
+        $scaleY = $image.Height / 720.0
+
+        $iconRectangle = [Drawing.Rectangle]::new(
+            [int](450 * $scaleX), [int](25 * $scaleY),
+            [int](380 * $scaleX), [int](380 * $scaleY))
+        $iconArtwork = $image.Clone($iconRectangle, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+        try {
+            New-BrandIcon (Join-Path $OutputRoot 'UnrealRevived.ico') $iconArtwork
+        }
+        finally {
+            $iconArtwork.Dispose()
+        }
+
+        $logoRectangle = [Drawing.Rectangle]::new(
+            [int](190 * $scaleX), [int](400 * $scaleY),
+            [int](899 * $scaleX), [int](250 * $scaleY))
+        $logoArtwork = $image.Clone($logoRectangle, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+        $logo = New-Object Drawing.Bitmap(719, 200, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+        $graphics = [Drawing.Graphics]::FromImage($logo)
+        try {
+            $graphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+            $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+            $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+            $graphics.DrawImage($logoArtwork, 0, 0, 719, 200)
+            $logo.Save((Join-Path $OutputRoot 'Logo.bmp'), [Drawing.Imaging.ImageFormat]::Bmp)
+        }
+        finally {
+            $graphics.Dispose()
+            $logo.Dispose()
+            $logoArtwork.Dispose()
+        }
+    }
+    finally {
+        $image.Dispose()
+    }
+}
+
+function Export-MenuBackgroundTiles {
+    param([string] $Source)
+
+    $bitmap = [Drawing.Bitmap]::FromFile($Source)
+    $encodedBitmap = New-Object Drawing.Bitmap(1024, 768, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+    $encodedGraphics = [Drawing.Graphics]::FromImage($encodedBitmap)
+    try {
+        $encodedGraphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $encodedGraphics.DrawImage($bitmap, 0, 0, 1024, 768)
+
+        for ($row = 0; $row -lt 3; $row++) {
+            for ($column = 0; $column -lt 4; $column++) {
+                $tile = New-Object Drawing.Bitmap(256, 256, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+                $tileGraphics = [Drawing.Graphics]::FromImage($tile)
+                try {
+                    $tileGraphics.DrawImageUnscaled($encodedBitmap, -($column * 256), -($row * 256))
+                }
+                finally {
+                    $tileGraphics.Dispose()
+                }
+                try {
+                    $tileName = 'ModernBg{0}{1}.bmp' -f ($column + 1), ($row + 1)
+                    $tile.Save((Join-Path $MenuTextureRoot $tileName), [Drawing.Imaging.ImageFormat]::Bmp)
+                }
+                finally {
+                    $tile.Dispose()
+                }
+            }
+        }
+    }
+    finally {
+        $encodedGraphics.Dispose()
+        $encodedBitmap.Dispose()
+        $bitmap.Dispose()
+    }
+}
+
 New-Item -ItemType Directory -Path $OutputRoot -Force | Out-Null
+New-Item -ItemType Directory -Path $MenuTextureRoot -Force | Out-Null
+
+$menuBackgroundOutput = Join-Path $OutputRoot 'MenuBackground.bmp'
+if ($MenuBackgroundSource) {
+    Import-MenuBackground $MenuBackgroundSource $menuBackgroundOutput
+    Export-MenuBackgroundTiles $menuBackgroundOutput
+    if ($DeriveBranding) {
+        Export-DerivedBranding $menuBackgroundOutput
+    }
+    Write-Host "Menu background imported and tiled from $([IO.Path]::GetFullPath($MenuBackgroundSource))"
+    return
+}
+
+if ($DeriveBranding) {
+    throw '-DeriveBranding requires -MenuBackgroundSource.'
+}
+
 New-BrandBanner 719 200 (Join-Path $OutputRoot 'Logo.bmp')
 New-BrandBanner 343 84 (Join-Path $OutputRoot 'SetupLogo.bmp')
 New-BrandIcon (Join-Path $OutputRoot 'UnrealRevived.ico')
+New-PlaceholderMenuBackground $menuBackgroundOutput
+Export-MenuBackgroundTiles $menuBackgroundOutput
 
 Write-Host "Unreal Revived branding generated at $OutputRoot"
