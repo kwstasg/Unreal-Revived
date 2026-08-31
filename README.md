@@ -65,8 +65,8 @@ status](docs/current-state.md) for the precise supported boundary.
 Clone the repository and run the bootstrap from its root:
 
 ```powershell
-git clone https://github.com/kwstasg/unreal-gold-modernization.git
-Set-Location unreal-gold-modernization
+git clone https://github.com/kwstasg/Unreal-Revived.git
+Set-Location Unreal-Revived
 powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
 ```
 
