@@ -47,7 +47,9 @@ The extraction threshold falls from `1.0` to `0.5` and gain reaches 8x at the
 maximum. The current numeric value is shown in the slider label and reloads
 from the active engine profile when Video Preferences is reopened. Changes are
 applied directly to the active D3D12 render device and saved to the profile, so
-they are visible immediately and survive restart.
+they are visible immediately and survive restart. Bloom extraction uses the 3D
+scene captured before 227 begins `RenderOverlays`, so HUD and menu pixels do
+not become bloom emitters.
 
 The custom Preferences **Restart** action saves the open pages and relaunches
 with `Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini`. This preserves

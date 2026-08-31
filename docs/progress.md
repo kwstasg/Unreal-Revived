@@ -244,9 +244,18 @@ technical guides; use this file for the chronological record.
 - Passed all 13 renderer settings cases on the final live command, threshold,
   and gain mapping. Evidence is under
   `local/logs/automated-20260831-223509/`.
-- Rebuilt the offline installer with the active-renderer command and final
-  threshold/intensity mapping; its SHA-256 is
-  `AC69408BDFA5E9F67F08EE6DD339ACE0B7220CA440FA19FE96B1D0EF63F03ADD`.
+- Isolated bloom extraction from HUD rendering by resolving the 3D scene when
+  227 marks the start of `RenderOverlays`, then using that world-only image as
+  the bloom source while compositing over the completed frame. A same-process
+  NyLeve capture retained a sharp HUD while the ceiling-light region changed by
+  a mean 29.45 RGB levels between bloom 0 and 255. Evidence is under
+  `local/logs/live-bloom-hud-20260831-224518/`.
+- Passed all 13 renderer settings cases after HUD isolation, including 2x, 4x,
+  and 8x MSAA resolve paths. Evidence is under
+  `local/logs/automated-20260831-224625/`.
+- Rebuilt the offline installer with the active-renderer command, final
+  threshold/intensity mapping, and world-only bloom extraction; its SHA-256 is
+  `A2FFB7E92A12A7109EE4A9D5F84EDAE933670C21C55DD1684085196B9ECF8B57`.
 
 ### Preserved installer profiles across Preferences Restart
 

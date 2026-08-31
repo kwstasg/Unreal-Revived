@@ -1532,7 +1532,39 @@ UD3D12RenderDevice::ScenePipelineState* UD3D12RenderDevice::GetPipeline(DWORD Po
 	return &ScenePass.Pipelines[index];
 }
 
-void UD3D12RenderDevice::RunBloomPass()
+void UD3D12RenderDevice::CopySceneToPostProcess(int imageIndex)
+{
+	if (SceneBuffers.Multisample > 1)
+	{
+		TransitionResourceBarrier(
+			Commands.Current->Draw,
+			SceneBuffers.PPImage[imageIndex], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RESOLVE_DEST,
+			SceneBuffers.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+
+		Commands.Current->Draw->ResolveSubresource(SceneBuffers.PPImage[imageIndex], 0, SceneBuffers.ColorBuffer, 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+		TransitionResourceBarrier(
+			Commands.Current->Draw,
+			SceneBuffers.PPImage[imageIndex], D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			SceneBuffers.ColorBuffer, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	}
+	else
+	{
+		TransitionResourceBarrier(
+			Commands.Current->Draw,
+			SceneBuffers.PPImage[imageIndex], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST,
+			SceneBuffers.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
+		Commands.Current->Draw->CopyResource(SceneBuffers.PPImage[imageIndex], SceneBuffers.ColorBuffer);
+
+		TransitionResourceBarrier(
+			Commands.Current->Draw,
+			SceneBuffers.PPImage[imageIndex], D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			SceneBuffers.ColorBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	}
+}
+
+void UD3D12RenderDevice::RunBloomPass(const DescriptorSet& source)
 {
 	float blurAmount = 0.6f + BloomAmount * (1.9f / 255.0f);
 	BloomPushConstants pushconstants;
@@ -1556,7 +1588,7 @@ void UD3D12RenderDevice::RunBloomPass()
 	Commands.Current->Draw->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
 	Commands.Current->Draw->RSSetViewports(1, &viewport);
 	Commands.Current->Draw->SetPipelineState(BloomPass.Extract);
-	Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, SceneBuffers.PPImageSRV[0].GPUHandle());
+	Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, source.GPUHandle());
 	Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
 	TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.BlurLevels[0].VTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
@@ -2217,6 +2249,7 @@ void UD3D12RenderDevice::Lock(FPlane InFlashScale, FPlane InFlashFog, FPlane Scr
 
 		HitData = InHitData;
 		HitSize = InHitSize;
+		BloomSourceCaptured = false;
 
 		FlashScale = InFlashScale;
 		FlashFog = InFlashFog;
@@ -2337,38 +2370,11 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 
 		if (Blit)
 		{
-			if (SceneBuffers.Multisample > 1)
-			{
-				TransitionResourceBarrier(
-					Commands.Current->Draw,
-					SceneBuffers.PPImage[0], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RESOLVE_DEST,
-					SceneBuffers.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
-
-				Commands.Current->Draw->ResolveSubresource(SceneBuffers.PPImage[0], 0, SceneBuffers.ColorBuffer, 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
-
-				TransitionResourceBarrier(
-					Commands.Current->Draw,
-					SceneBuffers.PPImage[0], D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-					SceneBuffers.ColorBuffer, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-			}
-			else
-			{
-				TransitionResourceBarrier(
-					Commands.Current->Draw,
-					SceneBuffers.PPImage[0], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST,
-					SceneBuffers.ColorBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
-
-				Commands.Current->Draw->CopyResource(SceneBuffers.PPImage[0], SceneBuffers.ColorBuffer);
-
-				TransitionResourceBarrier(
-					Commands.Current->Draw,
-					SceneBuffers.PPImage[0], D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-					SceneBuffers.ColorBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-			}
+			CopySceneToPostProcess(0);
 
 			if (Bloom && BloomAmount > 0)
 			{
-				RunBloomPass();
+				RunBloomPass(SceneBuffers.PPImageSRV[BloomSourceCaptured ? 1 : 0]);
 			}
 
 			TransitionResourceBarrier(Commands.Current->Draw, FrameBuffers[BackBufferIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -3535,6 +3541,11 @@ void UD3D12RenderDevice::SetSceneNode(FSceneNode* Frame)
 	guardSlow(UD3D12RenderDevice::SetSceneNode);
 
 	DrawBatches();
+	if (Bloom && BloomAmount > 0 && !BloomSourceCaptured && Frame->Viewport->Canvas && Frame->Viewport->Canvas->bZRangeHack)
+	{
+		CopySceneToPostProcess(1);
+		BloomSourceCaptured = true;
+	}
 
 	CurrentFrame = Frame;
 	Aspect = Frame->FY / Frame->FX;

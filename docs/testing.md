@@ -266,8 +266,9 @@ target maintains those copies for the disposable runtime.
   and scrolls with the other video controls.
 - With D3D12Drv active, confirm **Bloom Amount** appears below the FPS control,
   displays values from 0 through 255, disables bloom at 0, changes bright-light
-  glow immediately without a restart, and retains a positive amount after
-  reopening Video preferences.
+  glow immediately without a restart, leaves HUD glyphs and icons sharply
+  rendered without bloom halos, and retains a positive amount after reopening
+  Video preferences.
 - With D3D12Drv active, confirm **Antialiasing** offers Off, 2x, 4x, and 8x and
   retains the selected mode after reopening Video preferences.
 - Enable it and confirm the built-in TimeDemo statistics appear during play.

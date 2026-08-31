@@ -144,6 +144,15 @@ the amount is zero, so the Video Preferences slider's off position has no bloom
 cost. The `D3D12 BLOOM <0-255>` renderer command updates the active instance;
 ModernMenu uses it for immediate slider changes while persisting the profile.
 
+When `Canvas.bZRangeHack` marks the start of 227's `RenderOverlays` phase, the
+renderer resolves the current 3D scene into the otherwise idle second
+postprocess image. Bloom extraction later reads that world-only snapshot while
+the additive result is composited over the completed world and HUD image. This
+keeps HUD, weapon-overlay, and menu pixels from generating bloom without
+changing their normal drawing path, and works with both single-sample and MSAA
+scene buffers. Frames without an overlay boundary fall back to extracting from
+the completed scene.
+
 ## Menu coordinate mapping
 
 The present shader scales and centers lower logical resolutions inside the

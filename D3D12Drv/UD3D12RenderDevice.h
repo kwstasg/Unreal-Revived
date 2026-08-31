@@ -380,7 +380,8 @@ private:
 
 	void ReleaseSceneBuffers();
 
-	void RunBloomPass();
+	void CopySceneToPostProcess(int imageIndex);
+	void RunBloomPass(const DescriptorSet& source);
 	void BlurStep(const DescriptorSet& input, const DescriptorSet& output, ID3D12Resource* outputResource, bool vertical);
 	float ComputeBlurGaussian(float n, float theta);
 	void ComputeBlurSamples(int sampleCount, float blurAmount, float* sampleWeights);
@@ -449,6 +450,7 @@ private:
 	FPlane FlashScale;
 	FPlane FlashFog;
 	FSceneNode* CurrentFrame = nullptr;
+	bool BloomSourceCaptured = false;
 	float Aspect;
 	float RProjZ;
 	float RFX2;
