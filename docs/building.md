@@ -9,14 +9,38 @@ material and is not the supported build entry point.
 ## Prerequisites
 
 - Windows x64
-- Visual Studio 2022 with the Desktop development with C++ workload
-- CMake 3.24 or newer
-- An OldUnreal 227k_15 Windows SDK
-- A disposable Unreal Gold installation patched with OldUnreal 227k_15
+- Unreal Gold installed through Steam
+- winget, unless the development tools are already installed
 
-Game data and SDK files are not distributed by this repository. Keep them under
-`local/` as described in [`../local/README.md`](../local/README.md), or provide
-external paths through environment variables.
+The bootstrap installs Git, CMake, Visual Studio 2022 Build Tools with the C++
+workload, and Inno Setup 6 when they are missing. Original Steam game assets
+are never downloaded or distributed; they are copied into the ignored,
+disposable runtime. The authorized OldUnreal host and SDK are supplied by the
+pinned original OldUnreal release downloads. Verified copies are cached under
+`local/downloads/`; the host manifest records MEGA recovery mirrors.
+
+## One-command setup
+
+From a fresh clone:
+
+```powershell
+powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
+```
+
+Steam App ID 13250 is discovered across registered Steam libraries. Override
+discovery or use a previously generated local bundle with:
+
+```powershell
+powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1 `
+   -OriginalGameRoot 'D:\SteamLibrary\steamapps\common\Unreal Gold' `
+   -BundlePath 'E:\UnrealRevived-DeveloperBundle-227k_15-v1.zip' `
+   -SkipDownload
+```
+
+Use `-SkipToolchainInstall` only when the prerequisites are already available,
+`-SkipTests` to omit runtime smoke tests, and `-Force` to recreate an existing
+marked development runtime. `-Force` never permits deletion of an unmarked
+directory.
 
 The SDK root must contain these files:
 
@@ -38,6 +62,7 @@ the ignored local directory:
 | --- | --- |
 | `UE1_227K_SDK_ROOT` | `local/sdk/227k_15` |
 | `UE1_GAME_ROOT` | `local/game` |
+| `OLDUNREAL_227K15_PATCH_ARCHIVE` | `local/downloads/OldUnreal-UnrealPatch227k-Windows.zip` |
 
 Example for the current PowerShell session:
 
@@ -85,14 +110,79 @@ The `Startup.int` copies replace the truncated legacy file in `System/` and put
 the same resource beside the x64 executable. Without the `System64/` copy, the
 recovery dialog displays localization keys instead of labels.
 
-Never deploy into the original Steam installation. Preserve it as the recovery
-source and test only against the disposable copy.
+Deployment and runtime-test scripts require
+`.unreal-revived-development.json`. The bootstrap creates this marker only in
+the physical disposable copy. Unmarked trees and the original Steam
+installation are rejected.
 
 The `deploy-modern-menu` target compiles the standalone `ModernMenu.u` package
 with the disposable runtime's x64 `UCC.exe`. It deploys the package to
 `System64/` and updates `D3D12Test.ini` to load the custom root window and menu
 package. It does not rebuild or replace OldUnreal's network-sensitive core
 packages.
+
+## Build the developer bundle
+
+Place both pinned upstream archives under `local/downloads/`, then run:
+
+```powershell
+powershell -NoProfile -File scripts/package-developer-bundle.ps1
+```
+
+The optional bundle script verifies archive sizes and SHA-256 values, extracts and validates
+the host and SDK, rejects generated/user data, and writes the release asset,
+checksum sidecar, and generated release manifest under
+`local/package/developer-bundle/`. The tracked manifest pins its size and
+SHA-256 for optional `-BundlePath` use; no hosted bundle URL is configured or
+required by the default bootstrap.
+
+The host manifest also records owner-controlled MEGA mirrors for both original
+pinned archives. MEGA share links require client-side decryption and are manual
+recovery sources. If an original download fails, bootstrap reports the matching
+mirror and exact cache filename. Download it there with a browser, then rerun;
+the same size and SHA-256 checks apply before extraction.
+
+## Build the offline installer
+
+Place the pinned `OldUnreal-UnrealPatch227k-Windows.zip` archive at the default
+path above or set `OLDUNREAL_227K15_PATCH_ARCHIVE`, then run:
+
+```powershell
+cmake --build local/build --target package-offline-installer --config Release
+```
+
+The target verifies the archive against the host manifest, extracts its 2,010
+files under the ignored staging directory, verifies the pinned x64 modules,
+builds the renderer and ModernMenu, stages a hash manifest, and invokes Inno
+Setup. The ZIP itself is not embedded. The generated single-file installer and
+its SHA-256 sidecar are written under
+`local/package/offline-installer/output/`.
+
+The Unreal Revived installer detects Steam App ID 13250 across registered Steam
+libraries and preselects that installation on an **Original Game** page. The
+user can browse to another Unreal Gold installation containing
+`System\Unreal.exe`; the selected source is validated and shown again on the
+Ready page. The installer copies the user-owned game into the default
+side-by-side directory `C:\Games\Unreal Revived`, overlays the bundled 227k_15
+patch, and installs the renderer and menu without requesting administrator
+elevation. Standard Windows permissions allow the current user to create the
+top-level `C:\Games` directory; a custom destination must also be user-writable.
+
+The selected original game is copied by a hidden helper before Inno's file
+phase. Inno then installs the already extracted patch tree directly with its
+native progress UI; there is no runtime ZIP extraction. Final hash verification
+and profile generation also run hidden, so no console window opens. The
+installer never writes into the original source. It launches with dedicated
+`UnrealRevived.ini` and `UnrealRevivedUser.ini` profiles. Uninstall backs up
+saves and those profiles to a timestamped `Unreal Revived Backup` directory
+under Documents before removing the side-by-side installation.
+
+Rerunning the same installer detects the registered Unreal Revived App ID and
+opens a maintenance prompt. **Yes** runs the existing uninstaller, preserves
+the configured user-data backup, and closes Setup. **No** continues into the
+normal wizard to repair or update the installation. **Cancel** exits without
+making changes. Both machine-wide and earlier per-user registrations are
+detected.
 
 ## Repository safety
 

@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "id": "unreal-revived-developer-bundle-227k_15-v1",
+  "host": "unreal-gold-227k_15-win64",
+  "release": {
+    "asset": "UnrealRevived-DeveloperBundle-227k_15-v1.zip",
+    "url": null,
+    "size": 150277460,
+    "sha256": "82AAA8E19ABB94BE648AADEAA0C8BF92026EC4CD243D8EAA52054C0AF67D6777"
+  }
+}

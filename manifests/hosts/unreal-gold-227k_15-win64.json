@@ -1,12 +1,28 @@
 {
-  "schema": 1,
+  "schema": 2,
   "id": "unreal-gold-227k_15-win64",
   "release": {
     "repository": "OldUnreal/Unreal-testing",
     "tag": "v227k_15",
     "commit": "2ea5408e2aa7c955eb087a6f8d2fcce318747d2f",
-    "archive": "OldUnreal-UnrealPatch227k-Windows.zip",
-    "archiveSha256": "88c49adef88e5a88c74f9fc80d89f0a2fe473d040578979aeb4425de32da12fc"
+    "runtime": {
+      "archive": "OldUnreal-UnrealPatch227k-Windows.zip",
+      "url": "https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-Windows.zip",
+      "mirrors": [
+        "https://mega.nz/file/dE41QYbA#uiyeYtIkmubYh0LPHTpMuS3InMcuTW4QDUKV3Wd_hCk"
+      ],
+      "size": 123650267,
+      "sha256": "88c49adef88e5a88c74f9fc80d89f0a2fe473d040578979aeb4425de32da12fc"
+    },
+    "sdk": {
+      "archive": "OldUnreal-UnrealPatch227k-SDK-Windows.zip",
+      "url": "https://github.com/OldUnreal/Unreal-testing/releases/download/v227k_15/OldUnreal-UnrealPatch227k-SDK-Windows.zip",
+      "mirrors": [
+        "https://mega.nz/file/1JBUGJAT#WHDv2Tqj_BwElg3I2ZoAViSHbW3mQig_7muB67m6XCk"
+      ],
+      "size": 26611815,
+      "sha256": "68a2fe383d426e2ed54197bafffaa0047757d4b32960d63bd0ce82eb7d84e913"
+    }
   },
   "platform": {
     "os": "windows",

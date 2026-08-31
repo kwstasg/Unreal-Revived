@@ -4,7 +4,7 @@
 
 The project owner confirms that this project has the rights required to
 redistribute, mirror, and bundle the pinned OldUnreal 227k_15 Windows patch
-files in a fully offline Unreal Gold Modernization installer.
+files in the fully offline Unreal Revived installer.
 
 The covered payload is identified immutably by
 `manifests/hosts/unreal-gold-227k_15-win64.json`:

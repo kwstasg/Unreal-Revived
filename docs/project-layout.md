@@ -4,11 +4,13 @@
 
 ```text
 D3D12Drv/                    OldUnreal 227k adapter and native package project
+cmake/                       Deployment and packaging target declarations
+manifests/developer/         Pinned developer-bundle release identity
 manifests/hosts/             Supported host fingerprints
-provenance/                  Source and permission inventory
-LICENSES/                    Third-party and grant-specific license texts
+packaging/                   Offline installer definition
+PERMISSIONS.md               Pinned payload authorization and packaging scope
 local/                       Ignored game, SDK, references, and output
-scripts/                     Repository and runtime validation scripts
+scripts/                     Bootstrap, packaging, deployment, and validation
 ```
 
 `D3D12Drv/` currently contains the renderer implementation and its 227-specific

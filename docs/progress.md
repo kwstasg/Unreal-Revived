@@ -19,9 +19,9 @@ technical guides; use this file for the chronological record.
 ### Imported and attributed the Direct3D 12 renderer
 
 - Imported the authorized D3D12 backend from UT99VulkanDrv at the immutable
-  revision recorded in `THIRD_PARTY.md` and `provenance/components.yml`.
+  revision `a29e9ac0df1c60ad302d91bc3a51ab026c1a307c`.
 - Preserved upstream structure while adding an explicit `UNREAL_227` host path.
-- Added the applicable upstream notices under `LICENSES/`.
+- Retained applicable component notices beside vendored third-party code.
 - Validated that the repository safety check excludes local references,
   downloads, binaries, SDK files, and game content.
 
@@ -225,6 +225,69 @@ technical guides; use this file for the chronological record.
   `Terraniux` was changed to capture-only after retained images confirmed its
   player yaw varies between runs; `Vortex2` remains capture-only for the same
   class of nondeterminism.
+
+### Added a fully offline side-by-side installer
+
+- Added CMake staging and packaging targets that verify and extract the pinned
+  OldUnreal 227k_15 Windows archive at build time, then embed its file tree with
+  the D3D12 renderer, ModernMenu, host manifest, permissions record, installer
+  engine, and generated payload hash manifest. The ZIP is not embedded.
+- Added the Unreal Revived Inno Setup package that discovers Steam App ID
+  13250, copies the user's game assets into `C:\Games\Unreal Revived` by
+  default, applies the bundled patch, creates dedicated Unreal Revived profiles and
+  shortcuts, and leaves the Steam source untouched.
+- Added an **Original Game** wizard page that prefills the detected Steam path,
+  permits another source folder, validates `System\Unreal.exe`, prevents a
+  destination inside the source, and confirms the selection on the Ready page.
+- Split original-game copying into a hidden pre-install helper, then made Inno
+  install all 2,010 extracted patch files directly through its native file and
+  progress system. Runtime ZIP extraction was removed; final hashes and profile
+  generation remain hidden with no PowerShell window.
+- Added uninstall-time backup of saves and dedicated profiles to Documents.
+- Added rerun maintenance detection for machine-wide and per-user App ID
+  registrations. Setup now offers uninstall-and-exit, repair/update, or cancel
+  before opening the normal installation wizard.
+- Removed unnecessary administrator elevation after a medium-integrity
+  write/delete probe passed under `C:\Games`. Avoiding the UAC process handoff
+  also prevents Setup from opening behind the previously active application;
+  a fresh launch confirmed the wizard's window handle matched the foreground
+  window handle.
+- Set `[FirstRun] FirstRun=227` in the generated engine profile after a pristine
+  patch launch exposed the otherwise active startup wizard.
+- Built `UnrealRevived-Setup-0.1.0.exe`, verified the bundled patch
+  and all five pinned x64 module hashes, launched the installed copy through
+  `D3D12Drv.dll`, and observed a clean bind/unbind cycle without fallback.
+- Completed a silent uninstall with exit code 0, confirmed save/profile backup,
+  complete destination removal, and no Unreal Revived marker in the original
+  Steam installation.
+
+### Added one-command development bootstrap
+
+- Pinned structured runtime and SDK asset URLs, sizes, and SHA-256 values in the
+  host manifest and added a release manifest for
+  `UnrealRevived-DeveloperBundle-227k_15-v1.zip`.
+- Added verified original-source archive acquisition with cache reuse and
+  partial-download cleanup. Owner-controlled MEGA links provide manual recovery
+  mirrors, while local/USB developer bundles remain optional.
+- Added Steam App ID 13250 discovery, full physical runtime copying, verified
+  host and SDK extraction, generated D3D12 test profiles, and a development
+  marker that deployment and runtime automation enforce.
+- Added idempotent prerequisite detection and automatic winget installation for
+  Git, CMake, Visual Studio 2022 C++ Build Tools, and Inno Setup 6.
+- Added `scripts/bootstrap-dev-environment.ps1` to compose setup, configure,
+  build, deploy, and optional smoke testing from a fresh clone.
+- Consolidated shared INI and integrity helpers, moved public CMake deployment
+  targets into `cmake/`, excluded generated/vendor trees from VS Code indexing,
+  and removed only four verified-empty obsolete scaffold directories.
+- Built a 150,277,460-byte developer bundle with SHA-256
+  `82AAA8E19ABB94BE648AADEAA0C8BF92026EC4CD243D8EAA52054C0AF67D6777`.
+  Validated explicit-file and cache acquisition, Steam discovery, isolated
+  runtime/SDK provisioning, unmarked-tree rejection, an idempotent offline
+  bootstrap rerun, Release renderer deployment, and zero-warning ModernMenu
+  compilation. The fresh-runtime six-map Content suite passed after profile
+  stabilization, and the offline installer rebuilt with SHA-256
+  `03A901E5147E40816CD2982B5EA560455DE8B14F65A7184ED4C488A47B56ABF8`.
+  The generated developer bundle remains an optional local artifact.
 
 ## Entry template
 

@@ -1,4 +1,4 @@
-# Unreal Gold Modernization
+# Unreal Revived
 
 Modern DirectX 12 rendering, high-resolution support, uncapped presentation,
 and native OpenXR VR for Unreal Gold.
@@ -15,17 +15,16 @@ priority is flat-screen renderer parity and repeatable runtime validation.
 
 ## Quick start
 
-Prepare the ignored SDK and game directories described in
-[`local/README.md`](local/README.md), then configure and deploy the renderer:
+Install Unreal Gold through Steam, clone this repository, and run:
 
 ```powershell
-cmake -S . -B local/build -A x64
-cmake --build local/build --config Release
-cmake --build local/build --target deploy-d3d12drv --config Release
+powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
 ```
 
-See [`docs/building.md`](docs/building.md) for prerequisites and environment
-overrides.
+The bootstrap detects the Steam game, installs missing development tools with
+winget, downloads and verifies the pinned OldUnreal runtime and SDK, creates a full
+disposable runtime under `local/game/`, and builds the renderer and ModernMenu.
+See [`docs/building.md`](docs/building.md) for offline and path overrides.
 
 ## Local setup
 

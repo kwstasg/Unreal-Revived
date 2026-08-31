@@ -3,6 +3,14 @@
 Read `docs/current-state.md` when resuming work or when prior session context is
 unavailable.
 
+## Project identity
+
+- The project and distributed product are named **Unreal Revived**. Use this
+  name in new code, documentation, artifacts, UI, and communication.
+- Use **Unreal Gold** only when referring to the original game, its Steam
+  installation, or an upstream host/runtime identity. Do not reuse superseded
+  project or product names.
+
 ## Safety and scope
 
 - Treat this repository as an already initialized Git and CMake project. Do not
@@ -40,9 +48,9 @@ unavailable.
   `manifests/hosts/unreal-gold-227k_15-win64.json` are the authoritative rights
   and identity records and are sufficient to proceed with packaging. Do not
   require duplicate permission evidence as a prerequisite.
-- For unrelated imported third-party components, record an immutable revision
-  in both `THIRD_PARTY.md` and `provenance/components.yml`, with the applicable
-  notice under `LICENSES/`.
+- For unrelated future third-party components, add a tracked provenance record
+  containing the immutable source revision, redistribution basis, and any
+  required notices before packaging the component.
 - Update the relevant document under `docs/` when behavior, setup, settings, or
   validation changes.
 - Add meaningful completed work and validation evidence to `docs/progress.md`.

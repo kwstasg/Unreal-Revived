@@ -4,9 +4,10 @@ Everything in this directory except this file is ignored by Git.
 
 ```text
 local/
-  game/             Disposable Unreal Gold 227k_15 test installation
+  game/             Marked disposable Unreal Revived development runtime
   sdk/227k_15/      Extracted OldUnreal 227k_15 Windows SDK
   downloads/        Verified patch and SDK archives
+  package/          Generated installer and developer-bundle output
   references/       Reference repository clones and research material
   backups/          Local configuration and save backups
   logs/             Collected runtime and diagnostic logs
@@ -14,7 +15,14 @@ local/
 ```
 
 The original Steam installation is the recovery source and must remain
-unmodified. Copy it into `local/game/`, then apply 227k_15 only to that copy.
+unmodified. Create or refresh the complete local environment with:
+
+```powershell
+powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
+```
+
+Bootstrap physically copies the original game into `local/game/`, overlays the
+verified host, installs the SDK, and writes the required development marker.
 
 Recommended environment variables:
 

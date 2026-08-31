@@ -1,9 +1,9 @@
 # OldUnreal 227 renderer port
 
-The renderer originates from the authorized UT99VulkanDrv Direct3D 12 backend.
-The tracked provenance and immutable upstream revision are recorded in
-[`../THIRD_PARTY.md`](../THIRD_PARTY.md) and
-[`../provenance/components.yml`](../provenance/components.yml).
+The renderer originates from the authorized UT99VulkanDrv Direct3D 12 backend
+at repository `https://github.com/dpjudas/UT99VulkanDrv`, revision
+`a29e9ac0df1c60ad302d91bc3a51ab026c1a307c`. This immutable identity is retained
+here after the obsolete standalone provenance files were removed.
 
 This document records the compatibility work required for the OldUnreal
 227k_15 Windows x64 host. Keep host-specific behavior behind `UNREAL_227` where

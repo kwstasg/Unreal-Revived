@@ -44,7 +44,9 @@ public static class ScreenshotInput
 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$systemDir = Join-Path $repoRoot 'local/game/System64'
+$gameRoot = if ($env:UE1_GAME_ROOT) { [IO.Path]::GetFullPath($env:UE1_GAME_ROOT) } else { Join-Path $repoRoot 'local/game' }
+$null = & (Join-Path $PSScriptRoot 'assert-development-runtime.ps1') -GameRoot $gameRoot
+$systemDir = Join-Path $gameRoot 'System64'
 $unrealExe = Join-Path $systemDir 'Unreal.exe'
 $sourceIni = Join-Path $systemDir 'D3D12Test.ini'
 $userIni = Join-Path $systemDir 'D3D12TestUser.ini'
