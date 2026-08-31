@@ -29,8 +29,12 @@ campaign metadata discovery have been implemented and validated. The Video
 preferences page also exposes a persistent checkbox for 227's built-in FPS
 statistics.
 
-OpenXR rendering, VR input, comfort features, the portable launcher, and
-automated renderer tests are not implemented.
+OpenXR rendering, VR input, comfort features, and the portable launcher are not
+implemented. Runtime smoke automation exercises representative maps, renderer
+settings, menu state profiles, and display profiles. Retained screenshots cover
+the currently validated menu layout and input alignment; external click
+automation is unavailable because UWindow exposes no automation elements and
+ignores background window messages.
 
 ## Verified commands
 
@@ -41,6 +45,7 @@ cmake -S . -B local/build -A x64
 cmake --build local/build --config Release
 cmake --build local/build --target deploy-d3d12drv --config Release
 cmake --build local/build --target deploy-modern-menu --config Release
+powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite All
 powershell -NoProfile -File scripts/check-repository.ps1
 ```
 
@@ -74,9 +79,9 @@ select the intended profile during testing.
 
 ## Next priorities
 
-1. Broaden flat-screen D3D12 regression coverage across maps, texture formats,
-   display modes, and renderer settings.
-2. Add repeatable automated checks where engine integration permits them.
+1. Expand screenshot and image-comparison coverage for visual regressions.
+2. Expand automated checks where engine integration permits stronger
+  assertions than process and log validation.
 3. Design the portable installation and profile launcher.
 4. Begin OpenXR architecture only after flat-screen behavior has a stable
    validation baseline.

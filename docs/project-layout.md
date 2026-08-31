@@ -8,12 +8,16 @@ manifests/hosts/             Supported host fingerprints
 provenance/                  Source and permission inventory
 LICENSES/                    Third-party and grant-specific license texts
 local/                       Ignored game, SDK, references, and output
-scripts/                     Repository validation scripts
+scripts/                     Repository and runtime validation scripts
 ```
 
 `D3D12Drv/` currently contains the renderer implementation and its 227-specific
 adapter code. CMake is the canonical build path. Files under `local/` are never
 project source and must not be committed.
+
+The checked-in `D3D12Drv.vcxproj` and `.filters` files preserve inherited
+upstream project structure and debugging metadata. They are reference material,
+not an alternative to the supported CMake build.
 
 ## Planned
 

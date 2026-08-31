@@ -9,7 +9,7 @@
     "local/game/Music/**": true,
     "local/game/Sounds/**": true,
     "local/game/Textures/**": true,
-    "local/game/directx9/**": true
+    "local/game/directx9c/**": true
   },
   "files.watcherExclude": {
     "**/local/game/Help/**": true,
@@ -18,7 +18,7 @@
     "**/local/game/Music/**": true,
     "**/local/game/Sounds/**": true,
     "**/local/game/Textures/**": true,
-    "**/local/game/directx9/**": true,
+    "**/local/game/directx9c/**": true,
     "**/local/backups/**": true,
     "**/local/build/**": true
   }

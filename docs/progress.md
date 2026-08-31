@@ -139,6 +139,50 @@ technical guides; use this file for the chronological record.
   engine source, including the SDK ABI, import libraries, available evidence,
   and limits on private engine modification.
 
+## 2026-08-31
+
+### Added repeatable D3D12 runtime smoke automation
+
+- Added `scripts/test-d3d12-runtime.ps1` to launch representative maps with a
+  temporary renderer profile, request normal shutdown, preserve per-case logs,
+  reject known renderer failure signatures, and verify that the normal profile
+  is not changed by the harness.
+- Kept direct-map arguments isolated to automation. The normal shortcut still
+  launches `Unreal.unr` with `D3D12Test.ini` and `D3D12TestUser.ini`.
+- Validated the normal launch, main menu, Unreal campaign start at `Vortex2`,
+  D3D12 bind/unbind cycle, and clean shutdown without XOpenGL fallback.
+- Validated automated content smoke runs for `NyLeve`, `DmDeck16`, `Chizra`,
+  `Vortex2`, `Dug`, and `Terraniux`.
+- Validated automated setting runs for MSAA 2x/4x, precache disabled, VSync,
+  both alternate lighting modes, XOpenGL gamma, positive and negative LOD bias,
+  bloom, and line occlusion. These runs establish startup, frame presentation,
+  log health, and clean shutdown, not visual correctness.
+- Manually confirmed `NyLeve` and `DmDeck16` showed no reported lightmap,
+  texture, fog, flicker, input, or stability problem.
+- Added automated temporary-profile coverage for FPS enabled and disabled,
+  1280x720 and 1024x768 fullscreen profiles, and 1600x1024 windowed startup.
+- Confirmed external click automation is not deterministic for this UWindow
+  UI: controls expose no Windows UI Automation elements and ignore background
+  Win32 input messages. Retained screenshots remain the evidence for menu
+  layout and mouse alignment rather than repeatedly requesting manual checks.
+
+### Cleaned disposable development artifacts
+
+- Removed the duplicate ignored `out/` CMake tree while retaining
+  `local/build/` as the canonical incremental build directory.
+- Corrected the VS Code search and watcher exclusions to match the runtime's
+  `directx9c/` directory.
+- Organized 27 unique historical menu screenshots under ignored `local/logs/`
+  with a hash manifest and removed three byte-identical duplicate aliases.
+- Removed superseded runtime logs and the regenerable ModernMenu class staging
+  copy after preserving relevant validation evidence.
+- Retained roadmap placeholders, upstream Visual Studio project metadata,
+  recovery and compatibility assets, host archives, SDK files, backups,
+  provenance records, and reference sources.
+- Validated a Release configure, build, and deployment; matched the built and
+  deployed DLL hashes; matched the pinned 227k_15 host hashes; and passed the
+  repository safety check.
+
 ## Entry template
 
 Add new entries in this form:
