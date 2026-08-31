@@ -86,6 +86,8 @@ if (-not $SkipTests) {
     }
 }
 
+& (Join-Path $PSScriptRoot 'install-development-shortcuts.ps1') -GameRoot $gamePath
+
 Write-Host 'Unreal Revived development environment is ready.'
 Write-Host "Runtime: $gamePath"
 Write-Host "SDK: $sdkPath"

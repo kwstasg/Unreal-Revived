@@ -293,6 +293,17 @@ technical guides; use this file for the chronological record.
   `03A901E5147E40816CD2982B5EA560455DE8B14F65A7184ED4C488A47B56ABF8`.
   The generated developer bundle remains an optional local artifact.
 
+### Added reproducible development shortcuts
+
+- Added tracked normal and recovery launchers and made bootstrap create
+  `Unreal Revived.lnk` and `Unreal Revived Recovery.lnk` in the disposable
+  game root.
+- Kept both shortcuts marker-gated and scoped to the disposable runtime. The
+  recovery launcher refuses to run while that runtime's executable is active.
+- Parsed all changed PowerShell scripts and inspected both generated shortcuts
+  through `WScript.Shell`; targets, profile arguments, working directories,
+  icons, and current-clone paths matched the intended runtime.
+
 ## Entry template
 
 Add new entries in this form:

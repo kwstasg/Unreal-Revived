@@ -138,6 +138,12 @@ Deployment and runtime-test scripts require
 the physical disposable copy. Unmarked trees and the original Steam
 installation are rejected.
 
+After a successful build and optional content test, bootstrap creates
+`Unreal Revived.lnk` and `Unreal Revived Recovery.lnk` in the disposable game
+root. Both shortcuts resolve the current runtime and repository paths at
+creation time. Rerun bootstrap after moving the checkout so those absolute
+shortcut paths are refreshed.
+
 The `deploy-modern-menu` target compiles the standalone `ModernMenu.u` package
 with the disposable runtime's x64 `UCC.exe`. It deploys the package to
 `System64/` and updates `D3D12Test.ini` to load the custom root window and menu

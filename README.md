@@ -82,6 +82,7 @@ The bootstrap performs the complete setup:
 	 `local/sdk/227k_15/`.
 7. Configures and builds the D3D12 renderer and ModernMenu.
 8. Runs the automated D3D12 content smoke suite.
+9. Creates normal and recovery shortcuts in `local/game/`.
 
 Generated game files, downloads, SDK files, logs, and build output stay under
 the ignored `local/` directory.
@@ -97,6 +98,11 @@ Set-Location local/game/System64
 
 The leading `Unreal.unr` argument is required by this host when selecting the
 custom profiles.
+
+Bootstrap also creates `Unreal Revived.lnk` and
+`Unreal Revived Recovery.lnk` in `local/game/`. The first launches the same
+D3D12 profiles shown above. The second starts OldUnreal's recovery mode and
+refuses to run while that disposable runtime is already open.
 
 ## Downloads and offline use
 
