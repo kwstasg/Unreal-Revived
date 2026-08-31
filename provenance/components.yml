@@ -1,9 +1,0 @@
-schema: 1
-components:
-  - id: ut99-vulkan-drv-d3d12
-    repository: https://github.com/dpjudas/UT99VulkanDrv
-    revision: a29e9ac0df1c60ad302d91bc3a51ab026c1a307c
-    sourcePath: D3D12Drv
-    noticePath: LICENSES/UT99VulkanDrv.md
-    permission: user-confirmed; written record pending archive
-    releaseEligible: false
