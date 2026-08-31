@@ -21,6 +21,9 @@ history.
 - Runtime model: ignored disposable installation under `local/game/`.
 - SDK model: ignored 227k_15 SDK under `local/sdk/227k_15/`.
 - Original Steam installation: recovery source only; never modify it.
+- Packaging authorization: redistribution, mirroring, and offline bundling of
+  the pinned OldUnreal 227k_15 Windows patch is confirmed in
+  [`../PERMISSIONS.md`](../PERMISSIONS.md) and must not be reopened as a blocker.
 
 The renderer builds, deploys, and loads without XOpenGL fallback. Native and
 lower logical resolutions, borderless letterboxing, menu coordinate mapping,
@@ -87,6 +90,8 @@ select the intended profile during testing.
 - Early startup recovery runs before normal localization lookup is reliable.
   Deployment must mirror `Startup.int` into both `System/` and `System64/`.
 - Never track files under `local/` or deploy into the original game install.
+- Archive and binary source-control exclusions do not prevent release tooling
+  from embedding the pinned 227k_15 payload from ignored local inputs.
 
 ## Next priorities
 
