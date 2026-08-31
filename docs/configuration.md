@@ -40,6 +40,15 @@ flushes the renderer immediately. Unsupported sample counts automatically fall
 back to the highest lower count supported by the scene color, hit, and depth
 formats.
 
+The D3D12-only **Bloom Amount** slider uses the renderer's complete byte range
+from `0` to `255`. Setting it to `0` disables bloom; any positive amount enables
+bloom and controls blur spread, highlight extraction, and additive intensity.
+The extraction threshold falls from `1.0` to `0.5` and gain reaches 8x at the
+maximum. The current numeric value is shown in the slider label and reloads
+from the active engine profile when Video Preferences is reopened. Changes are
+applied directly to the active D3D12 render device and saved to the profile, so
+they are visible immediately and survive restart.
+
 The custom Preferences **Restart** action saves the open pages and relaunches
 with `Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini`. This preserves
 the disposable D3D12 profile instead of falling back to `Unreal.ini`. Restart
@@ -82,8 +91,8 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | `LODBias` | `0.0` | Texture level-of-detail bias. |
 | `Hdr` | `False` | Enable HDR output where supported. |
 | `HdrScale` | `128` | HDR intensity scale. |
-| `Bloom` | `False` | Enable bloom. |
-| `BloomAmount` | `128` | Bloom intensity. |
+| `Bloom` | `False` | Enable bloom; synchronized by the Bloom Amount slider. |
+| `BloomAmount` | `128` | Bloom intensity from `0` through `255`; `0` disables bloom in Video Preferences. |
 | `OccludeLines` | `False` | Occlude line rendering on the 227 build. |
 | `GammaCorrectScreenshots` | `True` | Apply gamma correction to screenshots. |
 | `UseDebugLayer` | `False` | Enable the Direct3D 12 debug layer. |

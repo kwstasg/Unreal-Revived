@@ -365,10 +365,24 @@ std::string FileResource::readAllText(const std::string& filename)
 
 			Texture2D tex;
 
+			cbuffer BloomPushConstants
+			{
+				float SampleWeights0;
+				float SampleWeights1;
+				float SampleWeights2;
+				float SampleWeights3;
+				float SampleWeights4;
+				float SampleWeights5;
+				float SampleWeights6;
+				float SampleWeights7;
+				float BloomIntensity;
+				float BloomThreshold;
+			}
+
 			Output main(Input input)
 			{
 				Output output;
-				output.outColor = float4(max(tex.Sample(samplerTex, input.texCoord).rgb - 1.0, 0.0), 0.0);
+				output.outColor = float4(max(tex.Sample(samplerTex, input.texCoord).rgb - BloomThreshold, 0.0), 0.0);
 				return output;
 			}
 		)";
@@ -396,10 +410,29 @@ std::string FileResource::readAllText(const std::string& filename)
 
 			Texture2D tex;
 
+		#if defined(BLOOM_ADDITIVE)
+			cbuffer BloomPushConstants
+			{
+				float SampleWeights0;
+				float SampleWeights1;
+				float SampleWeights2;
+				float SampleWeights3;
+				float SampleWeights4;
+				float SampleWeights5;
+				float SampleWeights6;
+				float SampleWeights7;
+				float BloomIntensity;
+				float BloomThreshold;
+			}
+		#endif
+
 			Output main(Input input)
 			{
 				Output output;
 				output.outColor = tex.Sample(samplerTex, input.texCoord);
+			#if defined(BLOOM_ADDITIVE)
+				output.outColor *= BloomIntensity;
+			#endif
 				return output;
 			}
 		)";
@@ -428,6 +461,8 @@ std::string FileResource::readAllText(const std::string& filename)
 				float SampleWeights5;
 				float SampleWeights6;
 				float SampleWeights7;
+				float BloomIntensity;
+				float BloomThreshold;
 			}
 
 			SamplerState samplerTex

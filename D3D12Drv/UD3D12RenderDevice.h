@@ -40,6 +40,8 @@ struct PresentPushConstants
 struct BloomPushConstants
 {
 	float SampleWeights[8];
+	float Intensity;
+	float Threshold;
 };
 
 struct TexDescriptorKey

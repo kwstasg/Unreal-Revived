@@ -134,6 +134,16 @@ measure end-to-end engine, D3D12 submission, and pacing behavior rather than
 GPU-only duration. The runtime harness owns the environment switch and parses
 the latest summary into its evidence CSV.
 
+## Bloom postprocessing
+
+`BloomAmount` controls blur radius, highlight extraction, and final additive
+gain. The byte range maps linearly from no contribution at 0 to 8x gain at 255,
+while the extraction threshold falls from 1.0 to 0.5 so ordinary SDR highlights
+can bloom. The renderer skips the bloom pass when either `Bloom` is disabled or
+the amount is zero, so the Video Preferences slider's off position has no bloom
+cost. The `D3D12 BLOOM <0-255>` renderer command updates the active instance;
+ModernMenu uses it for immediate slider changes while persisting the profile.
+
 ## Menu coordinate mapping
 
 The present shader scales and centers lower logical resolutions inside the

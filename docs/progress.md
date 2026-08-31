@@ -218,6 +218,36 @@ technical guides; use this file for the chronological record.
   zero warnings, and rebuilt the offline installer with SHA-256
   `5CEBBD32B2EED484D76BFB87440EBE1F858E56C7AA2F2B5BD97F6EAFFDB319C3`.
 
+### Added bloom strength to Video Preferences
+
+- Added a D3D12-only Bloom Amount slider using the renderer's native 0-255
+  range. Zero disables the bloom pass; positive values enable it and persist
+  both `Bloom` and `BloomAmount` in the active engine profile.
+- Matched the control width, left edge, and track width to the built-in
+  Brightness slider. Changed the renderer amount from blur-radius-only behavior
+  to linear additive gain reaching 8x at 255 and lowered highlight extraction
+  from 1.0 to 0.5 across the range, making SDR light sources visibly bloom.
+- Compiled 652 UnrealScript lines with zero warnings and passed the complete
+  renderer settings suite, including explicit bloom-off and maximum endpoint
+  cases, without script warnings or renderer failure signatures.
+- Captured bloom-off and bloom-maximum at identical NyLeve framing. Mean frame
+  luminance increased from 13.90 to 16.76, with visibly broader red light spill.
+- Corrected live menu behavior after runtime testing showed that `set ini:`
+  persisted bloom for the next renderer initialization without reliably
+  addressing the active viewport renderer. The slider now sends `D3D12 BLOOM`
+  through the renderer command path while retaining the profile writes.
+- Proved live updates in one NyLeve process by sending amount 0 and 255 through
+  the game console. The renderer logged both transitions, captured output shows
+  a broad localized halo around the ceiling light at 255, and the process
+  completed a clean D3D12 bind/unbind cycle. Evidence is under
+  `local/logs/live-bloom-20260831-223337/`.
+- Passed all 13 renderer settings cases on the final live command, threshold,
+  and gain mapping. Evidence is under
+  `local/logs/automated-20260831-223509/`.
+- Rebuilt the offline installer with the active-renderer command and final
+  threshold/intensity mapping; its SHA-256 is
+  `AC69408BDFA5E9F67F08EE6DD339ACE0B7220CA440FA19FE96B1D0EF63F03ADD`.
+
 ### Preserved installer profiles across Preferences Restart
 
 - Replaced the development-only profile names hardcoded in ModernMenu's

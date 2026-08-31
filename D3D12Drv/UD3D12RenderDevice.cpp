@@ -1537,6 +1537,8 @@ void UD3D12RenderDevice::RunBloomPass()
 	float blurAmount = 0.6f + BloomAmount * (1.9f / 255.0f);
 	BloomPushConstants pushconstants;
 	ComputeBlurSamples(7, blurAmount, pushconstants.SampleWeights);
+	pushconstants.Intensity = BloomAmount * (8.0f / 255.0f);
+	pushconstants.Threshold = 1.0f - BloomAmount * (0.5f / 255.0f);
 
 	Commands.Current->Draw->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	Commands.Current->Draw->IASetVertexBuffers(0, 1, &PresentPass.PPStepVertexBufferView);
@@ -1675,6 +1677,7 @@ void UD3D12RenderDevice::CreateBloomPass()
 	auto vertexShader = CompileHlsl("shaders/PPStep.vert", "vs");
 	auto extractPixelShader = CompileHlsl("shaders/BloomExtract.frag", "ps");
 	auto combinePixelShader = CompileHlsl("shaders/BloomCombine.frag", "ps");
+	auto combineAdditivePixelShader = CompileHlsl("shaders/BloomCombine.frag", "ps", {"BLOOM_ADDITIVE"});
 	auto blurVertPixelShader = CompileHlsl("shaders/Blur.frag", "ps", {"BLUR_VERTICAL"});
 	auto blurHorizontalPixelShader = CompileHlsl("shaders/Blur.frag", "ps", {"BLUR_HORIZONTAL"});
 
@@ -1757,8 +1760,8 @@ void UD3D12RenderDevice::CreateBloomPass()
 	blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ONE;
 
 	psoDesc.BlendState = blendDesc;
-	psoDesc.PS.pShaderBytecode = combinePixelShader.data();
-	psoDesc.PS.BytecodeLength = combinePixelShader.size();
+	psoDesc.PS.pShaderBytecode = combineAdditivePixelShader.data();
+	psoDesc.PS.BytecodeLength = combineAdditivePixelShader.size();
 	result = Device->CreateGraphicsPipelineState(&psoDesc, BloomPass.CombineAdditive.GetIID(), BloomPass.CombineAdditive.InitPtr());
 	ThrowIfFailed(result, "CreateGraphicsPipelineState(BloomPass.Combine) failed");
 }
@@ -2090,7 +2093,19 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 {
 	guard(UD3D12RenderDevice::Exec);
 
-	if (ParseCommand(&Cmd, TEXT("DGL")))
+	if (ParseCommand(&Cmd, TEXT("D3D12")))
+	{
+		if (ParseCommand(&Cmd, TEXT("BLOOM")))
+		{
+			BloomAmount = Clamp<INT>(appAtoi(Cmd), 0, 255);
+			Bloom = BloomAmount > 0;
+			debugf(TEXT("D3D12Drv: live bloom amount %d"), (INT)BloomAmount);
+			Ar.Logf(TEXT("%d"), (INT)BloomAmount);
+			return 1;
+		}
+		return 0;
+	}
+	else if (ParseCommand(&Cmd, TEXT("DGL")))
 	{
 		if (ParseCommand(&Cmd, TEXT("BUFFERTRIS")))
 		{
@@ -2351,7 +2366,7 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 					SceneBuffers.ColorBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 			}
 
-			if (Bloom)
+			if (Bloom && BloomAmount > 0)
 			{
 				RunBloomPass();
 			}
