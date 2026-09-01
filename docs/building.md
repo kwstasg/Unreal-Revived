@@ -207,6 +207,11 @@ UnrealEd/setup executables, editor resource directories, editor splash/config
 files, and the original install manifest are also omitted. `System64/UCC.exe`,
 `Editor.dll`, and `ScriptedAIEd.dll` remain because UCC is the supported
 dedicated-server entry point and normal gameplay maps can load `Editor.dll`.
+The disposable development runtime may still contain `System64/UnrealEd.exe`
+from the pinned host. ModernMenu deployment configures its local `Unreal.ini`
+so bare editor launches retain visible editor viewports instead of drawing the
+game's full-screen branded menu background. This is a development convenience;
+UnrealEd remains excluded from the distributed product.
 
 ALAudio is the sole distributed audio engine. It uses the bundled OpenAL Soft
 and retains `OpenAL32.dll`, `libxmp.dll`, `sndfile.dll`, `mpg123.dll`, and

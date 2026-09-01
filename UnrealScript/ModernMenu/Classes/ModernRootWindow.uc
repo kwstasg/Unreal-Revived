@@ -45,6 +45,10 @@ function WindowEvent(WinMessage Msg, Canvas C, float X, float Y, int Key)
 {
 	if (Msg == WM_Paint)
 	{
+		if (GetPlayerOwner().MyHUD == None)
+			Console.bNoDrawWorld = False;
+		else
+			Console.bNoDrawWorld = !class'ModernHUDConfigCW'.Default.bShowGameBehindMenus;
 		PaintModernBackground(C);
 		PaintClients(C, X, Y);
 	}

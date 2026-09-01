@@ -25,6 +25,7 @@ $system64Directory = Join-Path $GameRoot 'System64'
 $helpDirectory = Join-Path $GameRoot 'Help'
 $ucc = Join-Path $system64Directory 'UCC.exe'
 $iniPath = Join-Path $system64Directory $IniName
+$editorIniPath = Join-Path $system64Directory 'Unreal.ini'
 $runtimePackageDirectory = Join-Path $GameRoot 'ModernMenu'
 $outputPackage = Join-Path $system64Directory 'ModernMenu.u'
 
@@ -42,9 +43,20 @@ $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientW
 if (-not ($iniLines -match '^bShowFPS=')) {
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernVideoClientWindow' 'bShowFPS' 'False'
 }
+if (-not ($iniLines -match '^bShowGameBehindMenus=')) {
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernHUDConfigCW' 'bShowGameBehindMenus' 'True'
+}
 $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
 $iniLines = Remove-UnrealRevivedIniValue $iniLines 'Engine.GameEngine' 'ServerActors' 'ModernMenu.ModernIntroTweak'
 Set-Content -LiteralPath $iniPath -Value $iniLines -Encoding ASCII
+
+if (Test-Path -LiteralPath $editorIniPath -PathType Leaf) {
+    $editorIniLines = Get-Content -LiteralPath $editorIniPath
+    $editorIniLines = Set-UnrealRevivedIniValue $editorIniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
+    $editorIniLines = Set-UnrealRevivedIniValue $editorIniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+    $editorIniLines = Add-UnrealRevivedIniValue $editorIniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
+    Set-Content -LiteralPath $editorIniPath -Value $editorIniLines -Encoding ASCII
+}
 
 Remove-Item -LiteralPath $runtimePackageDirectory -Recurse -Force -ErrorAction SilentlyContinue
 Copy-Item -LiteralPath $sourcePackageDirectory -Destination $runtimePackageDirectory -Recurse

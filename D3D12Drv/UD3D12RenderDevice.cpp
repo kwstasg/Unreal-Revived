@@ -137,7 +137,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	new(GetClass(), TEXT("GammaOffsetBlue"), RF_Public) UFloatProperty(CPP_PROPERTY(GammaOffsetBlue), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("LinearBrightness"), RF_Public) UByteProperty(CPP_PROPERTY(LinearBrightness), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("Contrast"), RF_Public) UByteProperty(CPP_PROPERTY(Contrast), TEXT("Display"), CPF_Config);
-	new(GetClass(), TEXT("Saturation"), RF_Public) UByteProperty(CPP_PROPERTY(Saturation), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("Saturation"), RF_Public) UIntProperty(CPP_PROPERTY(Saturation), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("GrayFormula"), RF_Public) UIntProperty(CPP_PROPERTY(GrayFormula), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("Hdr"), RF_Public) UBoolProperty(CPP_PROPERTY(Hdr), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("HdrScale"), RF_Public) UByteProperty(CPP_PROPERTY(HdrScale), TEXT("Display"), CPF_Config);
@@ -385,6 +385,7 @@ UBOOL UD3D12RenderDevice::Init(UViewport* InViewport, INT NewX, INT NewY, INT Ne
 	OriginalViewportCallback = FViewportOutputAccessor::Get(Viewport);
 	ViewportCallback = new FD3D12ViewportCallback(Viewport, this, OriginalViewportCallback);
 	FViewportOutputAccessor::Get(Viewport) = ViewportCallback;
+	InstallWindowProcedure();
 #endif
 
 	return 1;
@@ -444,6 +445,63 @@ RECT UD3D12RenderDevice::GetOutputRect()
 }
 
 #if defined(UNREAL_227)
+static const TCHAR* D3D12WindowProperty = TEXT("UnrealRevived.D3D12RenderDevice");
+
+void UD3D12RenderDevice::InstallWindowProcedure()
+{
+	WindowHandle = (HWND)Viewport->GetWindow();
+	if (!WindowHandle)
+		return;
+
+	if (!SetProp(WindowHandle, D3D12WindowProperty, this))
+	{
+		WindowHandle = nullptr;
+		return;
+	}
+	OriginalWindowProcedure = (WNDPROC)SetWindowLongPtr(WindowHandle, GWLP_WNDPROC, (LONG_PTR)WindowProcedure);
+	if (!OriginalWindowProcedure)
+	{
+		RemoveProp(WindowHandle, D3D12WindowProperty);
+		WindowHandle = nullptr;
+	}
+}
+
+void UD3D12RenderDevice::RestoreWindowProcedure()
+{
+	if (!WindowHandle)
+		return;
+
+	if ((WNDPROC)GetWindowLongPtr(WindowHandle, GWLP_WNDPROC) == WindowProcedure)
+		SetWindowLongPtr(WindowHandle, GWLP_WNDPROC, (LONG_PTR)OriginalWindowProcedure);
+	RemoveProp(WindowHandle, D3D12WindowProperty);
+	OriginalWindowProcedure = nullptr;
+	WindowHandle = nullptr;
+}
+
+LRESULT CALLBACK UD3D12RenderDevice::WindowProcedure(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam)
+{
+	UD3D12RenderDevice* Renderer = (UD3D12RenderDevice*)GetProp(Window, D3D12WindowProperty);
+	if (!Renderer || !Renderer->OriginalWindowProcedure)
+		return DefWindowProc(Window, Message, WParam, LParam);
+
+	if (WParam == VK_RETURN && (LParam & (1 << 29)))
+	{
+		if (Message == WM_SYSKEYDOWN && !(LParam & (1 << 30)))
+		{
+			RECT OutputRect = Renderer->GetOutputRect();
+			const UBOOL Borderless = !Renderer->FullscreenState.Enabled &&
+				Renderer->CurrentSizeX == OutputRect.right - OutputRect.left &&
+				Renderer->CurrentSizeY == OutputRect.bottom - OutputRect.top;
+			Renderer->Viewport->Exec(Renderer->FullscreenState.Enabled || Borderless ?
+				TEXT("SetScreenMode Windowed") : TEXT("SetScreenMode Borderless"), *GLog);
+		}
+		if (Message == WM_SYSKEYDOWN || Message == WM_SYSKEYUP || Message == WM_SYSCHAR)
+			return 0;
+	}
+
+	return CallWindowProc(Renderer->OriginalWindowProcedure, Window, Message, WParam, LParam);
+}
+
 void UD3D12RenderDevice::MapMenuCoordinates(FLOAT& X, FLOAT& Y) const
 {
 	if (!FullscreenState.Enabled || !Viewport || CurrentSizeX <= 0 || CurrentSizeY <= 0)
@@ -753,6 +811,8 @@ void UD3D12RenderDevice::Exit()
 	guard(UD3D12RenderDevice::Exit);
 
 #if defined(UNREAL_227)
+	RestoreWindowProcedure();
+
 	FViewportCallback* InstalledCallback = ViewportCallback;
 	ViewportCallback = nullptr;
 	if (Viewport && InstalledCallback && Viewport->GetOutputAPI() == InstalledCallback)
@@ -2155,7 +2215,7 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 		}
 		else if (ParseCommand(&Cmd, TEXT("SATURATION")))
 		{
-			Saturation = Clamp<INT>(appAtoi(Cmd), 0, 255);
+			Saturation = Clamp<INT>(appAtoi(Cmd), 128, 383);
 			debugf(TEXT("D3D12Drv: live saturation %d"), (INT)Saturation);
 			Ar.Logf(TEXT("%d"), (INT)Saturation);
 			return 1;
@@ -2366,7 +2426,7 @@ PresentPushConstants UD3D12RenderDevice::GetPresentPushConstants()
 		}
 
 		// pushconstants.Saturation = clamp(Saturation, -1.0f, 1.0f);
-		pushconstants.Saturation = 1.0f - 2.0f * (255 - Saturation) / 255.0f;
+		pushconstants.Saturation = 1.0f - 2.0f * (255 - Clamp<INT>(Saturation, 128, 383)) / 255.0f;
 
 		// pushconstants.Brightness = clamp(LinearBrightness, -1.8f, 1.8f);
 		if (LinearBrightness >= 128)

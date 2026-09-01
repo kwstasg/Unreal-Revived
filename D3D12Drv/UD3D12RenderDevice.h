@@ -103,6 +103,9 @@ public:
 	void Exit() override;
 #if defined(UNREAL_227)
 	void MapMenuCoordinates(FLOAT& X, FLOAT& Y) const;
+	void InstallWindowProcedure();
+	void RestoreWindowProcedure();
+	static LRESULT CALLBACK WindowProcedure(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam);
 #endif
 #if defined(UNREALGOLD)
 	void Flush() override;
@@ -148,6 +151,9 @@ public:
 #endif
 
 	HWND WindowHandle = 0;
+#if defined(UNREAL_227)
+	WNDPROC OriginalWindowProcedure = nullptr;
+#endif
 	ComPtr<ID3D12Debug> DebugController;
 	ComPtr<ID3D12Device> Device;
 	ComPtr<ID3D12InfoQueue1> InfoQueue1;
@@ -327,7 +333,7 @@ public:
 	FLOAT GammaOffsetBlue;
 	BYTE LinearBrightness;
 	BYTE Contrast;
-	BYTE Saturation;
+	INT Saturation;
 	INT GrayFormula;
 	BITFIELD Hdr;
 	BYTE HdrScale;

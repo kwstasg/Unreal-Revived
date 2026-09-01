@@ -258,6 +258,8 @@ $settingsCases = @(
 $menuDisplayCases = @(
     New-TestCase -Name 'menu-fps-enabled' -Map 'Unreal.unr' -ProfileSettings @{ 'ModernMenu.ModernVideoClientWindow|bShowFPS' = 'True' }
     New-TestCase -Name 'menu-fps-disabled' -Map 'Unreal.unr' -ProfileSettings @{ 'ModernMenu.ModernVideoClientWindow|bShowFPS' = 'False' }
+    New-TestCase -Name 'menu-world-preview-enabled' -Map 'NyLeve' -ProfileSettings @{ 'ModernMenu.ModernHUDConfigCW|bShowGameBehindMenus' = 'True' }
+    New-TestCase -Name 'menu-world-preview-disabled' -Map 'NyLeve' -ProfileSettings @{ 'ModernMenu.ModernHUDConfigCW|bShowGameBehindMenus' = 'False' }
     New-TestCase -Name 'display-1280x720' -Map 'Unreal.unr' -ProfileSettings @{ 'WinDrv.WindowsClient|FullscreenViewportX' = '1280'; 'WinDrv.WindowsClient|FullscreenViewportY' = '720' }
     New-TestCase -Name 'display-1024x768' -Map 'Unreal.unr' -ProfileSettings @{ 'WinDrv.WindowsClient|FullscreenViewportX' = '1024'; 'WinDrv.WindowsClient|FullscreenViewportY' = '768' }
     New-TestCase -Name 'display-2560x1440' -Map 'Unreal.unr' -ProfileSettings @{ 'WinDrv.WindowsClient|FullscreenViewportX' = '2560'; 'WinDrv.WindowsClient|FullscreenViewportY' = '1440' }

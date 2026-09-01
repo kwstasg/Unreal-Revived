@@ -29,10 +29,18 @@ is the normal shell map and does not force the player into a campaign level.
 ## FPS display
 
 After deploying `ModernMenu`, open **Options > Preferences > Video** and use
-**Show FPS Statistics** directly below **Show Fullscreen**. The checkbox
+**Show FPS Statistics** directly below **Display Mode**. The checkbox
 controls 227's built-in `TIMEDEMO` statistics overlay and remains synchronized
 when the Video page is reopened. Its `bShowFPS` value is saved in the active
 engine profile and restores the overlay when the game starts or restarts.
+
+**Display Mode** replaces the separate fullscreen and borderless checkboxes.
+It offers **Fullscreen**, **Borderless**, and **Windowed** when supported, and
+uses the host's live `GetScreenMode` and `SetScreenMode` commands. The selected
+value refreshes while the page is visible, so Alt+Enter changes are reflected
+immediately. With D3D12Drv active, Alt+Enter switches between Windowed and
+Borderless, or exits Fullscreen to Windowed. Fullscreen remains available as
+an explicit combo selection.
 
 The same Video page exposes the D3D12 renderer's existing **Antialiasing** row
 as **Off**, **2x**, **4x**, and **8x**. Changing it updates `AntialiasMode` and
@@ -40,19 +48,60 @@ flushes the renderer immediately. Unsupported sample counts automatically fall
 back to the highest lower count supported by the scene color, hit, and depth
 formats.
 
+**Saturation** displays a percentage instead of the renderer's stored integer:
+0% is grayscale, 100% is normal color, and 200% is the maximum boosted
+setting. Reset restores 100%.
+
+The **Video Driver** list contains only the supported Direct3D 12, OpenGL, and
+XOpenGL renderers. Legacy registered renderers are not selectable. If a profile
+already names another active renderer, the inherited unavailable marker remains
+visible without adding that renderer back to the list.
+
 D3D12 **Contrast** and **Saturation** sliders appear immediately below the
-built-in Brightness control and use the renderer's existing `0` through `255`
-config ranges. Contrast is neutral at `128`; saturation is normal at `255` and
-reaches grayscale near `128`. Changes update the active renderer immediately
-and persist to the active engine profile. The controls are disabled when a
-different render device is selected.
+built-in Brightness control. Contrast uses the renderer's existing `0` through
+`255` config range and displays its effective gain from 10% through 100%
+neutral to 400% maximum. Saturation uses `128` through `383`, from 0% grayscale
+through 100% normal to 200% boosted. Changes update the active renderer
+immediately and persist to the active engine profile. The controls are disabled
+when a different render device is selected. Brightness displays a percentage
+from 20% through 200%, with the `0.5` default represented as 100%. Brightness
+and Contrast move in 1% increments; Contrast percentages are rounded to its
+legacy byte config value when applied. D3D12 reads Brightness every frame, so
+live changes do not require flushing renderer resources. The Video sliders use
+8-pixel handles for easier
+selection. Every Video slider has a compact reset button fitted inside its
+original row width. Reset restores Brightness to `0.5`, GUI override to enabled
+with Scaling at `1.5x`, Lightmap LOD to `8`, Contrast to `128`, Saturation to
+`255`, and Bloom Amount to `128`, applying and saving
+the result immediately. The buttons match combo-box arrow positioning and are
+intentionally blank because the active skins provide no reset icon.
+
+Color Depth and GUI Mouse Speed are not shown on the Video page. Their
+underlying host settings remain untouched for configuration compatibility.
+
+The HUD page provides reset buttons for all four sliders. HUD Layout and
+Crosshair Style reset to index `0`; Crosshair Scale and HUD Scale reset to the
+Unreal Revived default of `1.5`, with values displayed beside their labels to
+one decimal place. All sliders use 8-pixel handles. Their tracks are shortened
+so each button's right edge remains aligned with the row's original endpoint,
+minus the same 2-pixel right inset used by combo-box arrow buttons. Reset
+buttons remain vertically centered on their slider handles. The page also exposes
+**Show Game Behind Menus**,
+aligned with the other checkbox controls and enabled by default. During active
+gameplay, Escape and Preferences show the paused 3D world behind UWindow so
+visual settings can be previewed live. It also removes the branded background
+from the normal shortcut's `Unreal.unr` intro and main-menu scene, leaving that
+live 3D scene visible beneath UWindow. In the disposable development runtime,
+bare `System64/UnrealEd.exe` always leaves its editor viewports visible; the
+gameplay checkbox does not hide editor content.
 
 The D3D12-only **Bloom Amount** slider uses the renderer's complete byte range
-from `0` to `255`. Setting it to `0` disables bloom; any positive amount enables
-bloom and controls blur spread, highlight extraction, and additive intensity.
+from `0` to `255` and appears directly below Saturation. Its label maps that
+range to 0% through 100%. Setting it to `0` disables bloom; any positive amount
+enables bloom and controls blur spread, highlight extraction, and additive intensity.
 The extraction threshold falls from `1.0` to `0.5`. Additive gain follows a
 progressive curve, reaching about 6x at the midpoint and 16x at the maximum.
-The current numeric value is shown in the slider label and reloads
+The current percentage is shown in the slider label and reloads
 from the active engine profile when Video Preferences is reopened. Changes are
 applied directly to the active D3D12 render device and saved to the profile, so
 they are visible immediately and survive restart. Bloom extraction uses the 3D
@@ -136,14 +185,20 @@ or preventing the player from changing them later:
 | Setting | Initial value |
 | --- | ---: |
 | Fullscreen resolution | `1920x1080` |
-| Brightness | `0.600000` |
+| Brightness | `0.500000` |
 | Minimum desired frame rate | `60.000000` |
 | Lightmap LOD | `8` |
 | Skybox fog detail | `FOGDETAIL_High` |
+| Override automatic GUI scaling | `True` |
+| GUI scaling factor | `1.500000` |
+| Antialiasing | `MSAA_4x` |
+| Bloom | `True` |
+| Bloom amount | `128` |
 | Network speed | `50000` |
 | LAN speed | `20000` |
 | VSync | `False` |
 | Shadow detail resolution | `1024` |
+| Shadow draw distance | Unlimited (`0.000000`) |
 | HUD mode | `0` |
 | Crosshair | `0` |
 | HUD scale | `1.500000` |

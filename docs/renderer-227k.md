@@ -108,6 +108,20 @@ established. `IgnoreBorderlessResize`, together with the existing `SetRes`
 call lock, suppresses that one re-entrant resize so a lower logical resolution
 is not promoted back to desktop size.
 
+### Alt+Enter mode routing
+
+WinDrv consumes Alt+Enter in its native window procedure and normally calls
+`ToggleFullscreen` before UWindow can process the key. The 227 D3D12 adapter
+subclasses the active viewport window and handles only that key combination by
+calling WinDrv's published `SetScreenMode` command. It selects Borderless from
+Windowed, and Windowed from Borderless or Fullscreen. Fullscreen remains
+available as an explicit Video Preferences selection.
+
+The adapter associates its renderer instance with the viewport HWND, forwards
+all unrelated window messages to the original procedure, ignores key-repeat
+toggles, and restores the original procedure during renderer exit only when
+its own procedure is still installed.
+
 ## Multisample antialiasing
 
 `AntialiasMode` supports Off, 2x, 4x, and 8x MSAA. Before scene resources or
@@ -139,9 +153,12 @@ the latest summary into its evidence CSV.
 The final present shader applies the renderer's existing contrast and
 saturation correction before gamma correction. `Contrast` maps byte value 128
 to neutral, lower values toward reduced contrast, and 255 to 4x contrast.
-`Saturation` maps 255 to normal color, approximately 128 to grayscale, and 0
-to inverse chroma. ModernMenu persists both bytes and sends `D3D12 CONTRAST`
-or `D3D12 SATURATION` so the active renderer changes without a restart.
+`Saturation` is an integer that maps 255 to normal color, approximately 128 to
+grayscale, and 383 to 2x saturation. The renderer clamps active values to 128
+through 383, so stale configuration cannot select inverted chroma. ModernMenu
+presents that range as 0% through 200%, persists both settings, and sends
+`D3D12 CONTRAST` or `D3D12 SATURATION` so the active renderer changes without
+a restart.
 
 ## Bloom postprocessing
 

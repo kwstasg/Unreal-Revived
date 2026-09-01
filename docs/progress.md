@@ -325,6 +325,130 @@ technical guides; use this file for the chronological record.
   its SHA-256 is
   `B0F595DBEFF60A91ACC01F1796B9AE8EA01EEFE83F392269E225953F524B4B36`.
 
+### Added optional gameplay preview behind menus
+
+- Replaced the stock HUD scrolling client with a compatible ModernMenu wrapper
+  and added **Show Game Behind Menus** below HUD Scaling. The option defaults
+  off, persists in the active profile, and is explicitly seeded by deployment.
+- Initially limited world preview to active gameplay HUDs. Isolated NyLeve
+  profiles proved that off retains branding and on reveals the paused world,
+  with clean D3D12 bind/unbind cycles. Evidence is under
+  `local/logs/menu-world-preview-20260901-024749/`.
+- Corrected the initial wrapper after runtime captures proved the stock HUD
+  scroll client overwrote `ClientClass` from `HUDConfigWindowType`. The final
+  wrapper constructs `ModernHUDConfigCW` directly; its visible layout is under
+  `local/logs/hud-preview-layout-20260901-025905/`.
+- Foreground UI interaction checked the option, switched the still-open HUD
+  Preferences window to the paused world immediately, and persisted
+  `bShowGameBehindMenus=True` in an isolated profile. Evidence is under
+  `local/logs/hud-preview-interaction-20260901-030138/`.
+- Passed all 10 menu/display cases with explicit gameplay-preview enabled and
+  disabled profiles, including logical 4K and MSAA 8x. Evidence is under
+  `local/logs/automated-20260901-030338/`.
+- Rebuilt the offline installer with the HUD preview option and seeded default;
+  its SHA-256 is
+  `A3F840AF3254EF1ADFF56ACB2EE36497AEC15208E4BBF34369AD14E6EDFEA83B`.
+- Extended the local development behavior to editor viewports, where no
+  gameplay HUD exists. ModernMenu deployment now configures the disposable
+  `System64/Unreal.ini` root and options menu while preserving unrelated editor
+  settings; bare `UnrealEd.exe` visibly opened its editor browser and four
+  viewports without the branded full-screen background. Evidence is under
+  `local/logs/unrealed-menu-background-20260901-031322/`.
+- Passed all 10 menu/display cases after separating always-visible editor
+  viewports from checkbox-controlled gameplay and the branded intro.
+  Evidence is under `local/logs/automated-20260901-031355/`.
+- Rebuilt the offline installer with the synchronized ModernMenu payload while
+  retaining the UnrealEd exclusion policy; its SHA-256 is
+  `A58959443028E87F5202EC77EC82687428EB515ACE31BBAF23C716892101D7EA`.
+- Removed the intro exception after confirming that the normal game shortcut,
+  not UnrealEd, was the requested target. With the saved option enabled, the
+  actual `Unreal Revived.lnk` command displayed the live `Unreal.unr` scene
+  beneath its Escape menu and completed a clean D3D12 cycle. Evidence is under
+  `local/logs/normal-shortcut-world-preview-20260901-032207/`.
+- Passed all 10 menu/display cases with the checkbox controlling both normal
+  startup/menu and gameplay paths. Evidence is under
+  `local/logs/automated-20260901-032241/`.
+- Rebuilt the offline installer with the normal-game preview behavior; its
+  SHA-256 is
+  `90101F06AB18A489384B9512BE8FB0CB218C01FB0D8EF9C901DEA7A810D72455`.
+
+### Polished HUD and Video preference controls
+
+- Aligned **Show Game Behind Menus** with standard checkbox geometry and made
+  it checked by default for fresh profiles while preserving explicit saved
+  choices.
+- Replaced the Crosshair Scale and HUD Scale text boxes with tenths-based
+  sliders, added one-decimal values beside their and Brightness's labels, and
+  widened HUD and Video slider handles from 4 to 8 pixels.
+- Added skin-matched square reset buttons beside both scale sliders. Each
+  restores the Unreal Revived profile default of `1.5` in the control, label,
+  live HUD, and saved configuration.
+- Fitted reset buttons within the sliders' original right edge by shortening
+  their tracks, then extended the same control to all six visible Video sliders with
+  setting-specific defaults and existing live/persistence handlers.
+- Removed the inaccurate combo arrow glyph from reset buttons. Updated fresh
+  installer and development
+  profiles to Brightness 0.5, GUI override at 1.5x, 60 FPS target, unlimited
+  shadow distance, high-detail sky fog, MSAA 4x, and Bloom Amount 128.
+- Restored vertical handle centering and matched every reset button to the
+  combo arrow's 2-pixel horizontal right inset. Added fitted resets for HUD
+  Layout and Crosshair Style. Compiled
+  and deployed 1,380 UnrealScript lines with zero warnings. Runtime tests were
+  skipped for this final alignment update at the user's request.
+- Removed Color Depth and GUI Mouse Speed from Video Preferences while
+  retaining their underlying host settings for compatibility. Closed both
+  25-pixel row gaps, removed the mouse reset control, and compiled/deployed
+  1,412 UnrealScript lines with zero warnings. Runtime tests were skipped at
+  the user's request.
+- Filtered the Video Driver combo at population time to Direct3D 12, OpenGL,
+  and XOpenGL while preserving the inherited unavailable marker for an active
+  unsupported profile. Compiled and deployed 1,459 UnrealScript lines with zero
+  warnings. Runtime tests were skipped at the user's request.
+- Replaced the separate fullscreen and borderless checkboxes with a single
+  **Display Mode** combo backed by the host's live `GetScreenMode` and
+  `SetScreenMode` commands. Fullscreen, Borderless, and Windowed selection now
+  follows Alt+Enter while the page is visible. Compiled and deployed 1,556
+  UnrealScript lines with zero warnings. Runtime tests were skipped at the
+  user's request.
+- Corrected Borderless being omitted because the inherited menu probed the
+  obsolete `UseDesktopFullScreen` key. ModernMenu now derives capability from
+  a valid live `GetScreenMode` response and includes all three modes. Compiled
+  and deployed 1,567 UnrealScript lines with zero warnings. Runtime tests were
+  skipped at the user's request.
+- Added a 227-only D3D12 viewport window-procedure adapter so Alt+Enter routes
+  through WinDrv's supported `SetScreenMode` command and switches between
+  Windowed and Borderless, or exits Fullscreen to Windowed. Explicit Fullscreen
+  selection remains available in Video Preferences. The Release D3D12Drv
+  target built successfully; runtime testing was skipped at the user's request.
+- Widened D3D12 saturation storage beyond the legacy byte range and extended
+  Video Preferences to 200% boosted color. The menu now displays saturation as
+  0% grayscale, 100% normal, through 200% boosted while keeping existing value
+  255 and the reset action at 100%. The renderer clamps stale and live values to
+  the non-inverted 128 through 383 range. Brightness now presents its 0.5
+  default as 100%, Contrast presents its effective 10% through 400% gain, and
+  both Brightness and Contrast move in 1% increments while preserving their
+  existing stored formats. Bloom Amount presents 0% through 100% directly
+  below Saturation. The Release D3D12Drv target built successfully, and
+  ModernMenu compiled and deployed 1,619 lines with zero warnings.
+- Corrected a Brightness interaction crash whose captured stack entered
+  `UD3D12RenderDevice::PrecacheTexture` for `Engine.Border`: the inherited
+  Brightness handler flushed renderer resources while UWindow was drawing.
+  D3D12 already reads viewport Brightness every frame, so ModernMenu now saves
+  the value without `FLUSH` and retains live updates. Constrained the new 1%
+  control to the host's historical `0.1` through `1.0` range, displayed as 20%
+  through 200%. Rebuilt the previously locked package and passed all ten
+  automated MenuDisplay runtime cases.
+- Added reusable supported-renderer smoke automation with isolated profiles,
+  expected-module bind/unbind verification, crash-signature rejection, and
+  profile-integrity checks. D3D12, OpenGL, and XOpenGL each loaded and cleanly
+  shut down on NyLeve, DmDeck16, Chizra, Vortex2, Dug, and Terraniux: all 18
+  renderer/map cases passed. The complete 31-case D3D12 content, settings,
+  menu, and display suite also passed, for 49 passing runtime cases total.
+- Rebuilt `UnrealRevived-Setup-0.1.0.exe` after renderer validation. Inno Setup
+  completed successfully; the installer is 87,650,764 bytes with SHA-256
+  `A0F6C38E060652C5A01E5862CE6CA1BE883E5A21BB2E82A18F3691EEA3219FEB`,
+  independently matched against its generated checksum sidecar.
+
 ### Preserved installer profiles across Preferences Restart
 
 - Replaced the development-only profile names hardcoded in ModernMenu's

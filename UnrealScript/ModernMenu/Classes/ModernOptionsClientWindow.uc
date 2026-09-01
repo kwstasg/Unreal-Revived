@@ -15,7 +15,7 @@ function Created()
 	Pages.AddPage(GamePlayTab, class'ModernGameOptionsScrollClient');
 	Pages.AddPage(ControlsTab, class'UMenuCustomizeScrollClient');
 	Pages.AddPage(InputTab, class'UMenuInputOptionsScrollClient');
-	Pages.AddPage(HUDTab, class'UMenuHUDConfigScrollClient');
+	Pages.AddPage(HUDTab, class'ModernHUDConfigScrollClient');
 	Network = Pages.AddPage(NetworkTab, class'UMenuNetworkScrollClient');
 	CloseButton = UWindowSmallCloseButton(CreateControl(class'UWindowSmallCloseButton', WinWidth - 56, WinHeight - 24, 48, 16));
 	RestartButton = UWindowSmallRestartButton(CreateControl(class'UWindowSmallRestartButton', WinWidth - 56, WinHeight - 24, 48, 16));

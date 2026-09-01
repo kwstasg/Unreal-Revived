@@ -137,11 +137,19 @@ try {
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'GameRenderDevice' 'D3D12Drv.D3D12RenderDevice'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'WindowedRenderDevice' 'D3D12Drv.D3D12RenderDevice'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'Console' 'UMenu.UnrealConsole'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'AntialiasMode' 'Off'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'Brightness' '0.500000'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'MinDesiredFrameRate' '60.000000'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'LightMapLOD' '8'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'SkyBoxFogMode' 'FOGDETAIL_High'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernRootWindow' 'ConfiguredGUIScale' '1.500000'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernRootWindow' 'AutoGUIScale' 'False'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'AntialiasMode' 'MSAA_4x'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'Bloom' 'True'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'BloomAmount' '128'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'UseVSync' 'True'
     Set-Content -LiteralPath (Join-Path $destinationRoot 'System64\D3D12Test.ini') -Value $iniLines -Encoding ASCII
-    $userIniLines = @(Get-Content -LiteralPath $defaultUserIni)
-    $userIniLines += ''
+    $userIniLines = Get-Content -LiteralPath $defaultUserIni
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.ObjectShadow' 'OcclusionDistance' '0.000000'
     Set-Content -LiteralPath (Join-Path $destinationRoot 'System64\D3D12TestUser.ini') `
         -Value $userIniLines -Encoding ASCII
 

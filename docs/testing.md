@@ -142,6 +142,17 @@ powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite MenuDisplay
 powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite All
 ```
 
+Smoke-test all supported renderers across the six representative maps:
+
+```powershell
+powershell -NoProfile -File scripts/test-supported-renderers.ps1
+```
+
+This uses isolated profiles for D3D12, OpenGL, and XOpenGL, verifies the
+expected renderer bind/unbind cycle, rejects crash and missing-package
+signatures, and confirms normal shutdown without changing the development
+profiles.
+
 For a focused check, provide one or more map names:
 
 ```powershell
@@ -262,14 +273,35 @@ target maintains those copies for the disposable runtime.
 ## Video menu checklist
 
 - Open **Options > Preferences > Video**.
-- Confirm **Show FPS Statistics** appears directly below **Show Fullscreen**
+- Confirm **Video Driver** offers only Direct3D 12, OpenGL, and XOpenGL.
+- Confirm **Display Mode** replaces the fullscreen and borderless checkboxes
+  and offers Fullscreen, Borderless, and Windowed. With D3D12Drv active, press
+  Alt+Enter from Windowed and confirm it selects Borderless; press it again and
+  confirm it returns to Windowed. Select Fullscreen explicitly, press
+  Alt+Enter, and confirm it changes to Windowed.
+- Confirm Color Depth and GUI Mouse Speed are absent and later controls close
+  their former row gaps.
+- Confirm **Show FPS Statistics** appears directly below **Display Mode**
   and scrolls with the other video controls.
 - With D3D12Drv active, confirm **Contrast** and **Saturation** appear directly
   below Brightness without overlapping adjacent rows, update the rendered scene
-  immediately, display their current byte values, and retain changes after the
-  Video page is reopened. Confirm both controls are disabled on other renderers.
-- With D3D12Drv active, confirm **Bloom Amount** appears below the FPS control,
-  displays values from 0 through 255, disables bloom at 0, changes bright-light
+  immediately, display Contrast as 10% through 400% with 100% neutral and
+  Saturation as 0% grayscale through 200% boosted, and retain changes after the
+  Video page is reopened. Confirm Saturation reset restores 100%. Confirm
+  Brightness displays its default `0.5` value as 100% and the slider handles
+  are 8 pixels wide. Confirm Brightness and Contrast move and display in 1%
+  increments. Change Brightness while the menu is visible and confirm the scene
+  updates without a renderer flush, texture-precache failure, or Critical Error.
+  Confirm both
+  D3D12 controls are disabled on other renderers.
+- Confirm every visible Video slider has a square reset button whose right edge aligns
+  with the slider's former endpoint and whose vertical center aligns with the
+  handle. Confirm it is blank rather than showing an unrelated combo-box icon.
+  Change each slider, reset it, and confirm its handle, displayed value, live
+  behavior, and saved setting return to the documented default. Confirm disabled
+  D3D12 sliders also disable their reset buttons.
+- With D3D12Drv active, confirm **Bloom Amount** appears directly below
+  Saturation, displays 0% through 100%, disables bloom at 0%, changes bright-light
   glow immediately without a restart, leaves HUD glyphs and icons sharply
   rendered without bloom halos, does not brighten the Escape menu artwork or
   text, and retains a positive amount after reopening Video preferences.
@@ -291,6 +323,25 @@ target maintains those copies for the disposable runtime.
   **Standard Unreal Console** and cannot open or select another console.
 - Confirm Restart leaves `Engine.Engine.Console=UMenu.UnrealConsole` and Escape
   continues to open the windowed UMenu interface.
+- Open **Options > Preferences > HUD** and confirm **Show Game Behind Menus**
+  appears below HUD Scaling, aligns with the other checkboxes, and is checked
+  by default in a fresh profile. Confirm Crosshair Scale and HUD Scale are
+  sliders with 8-pixel handles and show their effective values beside their
+  labels with one decimal place. Confirm all four HUD sliders have blank reset
+  buttons vertically centered on their handles, with the same 2-pixel right
+  inset as combo-box arrow buttons.
+  Change each value and confirm reset restores HUD Layout and Crosshair Style
+  to index `0`, and both scale controls to `1.5`, including their live and saved
+  values. Confirm each button ends at the slider row's original right edge. During
+  gameplay, confirm the paused world appears behind the still-open Preferences
+  window. Disable the option and confirm the branded background returns.
+- Confirm the option persists after reopening Preferences and that the
+  normal shortcut's `Unreal.unr` intro/main-menu scene shows its live 3D view
+  instead of the branded background when enabled. Disable the option and
+  confirm branding returns there as well.
+- In the disposable development runtime, launch bare `System64/UnrealEd.exe`
+  and confirm its editor viewports remain visible without the full-screen
+  branded menu background.
 
 ## Installer uninstall checklist
 
