@@ -283,15 +283,25 @@ target maintains those copies for the disposable runtime.
   their former row gaps.
 - Confirm **Show FPS Statistics** appears directly below **Display Mode**
   and scrolls with the other video controls.
+- Move keyboard focus through sliders, checkboxes, combo boxes, edit fields,
+  tabs, and buttons. Confirm a thin dashed gold outline surrounds only the
+  interactive widget, not its label. Open pulldown menus and combo lists and
+  confirm neither dropdown receives an outline.
 - With D3D12Drv active, confirm **Contrast** and **Saturation** appear directly
   below Brightness without overlapping adjacent rows, update the rendered scene
-  immediately, display Contrast as 10% through 400% with 100% neutral and
+  immediately, display Contrast as 50% through 200% with 100% neutral and
   Saturation as 0% grayscale through 200% boosted, and retain changes after the
-  Video page is reopened. Confirm Saturation reset restores 100%. Confirm
+  Video page is reopened. Confirm stale raw Contrast values below `64` or above
+  `170` render at the nearest supported endpoint. Confirm Saturation reset
+  restores 100%. Confirm
   Brightness displays its default `0.5` value as 100% and the slider handles
-  are 8 pixels wide. Confirm Brightness and Contrast move and display in 1%
+  are 8 pixels wide. Confirm stale Brightness values outside `0.25` through
+  `1.0` snap to the nearest slider endpoint when Video Preferences opens.
+  Confirm Brightness and Contrast move and display in 1%
   increments. Change Brightness while the menu is visible and confirm the scene
   updates without a renderer flush, texture-precache failure, or Critical Error.
+  Drag each Video and HUD slider and confirm its displayed value and live
+  setting update before releasing the mouse button.
   Confirm both
   D3D12 controls are disabled on other renderers.
 - Confirm every visible Video slider has a square reset button whose right edge aligns

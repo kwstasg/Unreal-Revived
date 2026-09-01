@@ -27,6 +27,7 @@ var ModernResetButton GUIScalingResetButton;
 var ModernResetButton LightLODResetButton;
 var ModernResetButton BloomAmountResetButton;
 var localized string ResetVideoSettingHelp;
+var string SelectedVideoDriver;
 
 function bool IsSupportedVideoDriver(string DriverClass)
 {
@@ -69,7 +70,10 @@ function Created()
 	Super.Created();
 	CreateDisplayModeControl();
 	RemoveObsoleteVideoControls();
-	BrightnessSlider.SetRange(20, 200, 1);
+	BrightnessSlider.bNoSlidingNotify = False;
+	GUIScalingSlider.bNoSlidingNotify = False;
+	LightLODSlider.bNoSlidingNotify = False;
+	BrightnessSlider.SetRange(50, 200, 1);
 	LoadBrightnessSetting();
 
 	ContrastTop = BrightnessSlider.WinTop + 25;
@@ -85,13 +89,13 @@ function Created()
 			Child.WinTop += 25;
 
 	ContrastSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', BrightnessSlider.WinLeft, ContrastTop, BrightnessSlider.WinWidth, 1));
-	ContrastSlider.bNoSlidingNotify = True;
-	ContrastSlider.SetRange(10, 400, 1);
+	ContrastSlider.bNoSlidingNotify = False;
+	ContrastSlider.SetRange(50, 200, 1);
 	ContrastSlider.SetHelpText(ContrastHelp);
 	ContrastSlider.SetFont(F_Normal);
 
 	SaturationSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', BrightnessSlider.WinLeft, SaturationTop, BrightnessSlider.WinWidth, 1));
-	SaturationSlider.bNoSlidingNotify = True;
+	SaturationSlider.bNoSlidingNotify = False;
 	SaturationSlider.SetRange(128, 383, 1);
 	SaturationSlider.SetHelpText(SaturationHelp);
 	SaturationSlider.SetFont(F_Normal);
@@ -104,7 +108,7 @@ function Created()
 	ShowFPSCheck.bChecked = bShowFPS;
 
 	BloomAmountSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', ShowWindowedCheck.WinLeft, BloomAmountTop, ShowWindowedCheck.WinWidth, 1));
-	BloomAmountSlider.bNoSlidingNotify = True;
+	BloomAmountSlider.bNoSlidingNotify = False;
 	BloomAmountSlider.SetRange(0, 255, 1);
 	BloomAmountSlider.SetHelpText(BloomAmountHelp);
 	BloomAmountSlider.SetFont(F_Normal);
@@ -118,6 +122,48 @@ function Created()
 	GUIScalingResetButton = CreateSliderResetButton(GUIScalingSlider);
 	LightLODResetButton = CreateSliderResetButton(LightLODSlider);
 	BloomAmountResetButton = CreateSliderResetButton(BloomAmountSlider);
+	ConfigureTabOrder();
+}
+
+function RemoveFromTabOrder(UWindowDialogControl Control)
+{
+	if (Control == None || Control.TabNext == Control)
+		return;
+
+	Control.TabPrev.TabNext = Control.TabNext;
+	Control.TabNext.TabPrev = Control.TabPrev;
+	if (TabLast == Control)
+		TabLast = Control.TabPrev;
+	Control.TabNext = Control;
+	Control.TabPrev = Control;
+}
+
+function PlaceTabAfter(UWindowDialogControl Control, UWindowDialogControl PreviousControl)
+{
+	if (Control == None || PreviousControl == None || Control == PreviousControl)
+		return;
+
+	RemoveFromTabOrder(Control);
+	Control.TabNext = PreviousControl.TabNext;
+	Control.TabPrev = PreviousControl;
+	PreviousControl.TabNext.TabPrev = Control;
+	PreviousControl.TabNext = Control;
+}
+
+function ConfigureTabOrder()
+{
+	RemoveFromTabOrder(BrightnessResetButton);
+	RemoveFromTabOrder(ContrastResetButton);
+	RemoveFromTabOrder(SaturationResetButton);
+	RemoveFromTabOrder(GUIScalingResetButton);
+	RemoveFromTabOrder(LightLODResetButton);
+	RemoveFromTabOrder(BloomAmountResetButton);
+
+	PlaceTabAfter(DisplayModeCombo, VideoCombo);
+	PlaceTabAfter(ShowFPSCheck, DisplayModeCombo);
+	PlaceTabAfter(ContrastSlider, BrightnessSlider);
+	PlaceTabAfter(SaturationSlider, ContrastSlider);
+	PlaceTabAfter(BloomAmountSlider, SaturationSlider);
 }
 
 function CreateDisplayModeControl()
@@ -251,7 +297,7 @@ function LoadBrightnessSetting()
 {
 	local int BrightnessPercent;
 
-	BrightnessPercent = Clamp(int(float(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.ViewportManager Brightness")) * 200.0 + 0.5), 20, 200);
+	BrightnessPercent = Clamp(int(float(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.ViewportManager Brightness")) * 200.0 + 0.5), 50, 200);
 	BrightnessSlider.SetValue(BrightnessPercent, True);
 	UpdateBrightnessText();
 }
@@ -301,6 +347,7 @@ function WindowShown()
 	LoadBrightnessSetting();
 	LoadColorSettings();
 	LoadBloomSetting();
+	SelectedVideoDriver = VideoCombo.GetValue2();
 }
 
 function LoadColorSettings()
@@ -447,7 +494,15 @@ function Notify(UWindowDialogControl C, byte E)
 {
 	Super.Notify(C, E);
 
-	if (E == DE_Change && C == DisplayModeCombo)
+	if (E == DE_Change && C == VideoCombo)
+	{
+		if (bInitialized && VideoCombo.GetValue2() != SelectedVideoDriver)
+		{
+			SelectedVideoDriver = VideoCombo.GetValue2();
+			ModernOptionsClientWindow(GetParent(class'ModernOptionsClientWindow')).RestartButtonChange();
+		}
+	}
+	else if (E == DE_Change && C == DisplayModeCombo)
 		ApplyDisplayMode();
 	else if (E == DE_Change && C == ShowFPSCheck)
 	{
@@ -522,7 +577,7 @@ defaultproperties
 	BorderlessModeText="Borderless"
 	WindowedModeText="Windowed"
 	ContrastText="Contrast"
-	ContrastHelp="Adjust contrast from 10% through 100% neutral to 400% maximum."
+	ContrastHelp="Adjust contrast from 50% through 100% neutral to 200% maximum."
 	SaturationText="Saturation"
 	SaturationHelp="Adjust saturation from 0% grayscale through 100% normal color up to 200% boosted color."
 	BloomAmountText="Bloom Amount"

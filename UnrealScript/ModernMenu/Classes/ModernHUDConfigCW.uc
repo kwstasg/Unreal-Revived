@@ -17,6 +17,8 @@ var localized string ResetScaleHelp;
 function Created()
 {
 	Super.Created();
+	HUDConfigSlider.bNoSlidingNotify = False;
+	CrosshairSlider.bNoSlidingNotify = False;
 	HUDConfigSlider.TrackWidth = 8;
 	CrosshairSlider.TrackWidth = 8;
 	HUDConfigResetButton = ModernResetButton(CreateControl(class'ModernResetButton', HUDConfigSlider.WinLeft + HUDConfigSlider.WinWidth - 12, HUDConfigSlider.WinTop + 2, 12, 12));
@@ -29,14 +31,14 @@ function Created()
 	HUDScaleEditBox.HideWindow();
 
 	CrosshairScaleSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', CrosshairScaleEditBox.WinLeft, CrosshairScaleEditBox.WinTop, CrosshairScaleEditBox.WinWidth, 1));
-	CrosshairScaleSlider.bNoSlidingNotify = True;
+	CrosshairScaleSlider.bNoSlidingNotify = False;
 	CrosshairScaleSlider.SetRange(1, 80, 1);
 	CrosshairScaleSlider.SetHelpText(CrosshairScaleHelp);
 	CrosshairScaleSlider.SetFont(F_Normal);
 	CrosshairScaleSlider.TrackWidth = 8;
 
 	HUDScaleSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', HUDScaleEditBox.WinLeft, HUDScaleEditBox.WinTop, HUDScaleEditBox.WinWidth, 1));
-	HUDScaleSlider.bNoSlidingNotify = True;
+	HUDScaleSlider.bNoSlidingNotify = False;
 	HUDScaleSlider.SetRange(10, 160, 1);
 	HUDScaleSlider.SetHelpText(class'UMenuVideoClientWindow'.Default.HUDScaleHelp);
 	HUDScaleSlider.SetFont(F_Normal);
@@ -57,6 +59,44 @@ function Created()
 	ShowGameBehindMenusCheck.Align = TA_Left;
 	ShowGameBehindMenusCheck.bChecked = bShowGameBehindMenus;
 	DesiredHeight += 25;
+	ConfigureTabOrder();
+}
+
+function RemoveFromTabOrder(UWindowDialogControl Control)
+{
+	if (Control == None || Control.TabNext == Control)
+		return;
+
+	Control.TabPrev.TabNext = Control.TabNext;
+	Control.TabNext.TabPrev = Control.TabPrev;
+	if (TabLast == Control)
+		TabLast = Control.TabPrev;
+	Control.TabNext = Control;
+	Control.TabPrev = Control;
+}
+
+function PlaceTabAfter(UWindowDialogControl Control, UWindowDialogControl PreviousControl)
+{
+	if (Control == None || PreviousControl == None || Control == PreviousControl)
+		return;
+
+	RemoveFromTabOrder(Control);
+	Control.TabNext = PreviousControl.TabNext;
+	Control.TabPrev = PreviousControl;
+	PreviousControl.TabNext.TabPrev = Control;
+	PreviousControl.TabNext = Control;
+}
+
+function ConfigureTabOrder()
+{
+	RemoveFromTabOrder(HUDConfigResetButton);
+	RemoveFromTabOrder(CrosshairResetButton);
+	RemoveFromTabOrder(CrosshairScaleResetButton);
+	RemoveFromTabOrder(HUDScaleResetButton);
+
+	PlaceTabAfter(CrosshairScaleSlider, CrosshairSlider);
+	PlaceTabAfter(HUDScaleSlider, CrosshairScaleSlider);
+	PlaceTabAfter(ShowGameBehindMenusCheck, HUDScaleSlider);
 }
 
 function string FormatScaleValue(float Value)

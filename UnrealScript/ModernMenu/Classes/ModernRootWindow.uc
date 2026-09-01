@@ -51,9 +51,114 @@ function WindowEvent(WinMessage Msg, Canvas C, float X, float Y, int Key)
 			Console.bNoDrawWorld = !class'ModernHUDConfigCW'.Default.bShowGameBehindMenus;
 		PaintModernBackground(C);
 		PaintClients(C, X, Y);
+		DrawFocusIndicator(C);
 	}
 	else
 		Super.WindowEvent(Msg, C, X, Y, Key);
+}
+
+function DrawFocusIndicator(Canvas C)
+{
+	local UWindowWindow FocusedControl;
+	local UWindowWindow Parent;
+	local UWindowHSliderControl Slider;
+	local UWindowCheckbox Checkbox;
+	local UWindowComboControl Combo;
+	local UWindowEditControl EditControl;
+	local float FocusLeft;
+	local float FocusTop;
+	local float FocusWidth;
+	local float FocusHeight;
+	local float ParentLeft;
+	local float ParentTop;
+	local float VisibleLeft;
+	local float VisibleTop;
+	local float VisibleRight;
+	local float VisibleBottom;
+
+	FocusedControl = Root.KeyFocusWindow;
+	if (FocusedControl == None)
+		return;
+	for (Parent = FocusedControl; Parent != None && Parent != Self; Parent = Parent.ParentWindow)
+		if (UWindowPulldownMenu(Parent) != None || UWindowComboList(Parent) != None)
+			return;
+
+	while (FocusedControl.ParentWindow != None && UWindowDialogControl(FocusedControl.ParentWindow) != None)
+		FocusedControl = FocusedControl.ParentWindow;
+	if (UWindowDialogControl(FocusedControl) == None || !FocusedControl.bWindowVisible)
+		return;
+
+	FocusLeft = FocusedControl.WinLeft;
+	FocusTop = FocusedControl.WinTop;
+	FocusWidth = FocusedControl.WinWidth;
+	FocusHeight = FocusedControl.WinHeight;
+	Slider = UWindowHSliderControl(FocusedControl);
+	Checkbox = UWindowCheckbox(FocusedControl);
+	Combo = UWindowComboControl(FocusedControl);
+	EditControl = UWindowEditControl(FocusedControl);
+	if (Slider != None)
+	{
+		FocusLeft += Slider.SliderDrawX;
+		FocusTop += Slider.SliderDrawY - 4;
+		FocusWidth = Slider.SliderWidth;
+		FocusHeight = 10;
+	}
+	else if (Checkbox != None)
+	{
+		FocusLeft += Checkbox.ImageX;
+		FocusTop += Checkbox.ImageY;
+		FocusWidth = 16;
+		FocusHeight = 16;
+	}
+	else if (Combo != None)
+	{
+		if (Combo.bListVisible)
+			return;
+		FocusLeft += Combo.EditAreaDrawX;
+		FocusWidth = Combo.EditBoxWidth;
+	}
+	else if (EditControl != None)
+	{
+		FocusLeft += EditControl.EditAreaDrawX;
+		FocusWidth = EditControl.EditBoxWidth;
+	}
+	for (Parent = FocusedControl.ParentWindow; Parent != None && Parent != Self; Parent = Parent.ParentWindow)
+	{
+		if (!Parent.bWindowVisible)
+			return;
+		FocusLeft += Parent.WinLeft;
+		FocusTop += Parent.WinTop;
+	}
+	if (Parent != Self || FocusWidth <= 0 || FocusHeight <= 0)
+		return;
+
+	VisibleLeft = 0;
+	VisibleTop = 0;
+	VisibleRight = WinWidth;
+	VisibleBottom = WinHeight;
+	for (Parent = FocusedControl.ParentWindow; Parent != None && Parent != Self; Parent = Parent.ParentWindow)
+	{
+		Parent.WindowToGlobal(0, 0, ParentLeft, ParentTop);
+		VisibleLeft = FMax(VisibleLeft, ParentLeft);
+		VisibleTop = FMax(VisibleTop, ParentTop);
+		VisibleRight = FMin(VisibleRight, ParentLeft + Parent.WinWidth);
+		VisibleBottom = FMin(VisibleBottom, ParentTop + Parent.WinHeight);
+	}
+	FocusWidth = FMin(FocusLeft + FocusWidth, VisibleRight) - FMax(FocusLeft, VisibleLeft);
+	FocusHeight = FMin(FocusTop + FocusHeight, VisibleBottom) - FMax(FocusTop, VisibleTop);
+	FocusLeft = FMax(FocusLeft, VisibleLeft);
+	FocusTop = FMax(FocusTop, VisibleTop);
+	if (FocusWidth <= 0 || FocusHeight <= 0)
+		return;
+
+	C.Style = GetPlayerOwner().ERenderStyle.STY_Normal;
+	C.DrawColor.R = 255;
+	C.DrawColor.G = 196;
+	C.DrawColor.B = 64;
+	DrawStretchedTexture(C, FocusLeft - 2, FocusTop - 2, FocusWidth + 4, 2, Texture'WhiteTexture');
+	DrawStretchedTexture(C, FocusLeft - 2, FocusTop + FocusHeight, FocusWidth + 4, 2, Texture'WhiteTexture');
+	DrawStretchedTexture(C, FocusLeft - 2, FocusTop, 2, FocusHeight, Texture'WhiteTexture');
+	DrawStretchedTexture(C, FocusLeft + FocusWidth, FocusTop, 2, FocusHeight, Texture'WhiteTexture');
 }
 
 function PaintModernBackground(Canvas C)

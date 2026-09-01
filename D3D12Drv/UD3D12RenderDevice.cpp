@@ -219,6 +219,17 @@ UBOOL UD3D12RenderDevice::Init(UViewport* InViewport, INT NewX, INT NewY, INT Ne
 
 	Viewport = InViewport;
 	ActiveHdr = Hdr;
+	#if defined(UNREAL_227)
+	HWND ViewportWindow = (HWND)Viewport->GetWindow();
+	HDC WindowDC = GetDC(ViewportWindow);
+	if (WindowDC)
+	{
+		RECT ClientRect = {};
+		GetClientRect(ViewportWindow, &ClientRect);
+		FillRect(WindowDC, &ClientRect, (HBRUSH)GetStockObject(BLACK_BRUSH));
+		ReleaseDC(ViewportWindow, WindowDC);
+	}
+	#endif
 	Performance.Enabled = GetEnvironmentVariableW(L"UNREAL_REVIVED_MEASURE_PERFORMANCE", nullptr, 0) > 0;
 	if (Performance.Enabled)
 		debugf(TEXT("D3D12Drv performance measurement enabled"));
@@ -483,6 +494,13 @@ LRESULT CALLBACK UD3D12RenderDevice::WindowProcedure(HWND Window, UINT Message, 
 	UD3D12RenderDevice* Renderer = (UD3D12RenderDevice*)GetProp(Window, D3D12WindowProperty);
 	if (!Renderer || !Renderer->OriginalWindowProcedure)
 		return DefWindowProc(Window, Message, WParam, LParam);
+	if (Message == WM_ERASEBKGND)
+	{
+		RECT ClientRect = {};
+		GetClientRect(Window, &ClientRect);
+		FillRect((HDC)WParam, &ClientRect, (HBRUSH)GetStockObject(BLACK_BRUSH));
+		return 1;
+	}
 
 	if (WParam == VK_RETURN && (LParam & (1 << 29)))
 	{
@@ -2208,7 +2226,7 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 		}
 		else if (ParseCommand(&Cmd, TEXT("CONTRAST")))
 		{
-			Contrast = Clamp<INT>(appAtoi(Cmd), 0, 255);
+			Contrast = Clamp<INT>(appAtoi(Cmd), 64, 170);
 			debugf(TEXT("D3D12Drv: live contrast %d"), (INT)Contrast);
 			Ar.Logf(TEXT("%d"), (INT)Contrast);
 			return 1;
@@ -2416,13 +2434,14 @@ PresentPushConstants UD3D12RenderDevice::GetPresentPushConstants()
 		}
 
 		// pushconstants.Contrast = clamp(Contrast, 0.1f, 3.f);
-		if (Contrast >= 128)
+		const INT clampedContrast = Clamp<INT>(Contrast, 64, 170);
+		if (clampedContrast >= 128)
 		{
-			pushconstants.Contrast = 1.0f + (Contrast - 128) / 127.0f * 3.0f;
+			pushconstants.Contrast = 1.0f + (clampedContrast - 128) / 127.0f * 3.0f;
 		}
 		else
 		{
-			pushconstants.Contrast = Max(Contrast / 128.0f, 0.1f);
+			pushconstants.Contrast = clampedContrast / 128.0f;
 		}
 
 		// pushconstants.Saturation = clamp(Saturation, -1.0f, 1.0f);

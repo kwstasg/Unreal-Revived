@@ -448,6 +448,58 @@ technical guides; use this file for the chronological record.
   completed successfully; the installer is 87,650,764 bytes with SHA-256
   `A0F6C38E060652C5A01E5862CE6CA1BE883E5A21BB2E82A18F3691EEA3219FEB`,
   independently matched against its generated checksum sidecar.
+- Enabled continuous mouse-drag notifications for every ModernMenu Video and
+  HUD slider. Values and existing live handlers now update on each changed
+  step instead of only when the handle is released; keyboard behavior remains
+  unchanged. ModernMenu compiled and deployed 1,629 lines with zero warnings,
+  and all ten automated MenuDisplay runtime cases passed.
+- Clamped Contrast to 20% through 200% in 1% menu increments while preserving
+  100% neutral. D3D12 now constrains live commands and stale stored values to
+  the corresponding raw 26 through 170 range before present-color correction.
+  All 18 automated Settings cases passed, including minimum, maximum, stale
+  raw 0, and stale raw 255 Contrast profiles.
+- Tightened both Brightness and Contrast to 50% through 200%, retaining 1%
+  increments and 100% neutral/default behavior. Brightness now clamps loaded
+  profiles to raw `0.25` through `1.0`; D3D12 clamps Contrast to raw 64 through
+  170. All 22 automated Settings cases passed, including both endpoints and
+  stale low/high startup profiles for each control.
+- Added a root-level focus indicator that resolves nested combo focus to the
+  outer dialog control and draws a two-pixel gold outline after all menu
+  children. Keyboard-only captures verified coherent outlines around an
+  inherited Player Setup checkbox and the Modern Video Bloom Amount slider;
+  the latter retained label, handle, and reset-button clarity. ModernMenu
+  compiled and deployed 1,704 lines with zero warnings, and all ten automated
+  MenuDisplay runtime cases passed.
+- Refined focus rendering to a one-pixel dashed frame around type-specific
+  widget geometry, excluding labels, pulldown menus, and open combo lists. A
+  captured open Options menu contained zero pixels of the exact focus color,
+  validating dropdown exclusion. ModernMenu compiled and deployed 1,798 lines
+  with zero warnings, and all ten automated MenuDisplay runtime cases passed.
+- Fixed a menu-open crash in the refined focus indicator. UWindow can
+  temporarily assign keyboard focus to the root itself, but its `GetParent`
+  helper assumes a caller ancestry chain that reaches the root and dereferenced
+  `None` in that state. Replaced those calls with null-safe ancestry traversal.
+  ModernMenu compiled and deployed 1,794 lines with zero warnings; a focused
+  normal launch remained responsive after opening the menu once, logged no
+  critical/script failure signature, and closed normally.
+- Restored the widget focus indicator to a solid two-pixel gold outline and
+  relinked the Modern Video and HUD controls into visible top-to-bottom tab
+  order. Mouse-only reset buttons are excluded from keyboard traversal. Direct
+  runtime captures verified Bloom advances to Override GUI Scaling and the HUD
+  sequence wraps through HUD Layout and Crosshair Style to Crosshair Scale.
+  ModernMenu compiled and deployed 1,910 lines with zero warnings, and the
+  validation run closed normally with no critical or script failure signature.
+- Made Video Driver the initial Preferences focus, clipped focus geometry to
+  every visible ancestor, and opened the existing **Save Settings and
+  Restart...** confirmation immediately after the driver selection changes.
+  Runtime captures verified the initial Video Driver ring, complete suppression
+  after a focused Display Mode scrolled outside the page, and the confirmation
+  after selecting XOpenGL without applying it. ModernMenu compiled and deployed
+  1,990 lines with zero warnings; the validation log had no failure signature.
+- Painted the 227 viewport client black at the beginning of D3D12 initialization
+  and on renderer-owned background erase requests, preventing the unrendered
+  startup client area from appearing white. The x64 renderer built and deployed
+  successfully, and a focused launch initialized, rendered, and closed normally.
 
 ### Preserved installer profiles across Preferences Restart
 

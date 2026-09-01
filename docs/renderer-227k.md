@@ -122,6 +122,13 @@ all unrelated window messages to the original procedure, ignores key-repeat
 toggles, and restores the original procedure during renderer exit only when
 its own procedure is still installed.
 
+## Startup background
+
+D3D12 initialization paints the viewport client black before device and swap
+chain setup begins, replacing the host window's initial white client frame.
+After the renderer installs its viewport procedure, background erase requests
+also fill black until normal frame presentation covers the client.
+
 ## Multisample antialiasing
 
 `AntialiasMode` supports Off, 2x, 4x, and 8x MSAA. Before scene resources or
@@ -151,8 +158,9 @@ the latest summary into its evidence CSV.
 ## Present color controls
 
 The final present shader applies the renderer's existing contrast and
-saturation correction before gamma correction. `Contrast` maps byte value 128
-to neutral, lower values toward reduced contrast, and 255 to 4x contrast.
+saturation correction before gamma correction. `Contrast` clamps stored and
+live values to raw 64 through 170, mapping those endpoints to 50% and
+approximately 200% while raw 128 remains neutral at 100%.
 `Saturation` is an integer that maps 255 to normal color, approximately 128 to
 grayscale, and 383 to 2x saturation. The renderer clamps active values to 128
 through 383, so stale configuration cannot select inverted chroma. ModernMenu

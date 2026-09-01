@@ -55,21 +55,26 @@ setting. Reset restores 100%.
 The **Video Driver** list contains only the supported Direct3D 12, OpenGL, and
 XOpenGL renderers. Legacy registered renderers are not selectable. If a profile
 already names another active renderer, the inherited unavailable marker remains
-visible without adding that renderer back to the list.
+visible without adding that renderer back to the list. Video Driver receives
+initial keyboard focus when Preferences opens. Selecting a different renderer
+immediately opens the existing **Save Settings and Restart...** confirmation;
+accepting it saves the selected driver and relaunches with the active profile.
 
 D3D12 **Contrast** and **Saturation** sliders appear immediately below the
-built-in Brightness control. Contrast uses the renderer's existing `0` through
-`255` config range and displays its effective gain from 10% through 100%
-neutral to 400% maximum. Saturation uses `128` through `383`, from 0% grayscale
+built-in Brightness control. Contrast clamps its stored value to raw `64`
+through `170` and displays 50% through 100% neutral to 200% maximum. Saturation
+uses `128` through `383`, from 0% grayscale
 through 100% normal to 200% boosted. Changes update the active renderer
 immediately and persist to the active engine profile. The controls are disabled
 when a different render device is selected. Brightness displays a percentage
-from 20% through 200%, with the `0.5` default represented as 100%. Brightness
+from 50% through 200%, with the `0.5` default represented as 100%. Brightness
 and Contrast move in 1% increments; Contrast percentages are rounded to its
 legacy byte config value when applied. D3D12 reads Brightness every frame, so
 live changes do not require flushing renderer resources. The Video sliders use
-8-pixel handles for easier
-selection. Every Video slider has a compact reset button fitted inside its
+8-pixel handles for easier selection. Dragging any Video or HUD slider with the
+mouse updates its displayed value and setting continuously instead of waiting
+for the handle to be released. Every Video slider has a compact reset button
+fitted inside its
 original row width. Reset restores Brightness to `0.5`, GUI override to enabled
 with Scaling at `1.5x`, Lightmap LOD to `8`, Contrast to `128`, Saturation to
 `255`, and Bloom Amount to `128`, applying and saving
@@ -78,6 +83,14 @@ intentionally blank because the active skins provide no reset icon.
 
 Color Depth and GUI Mouse Speed are not shown on the Video page. Their
 underlying host settings remain untouched for configuration compatibility.
+
+The currently keyboard-focused menu control has a solid two-pixel gold
+outline around only its interactive widget: slider track, checkbox box, combo
+edit area, edit field, or button. Labels remain outside the indicator, and
+pulldown menus and open combo lists are not outlined. The outline is clipped to
+every visible parent, so a focused control cannot draw a detached frame after
+it scrolls outside the page viewport. The same treatment applies across
+ModernMenu and inherited UMenu dialogs without changing mouse behavior.
 
 The HUD page provides reset buttons for all four sliders. HUD Layout and
 Crosshair Style reset to index `0`; Crosshair Scale and HUD Scale reset to the
