@@ -14,6 +14,7 @@ var localized string WindowedModeText;
 var UWindowHSliderControl ContrastSlider;
 var localized string ContrastText;
 var localized string ContrastHelp;
+var config int SavedContrastPercent;
 var UWindowHSliderControl SaturationSlider;
 var localized string SaturationText;
 var localized string SaturationHelp;
@@ -354,6 +355,7 @@ function LoadColorSettings()
 {
 	local bool bD3D12;
 	local int Contrast;
+	local int ContrastPercent;
 	local int Saturation;
 
 	if (ContrastSlider == None || SaturationSlider == None)
@@ -372,7 +374,16 @@ function LoadColorSettings()
 
 	Contrast = Clamp(int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice Contrast")), 0, 255);
 	Saturation = Clamp(int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice Saturation")), 128, 383);
-	ContrastSlider.SetValue(ContrastValueToPercent(Contrast), True);
+	ContrastPercent = ContrastValueToPercent(Contrast);
+	if (SavedContrastPercent >= 50 && SavedContrastPercent <= 200
+		&& ContrastPercentToValue(SavedContrastPercent) == Contrast)
+		ContrastPercent = SavedContrastPercent;
+	else
+	{
+		SavedContrastPercent = ContrastPercent;
+		SaveConfig();
+	}
+	ContrastSlider.SetValue(ContrastPercent, True);
 	SaturationSlider.SetValue(Saturation, True);
 	UpdateColorSettingText();
 }
@@ -404,7 +415,9 @@ function ApplyContrastSetting()
 {
 	local string Value;
 
-	Value = string(ContrastPercentToValue(int(ContrastSlider.Value)));
+	SavedContrastPercent = int(ContrastSlider.Value);
+	SaveConfig();
+	Value = string(ContrastPercentToValue(SavedContrastPercent));
 	GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.GameRenderDevice Contrast" @ Value);
 	GetPlayerOwner().ConsoleCommand("D3D12 CONTRAST" @ Value);
 }
@@ -584,4 +597,5 @@ defaultproperties
 	BloomAmountHelp="Set bloom strength from 0% off to 100% maximum."
 	ResetVideoSettingHelp="Reset this setting to its Unreal Revived default."
 	bShowFPS=False
+	SavedContrastPercent=-1
 }

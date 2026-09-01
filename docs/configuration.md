@@ -68,8 +68,11 @@ through 100% normal to 200% boosted. Changes update the active renderer
 immediately and persist to the active engine profile. The controls are disabled
 when a different render device is selected. Brightness displays a percentage
 from 50% through 200%, with the `0.5` default represented as 100%. Brightness
-and Contrast move in 1% increments; Contrast percentages are rounded to its
-legacy byte config value when applied. D3D12 reads Brightness every frame, so
+and Contrast move in 1% increments. Contrast is rounded to its legacy byte
+renderer value when applied, while ModernMenu also saves the exact selected
+percentage so values such as 115% remain unchanged after restart. If the raw
+renderer value changes independently, the menu derives and saves its nearest
+percentage instead. D3D12 reads Brightness every frame, so
 live changes do not require flushing renderer resources. The Video sliders use
 8-pixel handles for easier selection. Dragging any Video or HUD slider with the
 mouse updates its displayed value and setting continuously instead of waiting

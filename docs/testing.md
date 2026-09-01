@@ -300,6 +300,8 @@ target maintains those copies for the disposable runtime.
   Confirm Brightness and Contrast move and display in 1%
   increments. Change Brightness while the menu is visible and confirm the scene
   updates without a renderer flush, texture-precache failure, or Critical Error.
+  Set Contrast to 115%, use Preferences Restart, and confirm it still displays
+  115% after restart even though the renderer stores the quantized raw value.
   Drag each Video and HUD slider and confirm its displayed value and live
   setting update before releasing the mouse button.
   Confirm both

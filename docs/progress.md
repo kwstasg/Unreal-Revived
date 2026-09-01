@@ -321,6 +321,12 @@ technical guides; use this file for the chronological record.
 - Corrected ModernMenu deployment to seed `bShowFPS=False` when the class config
   section is absent, preventing later package rebuilds or temporary-profile UI
   tests from leaving menu automation without its required source setting.
+- Preserved the exact selected Contrast percentage in ModernMenu when multiple
+  1% positions map to the same legacy byte renderer value. The saved percentage
+  is accepted only while it still maps to the current raw value, so 115% now
+  survives Preferences Restart without masking independent renderer changes.
+  Focused editor diagnostics reported no errors; runtime restart validation was
+  not run.
 - Rebuilt the offline installer with the color controls and deployment repair;
   its SHA-256 is
   `B0F595DBEFF60A91ACC01F1796B9AE8EA01EEFE83F392269E225953F524B4B36`.
