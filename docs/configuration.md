@@ -201,7 +201,7 @@ or preventing the player from changing them later:
 | Setting | Initial value |
 | --- | ---: |
 | Fullscreen resolution | `1920x1080` |
-| Brightness | `0.500000` |
+| Brightness | `0.550000` (110%) |
 | Minimum desired frame rate | `60.000000` |
 | Lightmap LOD | `8` |
 | Skybox fog detail | `FOGDETAIL_High` |

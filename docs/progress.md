@@ -6,6 +6,12 @@ technical guides; use this file for the chronological record.
 
 ## 2026-08-31
 
+### Set installed brightness default to 110%
+
+- Changed the offline install profile's `WinDrv.WindowsClient Brightness` from
+  `0.500000` to `0.550000`, making the initial Video Preferences brightness
+  value and active rendering default to 110%.
+
 ### Began evidence-based installer content auditing
 
 - Added a read-only effective-runtime inventory that compares each installed
