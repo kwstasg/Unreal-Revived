@@ -4,7 +4,40 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-09-03
+
+### Added adjustable controller dead zones
+
+- Replaced the fixed left- and right-stick dead-zone checkboxes with live
+  0–50% sliders, percentage labels, controller reset actions, and 24%/27%
+  defaults matching XInput's standard thresholds.
+- Added reflected native percentage settings while retaining the existing
+  dead-zone booleans as compatibility gates. XInputWinDrv built successfully;
+  ModernMenu compiled and deployed with 5,016 lines, 556 statements, and zero
+  warnings.
+
+### Restored Input checkbox alignment
+
+- Applied the Video preferences alignment mode to the inherited controller and
+  mouse checkboxes, placing every Input checkbox in the shared value column.
+- Focused editor diagnostics reported no errors in the updated UnrealScript.
+
+### Matched Input sliders to Video controls
+
+- Updated movement and look sensitivity sliders to use the Video page's wider
+  handles, live updates, inline percentage labels, aligned reset buttons, and
+  controller A reset behavior. Both reset to the installed default of 85.
+- ModernMenu compiled and deployed successfully with 4,906 lines, 554
+  statements, and zero warnings.
+
 ## 2026-09-02
+
+### Focused New Game Start by default
+
+- Made each newly opened New Game dialog focus its Start button once after the
+  stock controls are created, without stealing focus after the user navigates.
+- ModernMenu compiled and deployed successfully with 4,777 lines, 542
+  statements, and zero warnings.
 
 ### Adopted manually authored launch and setup banners
 

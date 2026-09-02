@@ -1,6 +1,7 @@
 class ModernRootWindow extends UMenuRootWindow;
 
 var ModernBindingsClientWindow ControllerBindings;
+var UMenuNewGameClientWindow FocusedNewGameClient;
 
 #exec TEXTURE IMPORT NAME=ModernBg11 FILE=Textures\ModernBg11.bmp GROUP="Icons" MIPS=OFF VClampMode=VClamp UClampMode=UClamp
 #exec TEXTURE IMPORT NAME=ModernBg21 FILE=Textures\ModernBg21.bmp GROUP="Icons" MIPS=OFF VClampMode=VClamp UClampMode=UClamp
@@ -46,6 +47,26 @@ function Created()
 function SetFPSStatistics(bool bEnabled)
 {
 	ModernConsole(Console).SetFPSStatisticsPreference(bEnabled);
+}
+
+function Tick(float Delta)
+{
+	local UMenuNewGameClientWindow NewGameClient;
+
+	Super.Tick(Delta);
+	NewGameClient = FindActiveNewGameClient(Self);
+	if (NewGameClient == None)
+	{
+		FocusedNewGameClient = None;
+		return;
+	}
+	if (NewGameClient != FocusedNewGameClient)
+	{
+		ConfigureNewGameTabOrder(NewGameClient);
+		NewGameClient.OKButton.SetAcceptsFocus();
+		NewGameClient.OKButton.ActivateWindow(0, False);
+		FocusedNewGameClient = NewGameClient;
+	}
 }
 
 function ControllerConfirm()
@@ -94,6 +115,9 @@ function ControllerConfirm()
 			return;
 		if (ModernHUDConfigCW(Slider.NotifyWindow) != None
 			&& ModernHUDConfigCW(Slider.NotifyWindow).ResetControllerSlider(Slider))
+			return;
+		if (ModernInputOptionsClientWindow(Slider.NotifyWindow) != None
+			&& ModernInputOptionsClientWindow(Slider.NotifyWindow).ResetControllerSlider(Slider))
 			return;
 	}
 	Combo = GetFocusedCombo();

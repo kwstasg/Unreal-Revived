@@ -169,6 +169,8 @@ foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'XInputControllerIndex' '-1'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'DeadZoneXYZ' 'True'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'DeadZoneRUV' 'True'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'LeftStickDeadZonePercent' '24.000000'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'RightStickDeadZonePercent' '27.000000'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'ScaleXYZ' '85.000000'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'ScaleRUV' '85.000000'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'InvertVertical' 'True'

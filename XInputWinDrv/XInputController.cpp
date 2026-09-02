@@ -204,10 +204,12 @@ UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client
 	EmitButtons(Viewport, Buttons, Processed);
 
 	FLOAT LeftX, LeftY, RightX, RightY;
+	const SHORT LeftDeadZone = static_cast<SHORT>(Clamp(Client->LeftStickDeadZonePercent, 0.0f, 50.0f) * 32767.0f / 100.0f);
+	const SHORT RightDeadZone = static_cast<SHORT>(Clamp(Client->RightStickDeadZonePercent, 0.0f, 50.0f) * 32767.0f / 100.0f);
 	NormalizeStick(State.Gamepad.sThumbLX, State.Gamepad.sThumbLY,
-		Client->DeadZoneXYZ ? XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE : 0, LeftX, LeftY);
+		Client->DeadZoneXYZ ? LeftDeadZone : 0, LeftX, LeftY);
 	NormalizeStick(State.Gamepad.sThumbRX, State.Gamepad.sThumbRY,
-		Client->DeadZoneRUV ? XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE : 0, RightX, RightY);
+		Client->DeadZoneRUV ? RightDeadZone : 0, RightX, RightY);
 
 	Viewport->CauseInputEvent(IK_JoyX, IST_Axis, Client->ScaleXYZ * LeftX);
 	Viewport->CauseInputEvent(IK_JoyY, IST_Axis, Client->ScaleXYZ * LeftY);

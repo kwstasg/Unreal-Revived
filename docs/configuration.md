@@ -87,9 +87,12 @@ path. Message boxes take exclusive controller focus: every direction cycles
 their visible buttons, A selects the outlined button, and B cancels. Menu is
 reserved and cannot be captured. Rumble, controller glyph
 artwork, and simultaneous multi-controller gameplay are not implemented.
-XInput uses radial stick dead zones and independent digital trigger thresholds;
-`DeadZoneXYZ`, `DeadZoneRUV`, `ScaleXYZ`, `ScaleRUV`, and `InvertVertical`
-remain configurable in the cloned viewport section. For native XInput,
+XInput uses adjustable radial stick dead zones and independent digital trigger
+thresholds. The Input preferences page exposes 0–50% left- and right-stick
+dead-zone sliders; 0% disables the corresponding compatibility gate.
+`DeadZoneXYZ`, `DeadZoneRUV`, `LeftStickDeadZonePercent`,
+`RightStickDeadZonePercent`, `ScaleXYZ`, `ScaleRUV`, and `InvertVertical` remain
+configurable in the cloned viewport section. For native XInput,
 `InvertVertical` affects only right-stick look; left-stick movement direction
 is unchanged. Gameplay stick axes are normalized against elapsed poll time with
 the existing 60 FPS feel as their baseline, so movement and look do not scale
@@ -102,8 +105,8 @@ suppresses UE1's double-tap dodge detector only while those stick axes are
 active; keyboard double-tap dodge remains available when the stick is centered.
 
 Fresh development and installed profiles explicitly default to automatic
-controller selection, both dead zones enabled, movement and look sensitivity
-`85`, inverted vertical controller look, raw mouse input, mouse sensitivity
+controller selection, 24% left-stick and 27% right-stick dead zones, movement
+and look sensitivity `85`, inverted vertical controller look, raw mouse input, mouse sensitivity
 `3`, mouse smoothing, inverted mouse look, and always-mouselook. Existing user
 profiles are not migrated automatically.
 
