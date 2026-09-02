@@ -4,6 +4,7 @@
 
 ```text
 D3D12Drv/                    OldUnreal 227k adapter and native package project
+XInputWinDrv/                Generated-source Windows viewport package project
 cmake/                       Deployment and packaging target declarations
 manifests/developer/         Optional developer-bundle artifact identity
 manifests/hosts/             Supported host fingerprints
@@ -16,6 +17,13 @@ scripts/                     Bootstrap, packaging, deployment, and validation
 `D3D12Drv/` currently contains the renderer implementation and its 227-specific
 adapter code. CMake is the canonical build path. Files under `local/` are never
 project source and must not be committed.
+
+`XInputWinDrv/` contains the build definition and tracked delta for a
+side-by-side Windows viewport package. Its inherited WinDrv source is copied
+from the pinned ignored SDK into the generated build tree at configure time.
+The tracked controller helper dynamically loads Windows XInput and maps one
+active controller into Unreal's existing joystick key namespace. Fresh profiles
+select the package while stock WinDrv remains available for recovery.
 
 The checked-in `D3D12Drv.vcxproj` and `.filters` files preserve inherited
 upstream project structure and debugging metadata. They are reference material,

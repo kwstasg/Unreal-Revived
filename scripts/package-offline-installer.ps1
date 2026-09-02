@@ -3,6 +3,9 @@ param(
     [string] $RendererDll,
 
     [Parameter(Mandatory = $true)]
+    [string] $InputDll,
+
+    [Parameter(Mandatory = $true)]
     [string] $GameRoot,
 
     [string] $PatchArchive,
@@ -38,7 +41,7 @@ $iniModule = Join-Path $repositoryRoot 'scripts\UnrealRevived.Ini.psm1'
 $permissions = Join-Path $repositoryRoot 'PERMISSIONS.md'
 $installerDefinition = Join-Path $repositoryRoot 'packaging\UnrealRevived.iss'
 
-foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $rendererInt, $modernMenu, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $brandingIcon, $iniModule, $permissions)) {
+foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $InputDll, $rendererInt, $modernMenu, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $brandingIcon, $iniModule, $permissions)) {
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Missing offline package input: $requiredPath"
     }
@@ -158,12 +161,49 @@ foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
     $defaultProfileLines = Get-Content -LiteralPath $defaultProfilePath
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'GameRenderDevice' 'D3D12Drv.D3D12RenderDevice'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'WindowedRenderDevice' 'D3D12Drv.D3D12RenderDevice'
+    $defaultProfileLines = Copy-UnrealRevivedIniSection $defaultProfileLines 'WinDrv.WindowsClient' 'XInputWinDrv.WindowsClient'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'ViewportManager' 'XInputWinDrv.WindowsClient'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'UseJoystick' 'True'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'UseXInput' 'True'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'XInputFallbackToWinMM' 'True'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'XInputControllerIndex' '-1'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'DeadZoneXYZ' 'True'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'DeadZoneRUV' 'True'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'ScaleXYZ' '85.000000'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'ScaleRUV' '85.000000'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'InvertVertical' 'True'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'UseRawHIDInput' 'True'
     Set-Content -LiteralPath $defaultProfilePath -Value $defaultProfileLines -Encoding ASCII
+}
+
+foreach ($defaultUserProfile in @('System\DefUser.ini', 'System64\DefUser.ini')) {
+    $defaultUserProfilePath = Join-Path $patchRoot $defaultUserProfile
+    $defaultUserProfileLines = Get-Content -LiteralPath $defaultUserProfilePath
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy1' 'Jump'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy2' 'Duck'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy3' 'InventoryActivate'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy4' 'InventoryNext'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy5' 'PrevWeapon'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy6' 'NextWeapon'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy7' 'InventoryPrevious'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy8' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy9' 'Duck'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy10' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy11' 'Fire'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy12' 'AltFire'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'JoyX' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'JoyY' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'JoyZ' 'Axis aStrafe speed=2'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'JoyR' 'Axis aForward speed=2'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'JoyU' 'Axis aturn speed=5.9'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'JoyV' 'Axis aLookUp speed=-3'
+    Set-Content -LiteralPath $defaultUserProfilePath -Value $defaultUserProfileLines -Encoding ASCII
 }
 
 $payloadSources = [ordered]@{
     'D3D12Drv.dll' = $RendererDll
     'D3D12Drv.int' = $rendererInt
+    'XInputWinDrv.dll' = $InputDll
     'ModernMenu.u' = $modernMenu
     'install-unreal-revived.ps1' = $installScript
     'backup-unreal-revived-user-data.ps1' = $backupScript

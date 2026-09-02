@@ -6,6 +6,68 @@ known log failure signatures. Screenshots remain necessary where logs cannot
 establish visual correctness. Record significant results in
 [`progress.md`](progress.md).
 
+## XInput viewport and controller
+
+Build, deploy, and run the non-hardware loader smoke case with:
+
+```powershell
+cmake --build local/build --target deploy-xinputwindrv --config Release
+powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite Input -RunSeconds 3
+```
+
+The test clones `[WinDrv.WindowsClient]` into a temporary automation profile,
+enables XInput, and requires clean `XInputWinDrv.dll` and `D3D12Drv.dll`
+bind/unbind cycles plus a supported system XInput library. It does not prove
+physical controller behavior.
+
+Before claiming Xbox Series controller support, manually validate USB and
+Bluetooth with the controller connected before launch, connected after launch,
+and disconnected/reconnected while moving or firing. Verify both sticks,
+independent LT/RT actions, A/B/X/Y, shoulders, View, stick clicks, D-pad
+diagonals, simultaneous keyboard/mouse input, Alt+Tab, level travel, death and
+respawn, and absence of stuck movement or fire. Also disable XInput and verify
+WinMM fallback. Record Windows version, controller firmware, transport, chosen
+slot, observed mappings, and relevant log lines.
+
+With `ModernMenu.ModernConsole` active, verify Menu opens UWindow and pauses a
+standalone game, then closes it and restores play. In Preferences, verify D-pad
+and left-stick focus movement, dominant-axis handling, held-stick repeat,
+automatic scrolling, A activation, B return, and wrapped LB/RB tab switching.
+Verify that message boxes immediately outline their default button, all four
+directions cycle only their available buttons, A confirms the outlined result,
+and B cancels without changing controls behind the modal. Confirm the Input
+page presents Controller before Mouse and aligns all visible checkbox squares.
+On Bindings, use A to select a row and capture A, X, Y, LB/RB, View, stick
+clicks, triggers, and each D-pad direction. Verify B cancels capture, Menu closes
+without becoming a binding, and keyboard/mouse input still works. Restart and
+confirm changed bindings persist.
+
+Manual Xbox controller validation confirmed that Escape and Menu open the menu
+shell, A or D-pad opens a closed pull-down, all four D-pad and left-stick
+directions navigate pull-downs, B closes the pull-down, and Menu exits and
+unpauses. Combo boxes open, navigate, and commit with the controller. A also
+resets focused Video and HUD sliders directly. Full binding-persistence and
+USB/Bluetooth hotplug coverage remain pending.
+
+Compare full-stick movement and turn speed at a conventional frame rate and an
+uncapped rate. Physical testing confirmed consistent movement and look at about
+240 FPS with VSync and above 1000 FPS uncapped. Also verify that left-stick
+movement and strafing do not trigger dodge, keyboard double-tap dodge still
+works with the stick centered, and mouse look remains unchanged. Modal default
+focus, directional selection, A confirmation, B cancellation, controller-only
+dodge suppression, and restored horizontal/vertical mouse look were manually
+confirmed. Focused sliders use a separate fast one-step repeat cadence, which
+was manually confirmed to retain precise increments while moving smoothly.
+
+In **New Game**, verify controller focus follows Campaign, Difficulty, Classic
+Balance, Use Mutators, Mutators, optional Mirror Mode, Start, and Advanced,
+wrapping in both directions. A on Start must launch the selected campaign.
+For Load and Save, verify every visible slot traverses in display order,
+scrolls into view, and activates; Load must include Restart after the final
+slot. These New Game and Load/Save flows were manually confirmed. Advanced and
+Mutator-dialog controller coverage remains incomplete and requires a later
+focused pass.
+
 ## Repository guard
 
 ```powershell
@@ -50,9 +112,9 @@ removed renderer classes.
 
 Launch a disposable profile with `[FirstRun] FirstRun=0` and verify the native
 configuration window initially selects Direct3D 12. Selecting it must display
-the Unreal Revived D3D12 recommendation. Confirm the window loads the branded
-343x84 `Help/SetupLogo.bmp`, and inspect the tracked shortcut ICO for 16, 24,
-32, 48, 64, 128, and 256 pixel frames.
+the Unreal Revived D3D12 recommendation. Confirm the window loads the tracked
+`Help/SetupLogo.bmp`, and inspect the tracked shortcut ICO for 16, 24, 32, 48,
+64, 128, and 256 pixel frames.
 
 Open the in-game menu with Escape while `ModernMenu.ModernRootWindow` is active.
 Confirm the Unreal Revived background renders as a seamless 4x3 tile grid, the
@@ -72,9 +134,11 @@ PhysX driver-credit logos are absent. Start a normal gameplay map afterward and
 confirm its HUD is unchanged.
 
 After source-derived branding changes, confirm `MenuBackground.bmp` is a
-3840x2160 24-bit bitmap and `Logo.bmp` is a 719x200 24-bit bitmap. Inspect the
-ICO directory for 16, 24, 32, 48, 64, 128, and 256 pixel frames and verify the
-circular crest has transparent corners.
+3840x2160 24-bit bitmap. For manual banner changes, confirm `Logo.bmp` is a
+952x295 24-bit bitmap, `SetupLogo.bmp` is a 343x84 24-bit bitmap, and their
+deployed copies match the tracked sources. Inspect the ICO directory for 16,
+24, 32, 48, 64, 128, and 256 pixel frames and verify the circular crest has
+transparent corners.
 
 For audio policy changes, enumerate `Engine.AudioSubsystem` registrations
 across every locale and require ALAudio to be the only result. Confirm the
@@ -118,7 +182,7 @@ The deploy target is available only when the configured game root contains
 From the disposable runtime's `System64` directory, use:
 
 ```powershell
-.\Unreal.exe Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini
+.\Unreal.exe Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini userini=D3D12TestUser.ini
 ```
 
 Confirm the process loads `D3D12Drv.dll` and does not load `XOpenGLDrv.dll` as a
@@ -283,6 +347,19 @@ target maintains those copies for the disposable runtime.
   their former row gaps.
 - Confirm **Show FPS Statistics** appears directly below **Display Mode**
   and scrolls with the other video controls.
+- Enable FPS statistics and confirm the overlay contains only **FPS**, **AVG**,
+  **Low**, **High**, **Res**, and **VSync**; confirm FPS values use one decimal,
+  resolution matches the rendered canvas, VSync follows the renderer, the text
+  is smoothly filtered at half the configured HUD scale with a sixteen-pixel
+  left inset, and the overlay remains visible while the Escape menu is open.
+  Change HUD Scaling and confirm the overlay follows it. Open a dropdown over
+  the overlay and confirm the dropdown covers the intersecting text. With bloom
+  enabled, confirm opening the menu does not make menu pixels bloom.
+- Press F11 repeatedly and confirm it toggles the statistics overlay without
+  changing brightness. With Video Preferences open, confirm F11 immediately
+  updates the checkbox; click the checkbox and confirm it immediately performs
+  the same toggle. Restart the game and confirm the saved overlay state matches
+  the last selection.
 - Move keyboard focus through sliders, checkboxes, combo boxes, edit fields,
   tabs, and buttons. Confirm a thin dashed gold outline surrounds only the
   interactive widget, not its label. Open pulldown menus and combo lists and
@@ -322,7 +399,8 @@ target maintains those copies for the disposable runtime.
   do not become bloom emitters while highlights in the 3D background still do.
 - With D3D12Drv active, confirm **Antialiasing** offers Off, 2x, 4x, and 8x and
   retains the selected mode after reopening Video preferences.
-- Enable it and confirm the built-in TimeDemo statistics appear during play.
+- Enable it and confirm the compact statistics appear during play without
+  changing flyby interpolation or starting TimeDemo.
 - Disable it and confirm the overlay is removed.
 - Change a setting, use **Restart**, and confirm the relaunched process retains
   the `D3D12Test.ini` and `D3D12TestUser.ini` command-line arguments.
@@ -333,7 +411,7 @@ target maintains those copies for the disposable runtime.
   its saved state.
 - Open **Options > Preferences > Game** and confirm **Console** displays
   **Standard Unreal Console** and cannot open or select another console.
-- Confirm Restart leaves `Engine.Engine.Console=UMenu.UnrealConsole` and Escape
+- Confirm Restart leaves `Engine.Engine.Console=ModernMenu.ModernConsole` and Escape
   continues to open the windowed UMenu interface.
 - Open **Options > Preferences > HUD** and confirm **Show Game Behind Menus**
   appears below HUD Scaling, aligns with the other checkboxes, and is checked

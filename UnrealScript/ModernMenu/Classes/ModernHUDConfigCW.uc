@@ -99,6 +99,21 @@ function ConfigureTabOrder()
 	PlaceTabAfter(ShowGameBehindMenusCheck, HUDScaleSlider);
 }
 
+function bool ResetControllerSlider(UWindowHSliderControl Slider)
+{
+	if (Slider == HUDConfigSlider)
+		Notify(HUDConfigResetButton, DE_Click);
+	else if (Slider == CrosshairSlider)
+		Notify(CrosshairResetButton, DE_Click);
+	else if (Slider == CrosshairScaleSlider)
+		Notify(CrosshairScaleResetButton, DE_Click);
+	else if (Slider == HUDScaleSlider)
+		Notify(HUDScaleResetButton, DE_Click);
+	else
+		return False;
+	return True;
+}
+
 function string FormatScaleValue(float Value)
 {
 	local int DecimalPosition;

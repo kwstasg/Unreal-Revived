@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "component": "XInputWinDrv",
+  "owner": "Epic Games, Inc. and Unreal Revived contributors",
+  "source": {
+    "repository": "OldUnreal/Unreal-testing",
+    "tag": "v227k_15",
+    "commit": "2ea5408e2aa7c955eb087a6f8d2fcce318747d2f",
+    "archive": "OldUnreal-UnrealPatch227k-SDK-Windows.zip",
+    "archiveSize": 26611815,
+    "archiveSha256": "68a2fe383d426e2ed54197bafffaa0047757d4b32960d63bd0ce82eb7d84e913",
+    "path": "WinDrv"
+  },
+  "trackedDelta": {
+    "path": "XInputWinDrv/patches/227k_15-xinputwindrv.patch",
+    "size": 3209,
+    "sha256": "3d4e82b743a07fe1f904533e3041a1258f5a714a5c3807f2018ce6351e40b307",
+    "additionalSources": [
+      "XInputWinDrv/XInputController.h",
+      "XInputWinDrv/XInputController.cpp"
+    ]
+  },
+  "redistributionBasis": {
+    "type": "pinned-host-authorization-and-upstream-sdk-license",
+    "authorization": "PERMISSIONS.md",
+    "license": "SDKLICENSE.md from the pinned 227k_15 SDK",
+    "constraint": "WinDrv and things created from its source are licensed for personal, non-commercial enjoyment and may not be sold or otherwise commercially exploited."
+  },
+  "notices": [
+    "The inherited WinDrv source remains the property of Epic Games, Inc.",
+    "XInputWinDrv is a modified side-by-side package and does not replace the pinned WinDrv.dll."
+  ]
+}

@@ -3,6 +3,7 @@ class ModernOptionsClientWindow extends UMenuOptionsClientWindow
 
 var config string RestartIni;
 var config string RestartUserIni;
+var localized string BindingsTab;
 
 function Created()
 {
@@ -13,8 +14,8 @@ function Created()
 	Pages.AddPage(VideoTab, class'ModernVideoScrollClient');
 	Pages.AddPage(AudioTab, class'UMenuAudioScrollClient');
 	Pages.AddPage(GamePlayTab, class'ModernGameOptionsScrollClient');
-	Pages.AddPage(ControlsTab, class'UMenuCustomizeScrollClient');
-	Pages.AddPage(InputTab, class'UMenuInputOptionsScrollClient');
+	Pages.AddPage(InputTab, class'ModernInputOptionsScrollClient');
+	Pages.AddPage(BindingsTab, class'ModernBindingsScrollClient');
 	Pages.AddPage(HUDTab, class'ModernHUDConfigScrollClient');
 	Network = Pages.AddPage(NetworkTab, class'UMenuNetworkScrollClient');
 	CloseButton = UWindowSmallCloseButton(CreateControl(class'UWindowSmallCloseButton', WinWidth - 56, WinHeight - 24, 48, 16));
@@ -49,7 +50,7 @@ function MessageBoxDone(UWindowMessageBox W, MessageBoxResult Result)
 
 			GetParent(class'UWindowFramedWindow').Close();
 			Root.Console.CloseUWindow();
-			GetPlayerOwner().ConsoleCommand("RELAUNCH Unreal.unr ini=" $ RestartIni $ " userini=" $ RestartUserIni);
+			GetPlayerOwner().ConsoleCommand("RELAUNCH Unreal.unr?Game=ModernMenu.ModernIntro ini=" $ RestartIni $ " userini=" $ RestartUserIni);
 		}
 	}
 }
@@ -58,4 +59,5 @@ defaultproperties
 {
 	RestartIni="D3D12Test.ini"
 	RestartUserIni="D3D12TestUser.ini"
+	BindingsTab="Bindings"
 }

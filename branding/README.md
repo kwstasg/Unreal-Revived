@@ -2,8 +2,13 @@
 
 These Unreal Revived branding assets are tracked directly:
 
-- `Logo.bmp`: 719x200 setup banner.
-- `SetupLogo.bmp`: 343x84 first-time configuration banner.
+- `LogoHD.png`: transparent high-resolution logo source.
+- `Logo.png`: transparent 719x200 logo.
+- `SetupLogo.png`: transparent 343x84 first-time configuration logo.
+- `Logo.bmp`: manually authored 952x295 OldUnreal-compatible launch banner.
+- `SetupLogo.bmp`: manually authored 343x84 OldUnreal-compatible first-time
+    configuration banner.
+- `icon..png`: transparent icon source artwork.
 - `UnrealRevived.ico`: desktop, Start Menu, and uninstall icon with 16, 24,
   32, 48, 64, 128, and 256 pixel frames.
 - `MenuBackground.jpg`: authored 16:9 source artwork.
@@ -31,10 +36,15 @@ powershell -NoProfile -File scripts/build-unreal-revived-branding.ps1 `
 
 This validates the aspect ratio, upscales the source into a tracked 24-bit
 3840x2160 `MenuBackground.bmp`, and recreates the twelve tracked menu tiles.
-It also crops the circular crest into every frame of `UnrealRevived.ico` with
-transparent corners, crops the lower wordmark into the 719x200 `Logo.bmp`, and
-resizes that same banner into the 343x84 `SetupLogo.bmp`. Omit
-`-DeriveBranding` to update only the menu background and tiles.
+It also derives the transparent logos and compatible BMP banners from
+`LogoHD.png`, and every icon frame from `icon..png`. Omit `-DeriveBranding` to
+update only the menu background and tiles.
+
+OldUnreal 227k hardcodes `Help\Logo.bmp` and `Help\SetupLogo.bmp` in its setup
+and launch executables. The generator therefore preserves transparency in the
+tracked PNG outputs and composites compatibility BMP copies onto the standard
+Win32 wizard background (`#f0f0f0`) for the runtime. The host's opaque GDI
+bitmap control cannot render PNG or BMP alpha. The ICO retains source alpha.
 
 The runtime restores the source's native 16:9 proportions and uses centered
 cover scaling for other viewport ratios. Wider displays crop the top and
@@ -56,15 +66,20 @@ Rebuild the distributable installer after validation:
 cmake --build local/build --target package-offline-installer --config Release
 ```
 
-Edit the bitmap and icon files directly, or regenerate the baseline artwork:
+Regenerate only the logo and icon outputs from their transparent sources:
 
 ```powershell
-powershell -NoProfile -File scripts/build-unreal-revived-branding.ps1
+powershell -NoProfile -File scripts/build-unreal-revived-branding.ps1 `
+    -BrandingOnly
 ```
 
-Running the generator without `-MenuBackgroundSource` recreates all placeholder
-branding images and menu tiles. `-DeriveBranding` requires a menu source. Keep
-the documented dimensions and ICO frame sizes because the OldUnreal host,
+This regeneration command replaces the manually authored BMP banners with
+generated compatibility copies. Do not run it when the tracked manual BMPs
+must be preserved.
+
+Running the generator without options also recreates the placeholder menu
+background and menu tiles. `-DeriveBranding` requires a menu source. Keep the
+documented dimensions and ICO frame sizes because the OldUnreal host,
 ModernMenu package, and Windows shortcuts expect them.
 
 Regenerate only the NVIDIA intro texture from its high-resolution master with:

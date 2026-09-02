@@ -24,6 +24,16 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
         DEPENDS D3D12Drv
         COMMENT "Deploying D3D12Drv to the disposable 227k_15 System64 runtime"
     )
+    add_custom_target(deploy-xinputwindrv
+        COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/assert-development-runtime.ps1"
+            -GameRoot "${UE1_GAME_ROOT}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "$<TARGET_FILE:XInputWinDrv>"
+            "${UE1_GAME_ROOT}/System64/XInputWinDrv.dll"
+        DEPENDS XInputWinDrv
+        COMMENT "Deploying XInputWinDrv to the disposable 227k_15 System64 runtime"
+    )
     add_custom_target(deploy-modern-menu
         COMMAND powershell -NoProfile -ExecutionPolicy Bypass
             -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/build-modern-menu.ps1"
@@ -34,21 +44,24 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
         COMMAND powershell -NoProfile -ExecutionPolicy Bypass
             -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/package-offline-installer.ps1"
             -RendererDll "$<TARGET_FILE:D3D12Drv>"
+            -InputDll "$<TARGET_FILE:XInputWinDrv>"
             -GameRoot "${UE1_GAME_ROOT}"
             -PatchArchive "${OLDUNREAL_227K15_PATCH_ARCHIVE}"
-        DEPENDS D3D12Drv deploy-modern-menu
+        DEPENDS D3D12Drv XInputWinDrv deploy-modern-menu
         COMMENT "Staging the hash-verified offline installer payload"
     )
     add_custom_target(package-offline-installer
         COMMAND powershell -NoProfile -ExecutionPolicy Bypass
             -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/package-offline-installer.ps1"
             -RendererDll "$<TARGET_FILE:D3D12Drv>"
+            -InputDll "$<TARGET_FILE:XInputWinDrv>"
             -GameRoot "${UE1_GAME_ROOT}"
             -PatchArchive "${OLDUNREAL_227K15_PATCH_ARCHIVE}"
             -BuildInstaller
-        DEPENDS D3D12Drv deploy-modern-menu
+        DEPENDS D3D12Drv XInputWinDrv deploy-modern-menu
         COMMENT "Building the fully offline Unreal Revived installer"
     )
 else()
     message(STATUS "deploy-d3d12drv unavailable: ${UE1_GAME_ROOT}/System64/Unreal.exe not found")
+    message(STATUS "deploy-xinputwindrv unavailable: ${UE1_GAME_ROOT}/System64/Unreal.exe not found")
 endif()

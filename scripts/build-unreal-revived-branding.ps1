@@ -7,6 +7,12 @@ param(
 
     [switch] $DeriveBranding,
 
+    [string] $LogoSource = (Join-Path (Split-Path -Parent $PSScriptRoot) 'branding\LogoHD.png'),
+
+    [string] $IconSource = (Join-Path (Split-Path -Parent $PSScriptRoot) 'branding\icon..png'),
+
+    [switch] $BrandingOnly,
+
     [string] $IntroNvidiaSource
 )
 
@@ -215,18 +221,12 @@ function New-BrandIcon {
         $source = New-Object Drawing.Bitmap($size, $size, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
         $graphics = [Drawing.Graphics]::FromImage($source)
         try {
+            $graphics.Clear([Drawing.Color]::Transparent)
+            $graphics.CompositingMode = [Drawing.Drawing2D.CompositingMode]::SourceCopy
             $graphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
             $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
             $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-            $clip = New-Object Drawing.Drawing2D.GraphicsPath
-            try {
-                $clip.AddEllipse(2, 2, $size - 4, $size - 4)
-                $graphics.SetClip($clip)
-                $graphics.DrawImage($Artwork, 0, 0, $size, $size)
-            }
-            finally {
-                $clip.Dispose()
-            }
+            $graphics.DrawImage($Artwork, 0, 0, $size, $size)
         }
         finally {
             $graphics.Dispose()
@@ -296,6 +296,76 @@ function New-BrandIcon {
     finally {
         $writer.Dispose()
         $file.Dispose()
+    }
+}
+
+function Export-LogoBranding {
+    param([string] $Source)
+
+    if (-not (Test-Path -LiteralPath $Source -PathType Leaf)) {
+        throw "Logo source does not exist: $Source"
+    }
+
+    $sourceImage = [Drawing.Image]::FromFile([IO.Path]::GetFullPath($Source))
+    try {
+        foreach ($outputSpec in @(
+            [pscustomobject]@{ Name = 'Logo'; Width = 719; Height = 200 },
+            [pscustomobject]@{ Name = 'SetupLogo'; Width = 343; Height = 84 })) {
+            $transparent = New-Object Drawing.Bitmap($outputSpec.Width, $outputSpec.Height, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+            $graphics = [Drawing.Graphics]::FromImage($transparent)
+            try {
+                $graphics.Clear([Drawing.Color]::Transparent)
+                $graphics.CompositingMode = [Drawing.Drawing2D.CompositingMode]::SourceCopy
+                $graphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+                $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+                $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+                $scale = [Math]::Min($outputSpec.Width / $sourceImage.Width, $outputSpec.Height / $sourceImage.Height)
+                $width = [int][Math]::Round($sourceImage.Width * $scale)
+                $height = [int][Math]::Round($sourceImage.Height * $scale)
+                $left = [int](($outputSpec.Width - $width) / 2)
+                $top = [int](($outputSpec.Height - $height) / 2)
+                $graphics.DrawImage($sourceImage, $left, $top, $width, $height)
+            }
+            finally {
+                $graphics.Dispose()
+            }
+
+            try {
+                $transparent.Save((Join-Path $OutputRoot ($outputSpec.Name + '.png')), [Drawing.Imaging.ImageFormat]::Png)
+                $compatible = New-Object Drawing.Bitmap($outputSpec.Width, $outputSpec.Height, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+                $compatibleGraphics = [Drawing.Graphics]::FromImage($compatible)
+                try {
+                    $compatibleGraphics.Clear([Drawing.Color]::FromArgb(240, 240, 240))
+                    $compatibleGraphics.DrawImageUnscaled($transparent, 0, 0)
+                    $compatible.Save((Join-Path $OutputRoot ($outputSpec.Name + '.bmp')), [Drawing.Imaging.ImageFormat]::Bmp)
+                }
+                finally {
+                    $compatibleGraphics.Dispose()
+                    $compatible.Dispose()
+                }
+            }
+            finally {
+                $transparent.Dispose()
+            }
+        }
+    }
+    finally {
+        $sourceImage.Dispose()
+    }
+}
+
+function Export-IconBranding {
+    param([string] $Source)
+
+    if (-not (Test-Path -LiteralPath $Source -PathType Leaf)) {
+        throw "Icon source does not exist: $Source"
+    }
+    $iconArtwork = [Drawing.Bitmap]::FromFile([IO.Path]::GetFullPath($Source))
+    try {
+        New-BrandIcon (Join-Path $OutputRoot 'UnrealRevived.ico') $iconArtwork
+    }
+    finally {
+        $iconArtwork.Dispose()
     }
 }
 
@@ -447,63 +517,6 @@ function Import-MenuBackground {
     }
 }
 
-function Export-DerivedBranding {
-    param([string] $Source)
-
-    $image = [Drawing.Bitmap]::FromFile($Source)
-    try {
-        $scaleX = $image.Width / 1280.0
-        $scaleY = $image.Height / 720.0
-
-        $iconRectangle = [Drawing.Rectangle]::new(
-            [int](450 * $scaleX), [int](25 * $scaleY),
-            [int](380 * $scaleX), [int](380 * $scaleY))
-        $iconArtwork = $image.Clone($iconRectangle, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
-        try {
-            New-BrandIcon (Join-Path $OutputRoot 'UnrealRevived.ico') $iconArtwork
-        }
-        finally {
-            $iconArtwork.Dispose()
-        }
-
-        $logoRectangle = [Drawing.Rectangle]::new(
-            [int](190 * $scaleX), [int](400 * $scaleY),
-            [int](899 * $scaleX), [int](250 * $scaleY))
-        $logoArtwork = $image.Clone($logoRectangle, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
-        $logo = New-Object Drawing.Bitmap(719, 200, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
-        $graphics = [Drawing.Graphics]::FromImage($logo)
-        try {
-            $graphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
-            $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-            $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-            $graphics.DrawImage($logoArtwork, 0, 0, 719, 200)
-            $logo.Save((Join-Path $OutputRoot 'Logo.bmp'), [Drawing.Imaging.ImageFormat]::Bmp)
-
-            $setupLogo = New-Object Drawing.Bitmap(343, 84, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
-            $setupGraphics = [Drawing.Graphics]::FromImage($setupLogo)
-            try {
-                $setupGraphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
-                $setupGraphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-                $setupGraphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-                $setupGraphics.DrawImage($logo, 0, 0, 343, 84)
-                $setupLogo.Save((Join-Path $OutputRoot 'SetupLogo.bmp'), [Drawing.Imaging.ImageFormat]::Bmp)
-            }
-            finally {
-                $setupGraphics.Dispose()
-                $setupLogo.Dispose()
-            }
-        }
-        finally {
-            $graphics.Dispose()
-            $logo.Dispose()
-            $logoArtwork.Dispose()
-        }
-    }
-    finally {
-        $image.Dispose()
-    }
-}
-
 function Export-IntroNvidiaLogo {
     param(
         [string] $Source,
@@ -598,11 +611,22 @@ if ($IntroNvidiaSource) {
     Write-Host "NVIDIA intro logo imported from $([IO.Path]::GetFullPath($IntroNvidiaSource))"
 }
 
+if ($BrandingOnly) {
+    if ($MenuBackgroundSource -or $IntroNvidiaSource -or $DeriveBranding) {
+        throw '-BrandingOnly cannot be combined with menu, NVIDIA, or derive options.'
+    }
+    Export-LogoBranding $LogoSource
+    Export-IconBranding $IconSource
+    Write-Host "Logo and icon branding generated at $OutputRoot"
+    return
+}
+
 if ($MenuBackgroundSource) {
     Import-MenuBackground $MenuBackgroundSource $menuBackgroundOutput
     Export-MenuBackgroundTiles $menuBackgroundOutput
     if ($DeriveBranding) {
-        Export-DerivedBranding $menuBackgroundOutput
+        Export-LogoBranding $LogoSource
+        Export-IconBranding $IconSource
     }
     Write-Host "Menu background imported and tiled from $([IO.Path]::GetFullPath($MenuBackgroundSource))"
     return
@@ -616,9 +640,8 @@ if ($DeriveBranding) {
     throw '-DeriveBranding requires -MenuBackgroundSource.'
 }
 
-New-BrandBanner 719 200 (Join-Path $OutputRoot 'Logo.bmp')
-New-BrandBanner 343 84 (Join-Path $OutputRoot 'SetupLogo.bmp')
-New-BrandIcon (Join-Path $OutputRoot 'UnrealRevived.ico')
+Export-LogoBranding $LogoSource
+Export-IconBranding $IconSource
 New-PlaceholderMenuBackground $menuBackgroundOutput
 Export-MenuBackgroundTiles $menuBackgroundOutput
 

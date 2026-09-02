@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Content', 'Settings', 'MenuDisplay', 'All')]
+    [ValidateSet('Content', 'Settings', 'MenuDisplay', 'Input', 'All')]
     [string]$Suite = 'Content',
 
     [string[]]$Maps,
@@ -21,6 +21,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Ini.psm1') -Force
 
 if ($ScreenshotMode -ne 'Off') {
     Add-Type -AssemblyName System.Drawing
@@ -104,7 +105,8 @@ function New-TestCase {
         [string]$Map,
         [hashtable]$Settings = @{},
         [hashtable]$ProfileSettings = @{},
-        [bool]$CompareScreenshot = $true
+        [bool]$CompareScreenshot = $true,
+        [bool]$CloneWindowsClient = $false
     )
 
     [pscustomobject]@{
@@ -113,6 +115,7 @@ function New-TestCase {
         Settings = $Settings
         ProfileSettings = $ProfileSettings
         CompareScreenshot = $CompareScreenshot
+        CloneWindowsClient = $CloneWindowsClient
     }
 }
 
@@ -275,6 +278,10 @@ $menuDisplayCases = @(
     New-TestCase -Name 'display-windowed-1600x1024' -Map 'Unreal.unr' -ProfileSettings @{ 'WinDrv.WindowsClient|StartupFullscreen' = 'False'; 'WinDrv.WindowsClient|WindowedViewportX' = '1600'; 'WinDrv.WindowsClient|WindowedViewportY' = '1024' }
 )
 
+$inputCases = @(
+    New-TestCase -Name 'input-xinputwindrv-baseline' -Map 'NyLeve' -CloneWindowsClient $true -ProfileSettings @{ 'Engine.Engine|ViewportManager' = 'XInputWinDrv.WindowsClient' }
+)
+
 if ($Maps) {
     $cases = foreach ($map in $Maps) {
         New-TestCase -Name ("content-{0}" -f $map.ToLowerInvariant()) -Map $map
@@ -285,8 +292,10 @@ if ($Maps) {
     $cases = $settingsCases
 } elseif ($Suite -eq 'MenuDisplay') {
     $cases = $menuDisplayCases
+} elseif ($Suite -eq 'Input') {
+    $cases = $inputCases
 } else {
-    $cases = @($contentCases) + @($settingsCases) + @($menuDisplayCases)
+    $cases = @($contentCases) + @($settingsCases) + @($menuDisplayCases) + @($inputCases)
 }
 
 $rendererSection = 'D3D12Drv.D3D12RenderDevice'
@@ -311,6 +320,13 @@ try {
         New-Item -ItemType Directory -Force -Path $caseDir | Out-Null
 
         $iniLines = Get-Content -LiteralPath $sourceIni
+        if ($case.CloneWindowsClient) {
+            $iniLines = Copy-UnrealRevivedIniSection $iniLines 'WinDrv.WindowsClient' 'XInputWinDrv.WindowsClient'
+            $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'UseJoystick' 'True'
+            $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'UseXInput' 'True'
+            $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'XInputFallbackToWinMM' 'True'
+            $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'XInputControllerIndex' '-1'
+        }
         foreach ($setting in $case.Settings.GetEnumerator()) {
             $iniLines = Set-IniValue -Lines $iniLines -Section $rendererSection -Key $setting.Key -Value $setting.Value
         }
@@ -380,6 +396,12 @@ try {
         }
         if (-not $logText.Contains('Bound to D3D12Drv.dll') -or -not $logText.Contains('Unbound to D3D12Drv.dll')) {
             throw "$($case.Name) did not complete a clean D3D12 bind/unbind cycle."
+        }
+        if ($case.CloneWindowsClient -and (-not $logText.Contains('Bound to XInputWinDrv.dll') -or -not $logText.Contains('Unbound to XInputWinDrv.dll'))) {
+            throw "$($case.Name) did not complete a clean XInputWinDrv bind/unbind cycle."
+        }
+        if ($case.CloneWindowsClient -and $logText -notmatch 'XInputWinDrv loaded xinput(1_4|9_1_0)\.dll') {
+            throw "$($case.Name) did not load a supported system XInput library."
         }
         if ($failureText -match $failurePattern) {
             throw "$($case.Name) contains a renderer failure signature."

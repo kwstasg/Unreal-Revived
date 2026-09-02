@@ -25,13 +25,22 @@ foreach(required_path
         "${UE1_227K_SDK_ROOT}/Core/Inc/Core.h"
         "${UE1_227K_SDK_ROOT}/Engine/Inc/Engine.h"
         "${UE1_227K_SDK_ROOT}/Render/Inc/Render.h"
+    "${UE1_227K_SDK_ROOT}/Window/Inc/Window.h"
+    "${UE1_227K_SDK_ROOT}/WinDrv/Inc/WinDrv.h"
+    "${UE1_227K_SDK_ROOT}/WinDrv/Src/WinClient.cpp"
+    "${UE1_227K_SDK_ROOT}/WinDrv/Src/WinDrv.cpp"
+    "${UE1_227K_SDK_ROOT}/WinDrv/Src/WinInput.cpp"
+    "${UE1_227K_SDK_ROOT}/WinDrv/Src/WinViewport.cpp"
+    "${UE1_227K_SDK_ROOT}/WinDrv/Src/Res/WinDrvRes.rc"
         "${UE1_227K_SDK_ROOT}/Core/Lib/x64/Core.lib"
         "${UE1_227K_SDK_ROOT}/Engine/Lib/x64/Engine.lib"
-        "${UE1_227K_SDK_ROOT}/Render/Lib/x64/Render.lib")
+    "${UE1_227K_SDK_ROOT}/Render/Lib/x64/Render.lib"
+    "${UE1_227K_SDK_ROOT}/Window/Lib/x64/Window.lib")
     if(NOT EXISTS "${required_path}")
         message(FATAL_ERROR "Missing 227k_15 SDK file: ${required_path}")
     endif()
 endforeach()
 
 add_subdirectory(D3D12Drv)
+add_subdirectory(XInputWinDrv)
 include(cmake/UnrealRevivedTargets.cmake)

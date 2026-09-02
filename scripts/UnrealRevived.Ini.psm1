@@ -103,4 +103,57 @@ function Remove-UnrealRevivedIniValue {
     return $result.ToArray()
 }
 
-Export-ModuleMember -Function Set-UnrealRevivedIniValue, Add-UnrealRevivedIniValue, Remove-UnrealRevivedIniValue
+function Copy-UnrealRevivedIniSection {
+    param(
+        [string[]] $Lines,
+        [string] $SourceSection,
+        [string] $DestinationSection
+    )
+
+    if ($SourceSection -eq $DestinationSection) {
+        throw 'SourceSection and DestinationSection must be different.'
+    }
+
+    $sourceLines = [Collections.Generic.List[string]]::new()
+    $inSource = $false
+    $sourceFound = $false
+    foreach ($line in $Lines) {
+        if ($line -match '^\[(.+)\]$') {
+            if ($inSource) {
+                break
+            }
+            $inSource = $Matches[1] -eq $SourceSection
+            $sourceFound = $sourceFound -or $inSource
+            continue
+        }
+        if ($inSource) {
+            $sourceLines.Add($line)
+        }
+    }
+    if (-not $sourceFound) {
+        throw "Could not find source INI section [$SourceSection]."
+    }
+
+    $result = [Collections.Generic.List[string]]::new()
+    $inDestination = $false
+    foreach ($line in $Lines) {
+        if ($line -match '^\[(.+)\]$') {
+            $inDestination = $Matches[1] -eq $DestinationSection
+            if ($inDestination) {
+                continue
+            }
+        }
+        if (-not $inDestination) {
+            $result.Add($line)
+        }
+    }
+
+    if ($result.Count -gt 0 -and $result[$result.Count - 1] -ne '') {
+        $result.Add('')
+    }
+    $result.Add("[$DestinationSection]")
+    $result.AddRange($sourceLines)
+    return $result.ToArray()
+}
+
+Export-ModuleMember -Function Set-UnrealRevivedIniValue, Add-UnrealRevivedIniValue, Remove-UnrealRevivedIniValue, Copy-UnrealRevivedIniSection

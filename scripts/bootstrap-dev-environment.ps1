@@ -70,7 +70,7 @@ $buildPath = [IO.Path]::GetFullPath($BuildRoot)
 if ($LASTEXITCODE -ne 0) {
     throw "CMake configuration failed with exit code $LASTEXITCODE."
 }
-& cmake.exe --build $buildPath --target deploy-d3d12drv deploy-modern-menu --config Release
+& cmake.exe --build $buildPath --target deploy-d3d12drv deploy-xinputwindrv deploy-modern-menu --config Release
 if ($LASTEXITCODE -ne 0) {
     throw "Unreal Revived development build failed with exit code $LASTEXITCODE."
 }

@@ -76,6 +76,35 @@ baselines live under `local/logs/screenshot-baselines/`; `Vortex2` and
 `Terraniux` remain capture-only because their camera or player state is
 nondeterministic.
 
+A side-by-side `XInputWinDrv.dll` is staged reproducibly from the pinned SDK,
+built for Windows x64, and selected by fresh generated profiles. It dynamically
+loads the system XInput API, maps one controller to Unreal's existing joystick
+keys, supports automatic slot selection and WinMM fallback, and keeps stock
+WinDrv available for recovery. Temporary-profile startup and clean package
+bind/unbind are validated. ModernMenu now provides focused Input and Bindings
+pages plus compiled controller routing for menu toggle, focus navigation,
+activation, return, tab switching, scrolling, combo boxes, slider reset, and
+binding capture. Modal dialogs now own controller focus and expose an outlined
+default selection. Raw menu axes are separated from elapsed-time-normalized
+gameplay axes, preserving the 60 FPS controller feel at uncapped rates while
+preventing analog movement from entering UE1's double-tap dodge detector.
+Fresh environments explicitly inherit the validated mouse and controller
+option defaults. Menu-shell navigation, pull-down recovery, combo interaction,
+direct slider reset, modal selection, consistent movement/look at about 240 and
+over 1000 FPS, keyboard-only dodge, and mouse look were manually validated with
+an Xbox controller. Focused sliders use an independently tuned fast one-step
+repeat cadence that was also manually confirmed.
+The stock New Game dialog now exposes every visible action in visual controller
+order, and Start launches through its original click path. Load and Save slots
+also traverse, wrap, scroll, and activate correctly, with Restart appended to
+the Load order; these flows were manually confirmed. Advanced and Mutator
+dialogs have initial combo, list, and cross-window tab handling compiled, but
+their complete controller workflows remain pending and are not a supported
+claim yet.
+Complete Xbox Series controller behavior over USB and Bluetooth, including
+hotplug, all gameplay mappings, independent triggers, and binding persistence,
+remains unvalidated and is not yet a supported claim.
+
 ## Verified commands
 
 From the repository root:
@@ -95,7 +124,7 @@ powershell -NoProfile -File scripts/check-repository.ps1
 From the disposable runtime's `System64` directory:
 
 ```powershell
-.\Unreal.exe Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini
+.\Unreal.exe Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini userini=D3D12TestUser.ini
 ```
 
 The leading `Unreal.unr` token is required. A command beginning with bare

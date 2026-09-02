@@ -25,6 +25,7 @@ $system64Directory = Join-Path $GameRoot 'System64'
 $helpDirectory = Join-Path $GameRoot 'Help'
 $ucc = Join-Path $system64Directory 'UCC.exe'
 $iniPath = Join-Path $system64Directory $IniName
+$userIniPath = Join-Path $system64Directory $UserIniName
 $editorIniPath = Join-Path $system64Directory 'Unreal.ini'
 $runtimePackageDirectory = Join-Path $GameRoot 'ModernMenu'
 $outputPackage = Join-Path $system64Directory 'ModernMenu.u'
@@ -36,6 +37,8 @@ foreach ($requiredPath in @($sourcePackageDirectory, $sourceDirectory, $menuText
 }
 
 $iniLines = Get-Content -LiteralPath $iniPath
+$iniLines = Remove-UnrealRevivedIniValue $iniLines 'URL' 'EntryMap' 'EntryIII.unr'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'Console' 'ModernMenu.ModernConsole'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' $IniName
@@ -49,6 +52,12 @@ if (-not ($iniLines -match '^bShowGameBehindMenus=')) {
 $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
 $iniLines = Remove-UnrealRevivedIniValue $iniLines 'Engine.GameEngine' 'ServerActors' 'ModernMenu.ModernIntroTweak'
 Set-Content -LiteralPath $iniPath -Value $iniLines -Encoding ASCII
+
+if (Test-Path -LiteralPath $userIniPath -PathType Leaf) {
+    $userIniLines = Get-Content -LiteralPath $userIniPath
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F11' 'ToggleFPSStatistics'
+    Set-Content -LiteralPath $userIniPath -Value $userIniLines -Encoding ASCII
+}
 
 if (Test-Path -LiteralPath $editorIniPath -PathType Leaf) {
     $editorIniLines = Get-Content -LiteralPath $editorIniPath

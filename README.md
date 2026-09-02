@@ -93,7 +93,7 @@ After bootstrap completes:
 
 ```powershell
 Set-Location local/game/System64
-.\Unreal.exe Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini
+.\Unreal.exe Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini userini=D3D12TestUser.ini
 ```
 
 The leading `Unreal.unr` argument is required by this host when selecting the

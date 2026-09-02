@@ -23,7 +23,7 @@ Copy-Item -LiteralPath $brandingIcon -Destination $installedIcon -Force
 $normalPath = Join-Path $runtimeRoot 'Unreal Revived.lnk'
 $normal = $shell.CreateShortcut($normalPath)
 $normal.TargetPath = $unrealExe
-$normal.Arguments = 'Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini'
+$normal.Arguments = 'Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini userini=D3D12TestUser.ini'
 $normal.WorkingDirectory = $system64
 $normal.IconLocation = "$installedIcon,0"
 $normal.Description = 'Launch Unreal Revived with the Direct3D 12 renderer'

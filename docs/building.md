@@ -71,9 +71,16 @@ The SDK root must contain these files:
 Core/Inc/Core.h
 Engine/Inc/Engine.h
 Render/Inc/Render.h
+Window/Inc/Window.h
+WinDrv/Inc/WinDrv.h
+WinDrv/Src/WinClient.cpp
+WinDrv/Src/WinDrv.cpp
+WinDrv/Src/WinInput.cpp
+WinDrv/Src/WinViewport.cpp
 Core/Lib/x64/Core.lib
 Engine/Lib/x64/Engine.lib
 Render/Lib/x64/Render.lib
+Window/Lib/x64/Window.lib
 ```
 
 ## Path configuration
@@ -105,6 +112,15 @@ The renderer is built as `D3D12Drv.dll` with C++17 and links against the 227
 Core, Engine, and Render import libraries plus the Windows Direct3D 12, DXGI,
 and shader compiler libraries.
 
+The `XInputWinDrv.dll` package is built from a generated copy of the
+pinned SDK's WinDrv source. Configure runs `scripts/stage-xinput-windrv.ps1`,
+which copies the source under `local/build/XInputWinDrv/staged/` and applies the
+tracked `XInputWinDrv/patches/227k_15-xinputwindrv.patch`. The ignored SDK is
+never edited. The patch gives the copied classes a side-by-side package identity
+and connects the tracked `XInputController` implementation to WinDrv's client
+lifecycle and viewport input poll. Fresh generated profiles select the package;
+existing profiles and the pinned `WinDrv.dll` remain unchanged.
+
 ## Deploy
 
 When `<game-root>/System64/Unreal.exe` exists, CMake exposes the deployment
@@ -112,10 +128,11 @@ target:
 
 ```powershell
 cmake --build local/build --target deploy-d3d12drv --config Release
+cmake --build local/build --target deploy-xinputwindrv --config Release
 cmake --build local/build --target deploy-modern-menu --config Release
 ```
 
-The target performs these operations in the disposable game installation:
+The targets perform these operations in the disposable game installation:
 
 1. Copies `D3D12Drv.dll` and `D3D12Drv.int` to `System64/`.
 2. Copies the localized `UnrealShare.int` and `UPak.int` files from
@@ -123,6 +140,8 @@ The target performs these operations in the disposable game installation:
 3. Copies the complete localized `Startup.int` to both `System/` and
    `System64/` so early recovery dialogs can resolve their text before normal
    localization paths are available.
+4. Copies the side-by-side `XInputWinDrv.dll` package to `System64/` without
+   replacing the pinned `WinDrv.dll`.
 
 The second operation is required because 227's `IntDescIterator` discovers the
 single-player campaign registrations beside the game packages in `System/`.
@@ -242,11 +261,12 @@ for other viewport ratios, so replacement artwork is never stretched.
 
 To import user-authored artwork, supply a 16:9 PNG, BMP, or JPEG to
 `scripts/build-unreal-revived-branding.ps1 -MenuBackgroundSource <path>`. Add
-`-DeriveBranding` to crop the source's circular crest into the seven-frame ICO,
-crop its lower wordmark into the 719x200 banner, and resize that banner into the
-343x84 first-time configuration logo. Without that switch, only the canonical
-menu bitmap and twelve tiles change. Wider viewports crop the top and bottom;
-narrower viewports crop the sides.
+`-DeriveBranding` to derive transparent logo outputs from `LogoHD.png`, BMP
+compatibility copies, and the seven-frame ICO from `icon..png`. Without that
+switch, only the canonical menu bitmap and twelve tiles change. The tracked
+952x295 BMP banners are manually authored; running a branding derivation
+replaces them. Wider viewports crop the top and bottom; narrower viewports crop
+the sides.
 
 The validated source snapshot omitted 305 audited paths totaling 134,784,646
 bytes, although generated files and source-install differences can change the

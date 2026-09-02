@@ -1,0 +1,80 @@
+diff --git a/Inc/WinDrv.h b/Inc/WinDrv.h
+--- a/Inc/WinDrv.h
++++ b/Inc/WinDrv.h
+@@ -44,0 +45 @@
++#include "XInputController.h"
+@@ -289 +289 @@
+-	DECLARE_CLASS(UWindowsClient, UClient, CLASS_Transient | CLASS_Config, WinDrv);
++	DECLARE_CLASS(UWindowsClient, UClient, CLASS_Transient | CLASS_Config, XInputWinDrv);
+@@ -303,0 +305,3 @@
++	BITFIELD			UseXInput;
++	BITFIELD			XInputFallbackToWinMM;
++	INT					XInputControllerIndex;
+@@ -335,0 +340 @@
++	FXInputController*	XInputController;
+@@ -390 +390 @@
+-	DECLARE_CLASS(UWindowsViewport, UViewport, CLASS_Transient, WinDrv);
++	DECLARE_CLASS(UWindowsViewport, UViewport, CLASS_Transient, XInputWinDrv);
+diff --git a/Src/WinClient.cpp b/Src/WinClient.cpp
+--- a/Src/WinClient.cpp
++++ b/Src/WinClient.cpp
+@@ -53,0 +54,3 @@
++	new(GetClass(),TEXT("UseXInput"),					RF_Public)UBoolProperty(CPP_PROPERTY(UseXInput),				TEXT("Joystick"), CPF_Config );
++	new(GetClass(),TEXT("XInputFallbackToWinMM"),		RF_Public)UBoolProperty(CPP_PROPERTY(XInputFallbackToWinMM),	TEXT("Joystick"), CPF_Config );
++	new(GetClass(),TEXT("XInputControllerIndex"),		RF_Public)UIntProperty(CPP_PROPERTY(XInputControllerIndex),	TEXT("Joystick"), CPF_Config );
+@@ -66,0 +70,3 @@
++	UseXInput = FALSE;
++	XInputFallbackToWinMM = TRUE;
++	XInputControllerIndex = INDEX_NONE;
+@@ -101,0 +109,3 @@
++	XInputController = new FXInputController;
++	XInputController->Initialize();
++
+@@ -314,0 +326,6 @@
++	if (XInputController)
++	{
++		XInputController->Shutdown();
++		delete XInputController;
++		XInputController = NULL;
++	}
+@@ -342,0 +361,2 @@
++	if (XInputController)
++		XInputController->Shutdown();
+@@ -470 +491 @@
+-	if( UseJoystick && !ParseParam(appCmdLine(),TEXT("NoJoy")) && !GIsEditor )
++	if( UseJoystick && (!UseXInput || XInputFallbackToWinMM) && !ParseParam(appCmdLine(),TEXT("NoJoy")) && !GIsEditor )
+@@ -466,0 +488,2 @@
++	if (XInputController)
++		XInputController->ResetState();
+diff --git a/Src/WinDrv.cpp b/Src/WinDrv.cpp
+--- a/Src/WinDrv.cpp
++++ b/Src/WinDrv.cpp
+@@ -15 +15 @@
+-IMPLEMENT_PACKAGE(WinDrv);
++IMPLEMENT_PACKAGE(XInputWinDrv);
+diff --git a/Src/Res/WinDrvRes.rc b/Src/Res/WinDrvRes.rc
+--- a/Src/Res/WinDrvRes.rc
++++ b/Src/Res/WinDrvRes.rc
+@@ -10 +10 @@
+-#include "afxres.h"
++#include <winres.h>
+diff --git a/Src/WinViewport.cpp b/Src/WinViewport.cpp
+--- a/Src/WinViewport.cpp
++++ b/Src/WinViewport.cpp
+@@ -863,3 +863,9 @@
+ 	UWindowsClient* Client = GetOuterUWindowsClient();
+-	if (Client->JoyCaps.wNumButtons)
++	UBOOL XInputActive = FALSE;
++	if (Client->UseJoystick && Client->UseXInput && Client->XInputController &&
++		!ParseParam(appCmdLine(), TEXT("NoJoy")) && !GIsEditor && GetFocus() == Window->hWnd)
++	{
++		XInputActive = Client->XInputController->Poll(this, Client, Processed);
++	}
++	if (!XInputActive && (!Client->UseXInput || Client->XInputFallbackToWinMM) && Client->JoyCaps.wNumButtons && GetFocus() == Window->hWnd)
+ 	{
+@@ -1536,0 +1543,2 @@
++			if (GetOuterUWindowsClient()->XInputController)
++				GetOuterUWindowsClient()->XInputController->ResetState();
+@@ -1554,0 +1563,2 @@
++			if (GetOuterUWindowsClient()->XInputController)
++				GetOuterUWindowsClient()->XInputController->ResetState();

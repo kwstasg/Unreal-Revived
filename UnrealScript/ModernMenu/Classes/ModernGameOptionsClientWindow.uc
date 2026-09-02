@@ -4,6 +4,6 @@ function Created()
 {
 	Super.Created();
 
-	ConsoleCombo.SetValue("Standard Unreal Console", "UMenu.UnrealConsole");
+	ConsoleCombo.SetValue("Standard Unreal Console", "ModernMenu.ModernConsole");
 	ConsoleCombo.SetDisabled(True);
 }

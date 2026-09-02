@@ -167,6 +167,25 @@ function ConfigureTabOrder()
 	PlaceTabAfter(BloomAmountSlider, SaturationSlider);
 }
 
+function bool ResetControllerSlider(UWindowHSliderControl Slider)
+{
+	if (Slider == BrightnessSlider)
+		Notify(BrightnessResetButton, DE_Click);
+	else if (Slider == ContrastSlider)
+		Notify(ContrastResetButton, DE_Click);
+	else if (Slider == SaturationSlider)
+		Notify(SaturationResetButton, DE_Click);
+	else if (Slider == GUIScalingSlider)
+		Notify(GUIScalingResetButton, DE_Click);
+	else if (Slider == LightLODSlider)
+		Notify(LightLODResetButton, DE_Click);
+	else if (Slider == BloomAmountSlider)
+		Notify(BloomAmountResetButton, DE_Click);
+	else
+		return False;
+	return True;
+}
+
 function CreateDisplayModeControl()
 {
 	local UWindowWindow Child;
@@ -311,6 +330,8 @@ function BrightnessChanged()
 
 function BeforePaint(Canvas C, float X, float Y)
 {
+	bShowFPS = class'ModernVideoClientWindow'.Default.bShowFPS;
+	ShowFPSCheck.bChecked = bShowFPS;
 	UpdateBrightnessText();
 	Super.BeforePaint(C, X, Y);
 	SyncDisplayMode();
@@ -520,11 +541,7 @@ function Notify(UWindowDialogControl C, byte E)
 	else if (E == DE_Change && C == ShowFPSCheck)
 	{
 		bShowFPS = ShowFPSCheck.bChecked;
-		SaveConfig();
-		if (bShowFPS)
-			GetPlayerOwner().ConsoleCommand("TIMEDEMO 1");
-		else
-			GetPlayerOwner().ConsoleCommand("TIMEDEMO 0");
+		ModernRootWindow(Root).SetFPSStatistics(bShowFPS);
 	}
 	else if (E == DE_Change && C == BloomAmountSlider)
 	{

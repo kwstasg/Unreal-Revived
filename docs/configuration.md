@@ -18,21 +18,124 @@ input, or save settings.
 A verified normal-start command line is:
 
 ```powershell
-.\Unreal.exe Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini
+.\Unreal.exe Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini userini=D3D12TestUser.ini
 ```
 
 The map token must precede the bare `ini=` arguments. With this 227 executable,
 starting the command line with `ini=D3D12Test.ini` parses the value as a network
 URL, while `-ini=` is not honored as the intended profile override. `Unreal.unr`
 is the normal shell map and does not force the player into a campaign level.
+The explicit game class selects the Unreal Revived intro HUD before the player
+HUD is spawned, preventing frames from the original flyby HUD from appearing
+first.
+
+## Xbox controller input
+
+Fresh Unreal Revived development and installed profiles select the side-by-side
+Windows viewport and enable native XInput:
+
+```ini
+[Engine.Engine]
+ViewportManager=XInputWinDrv.WindowsClient
+
+[XInputWinDrv.WindowsClient]
+UseJoystick=True
+UseXInput=True
+XInputFallbackToWinMM=True
+XInputControllerIndex=-1
+```
+
+`XInputControllerIndex=-1` automatically selects the first connected XInput
+slot and retains it until disconnect. Values `0` through `3` select a fixed
+slot. Automatic selection checks disconnected slots at most once per second.
+When XInput is disabled, unavailable, or has no connected controller,
+`XInputFallbackToWinMM=True` permits the inherited Windows multimedia joystick
+path. **Options > Preferences > Input > Controller Enabled** remains the master
+`UseJoystick` switch. That page also configures automatic or fixed controller
+selection, movement and look dead zones, movement and look sensitivity, and
+vertical-look inversion. Legacy mouse and joystick calibration settings are
+hidden. The Controller section appears before Mouse, and visible checkbox
+controls share the same right-edge alignment as the Video page. **Bindings**
+retains the engine's existing binding persistence while
+displaying Xbox button names for the `Joy*` keys.
+
+| Control | Unreal input | Action |
+| --- | --- | --- |
+| Left stick | `JoyX`, `JoyY` | Menu navigation only |
+| Left stick | `JoyZ`, `JoyR` | Strafe and move during gameplay |
+| Right stick | `JoyU`, `JoyV` | Turn and look |
+| A | `Joy1` | Jump |
+| B | `Joy2` | Crouch |
+| X | `Joy3` | Activate inventory item |
+| Y | `Joy4` | Next inventory item |
+| LB / RB | `Joy5`, `Joy6` | Previous / next weapon |
+| View | `Joy7` | Previous inventory item |
+| Menu | `Joy8` | Open or close the menu |
+| Left stick click | `Joy9` | Crouch |
+| RT / LT | `Joy11`, `Joy12` | Fire / alternate fire |
+| D-pad | `JoyPov*` | Existing direct weapon shortcuts |
+
+While UWindow is open, the D-pad and left stick move focus, A activates the
+focused control, B returns or cancels binding capture, and LB/RB switch
+Preferences tabs. The Menu button opens and closes UWindow; normal standalone
+pause and unpause behavior is preserved. Escape and Menu initially show the
+menu shell; A or any D-pad direction opens its first pull-down. B closes an
+active pull-down without leaving the shell. A opens and commits combo-box
+choices, and resets a focused Video or HUD slider directly. Binding rows accept
+controller focus, and A starts capture through the stock binding persistence
+path. Message boxes take exclusive controller focus: every direction cycles
+their visible buttons, A selects the outlined button, and B cancels. Menu is
+reserved and cannot be captured. Rumble, controller glyph
+artwork, and simultaneous multi-controller gameplay are not implemented.
+XInput uses radial stick dead zones and independent digital trigger thresholds;
+`DeadZoneXYZ`, `DeadZoneRUV`, `ScaleXYZ`, `ScaleRUV`, and `InvertVertical`
+remain configurable in the cloned viewport section. For native XInput,
+`InvertVertical` affects only right-stick look; left-stick movement direction
+is unchanged. Gameplay stick axes are normalized against elapsed poll time with
+the existing 60 FPS feel as their baseline, so movement and look do not scale
+with frame rate. The offline installer writes these client settings and the
+complete button and stick bindings into both `System` and `System64` default
+profile templates as well as the dedicated Unreal Revived launch profile.
+with rendered frame rate. Raw `JoyX` and `JoyY` samples remain available to the
+menu, while normalized gameplay movement uses `JoyZ` and `JoyR`. ModernConsole
+suppresses UE1's double-tap dodge detector only while those stick axes are
+active; keyboard double-tap dodge remains available when the stick is centered.
+
+Fresh development and installed profiles explicitly default to automatic
+controller selection, both dead zones enabled, movement and look sensitivity
+`85`, inverted vertical controller look, raw mouse input, mouse sensitivity
+`3`, mouse smoothing, inverted mouse look, and always-mouselook. Existing user
+profiles are not migrated automatically.
+
+Existing profiles and their `Joy*` bindings are not migrated. To recover from
+a viewport problem, set `ViewportManager=WinDrv.WindowsClient`. The development
+recovery shortcut generates a separate `D3D12Recovery.ini` with this stock
+viewport automatically.
 
 ## FPS display
 
 After deploying `ModernMenu`, open **Options > Preferences > Video** and use
 **Show FPS Statistics** directly below **Display Mode**. The checkbox
-controls 227's built-in `TIMEDEMO` statistics overlay and remains synchronized
-when the Video page is reopened. Its `bShowFPS` value is saved in the active
-engine profile and restores the overlay when the game starts or restarts.
+controls Unreal Revived's compact statistics overlay and remains synchronized
+when the Video page is reopened. It displays the latest one-second frame rate
+as **FPS**, average frame rate as **AVG**, and the observed one-second **Low**
+and **High**, all to one decimal place. Additional rows show
+the current rendered **Res** and the active renderer's **VSync** state. The
+process-wide console owns the counter, so it remains available across maps and
+HUD classes and remains visible over open menus without enabling TimeDemo
+benchmarking or flyby control. The overlay renders the large font at half the
+configured HUD scale with an explicit smoothed-text polygon override and a
+sixteen-pixel left inset. Menu windows and dropdowns render above the overlay,
+so they occlude it normally. Overlay drawing restores UWindow's Canvas state,
+including its no-smoothing marker used by D3D12 bloom isolation. Its
+`bShowFPS` value is saved in the active engine profile and restores the overlay
+when the game starts or restarts.
+
+F11 toggles the statistics overlay instead of changing brightness. The shortcut
+uses the same saved `bShowFPS` value as the Video Preferences checkbox, so both
+controls immediately update each other and remain synchronized across restarts.
+Installed and disposable runtime generation also writes this binding to
+`DefUser.ini` for newly derived user profiles.
 
 **Display Mode** replaces the separate fullscreen and borderless checkboxes.
 It offers **Fullscreen**, **Borderless**, and **Windowed** when supported, and
@@ -128,18 +231,22 @@ boundary before drawing text and logos because that 227 path does not expose a
 reliable native overlay transition.
 
 The custom Preferences **Restart** action saves the open pages and relaunches
-with `Unreal.unr ini=D3D12Test.ini userini=D3D12TestUser.ini`. This preserves
+with `Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini
+userini=D3D12TestUser.ini`. This preserves
 the disposable D3D12 profile instead of falling back to `Unreal.ini`. Restart
 does not reapply the Game tab's transient console-combo default. The custom
 Game page locks the disabled **Console** field to **Standard Unreal Console**
-(`UMenu.UnrealConsole`) because the Browser and deprecated Gold consoles replace
+(`ModernMenu.ModernConsole`) because the Browser and deprecated Gold consoles replace
 the windowed UMenu interface.
 
 Installer profiles configure the same action to relaunch with
-`Unreal.unr ini=UnrealRevived.ini userini=UnrealRevivedUser.ini`. The restart
+`Unreal.unr?Game=ModernMenu.ModernIntro ini=UnrealRevived.ini
+userini=UnrealRevivedUser.ini`. The restart
 profile names are stored under `[ModernMenu.ModernOptionsClientWindow]`, so the
 shared `ModernMenu.u` package preserves the active environment instead of
 opening First-Time Configuration or falling back to OldUnreal defaults.
+Installed profiles omit the nonexistent `EntryIII.unr` startup entry, avoiding
+its rotating failed-load fallback.
 
 ## Renderer settings
 
@@ -200,16 +307,30 @@ or preventing the player from changing them later:
 
 | Setting | Initial value |
 | --- | ---: |
+| Display mode | Fullscreen |
 | Fullscreen resolution | `1920x1080` |
+| Field of view | `90` |
+| World texture detail | High |
+| Skin detail | High |
 | Brightness | `0.550000` (110%) |
+| Contrast | `128` (100%) |
+| Saturation | `280` (120%) |
+| Bloom | Enabled |
+| Bloom amount | `165` (65%) |
+| FPS statistics | Disabled |
 | Minimum desired frame rate | `60.000000` |
 | Lightmap LOD | `8` |
 | Skybox fog detail | `FOGDETAIL_High` |
 | Override automatic GUI scaling | `True` |
 | GUI scaling factor | `1.500000` |
+| GUI skin | Gold (`UMenuMetalLookAndFeel`) |
+| Decals | Enabled |
+| Dynamic lighting | Enabled |
+| Specular lights | Enabled |
+| Weapon flash | Enabled |
+| Pawn shadows | Realtime Ultra Res (`1024`) |
+| Decoration shadows | Enabled |
 | Antialiasing | `MSAA_4x` |
-| Bloom | `True` |
-| Bloom amount | `128` |
 | Network speed | `50000` |
 | LAN speed | `20000` |
 | VSync | `False` |

@@ -4,6 +4,170 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-09-02
+
+### Adopted manually authored launch and setup banners
+
+- Adopted the manually updated 952x295 `Logo.bmp` and resized the manual
+  `SetupLogo.bmp` proportionally into the host-required 343x84 canvas.
+- Deployed both files byte-for-byte to the marked disposable runtime and the
+  current offline-installer staging tree. SHA-256 comparisons confirmed all
+  four active copies match their tracked sources.
+- Rebuilt `UnrealRevived-Setup-0.1.0.exe` with the current banners and icon.
+  The latest 87,514,048-byte installer has SHA-256
+  `9317781cf480fbcfde139e94526bbdff9e68cf9ea29628e4ce83a7a5212866a0`;
+  its sidecar matches, and all three staged branding files match their tracked
+  sources.
+
+### Embedded controller defaults in the offline installer
+
+- Updated offline package staging to configure `XInputWinDrv.WindowsClient`
+  in both `Default.ini` templates and to write the complete Xbox button and
+  stick bindings into both `DefUser.ini` templates.
+- Made right-stick `JoyU` and `JoyV` look bindings explicit in installer and
+  disposable-runtime profile generation instead of relying on upstream
+  template values.
+- Rebuilt the installer and verified both staged engine templates select
+  XInput, both user templates contain the complete controller mapping, the
+  packaged install script contains explicit right-stick bindings, and the
+  installer checksum sidecar matches.
+
+## 2026-09-01
+
+### Rebuilt setup and shortcut branding from transparent PNG sources
+
+- Replaced generated placeholder logo artwork with transparent `Logo.png` and
+  `SetupLogo.png` derivatives of `branding/LogoHD.png`, while retaining the
+  24-bit BMP compatibility copies hardcoded by the OldUnreal 227k host. Those
+  opaque GDI banners are composited onto the standard Win32 wizard background
+  because the host does not render bitmap alpha.
+- Rebuilt the seven-frame `UnrealRevived.ico` directly from
+  `branding/icon..png`, preserving source alpha instead of cropping artwork
+  from the menu background.
+- Added a branding-only generator mode that leaves the menu background and
+  texture tiles untouched. Verified both PNG outputs use ARGB with alpha from
+  0 through 255, both BMP outputs have their required dimensions, and the ICO
+  contains 16, 24, 32, 48, 64, 128, and 256 pixel 32-bit frames.
+
+### Extended controller focus across stock game dialogs
+
+- Normalized New Game controller traversal to its visual order and admitted
+  stock small buttons into controller focus. Start now uses the stock Space
+  click path and successfully launches the selected campaign.
+- Unified visible Save and Load slots into one ordered ring, appending Restart
+  to Load. Manual controller testing confirmed traversal, wrapping, scrolling,
+  and activation across New Game and Load/Save.
+- Added compiled first-pass support for Advanced combo arrays, page switching,
+  Start/Close ring stitching, and Mutator list selection and transfer. These
+  two dialogs still need additional controller work and remain explicitly
+  unvalidated.
+- ModernMenu compiled and deployed with 4,742 lines, 538 statements, and zero
+  warnings after the complete dialog-navigation build.
+
+### Stabilized controller UI and frame-rate-independent gameplay
+
+- Added exclusive message-box controller routing with immediate default focus,
+  a visible gold selection outline, four-direction button cycling, A confirm,
+  and B cancel. Physical controller testing confirmed the completed flow.
+- Reordered Input Preferences to place Controller before Mouse and aligned all
+  visible checkboxes in the same single-column pattern as Video.
+- Normalized gameplay stick samples by elapsed poll time against the existing
+  60 FPS feel. Physical testing confirmed consistent movement and look at about
+  240 FPS with VSync and above 1000 FPS uncapped.
+- Separated raw `JoyX`/`JoyY` menu samples from normalized `JoyZ`/`JoyR`
+  gameplay movement. ModernConsole now suppresses dodge only while the analog
+  movement stick is active, preserving keyboard double-tap dodge when centered.
+  Stick movement/strafe, controller-only dodge suppression, keyboard dodge,
+  and restored mouse look were manually confirmed.
+- Slowed held-stick focus traversal while giving focused sliders an independent
+  0.20-second initial delay and 0.04-second one-increment repeat. Physical
+  controller testing confirmed smooth movement without losing fine adjustment.
+- Made the current controller and mouse options explicit in installed and
+  disposable profile generation. Both provisioning scripts passed PowerShell
+  parser validation, ModernMenu compiled with zero warnings, and XInputWinDrv
+  built and deployed successfully.
+
+### Added modern input pages and controller menu routing
+
+- Corrected native XInput vertical inversion so the Input page's look-invert
+  option affects only right-stick look, never left-stick movement or menu
+  navigation. Rebuilt and deployed `XInputWinDrv.dll` successfully.
+- Replaced the stock Controls and Input Preferences pages with focused Input
+  and Bindings tabs. Input exposes current mouse and XInput settings while
+  hiding legacy calibration controls; Bindings preserves stock persistence and
+  labels the existing `Joy*` keys as Xbox controls.
+- Added controller-first UWindow routing: Menu toggles the paused menu, D-pad
+  and normalized left-stick input traverse visible controls, A activates, B
+  returns, and LB/RB switch Preferences tabs with wrapping. Held-stick input
+  uses a 0.55 threshold, 0.35-second initial delay, and 0.10-second repeat.
+- Made binding rows focusable and routed controller capture through the stock
+  `ProcessMenuKey` path. B cancels capture and Menu remains reserved.
+- Added on-demand pull-down recovery so A or D-pad cannot leave the menu shell
+  in a controller dead state. Combo boxes support open, selection, and commit;
+  A directly resets focused Video and HUD sliders without visiting their small
+  mouse reset buttons.
+- Built and deployed ModernMenu successfully after the completed widget pass:
+  3,844 lines, 455 statements, and zero warnings. Manual Xbox controller checks
+  passed for menu open/close and pause, pull-down navigation and recovery,
+  combo interaction, and direct slider reset. Full binding persistence,
+  gameplay mapping, hotplug, USB, and Bluetooth coverage remains pending.
+
+### Established the side-by-side input package baseline
+
+- Added reproducible generated-source staging for the pinned 227k_15 WinDrv
+  source. The tracked patch renames package ownership to `XInputWinDrv` and
+  replaces the resource compiler's optional MFC include with the Windows SDK
+  equivalent without modifying files under `local/sdk/`.
+- Added a CMake x64 DLL target linked against the pinned Core, Engine, and
+  Window import libraries, plus a marked-runtime deployment target that keeps
+  the stock `WinDrv.dll` intact.
+- Configured CMake and built the `XInputWinDrv` Release target successfully.
+  A temporary automation profile completed clean XInputWinDrv and D3D12 bind
+  and unbind cycles.
+- Added documented system-XInput loading, automatic or fixed controller-slot
+  selection, reconnect scanning, radial stick dead zones, independent trigger
+  events, focus resets, and WinMM fallback. Fresh generated profiles select the
+  package and use a modern Xbox gameplay layout; existing profiles are not
+  migrated.
+- Repeated the temporary-profile runtime check with XInput enabled and verified
+  that `xinput1_4.dll` loaded and controller slot 0 was detected. Physical
+  controller behavior was not tested, so USB, Bluetooth, mappings, hotplug, and
+  trigger behavior remain unvalidated.
+- Staged the hash-verified offline payload with `XInputWinDrv.dll`; ModernMenu
+  compiled 2,270 lines and 293 statements with zero warnings. The repository
+  safety check passed with 120 commit candidates.
+
+### Corrected FPS overlay scale and menu visibility
+
+- Replaced the medium-font approximation with the large font rendered at an
+  exact `0.5` canvas scale, and restored the scale after drawing.
+- Added a post-`RenderUWindow` draw path so enabled statistics render above
+  open menus instead of being covered by UWindow's later paint pass. This was
+  subsequently moved between menu background and client painting so dropdowns
+  correctly occlude intersecting statistics.
+- Overrode `DrawText`'s default `PF_NoSmooth` flags for the half-scale glyphs
+  and moved the overlay to a sixteen-pixel left inset for cleaner edges and
+  spacing. The font scale now follows half the configured HUD scale so it can
+  remain legible at 4K.
+- Fixed a bloom-isolation regression caused by the overlay's Canvas reset
+  leaking smoothed drawing state into subsequent menu clients. The overlay now
+  restores the prior font, scale, style, color, smoothing, and Z state before
+  UWindow resumes painting. ModernMenu compiled 2,252 lines and 289 statements
+  with zero warnings.
+
+### Reassigned F11 to FPS statistics
+
+- Added a persistent `ToggleFPSStatistics` console command and changed F11 from
+  brightness cycling to the statistics overlay. The command updates the same
+  saved setting as the Video Preferences checkbox.
+- Centralized application and persistence so F11 immediately updates an open
+  Video Preferences checkbox and the checkbox performs the identical saved
+  toggle behavior.
+- Applied the binding through ModernMenu development deployment, installed and
+  disposable runtime generation, and their customized `DefUser.ini` output so
+  newly derived profiles inherit it. ModernMenu compiled 2,270 lines and 293
+  statements with zero warnings.
+
 ## 2026-08-31
 
 ### Set installed brightness default to 110%
@@ -11,6 +175,39 @@ technical guides; use this file for the chronological record.
 - Changed the offline install profile's `WinDrv.WindowsClient Brightness` from
   `0.500000` to `0.550000`, making the initial Video Preferences brightness
   value and active rendering default to 110%.
+- Standardized the complete captured Video Preferences state across installer
+  and disposable-runtime profile generation: fullscreen 1920x1080, 90-degree
+  FOV, High textures and skins, 100% contrast, 120% saturation, 65% bloom,
+  fixed 1.5x Gold GUI, 60 FPS target, enabled decals/dynamic/specular lighting
+  and weapon flash, realtime 1024 pawn shadows, and decoration shadows.
+
+### Simplified FPS statistics formatting
+
+- Replaced the stock five-row raw-float TimeDemo rendering with a compact
+  four-row overlay: `FPS`, `AVG`, `Low`, and `High`, each rendered to exactly
+  one decimal place.
+- Moved sampling into the process-wide custom console so statistics persist
+  across maps and HUD classes without TimeDemo's flyby interpolation changes,
+  benchmark lifecycle, per-frame RMS calculation, or stock respawn after level
+  changes. The disabled Game-tab console field retains this class on Restart.
+- Added rendered resolution plus once-per-second active-renderer VSync status
+  rows without per-frame configuration queries. The overlay was initially
+  reduced by selecting the medium font; this was later replaced with exact
+  canvas scaling.
+
+### Removed stock intro frames and failed entry lookup
+
+- Added a minimal `ModernIntro` game class whose default HUD is
+  `ModernIntroHud`, and updated normal shortcuts plus Preferences Restart to
+  select it in the startup URL. This chooses Unreal Revived's HUD at player
+  spawn instead of replacing `IntroNullHud` after the root window is created.
+- Removed the nonexistent rotating `EntryIII.unr` entry from generated install
+  and disposable-runtime profiles, preventing its failed lookup and fallback
+  during affected starts. ModernMenu deployment also repairs existing local
+  development profiles.
+- Compiled 2,017 UnrealScript lines and 244 statements with zero warnings and
+  refreshed the disposable development shortcut. Runtime visual validation was
+  not run.
 
 ### Began evidence-based installer content auditing
 

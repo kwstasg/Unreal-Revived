@@ -39,8 +39,8 @@ Source: "{#StageRoot}\payload\*"; DestDir: "{tmp}\UnrealRevived-Payload"; Exclud
 Source: "{#StageRoot}\patch\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "Unreal.unr ini=UnrealRevived.ini userini=UnrealRevivedUser.ini"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
-Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "Unreal.unr ini=UnrealRevived.ini userini=UnrealRevivedUser.ini"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
+Name: "{autoprograms}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "Unreal.unr?Game=ModernMenu.ModernIntro ini=UnrealRevived.ini userini=UnrealRevivedUser.ini"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
+Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "Unreal.unr?Game=ModernMenu.ModernIntro ini=UnrealRevived.ini userini=UnrealRevivedUser.ini"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
