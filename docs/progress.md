@@ -28,6 +28,9 @@ technical guides; use this file for the chronological record.
 - Added a supported-controller guide separating manually validated Xbox Series
   and DualShock 4 configurations from DualSense and broader SDL-mapped device
   support, with controls, features, transports, and fallback paths.
+- Made the README and feature guide explicitly state that Unreal Revived
+  provides no original Unreal Gold maps, textures, music, sounds, or other game
+  assets and requires files supplied from the player's own installation.
 - Corrected the project layout's stale XInput-only backend description and
   aligned the testing guide's focus-outline expectation with the implemented
   solid two-pixel treatment.

@@ -83,6 +83,7 @@ boundary.
 | Feature | Description |
 | --- | --- |
 | Fully offline installer | Packages the pinned OldUnreal 227k_15 host and Unreal Revived components so installation does not require downloading the patch at install time. |
+| No original game files included | Unreal Revived provides no original Unreal Gold maps, textures, music, sounds, or other game assets. Players must supply them from their own installation. |
 | Side-by-side installation | Creates a separate Unreal Revived directory under `C:\Games\Unreal Revived` by default and never writes to the selected original game directory. |
 | Source discovery and selection | Detects Steam installations to prefill the source while allowing the player to choose another valid original-game directory. |
 | Filtered original-game copy | Copies required original assets while excluding historical installers, copied state, and unsupported legacy renderer and audio binaries. |

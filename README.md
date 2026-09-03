@@ -12,10 +12,12 @@ runtime. Unreal Revived adds its own D3D12 renderer, ModernMenu interface,
 SDL3-based controller backend, tested defaults, branding, and side-by-side
 installation workflow on top of that foundation.
 
-Unreal Revived is not a standalone game and does not redistribute the original
-game assets. To use it, you need a Windows x64 PC, a Direct3D 12-capable
-graphics system, an existing Unreal Gold installation, and enough free space
-for a separate copy. The installer reads the original files to create an
+**Unreal Revived does not provide any original Unreal Gold game files.** It
+does not include the original maps, textures, music, sounds, or other game
+assets, and it cannot be used as a standalone game. To use it, you must supply
+those files from your own existing Unreal Gold installation. You also need a
+Windows x64 PC, a Direct3D 12-capable graphics system, and enough free space
+for a separate copy. The installer reads your original files to create an
 independent Unreal Revived installation and never modifies the source game.
 
 ## Game features and improvements
@@ -65,7 +67,9 @@ The offline installer creates an independent installation under
 `C:\Games\Unreal Revived` by default. It reads the original Unreal Gold files
 from the location selected by the player and does not write to that source
 directory. The bundled, pinned OldUnreal patch and Unreal Revived components
-are then applied only to the new installation.
+are then applied only to the new installation. No original Unreal Gold game
+files are included with Unreal Revived; every required original asset is copied
+locally from the player's own installation.
 
 Setup can repair or update an existing Unreal Revived installation. Uninstall
 is configured to keep save games by default and to back up saves and active
