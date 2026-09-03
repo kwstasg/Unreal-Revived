@@ -31,7 +31,7 @@ independent Unreal Revived installation and never modifies the source game.
 | Gamepad support | SDL3 support for Xbox, DualShock, DualSense, and other mapped controllers, with adjustable dead zones, sensitivity, and fallback input paths; Xbox reconnect handling is validated. |
 | Flexible controls | Up to three keyboard, mouse, or controller assignments per action, visible bindings, practical defaults, and reset controls. |
 | Complete game content | Both Unreal and Return to Na Pali campaigns, multiplayer and dedicated-server support, all bundled languages, saves, and recovery renderers. |
-| Safer installation | A separate offline installation that leaves the original game untouched, supports repair and update, and is configured to retain and back up saves during uninstall. |
+| Easier installation | A separate offline installation that leaves the original game untouched, supports repair and update, and is configured to retain and back up saves during uninstall. |
 | Modern audio | ALAudio with bundled OpenAL Soft replaces deprecated and experimental legacy audio paths. |
 | Recovery options | OpenGL and XOpenGL renderers, stock WinDrv input, a recovery shortcut, and automated regression coverage provide fallback paths and release confidence. |
 
