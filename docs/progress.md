@@ -6,6 +6,67 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-03
 
+### Completed the three-binding workflow and optimized its menu
+
+- Aligned keyboard, mouse, and controller binding capture around additive,
+  replacement, clear, and cancel actions, with a strict maximum of three
+  assignments per action and all three assignments visible after restart.
+- Replaced stock per-frame Bindings layout and text rebuilding with cached,
+  event-driven updates and viewport culling. Manual comparison improved the
+  Bindings page from about 193 FPS to 524 FPS in the disposable runtime.
+- Added focus-independent mouse-wheel scrolling to every Preferences tab;
+  wheel input now hides the focus outline until keyboard or controller input
+  resumes without changing the internally focused control.
+- Standardized crouch defaults and the Bindings Reset action on `Ctrl`, `C`,
+  and left-stick click (`Joy9`), clearing the former `Joy2`, `Shift`, and
+  numpad assignments. ModernMenu compiled and deployed with zero warnings.
+- Rebuilt `UnrealRevived-Setup-0.1.0.exe`; Inno Setup completed successfully
+  and produced SHA-256
+  `F7502A095FD78B530FDEAAAF1A980AC4C859576B72FA2888CDAD7D0B4ED1D105`.
+
+### Added a unified SDL3 gamepad backend
+
+- Pinned SDL 3.4.16 by release archive hash and linked it statically into
+  `XInputWinDrv.dll`, with a tracked provenance and redistribution record.
+- Added SDL Gamepad polling as the primary normalized source for Xbox,
+  DualShock 4, DualSense, and other mapped controllers while retaining direct
+  system XInput fallback and the existing WinMM recovery path.
+- Preserved the existing `Joy*` bindings, radial dead-zone percentages,
+  sensitivity values, trigger hysteresis, vertical inversion, raw menu axes,
+  and elapsed-time-normalized gameplay axes. The focused Release target built
+  successfully and deployed to the disposable runtime.
+- On Windows build 19045.6466, manually validated a DualShock 4 v2
+  (`VID_054C`, `PID_09CC`) over Bluetooth and USB with Steam and DS4Windows
+  closed. SDL identified it as `PS4 Controller`; standard menu and gameplay
+  controls behaved correctly, and both sessions ended with clean driver unloads
+  and no crash signatures. Hotplug, binding persistence, and DS4-specific
+  output or sensor features were not tested.
+- Regression-tested an Xbox Series controller over Bluetooth and USB on the
+  same host. SDL identified the transports as `Xbox Series X Controller` and
+  `Xbox One Controller`; standard menu and gameplay controls, both sticks,
+  D-pad, face and shoulder buttons, stick clicks, and independent triggers
+  remained correct. Both sessions ended with clean driver unloads and no crash
+  signatures.
+- Corrected controller-loss handling to preserve held button state until Unreal
+  receives release events and to submit neutral values for all six joystick
+  axes. Manually validated Xbox disconnect/reconnect over USB and Bluetooth,
+  switching between transports while the game remained open, and disconnecting
+  while holding gameplay input. Movement and fire did not remain latched, input
+  resumed after reconnection, the log captured each transition, and shutdown
+  remained clean.
+
+### Corrected Bindings capture and reset behavior
+
+- Kept binding capture active after keyboard or controller activation releases,
+  allowing the next keyboard, mouse, or controller input to be captured.
+- Displayed active controller assignments omitted by the stock two-slot view,
+  replaced an action's prior controller assignment when rebinding, and made the
+  Reset button restore Unreal Revived's shipped controller layout in addition
+  to the stock keyboard defaults.
+- ModernMenu compiled and deployed successfully with 5,266 lines, 587
+  statements, and zero warnings. Interactive behavior remains to be manually
+  validated.
+
 ### Added adjustable controller dead zones
 
 - Replaced the fixed left- and right-stick dead-zone checkboxes with live

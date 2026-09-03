@@ -80,11 +80,23 @@ baselines live under `local/logs/screenshot-baselines/`; `Vortex2` and
 nondeterministic.
 
 A side-by-side `XInputWinDrv.dll` is staged reproducibly from the pinned SDK,
-built for Windows x64, and selected by fresh generated profiles. It dynamically
-loads the system XInput API, maps one controller to Unreal's existing joystick
-keys, supports automatic slot selection and WinMM fallback, and keeps stock
-WinDrv available for recovery. Temporary-profile startup and clean package
-bind/unbind are validated. ModernMenu now provides focused Input and Bindings
+built for Windows x64, and selected by fresh generated profiles. A pinned,
+statically linked SDL3 Gamepad backend now normalizes Xbox, DualShock 4,
+DualSense, and other mapped controllers into Unreal's existing joystick keys;
+the dynamically loaded system XInput path remains as fallback. It supports
+automatic controller selection and WinMM fallback, and keeps stock WinDrv
+available for recovery. A DualShock 4 v2 was manually validated without Steam
+or DS4Windows over Bluetooth and USB for standard menu and gameplay controls,
+including sticks, D-pad, face and shoulder buttons, triggers, Share, Options,
+and stick clicks. Hotplug, binding persistence, rumble, touchpad, gyro, and
+lightbar behavior remain unvalidated. An Xbox Series controller was also
+manually regression-tested over Bluetooth and USB; SDL selected it natively on
+both transports and its standard menu and gameplay controls remained correct.
+Disconnect handling emits button releases and neutral axes before fallback.
+Xbox disconnect/reconnect, USB/Bluetooth transport switching, and disconnect
+while holding gameplay input were manually validated without stuck movement or
+fire, and input resumed after reconnection.
+ModernMenu provides focused Input and Bindings
 pages plus compiled controller routing for menu toggle, focus navigation,
 activation, return, tab switching, scrolling, combo boxes, slider reset, and
 binding capture. Modal dialogs now own controller focus and expose an outlined
@@ -104,9 +116,8 @@ the Load order; these flows were manually confirmed. Advanced and Mutator
 dialogs have initial combo, list, and cross-window tab handling compiled, but
 their complete controller workflows remain pending and are not a supported
 claim yet.
-Complete Xbox Series controller behavior over USB and Bluetooth, including
-hotplug, all gameplay mappings, independent triggers, and binding persistence,
-remains unvalidated and is not yet a supported claim.
+Binding persistence and broader lifecycle coverage remain unvalidated and are
+not yet supported claims.
 
 ## Verified commands
 

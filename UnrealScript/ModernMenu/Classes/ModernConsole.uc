@@ -20,6 +20,7 @@ var float ControllerGameplayX;
 var float ControllerGameplayY;
 var float SavedDodgeClickTime;
 var bool bControllerDodgeSuppressed;
+var int BindingActivationKey;
 
 const ControllerMenuThreshold = 0.55;
 const ControllerMenuInitialRepeat = 0.45;
@@ -245,20 +246,69 @@ state UWindow
 	function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)
 	{
 		local ModernRootWindow ModernRoot;
+		local ModernBindingsClientWindow Bindings;
+		local bool bWasPolling;
+		local bool bHandled;
 
 		ModernRoot = ModernRootWindow(Root);
-		if (Action == IST_Press && ModernRoot != None && ModernRoot.ControllerBindings != None
-			&& ModernRoot.ControllerBindings.bPolling)
+		if (ModernRoot != None && Action == IST_Press
+			&& Key != IK_MouseWheelUp && Key != IK_MouseWheelDown)
+			ModernRoot.bSuppressFocusIndicator = False;
+		if (ModernRoot != None)
+			Bindings = ModernRoot.ControllerBindings;
+		if (Bindings != None && !Bindings.IsVisibleForInput())
+			Bindings = None;
+
+		if (Bindings != None && Bindings.bPolling && Action == IST_Release
+			&& BindingActivationKey == int(Key))
+		{
+			BindingActivationKey = -1;
+			return True;
+		}
+		if (Action == IST_Press && Bindings != None && Bindings.bPolling)
 		{
 			if (Key == IK_Joy2)
-				ModernRoot.ControllerBindings.CancelKeySelection(True);
+				Bindings.CancelKeySelection(True);
 			else if (Key == IK_Joy8)
 			{
 				ModernRoot.PrepareControllerMenuClose();
 				CloseUWindow();
 			}
-			else if (CaptureControllerBinding(ModernRoot.ControllerBindings, Key))
+			else if (CaptureControllerBinding(Bindings, Key))
 				return True;
+			else if (Bindings.CaptureKeyboardBinding(int(Key)))
+				return True;
+			return Super.KeyEvent(Key, Action, Delta);
+		}
+		if (Action == IST_Press && ModernRoot != None
+			&& (Key == IK_MouseWheelUp || Key == IK_MouseWheelDown))
+		{
+			if (Key == IK_MouseWheelUp && ModernRoot.ScrollVisibleOptions(-1))
+				return True;
+			if (Key == IK_MouseWheelDown && ModernRoot.ScrollVisibleOptions(1))
+				return True;
+		}
+		if (Action == IST_Press && Bindings != None && Key == IK_Tab)
+		{
+			Bindings.FocusNextBindingControl();
+			return True;
+		}
+		if (Action == IST_Press && Bindings != None
+			&& (Key == IK_Delete || Key == IK_Joy4)
+			&& Bindings.ClearFocusedBinding())
+			return True;
+		if (Action == IST_Press && Bindings != None
+			&& (Key == IK_Enter || Key == IK_Space)
+			&& Bindings.BeginFocusedBindingCapture(Key == IK_Space))
+		{
+			BindingActivationKey = int(Key);
+			return True;
+		}
+		if (Action == IST_Press && Bindings != None
+			&& (Key == IK_Joy1 || Key == IK_Joy3)
+			&& Bindings.BeginFocusedBindingCapture(Key == IK_Joy3))
+		{
+			BindingActivationKey = int(Key);
 			return True;
 		}
 		if (Action == IST_Axis && (Key == IK_JoyX || Key == IK_JoyY))
@@ -308,7 +358,11 @@ state UWindow
 			}
 			return True;
 		}
-		return Super.KeyEvent(Key, Action, Delta);
+		bWasPolling = Bindings != None && Bindings.bPolling;
+		bHandled = Super.KeyEvent(Key, Action, Delta);
+		if (Action == IST_Press && Bindings != None && !bWasPolling && Bindings.bPolling)
+			BindingActivationKey = int(Key);
+		return bHandled;
 	}
 
 	function bool CaptureControllerBinding(ModernBindingsClientWindow Bindings, EInputKey Key)

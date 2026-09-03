@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "component": "SDL3",
+  "owner": "Sam Lantinga and SDL contributors",
+  "source": {
+    "repository": "libsdl-org/SDL",
+    "tag": "release-3.4.16",
+    "commit": "fa2c02bb6e21974a89ea9824bc53c9932abe5f9c",
+    "archive": "SDL3-3.4.16.tar.gz",
+    "archiveSize": 15640667,
+    "archiveSha256": "7322236cd12090c3eb40b9728be4d49c76f66ad17d04369584d4ecad5cf77c68"
+  },
+  "integration": {
+    "build": "CMake FetchContent static library",
+    "consumer": "XInputWinDrv.dll",
+    "features": "SDL Gamepad API with HIDAPI controller backends"
+  },
+  "redistributionBasis": {
+    "type": "upstream-zlib-license",
+    "license": "LICENSE.txt in the pinned SDL source archive",
+    "url": "https://github.com/libsdl-org/SDL/blob/release-3.4.16/LICENSE.txt"
+  },
+  "notices": [
+    "SDL is used unmodified and linked statically into XInputWinDrv.dll.",
+    "Unreal Revived does not claim authorship of SDL."
+  ]
+}

@@ -62,6 +62,7 @@ target_include_directories(XInputWinDrv PRIVATE
 )
 
 target_link_libraries(XInputWinDrv PRIVATE
+    SDL3::SDL3-static
     "${UE1_227K_SDK_ROOT}/Core/Lib/x64/Core.lib"
     "${UE1_227K_SDK_ROOT}/Engine/Lib/x64/Engine.lib"
     "${UE1_227K_SDK_ROOT}/Window/Lib/x64/Window.lib"

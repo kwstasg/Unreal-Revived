@@ -121,6 +121,14 @@ and connects the tracked `XInputController` implementation to WinDrv's client
 lifecycle and viewport input poll. Fresh generated profiles select the package;
 existing profiles and the pinned `WinDrv.dll` remain unchanged.
 
+CMake downloads the pinned SDL 3.4.16 source archive, verifies its SHA-256,
+and links its static Gamepad implementation into `XInputWinDrv.dll`. SDL is the
+primary normalized controller backend; the existing dynamically loaded system
+XInput path remains as a fallback. The pin and redistribution basis are recorded
+in `manifests/provenance/sdl3-3.4.16.json`. Configuring a fresh build therefore
+requires network access unless CMake's FetchContent cache already contains the
+verified archive.
+
 ## Deploy
 
 When `<game-root>/System64/Unreal.exe` exists, CMake exposes the deployment

@@ -35,10 +35,10 @@ The explicit game class selects the Unreal Revived intro HUD before the player
 HUD is spawned, preventing frames from the original flyby HUD from appearing
 first.
 
-## Xbox controller input
+## Game controller input
 
 Fresh Unreal Revived development and installed profiles select the side-by-side
-Windows viewport and enable native XInput:
+Windows viewport and enable the gamepad backend:
 
 ```ini
 [Engine.Engine]
@@ -51,10 +51,15 @@ XInputFallbackToWinMM=True
 XInputControllerIndex=-1
 ```
 
-`XInputControllerIndex=-1` automatically selects the first connected XInput
-slot and retains it until disconnect. Values `0` through `3` select a fixed
-slot. Automatic selection checks disconnected slots at most once per second.
-When XInput is disabled, unavailable, or has no connected controller,
+The `UseXInput` and `XInputControllerIndex` names are retained for compatibility
+with existing profiles. SDL3 Gamepad is now the primary backend and normalizes
+Xbox, DualShock 4, DualSense, and other mapped controllers into the existing
+Unreal joystick keys. Direct system XInput remains available as a fallback.
+
+`XInputControllerIndex=-1` automatically selects the first connected SDL
+gamepad and retains it until disconnect. Values `0` through `3` select a fixed
+enumerated gamepad. Automatic selection checks disconnected devices at most
+once per second. When the gamepad backend is disabled or has no controller,
 `XInputFallbackToWinMM=True` permits the inherited Windows multimedia joystick
 path. **Options > Preferences > Input > Controller Enabled** remains the master
 `UseJoystick` switch. That page also configures automatic or fixed controller
@@ -62,8 +67,18 @@ selection, movement and look dead zones, movement and look sensitivity, and
 vertical-look inversion. Legacy mouse and joystick calibration settings are
 hidden. The Controller section appears before Mouse, and visible checkbox
 controls share the same right-edge alignment as the Video page. **Bindings**
-retains the engine's existing binding persistence while
-displaying Xbox button names for the `Joy*` keys.
+retains the engine's existing binding persistence while displaying all assigned
+controller buttons alongside the stock keyboard and mouse slots. Left-click,
+Enter, and controller A add a binding; right-click, Space, and controller X
+replace the action's bindings with the next input; middle-click, Delete, and
+controller Y clear the action immediately. Escape and controller B cancel an
+active capture without changing the action. Each action accepts at most three
+bindings across keyboard, mouse, and controller; attempting to add a fourth
+leaves the existing three unchanged. The page's Reset button restores Unreal
+Revived's shipped defaults, including crouch on `Ctrl`, `C`, and left-stick
+click.
+PlayStation Cross/Circle/Square/Triangle map to the same physical positions as
+A/B/X/Y.
 
 | Control | Unreal input | Action |
 | --- | --- | --- |
@@ -71,7 +86,7 @@ displaying Xbox button names for the `Joy*` keys.
 | Left stick | `JoyZ`, `JoyR` | Strafe and move during gameplay |
 | Right stick | `JoyU`, `JoyV` | Turn and look |
 | A | `Joy1` | Jump |
-| B | `Joy2` | Crouch |
+| B | `Joy2` | Unbound |
 | X | `Joy3` | Activate inventory item |
 | Y | `Joy4` | Next inventory item |
 | LB / RB | `Joy5`, `Joy6` | Previous / next weapon |
@@ -88,24 +103,25 @@ pause and unpause behavior is preserved. Escape and Menu initially show the
 menu shell; A or any D-pad direction opens its first pull-down. B closes an
 active pull-down without leaving the shell. A opens and commits combo-box
 choices, and resets a focused Video or HUD slider directly. Binding rows accept
-controller focus, and A starts capture through the stock binding persistence
-path. Message boxes take exclusive controller focus: every direction cycles
+controller focus, and A starts capture without consuming the next keyboard,
+mouse, or controller input. Escape or B cancels capture. Message boxes take
+exclusive controller focus: every direction cycles
 their visible buttons, A selects the outlined button, and B cancels. Menu is
 reserved and cannot be captured. Rumble, controller glyph
 artwork, and simultaneous multi-controller gameplay are not implemented.
-XInput uses adjustable radial stick dead zones and independent digital trigger
+The shared input pipeline uses adjustable radial stick dead zones and independent digital trigger
 thresholds. The Input preferences page exposes 0–50% left- and right-stick
 dead-zone sliders; 0% disables the corresponding compatibility gate.
 `DeadZoneXYZ`, `DeadZoneRUV`, `LeftStickDeadZonePercent`,
 `RightStickDeadZonePercent`, `ScaleXYZ`, `ScaleRUV`, and `InvertVertical` remain
-configurable in the cloned viewport section. For native XInput,
+configurable in the cloned viewport section. For SDL and native XInput,
 `InvertVertical` affects only right-stick look; left-stick movement direction
 is unchanged. Gameplay stick axes are normalized against elapsed poll time with
 the existing 60 FPS feel as their baseline, so movement and look do not scale
 with frame rate. The offline installer writes these client settings and the
 complete button and stick bindings into both `System` and `System64` default
-profile templates as well as the dedicated Unreal Revived launch profile.
-with rendered frame rate. Raw `JoyX` and `JoyY` samples remain available to the
+profile templates as well as the dedicated Unreal Revived launch profile. Raw
+`JoyX` and `JoyY` samples remain available to the
 menu, while normalized gameplay movement uses `JoyZ` and `JoyR`. ModernConsole
 suppresses UE1's double-tap dodge detector only while those stick axes are
 active; keyboard double-tap dodge remains available when the stick is centered.

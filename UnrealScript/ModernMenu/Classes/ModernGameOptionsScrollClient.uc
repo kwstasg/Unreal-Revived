@@ -6,3 +6,8 @@ function Created()
 	FixedAreaClass = None;
 	Super(UWindowScrollingDialogClient).Created();
 }
+
+defaultproperties
+{
+	bAllowsMouseWheelScrolling=True
+}

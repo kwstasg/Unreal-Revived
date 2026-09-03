@@ -166,8 +166,14 @@ else {
 Set-Content -LiteralPath $canonicalIni -Value $iniLines -Encoding ASCII
 $userIniLines = Get-Content -LiteralPath $defaultUserIni
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F11' 'ToggleFPSStatistics'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'MiddleMouse' ''
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'NumPadPeriod' ''
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'GreyPlus' ''
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Shift' ''
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Ctrl' 'Duck'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'C' 'Duck'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Joy1' 'Jump'
-$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Joy2' 'Duck'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Joy2' ''
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Joy3' 'InventoryActivate'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Joy4' 'InventoryNext'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Joy5' 'PrevWeapon'

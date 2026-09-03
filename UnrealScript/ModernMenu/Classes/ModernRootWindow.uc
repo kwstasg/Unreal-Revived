@@ -2,6 +2,7 @@ class ModernRootWindow extends UMenuRootWindow;
 
 var ModernBindingsClientWindow ControllerBindings;
 var UMenuNewGameClientWindow FocusedNewGameClient;
+var bool bSuppressFocusIndicator;
 
 #exec TEXTURE IMPORT NAME=ModernBg11 FILE=Textures\ModernBg11.bmp GROUP="Icons" MIPS=OFF VClampMode=VClamp UClampMode=UClamp
 #exec TEXTURE IMPORT NAME=ModernBg21 FILE=Textures\ModernBg21.bmp GROUP="Icons" MIPS=OFF VClampMode=VClamp UClampMode=UClamp
@@ -849,6 +850,26 @@ function SwitchOptionsTab(bool bNext)
 	}
 }
 
+function bool ScrollVisibleOptions(int Direction)
+{
+	local ModernOptionsClientWindow Options;
+	local UWindowPageControlPage SelectedPage;
+	local UWindowScrollingDialogClient Scrolling;
+
+	Options = FindVisibleOptionsClient(Self);
+	if (Options == None || Options.Pages == None || Options.Pages.SelectedTab == None)
+		return False;
+	SelectedPage = UWindowPageControlPage(Options.Pages.SelectedTab);
+	if (SelectedPage == None)
+		return False;
+	Scrolling = UWindowScrollingDialogClient(SelectedPage.Page);
+	if (Scrolling == None || Scrolling.VertSB == None || !Scrolling.bShowVertSB)
+		return False;
+	Scrolling.VertSB.Scroll(Direction * Scrolling.MouseWheelScrollingSpeed);
+	bSuppressFocusIndicator = True;
+	return True;
+}
+
 function ModernOptionsClientWindow FindVisibleOptionsClient(UWindowWindow Window)
 {
 	local UWindowWindow Child;
@@ -908,6 +929,8 @@ function DrawFocusIndicator(Canvas C)
 	local float VisibleRight;
 	local float VisibleBottom;
 
+	if (bSuppressFocusIndicator)
+		return;
 	MessageBox = FindActiveMessageBox(Self);
 	if (MessageBox != None)
 	{

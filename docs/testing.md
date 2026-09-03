@@ -6,7 +6,7 @@ known log failure signatures. Screenshots remain necessary where logs cannot
 establish visual correctness. Record significant results in
 [`progress.md`](progress.md).
 
-## XInput viewport and controller
+## Gamepad viewport and controller
 
 Build, deploy, and run the non-hardware loader smoke case with:
 
@@ -16,18 +16,22 @@ powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite Input -RunSeco
 ```
 
 The test clones `[WinDrv.WindowsClient]` into a temporary automation profile,
-enables XInput, and requires clean `XInputWinDrv.dll` and `D3D12Drv.dll`
-bind/unbind cycles plus a supported system XInput library. It does not prove
-physical controller behavior.
+enables gamepad input, and requires clean `XInputWinDrv.dll` and `D3D12Drv.dll`
+bind/unbind cycles. The driver should log SDL initialization and may also log a
+supported system XInput fallback library. This does not prove physical
+controller behavior.
 
-Before claiming Xbox Series controller support, manually validate USB and
-Bluetooth with the controller connected before launch, connected after launch,
+Before claiming Xbox Series or DualShock 4 controller support, fully exit Steam
+and controller translation tools, then manually validate USB and Bluetooth with
+the controller connected before launch, connected after launch,
 and disconnected/reconnected while moving or firing. Verify both sticks,
 independent LT/RT actions, A/B/X/Y, shoulders, View, stick clicks, D-pad
 diagonals, simultaneous keyboard/mouse input, Alt+Tab, level travel, death and
-respawn, and absence of stuck movement or fire. Also disable XInput and verify
-WinMM fallback. Record Windows version, controller firmware, transport, chosen
-slot, observed mappings, and relevant log lines.
+respawn, and absence of stuck movement or fire. For DualShock 4, verify Cross,
+Circle, Square, Triangle, L1/R1, Share, Options, stick clicks, and independently
+mapped L2/R2. Also disable gamepad input and verify WinMM fallback. Record
+Windows version, controller firmware, transport, chosen slot, observed mappings,
+and relevant log lines.
 
 With `ModernMenu.ModernConsole` active, verify Menu opens UWindow and pauses a
 standalone game, then closes it and restores play. In Preferences, verify D-pad

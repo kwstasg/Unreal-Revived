@@ -191,8 +191,14 @@ foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
 foreach ($defaultUserProfile in @('System\DefUser.ini', 'System64\DefUser.ini')) {
     $defaultUserProfilePath = Join-Path $patchRoot $defaultUserProfile
     $defaultUserProfileLines = Get-Content -LiteralPath $defaultUserProfilePath
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'MiddleMouse' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'NumPadPeriod' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'GreyPlus' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Shift' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Ctrl' 'Duck'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'C' 'Duck'
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy1' 'Jump'
-    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy2' 'Duck'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy2' ''
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy3' 'InventoryActivate'
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy4' 'InventoryNext'
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Joy5' 'PrevWeapon'

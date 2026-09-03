@@ -373,7 +373,7 @@ defaultproperties
 	MouseHeadingText="Mouse"
 	ControllerHeadingText="Controller"
 	ControllerSlotText="Preferred Controller"
-	ControllerSlotHelp="Select a fixed XInput controller slot or choose automatic detection."
+	ControllerSlotHelp="Select a fixed game controller or choose automatic detection."
 	AutomaticSlotText="Automatic"
 	LeftDeadZoneText="Movement Dead Zone"
 	LeftDeadZoneHelp="Adjust the radial dead zone for the left stick."
