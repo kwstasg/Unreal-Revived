@@ -365,7 +365,7 @@ target maintains those copies for the disposable runtime.
   the same toggle. Restart the game and confirm the saved overlay state matches
   the last selection.
 - Move keyboard focus through sliders, checkboxes, combo boxes, edit fields,
-  tabs, and buttons. Confirm a thin dashed gold outline surrounds only the
+  tabs, and buttons. Confirm a solid two-pixel gold outline surrounds only the
   interactive widget, not its label. Open pulldown menus and combo lists and
   confirm neither dropdown receives an outline.
 - With D3D12Drv active, confirm **Contrast** and **Saturation** appear directly

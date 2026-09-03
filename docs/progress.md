@@ -6,6 +6,19 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-03
 
+### Refreshed the public documentation
+
+- Updated the README to surface the validated SDL3 controller backend, menu
+  navigation, adjustable dead zones, three-binding workflow, deployment target,
+  and repository location.
+- Expanded the opening player guidance with the retained game experience,
+  ownership and hardware requirements, side-by-side installation behavior,
+  save handling, controller validation, and current limitations before the
+  developer workflow.
+- Corrected the project layout's stale XInput-only backend description and
+  aligned the testing guide's focus-outline expectation with the implemented
+  solid two-pixel treatment.
+
 ### Completed the three-binding workflow and optimized its menu
 
 - Aligned keyboard, mouse, and controller binding capture around additive,

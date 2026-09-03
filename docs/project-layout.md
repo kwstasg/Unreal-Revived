@@ -21,9 +21,10 @@ project source and must not be committed.
 `XInputWinDrv/` contains the build definition and tracked delta for a
 side-by-side Windows viewport package. Its inherited WinDrv source is copied
 from the pinned ignored SDK into the generated build tree at configure time.
-The tracked controller helper dynamically loads Windows XInput and maps one
-active controller into Unreal's existing joystick key namespace. Fresh profiles
-select the package while stock WinDrv remains available for recovery.
+The tracked controller helper uses statically linked SDL3 Gamepad support to
+map an active controller into Unreal's existing joystick key namespace, with
+dynamically loaded system XInput and WinMM retained as fallback paths. Fresh
+profiles select the package while stock WinDrv remains available for recovery.
 
 The checked-in `D3D12Drv.vcxproj` and `.filters` files preserve inherited
 upstream project structure and debugging metadata. They are reference material,
