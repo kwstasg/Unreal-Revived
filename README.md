@@ -2,7 +2,7 @@
 
 Unreal Revived is a modernization package for playing the original **Unreal
 Gold** on current Windows PCs. It preserves the original game content and gameplay 
-while adding native Direct3D 12 rendering, modern display handling, refreshed
+while adding native DirectX 12 rendering, modern display handling, refreshed
 menus, improved controls, and broad gamepad support for devices such as Xbox
 Series controllers, DualShock 4, DualSense, and other
 [SDL-mapped controllers](docs/controllers.md).
