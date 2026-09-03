@@ -45,7 +45,6 @@ boundary.
 | Controller menu navigation | Supports menu toggle, directional focus, activation, return, tab switching, scrolling, combo boxes, slider reset, and binding capture. |
 | Controller-aware dialogs | Supports controller traversal and activation in message boxes, New Game, Load, and Save, including wrapping and scrolling through slots. |
 | Original campaign launch path | Starts the selected campaign through the stock New Game action while exposing every visible action in controller order. |
-| Unreal Revived branding | Uses project-owned menu artwork, setup banners, launch artwork, and a multi-resolution application and shortcut icon. |
 
 ## Keyboard, mouse, and controller input
 
@@ -93,7 +92,7 @@ boundary.
 | Interactive uninstall | Offers uninstall through the native setup flow and transitions into standard uninstall progress in the same window. |
 | Save preservation policy | Configures interactive and silent uninstall to retain saves by default and backs up saves and canonical profiles before removal. Complete end-to-end validation of the revised interactive uninstall flow remains pending. |
 | Reinstall protection | Accepts a retained save-only destination and prevents original-game saves from overwriting those retained files. |
-| Installed shortcuts | Creates branded Start Menu and desktop shortcuts that launch the canonical installed profiles without development arguments. |
+| Installed shortcuts | Creates Start Menu and desktop shortcuts that launch the canonical installed profiles without development arguments. |
 
 ## Recovery and quality assurance
 
