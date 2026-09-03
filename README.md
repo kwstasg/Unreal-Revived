@@ -87,6 +87,9 @@ The bootstrap performs the complete setup:
 Generated game files, downloads, SDK files, logs, and build output stay under
 the ignored `local/` directory.
 
+See the [command reference](docs/commands.md) for the common configure, build,
+deploy, launch, test, recovery, and installer commands.
+
 ### Launch the development runtime
 
 After bootstrap completes:
@@ -162,7 +165,7 @@ The generated installer and checksum are written to
 	window;
 - offers uninstall, repair/update, or cancel when rerun; and
 - offers a default-checked **Keep save games** uninstall option while backing
-  up saves and dedicated profiles either way.
+	up saves and canonical profiles either way.
 
 The installer does not write to the selected original game directory.
 

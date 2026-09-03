@@ -159,8 +159,18 @@ Import-Module $iniModule -Force
 foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
     $defaultProfilePath = Join-Path $patchRoot $defaultProfile
     $defaultProfileLines = Get-Content -LiteralPath $defaultProfilePath
+    $defaultProfileLines = Remove-UnrealRevivedIniValue $defaultProfileLines 'URL' 'EntryMap' 'EntryIII.unr'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'URL' 'LocalMap' 'Unreal.unr?Game=ModernMenu.ModernIntro'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'URL' 'AltLocalMap' 'Unreal.unr?Game=ModernMenu.ModernIntro'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'FirstRun' 'FirstRun' '227'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'GameRenderDevice' 'D3D12Drv.D3D12RenderDevice'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'WindowedRenderDevice' 'D3D12Drv.D3D12RenderDevice'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'Console' 'ModernMenu.ModernConsole'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'Unreal.ini'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
+    $defaultProfileLines = Add-UnrealRevivedIniValue $defaultProfileLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
     $defaultProfileLines = Copy-UnrealRevivedIniSection $defaultProfileLines 'WinDrv.WindowsClient' 'XInputWinDrv.WindowsClient'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'ViewportManager' 'XInputWinDrv.WindowsClient'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'UseJoystick' 'True'

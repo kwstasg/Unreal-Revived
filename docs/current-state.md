@@ -7,11 +7,13 @@ history.
 ## Read first
 
 1. Read [`progress.md`](progress.md) for completed milestones and validation.
-2. Read [`renderer-227k.md`](renderer-227k.md) before changing renderer or
+2. Use [`commands.md`](commands.md) for the common build, deploy, launch, test,
+  and packaging commands.
+3. Read [`renderer-227k.md`](renderer-227k.md) before changing renderer or
    viewport behavior.
-3. Read [`building.md`](building.md) before configuring or deploying.
-4. Read [`testing.md`](testing.md) before declaring a behavior complete.
-5. Follow the repository and renderer rules under `.github/`.
+4. Read [`building.md`](building.md) before configuring or deploying.
+5. Read [`testing.md`](testing.md) before declaring a behavior complete.
+6. Follow the repository and renderer rules under `.github/`.
 
 ## Supported boundary
 
@@ -59,7 +61,8 @@ first-time configuration page defaults to D3D12, describes it in every locale,
 and uses tracked original Unreal Revived artwork; installed shortcuts use the
 tracked project-owned multi-resolution icon. The in-game menu desktop uses a
 tracked Unreal Revived background embedded in `ModernMenu.u`. Dedicated
-launch profiles, Start Menu shortcut, and uninstall
+development launch profiles, canonical argument-free installed startup, Start
+Menu shortcut, and uninstall
 backup are implemented. Interactive uninstall keeps saves by default through a
 checked option embedded in the native uninstall window, which transitions into
 progress in place; explicit silent uninstall uses the same default. Rerunning Setup opens that interactive uninstaller for uninstall,
@@ -107,6 +110,9 @@ remains unvalidated and is not yet a supported claim.
 
 ## Verified commands
 
+See the focused [`commands.md`](commands.md) reference for common workflows and
+important side effects. The core verified commands are:
+
 From the repository root:
 
 ```powershell
@@ -130,6 +136,12 @@ From the disposable runtime's `System64` directory:
 The leading `Unreal.unr` token is required. A command beginning with bare
 `ini=` is parsed as a network URL by this executable, while `-ini=` did not
 select the intended profile during testing.
+
+The explicit command above applies only to the disposable development runtime.
+The installed product uses canonical `Unreal.ini` and `User.ini` profiles and
+starts from bare `System64\Unreal.exe`. A clean isolated install validated that
+argument-free path with `ModernMenu.ModernIntro`, D3D12, XInput, and the
+ModernMenu root window active.
 
 ## Non-obvious invariants
 

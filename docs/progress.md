@@ -748,10 +748,47 @@ technical guides; use this file for the chronological record.
 - Replaced the development-only profile names hardcoded in ModernMenu's
   Restart action with config-backed engine and user profile names.
 - Configured development deployment to retain `D3D12Test.ini` and
-  `D3D12TestUser.ini`, while installer profiles use `UnrealRevived.ini` and
-  `UnrealRevivedUser.ini`.
+  `D3D12TestUser.ini`, while installer profiles formerly used
+  `UnrealRevived.ini` and `UnrealRevivedUser.ini`.
 - Validated a zero-warning ModernMenu compile and asserted both development and
   production restart-profile configuration values.
+
+### Added canonical argument-free installed startup
+
+- Changed the installed product to generate canonical `Unreal.ini` and
+  `User.ini` profiles and embed `ModernMenu.ModernIntro` in `[URL] LocalMap`
+  and 227's `AltLocalMap`, allowing `System64\Unreal.exe` and installed
+  shortcuts to start without command-line arguments.
+- Added a schema-tracked migration from the former dedicated profile names,
+  preserving existing preferences and timestamped safety copies while keeping
+  later repair passes idempotent.
+- Excluded copied source profiles from the canonical path, aligned packaged
+  defaults with profile regeneration, and extended uninstall backup coverage.
+- Built the offline installer successfully and verified that its staged x64
+  defaults contain both direct-start URL keys while canonical profiles remain
+  excluded from copied content.
+- Assembled a clean isolated installation and launched `System64\Unreal.exe`
+  with no arguments. The runtime log loaded
+  `Unreal.unr?...Game=ModernMenu.ModernIntro`, initialized D3D12 at 1920x1080
+  with MSAA 4x, loaded XInput, and created `ModernMenu.ModernRootWindow`.
+- Simulated a schema-1 upgrade with customized legacy profiles and a conflicting
+  canonical decoy. Migration retained the active viewport and mouse settings,
+  created timestamped backups, removed legacy names, recorded schema 2, and a
+  second repair left both canonical profile hashes unchanged.
+
+### Simplified unreleased profile handling and documented commands
+
+- Removed legacy profile migration, schema metadata, and migration-backup code
+  before the first public installer release. Fresh installs and repairs now use
+  only canonical `Unreal.ini` and `User.ini` profiles.
+- Added `docs/commands.md` with the common bootstrap, configure, compile,
+  deploy, launch, recovery, test, audit, rebuild, branding, and installer
+  commands, including important prerequisites and replacement behavior.
+- Rebuilt the complete offline installer successfully after the cleanup;
+  Inno Setup produced `UnrealRevived-Setup-0.1.0.exe` with SHA-256
+  `874DA06574CF1640247545E96D542ACB059F1032A2201E795401AF9833427C04`.
+- The repository safety check passed with 129 commit candidates, and workspace
+  diagnostics plus `git diff --check` reported no errors.
 
 ### Added opt-out save preservation during uninstall
 

@@ -405,8 +405,12 @@ target maintains those copies for the disposable runtime.
 - Change a setting, use **Restart**, and confirm the relaunched process retains
   the `D3D12Test.ini` and `D3D12TestUser.ini` command-line arguments.
 - In an installer-created runtime, use **Restart** and confirm the relaunched
-  process retains `UnrealRevived.ini` and `UnrealRevivedUser.ini`, does not open
-  First-Time Configuration, and keeps the ModernMenu root and saved settings.
+  process retains `Unreal.ini` and `User.ini`, does not open First-Time
+  Configuration, and keeps the ModernMenu root and saved settings.
+- Close the installed runtime, launch `System64\Unreal.exe` with no arguments,
+  and confirm it opens the same ModernIntro shell without stock intro frames.
+- Confirm the installed Start Menu and desktop shortcuts have no arguments and
+  launch the same canonical profiles.
 - Reopen Video preferences after Restart and confirm the FPS checkbox retains
   its saved state.
 - Open **Options > Preferences > Game** and confirm **Console** displays

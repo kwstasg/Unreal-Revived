@@ -12,8 +12,8 @@ if (-not (Test-Path -LiteralPath (Join-Path $InstallRoot '.unreal-revived.json')
 $backupRoot = Join-Path ([Environment]::GetFolderPath('MyDocuments')) ('Unreal Revived Backup ' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
 $items = @(
     @{ Source = 'Save'; Destination = 'Save' },
-    @{ Source = 'System64\UnrealRevived.ini'; Destination = 'System64\UnrealRevived.ini' },
-    @{ Source = 'System64\UnrealRevivedUser.ini'; Destination = 'System64\UnrealRevivedUser.ini' }
+    @{ Source = 'System64\Unreal.ini'; Destination = 'System64\Unreal.ini' },
+    @{ Source = 'System64\User.ini'; Destination = 'System64\User.ini' }
 )
 
 foreach ($item in $items) {

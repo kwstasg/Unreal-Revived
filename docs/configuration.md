@@ -15,7 +15,13 @@ input, or save settings.
 
 ## Launch syntax
 
-A verified normal-start command line is:
+The installed product starts directly from `System64\Unreal.exe` with no
+arguments. Its canonical `Unreal.ini` sets both `LocalMap` and 227's
+`AltLocalMap` to `Unreal.unr?Game=ModernMenu.ModernIntro`, so Explorer and the
+installer-created shortcuts select the Unreal Revived shell and intro HUD even
+when the Return to Na Pali campaign is installed.
+
+The verified development-runtime command line remains:
 
 ```powershell
 .\Unreal.exe Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini userini=D3D12TestUser.ini
@@ -242,14 +248,14 @@ Game page locks the disabled **Console** field to **Standard Unreal Console**
 (`ModernMenu.ModernConsole`) because the Browser and deprecated Gold consoles replace
 the windowed UMenu interface.
 
-Installer profiles configure the same action to relaunch with
-`Unreal.unr?Game=ModernMenu.ModernIntro ini=UnrealRevived.ini
-userini=UnrealRevivedUser.ini`. The restart
-profile names are stored under `[ModernMenu.ModernOptionsClientWindow]`, so the
-shared `ModernMenu.u` package preserves the active environment instead of
-opening First-Time Configuration or falling back to OldUnreal defaults.
-Installed profiles omit the nonexistent `EntryIII.unr` startup entry, avoiding
-its rotating failed-load fallback.
+Installer profiles configure the same action to relaunch with the canonical
+`Unreal.ini` and `User.ini` profiles. The restart profile names are stored under
+`[ModernMenu.ModernOptionsClientWindow]`, so the shared `ModernMenu.u` package
+preserves the active environment instead of opening First-Time Configuration
+or falling back to OldUnreal defaults. Installed profiles select
+`ModernMenu.ModernIntro` through `[URL] LocalMap` and `AltLocalMap`, and omit
+the nonexistent `EntryIII.unr` startup entry, avoiding its rotating failed-load
+fallback.
 
 ## Renderer settings
 
@@ -303,8 +309,9 @@ as interchangeable when changing this code.
 
 ## Installer profile defaults
 
-The offline installer creates dedicated `UnrealRevived.ini` and
-`UnrealRevivedUser.ini` profiles from the pinned host defaults. It applies the
+The offline installer creates canonical `Unreal.ini` and `User.ini` profiles
+from the pinned host defaults. Repair reapplies required startup and menu
+integration without resetting player preferences. The installer applies the
 following initial preferences without changing the original game installation
 or preventing the player from changing them later:
 

@@ -287,9 +287,10 @@ The selected original game is copied by a hidden helper before Inno's file
 phase. Inno then installs the already extracted patch tree directly with its
 native progress UI; there is no runtime ZIP extraction. Final hash verification
 and profile generation also run hidden, so no console window opens. The
-installer never writes into the original source. It launches with dedicated
-`UnrealRevived.ini` and `UnrealRevivedUser.ini` profiles. Uninstall backs up
-saves and those profiles to a timestamped `Unreal Revived Backup` directory
+installer never writes into the original source. It launches with canonical
+`Unreal.ini` and `User.ini` profiles, allowing its `System64\Unreal.exe`
+and installed shortcuts to start with no arguments. Uninstall backs up saves
+and canonical profiles to a timestamped `Unreal Revived Backup` directory
 under Documents before removing the side-by-side installation. Interactive
 uninstall embeds a default-checked **Keep save games** option in Inno's native
 uninstall window; the same window transitions into removal progress after the
