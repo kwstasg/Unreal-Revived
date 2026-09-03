@@ -1,16 +1,51 @@
 # Unreal Revived
 
-Unreal Revived is a Windows modernization project for the original **Unreal
-Gold**. Its current focus is a native Direct3D 12 renderer, reliable modern
-display behavior, and a refreshed in-game options experience on the OldUnreal
-227k_15 runtime.
+Unreal Revived is a modernization package for playing the original **Unreal
+Gold** on current Windows PCs. It keeps the original campaigns and game content
+while adding native Direct3D 12 rendering, modern display handling, refreshed
+menus, improved controls, and broad gamepad support for devices such as Xbox
+Series controllers, DualShock 4, DualSense, and other
+[SDL-mapped controllers](docs/controllers.md).
 
-This is not a standalone game or a replacement asset distribution. You need an
-existing Unreal Gold installation. Development and installation tools copy
-those game assets into a separate directory and never modify the original
-Steam installation.
+The project is built on the maintained **OldUnreal 227k_15 Windows x64**
+runtime. Unreal Revived adds its own D3D12 renderer, ModernMenu interface,
+SDL3-based controller backend, tested defaults, branding, and side-by-side
+installation workflow on top of that foundation.
 
-## What Unreal Revived offers
+Unreal Revived is not a standalone game and does not redistribute the original
+game assets. To use it, you need a Windows x64 PC, a Direct3D 12-capable
+graphics system, an existing Unreal Gold installation, and enough free space
+for a separate copy. The installer reads the original files to create an
+independent Unreal Revived installation and never modifies the source game.
+
+## Game features and improvements
+
+| Area | What players get |
+| --- | --- |
+| Modern rendering | Native Direct3D 12 rendering with corrected HD lightmaps, high-quality textures, alpha blending, bloom, and configurable VSync. |
+| Modern displays | Widescreen and high-resolution rendering, high-refresh support, monitor-aware borderless presentation, letterboxing, and correctly mapped menu input. |
+| Image quality | Off, 2x, 4x, and 8x MSAA modes with capability-based fallback, plus in-menu brightness, contrast, saturation, and detail controls. |
+| Refreshed interface | Branded menus, focused Video, Input, Bindings, and HUD controls, an optional live game view behind menus, and persistent F11-toggled FPS statistics. |
+| Gamepad support | SDL3 support for Xbox, DualShock, DualSense, and other mapped controllers, with adjustable dead zones, sensitivity, and fallback input paths; Xbox reconnect handling is validated. |
+| Flexible controls | Up to three keyboard, mouse, or controller assignments per action, visible bindings, practical defaults, and reset controls. |
+| Complete game content | Both Unreal and Return to Na Pali campaigns, multiplayer and dedicated-server support, all bundled languages, saves, and recovery renderers. |
+| Safer installation | A separate offline installation that leaves the original game untouched, supports repair and update, and is configured to retain and back up saves during uninstall. |
+| Modern audio | ALAudio with bundled OpenAL Soft replaces deprecated and experimental legacy audio paths. |
+| Recovery options | OpenGL and XOpenGL renderers, stock WinDrv input, a recovery shortcut, and automated regression coverage provide fallback paths and release confidence. |
+
+See the [detailed game feature guide](docs/features.md) for the complete
+organized feature list and a description of each improvement.
+
+Xbox Series and DualShock 4 controllers have been manually validated over USB
+and Bluetooth without Steam Input or DS4Windows. Standard movement, looking,
+menus, face and shoulder buttons, triggers, D-pad input, disconnect/reconnect,
+and transport switching work through the SDL3 backend. DualSense and other
+SDL-mapped controllers are supported by the backend but have not yet received
+the same device-specific manual validation. See the
+[supported controller guide](docs/controllers.md) for the compatibility table,
+validated controls, and fallback paths.
+
+## The original game, modernized
 
 Unreal Revived is intended for people who want to play both **Unreal** and
 **Return to Na Pali** on a current Windows PC while keeping the original game
@@ -24,39 +59,7 @@ and standard OpenGL/XOpenGL recovery paths are retained. Unreal Revived changes
 the host, renderer, input, menus, setup, and defaults; it does not replace the
 original maps, music, sounds, or other game assets.
 
-## Availability and requirements
-
-The flat-screen Direct3D 12 path is implemented and actively validated on
-Windows x64. The repository currently provides source code, automated
-development setup, runtime tests, and tooling for building a fully offline
-installer.
-
-| Area | Current state |
-| --- | --- |
-| Host runtime | OldUnreal 227k_15 on Windows x64 |
-| Renderer | Native `D3D12Drv.D3D12RenderDevice` |
-| Build | CMake, Visual Studio 2022, C++17 |
-| ModernMenu | Implemented as a separate UnrealScript package |
-| Offline installer | Implemented and built locally with Inno Setup |
-| OpenXR VR | Roadmap; not implemented |
-| Portable launcher | Roadmap; not implemented |
-
-There is not yet a public prebuilt Unreal Revived installer linked from this
-README. The repository can build it from the pinned, verified inputs.
-
-To use the eventual installer, players will need:
-
-- A Windows x64 PC.
-- An existing Unreal Gold installation containing the original game assets.
-- A Direct3D 12-capable graphics system for the primary renderer.
-- Enough free space for a separate side-by-side copy of the game.
-
-The current installer can use a Steam installation as its source, but Steam is
-not used to launch or manage the new copy afterward. Until a public prebuilt
-installer is published, the repository workflow below is intended for
-developers and technically experienced testers.
-
-## Installation and player data
+## Safe side-by-side installation
 
 The offline installer creates an independent installation under
 `C:\Games\Unreal Revived` by default. It reads the original Unreal Gold files
@@ -65,56 +68,44 @@ directory. The bundled, pinned OldUnreal patch and Unreal Revived components
 are then applied only to the new installation.
 
 Setup can repair or update an existing Unreal Revived installation. Uninstall
-keeps save games by default and backs up saves and active profiles before
-removal. Direct3D 12 is the normal renderer; OpenGL and XOpenGL remain available
-as recovery choices. ALAudio with bundled OpenAL Soft is the supported audio
-path.
+is configured to keep save games by default and to back up saves and active
+profiles before removal. Direct3D 12 is the normal renderer; OpenGL and XOpenGL
+remain available as recovery choices. ALAudio with bundled OpenAL Soft is the
+supported audio path.
 
-## What works today
+## Availability and requirements
 
-- Native Direct3D 12 rendering without XOpenGL fallback.
-- Logical 2560x1440 and 3840x2160 modes, including 4K with MSAA 8x.
-- Monitor-aware borderless presentation, letterboxing, and corrected menu
-  pointer mapping.
-- Off, 2x, 4x, and 8x MSAA with capability-based fallback.
-- Corrected OldUnreal 227 HD lightmaps, RGB10A2 textures, and alpha-blended
-  geometry.
-- High-refresh presentation and configurable VSync.
-- A ModernMenu Video page with persistent FPS statistics and antialiasing
-  controls.
-- SDL3-based Xbox, DualShock 4, DualSense, and mapped-controller input through
-  the side-by-side `XInputWinDrv` package, with system XInput fallback.
-- Controller navigation for the menu shell and core game dialogs, adjustable
-  stick dead zones, and up to three keyboard, mouse, or controller bindings per
-  action.
-- Normal Unreal and Return to Na Pali campaign discovery.
-- Automated map, renderer-setting, menu-profile, display-profile, and
-  screenshot-regression checks.
-- A side-by-side offline installer with Steam discovery, source selection,
-  repair/uninstall handling, and save/profile backup.
+The flat-screen Direct3D 12 path is implemented and actively validated on
+Windows x64. There is not yet a public prebuilt Unreal Revived installer linked
+from this README; the repository can build it from pinned, verified inputs.
 
-Physical 4K presentation is implemented but has not been validated on the
-current 1080p development desktop. See [current validation
+Players need:
+
+- A Windows x64 PC.
+- An existing Unreal Gold installation containing the original game assets.
+- A Direct3D 12-capable graphics system for the primary renderer.
+- Enough free space for a separate side-by-side copy of the game.
+
+The installer can use a Steam installation as its source, but Steam is not used
+to launch or manage the new copy afterward. Until a public prebuilt installer
+is published, the repository workflow below is intended for developers and
+technically experienced testers. See [current validation
 status](docs/current-state.md) for the precise supported boundary.
 
-Xbox Series and DualShock 4 controllers have been manually validated over USB
-and Bluetooth without Steam Input or DS4Windows. Standard movement, looking,
-menus, face and shoulder buttons, triggers, D-pad input, disconnect/reconnect,
-and transport switching work through the SDL3 backend. DualSense and other
-SDL-mapped controllers are supported by the backend but have not yet received
-the same device-specific manual validation.
-
-## Current limitations
-
-- OpenXR and VR input are roadmap work and are not implemented.
-- There is no public prebuilt installer linked from this repository yet.
-- Physical 4K output has not been validated on a 4K desktop.
-- Controller rumble, touchpad, gyro, lightbar behavior, and binding persistence
-  still require validation.
-- Complete controller workflows for the Advanced Options and Mutator dialogs
-  remain pending.
-
 ## For developers
+
+### Project status
+
+The repository provides source code, automated development setup, runtime
+tests, and tooling for building a fully offline installer.
+
+| Area | Current state |
+| --- | --- |
+| Host runtime | OldUnreal 227k_15 on Windows x64 |
+| Renderer | Native `D3D12Drv.D3D12RenderDevice` |
+| Build | CMake, Visual Studio 2022, C++17 |
+| ModernMenu | Implemented as a separate UnrealScript package |
+| Offline installer | Implemented and built locally with Inno Setup |
 
 ### Quick start for development
 
@@ -178,7 +169,7 @@ runtime and SDK archives. Verified downloads are cached in `local/downloads/`.
 
 Previously downloaded archives can be supplied from local or removable storage.
 Every input must pass the same immutable size and SHA-256 checks before use.
-See [archive acquisition and offline overrides](docs/building.md#archive-acquisition-and-offline-use)
+See [archive acquisition and offline use](docs/building.md#archive-acquisition-and-offline-use)
 for filenames and `-RuntimeArchive`/`-SdkArchive` examples.
 
 ### OldUnreal references
@@ -273,6 +264,10 @@ are implemented.
 
 - [Current state](docs/current-state.md): supported boundary, verified commands,
   invariants, and next priorities.
+- [Game features](docs/features.md): detailed end-user features and
+  improvements organized by category.
+- [Supported controllers](docs/controllers.md): validated devices, SDL-mapped
+  compatibility, controls, transports, and fallback paths.
 - [Building](docs/building.md): prerequisites, paths, source recovery,
   deployment, and packaging.
 - [Renderer port](docs/renderer-227k.md): OldUnreal 227k_15 compatibility work.

@@ -15,6 +15,19 @@ technical guides; use this file for the chronological record.
   ownership and hardware requirements, side-by-side installation behavior,
   save handling, controller validation, and current limitations before the
   developer workflow.
+- Replaced the README feature bullets with an organized player-benefit overview
+  and added a detailed feature reference covering rendering, display, menus,
+  input, content, installation, reliability, and recovery.
+- Reorganized the README to lead with game features and improvements, followed
+  by the preserved original experience, safe installation, and availability;
+  moved technical project status under the developer section and removed the
+  limitations section.
+- Rewrote the introduction to explain the product, its OldUnreal 227k_15
+  foundation, the Unreal Revived components layered onto it, and the hardware,
+  original-game, and storage requirements for players.
+- Added a supported-controller guide separating manually validated Xbox Series
+  and DualShock 4 configurations from DualSense and broader SDL-mapped device
+  support, with controls, features, transports, and fallback paths.
 - Corrected the project layout's stale XInput-only backend description and
   aligned the testing guide's focus-outline expectation with the implemented
   solid two-pixel treatment.
