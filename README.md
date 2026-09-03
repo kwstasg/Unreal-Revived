@@ -38,15 +38,6 @@ independent Unreal Revived installation and never modifies the source game.
 See the [detailed game feature guide](docs/features.md) for the complete
 organized feature list and a description of each improvement.
 
-Xbox Series and DualShock 4 controllers have been manually validated over USB
-and Bluetooth without Steam Input or DS4Windows. Standard movement, looking,
-menus, face and shoulder buttons, triggers, D-pad input, disconnect/reconnect,
-and transport switching work through the SDL3 backend. DualSense and other
-SDL-mapped controllers are supported by the backend but have not yet received
-the same device-specific manual validation. See the
-[supported controller guide](docs/controllers.md) for the compatibility table,
-validated controls, and fallback paths.
-
 ## The original game, modernized
 
 Unreal Revived is intended for people who want to play both **Unreal** and
