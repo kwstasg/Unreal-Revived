@@ -25,7 +25,19 @@ if ($activeGame) {
 }
 
 $recoveryLines = Get-Content -LiteralPath $sourceIni
-$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'Engine.Engine' 'ViewportManager' 'WinDrv.WindowsClient'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'Engine.Engine' 'ViewportManager' 'XInputWinDrv.WindowsClient'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'UseJoystick' 'True'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'UseXInput' 'True'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'XInputFallbackToWinMM' 'True'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'XInputControllerIndex' '-1'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'DeadZoneXYZ' 'True'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'DeadZoneRUV' 'True'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'LeftStickDeadZonePercent' '25.000000'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'RightStickDeadZonePercent' '25.000000'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'ScaleXYZ' '85.000000'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'ScaleRUV' '85.000000'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'InvertVertical' 'True'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'UseRawHIDInput' 'True'
 Set-Content -LiteralPath $recoveryIni -Value $recoveryLines -Encoding ASCII
 
 New-Item -Path $runningMarker -ItemType File -Force | Out-Null

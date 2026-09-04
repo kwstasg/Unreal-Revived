@@ -4,6 +4,9 @@ Run these commands from the Unreal Revived repository root in PowerShell.
 Generated runtimes, builds, logs, downloads, and packages stay under the
 ignored `local/` directory.
 
+For the destructive start-to-finish workflow that rebuilds every development
+and distribution artifact, use the [clean full rebuild guide](rebuild-everything.md).
+
 ## Requirements
 
 - Windows x64 and an installed copy of Unreal Gold.
@@ -137,25 +140,15 @@ Create a read-only content inventory under a timestamped directory in
 powershell -NoProfile -File scripts/audit-game-content.ps1
 ```
 
-## Rebuild options
+## Clean full rebuild
 
-Recompile everything while asking the selected build system to clean targets
-first:
+Use the [clean full rebuild guide](rebuild-everything.md) to discard
+uncommitted source changes, recreate `local/build/`, compile and deploy every
+component, build both distribution packages, and verify the outputs.
 
-```powershell
-cmake --build local/build --config Release --clean-first
-```
-
-Rerun CMake configuration after changing SDK/runtime paths or build files:
-
-```powershell
-cmake -S . -B local/build -A x64
-cmake --build local/build --config Release
-```
-
-To recreate the entire disposable runtime, rerun bootstrap with `-Force`. This
-replaces the marked `local/game` development copy, so preserve any local saves
-or settings you need first.
+To recreate the entire disposable runtime instead, rerun bootstrap with
+`-Force`. This replaces the marked `local/game` development copy, so preserve
+any local saves or settings you need first.
 
 ## Branding commands
 

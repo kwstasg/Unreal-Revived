@@ -4,6 +4,43 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-09-04
+
+### Consolidated the clean full-rebuild workflow
+
+- Added one destructive, step-by-step guide covering prerequisite checks,
+  source and build cleanup, native compilation, all development deployments,
+  offline installer staging and compilation, developer bundle creation, and
+  final artifact verification.
+- Replaced the overlapping manual rebuild sections in the README and command
+  reference with links to the authoritative workflow while retaining the
+  detailed target explanations in the building guide.
+
+### Corrected fresh mouse and recovery controller defaults
+
+- Changed fresh development, staged installer, and installed user profiles to
+  default mouse look to non-inverted while preserving existing user profiles.
+- Changed development recovery to use the SDL/XInput viewport and explicitly
+  reapply its controller defaults. Stock WinDrv remains available as a manual
+  fallback, but no longer causes the recovery Input page to show Controller 1
+  and zero dead zones because XInput-only properties are unavailable.
+- Standardized development, recovery, staged, and installed input profiles on
+  automatic controller selection, 25% movement and look dead zones, 85%
+  movement and look sensitivity, inverted controller look, mouse sensitivity
+  3, raw mouse input enabled, mouse smoothing disabled, and non-inverted mouse
+  look. Controller slider reset actions and native no-INI fallbacks now use the
+  same values.
+- PowerShell parser validation passed for all four changed profile scripts,
+  ModernMenu compiled with zero warnings, and XInputWinDrv rebuilt after its
+  source patch was restaged successfully. The installed and development
+  profiles passed focused value checks. Rebuilt the offline installer and
+  verified both staged profile trees; the resulting installer SHA-256 is
+  `7246BF13F72483CA313C0B4E8805DC5215F95C62A509A6100FF111A19482BC8A`.
+  Rebuilt the developer bundle with the current permissions record; its
+  SHA-256 is
+  `1A68FF3CF708DBC0A60F244DAD1A525A8A6F107A7689D51BD4B31FFB3D70B107`.
+  Interactive controller validation was not run.
+
 ## 2026-09-03
 
 ### Refreshed the public documentation

@@ -33,7 +33,7 @@ standard gamepad mappings.
 | Feature | Description |
 | --- | --- |
 | Automatic selection | Selects an available SDL-mapped controller automatically. |
-| Adjustable dead zones | Provides independent 0-50% sliders for the left and right sticks, with 24% and 27% defaults. |
+| Adjustable dead zones | Provides independent 0-50% sliders for the left and right sticks, both with 25% defaults. |
 | Adjustable sensitivity | Provides separate movement and look sensitivity controls with live percentage values and reset actions. |
 | Frame-rate-independent gameplay | Keeps Xbox movement and look response consistent in validated tests at about 240 FPS and above 1000 FPS. |
 | Menu navigation | Supports menu toggle, focus navigation, activation, return, tab switching, scrolling, combo boxes, slider reset, dialogs, and binding capture. |

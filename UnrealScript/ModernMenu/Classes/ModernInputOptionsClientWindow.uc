@@ -303,17 +303,17 @@ function Notify(UWindowDialogControl C, byte E)
 	Super.Notify(C, E);
 	if (E == DE_Click && C == LeftDeadZoneResetButton)
 	{
-		LeftDeadZoneSlider.SetValue(24, True);
+		LeftDeadZoneSlider.SetValue(25, True);
 		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager DeadZoneXYZ True");
-		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager LeftStickDeadZonePercent 24");
+		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager LeftStickDeadZonePercent 25");
 		UpdateSensitivityText();
 		return;
 	}
 	if (E == DE_Click && C == RightDeadZoneResetButton)
 	{
-		RightDeadZoneSlider.SetValue(27, True);
+		RightDeadZoneSlider.SetValue(25, True);
 		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager DeadZoneRUV True");
-		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager RightStickDeadZonePercent 27");
+		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager RightStickDeadZonePercent 25");
 		UpdateSensitivityText();
 		return;
 	}

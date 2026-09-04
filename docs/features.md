@@ -56,7 +56,7 @@ boundary.
 | USB and Bluetooth | Xbox Series and DualShock 4 v2 controllers have been manually validated over both transports without Steam Input or DS4Windows. |
 | Complete standard controls | Maps sticks, D-pad, face and shoulder buttons, triggers, Share or View, Options or Menu, and stick clicks into gameplay and menus. |
 | Safe disconnect handling | Releases held buttons and neutralizes all joystick axes before fallback, preventing stuck movement or fire in validated Xbox Series disconnect tests. |
-| Adjustable stick dead zones | Provides independent 0-50% left- and right-stick sliders with visible percentages and practical 24% and 27% defaults. |
+| Adjustable stick dead zones | Provides independent 0-50% left- and right-stick sliders with visible percentages and 25% defaults. |
 | Adjustable sensitivities | Provides live movement and look sensitivity controls with percentage labels, reset actions, and an 85% installed default. |
 | Independent look inversion | Applies controller look inversion to the right stick without reversing left-stick movement or menu navigation. |
 | Frame-rate-independent axes | Separates raw menu axes from elapsed-time-normalized gameplay axes for consistent control at about 240 FPS and above 1000 FPS. |

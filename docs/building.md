@@ -103,6 +103,10 @@ $env:UE1_GAME_ROOT = 'D:\Games\UnrealGold-227k_15-test'
 
 ## Configure and build
 
+For a destructive start-to-finish rebuild of all development and distribution
+artifacts, follow the [clean full rebuild guide](rebuild-everything.md). The
+commands below describe the individual build stages.
+
 ```powershell
 cmake -S . -B local/build -A x64
 cmake --build local/build --config Release

@@ -127,15 +127,16 @@ suppresses UE1's double-tap dodge detector only while those stick axes are
 active; keyboard double-tap dodge remains available when the stick is centered.
 
 Fresh development and installed profiles explicitly default to automatic
-controller selection, 24% left-stick and 27% right-stick dead zones, movement
+controller selection, 25% left-stick and 25% right-stick dead zones, movement
 and look sensitivity `85`, inverted vertical controller look, raw mouse input, mouse sensitivity
-`3`, mouse smoothing, inverted mouse look, and always-mouselook. Existing user
+`3`, mouse smoothing disabled, non-inverted mouse look, and always-mouselook. Existing user
 profiles are not migrated automatically.
 
-Existing profiles and their `Joy*` bindings are not migrated. To recover from
-a viewport problem, set `ViewportManager=WinDrv.WindowsClient`. The development
-recovery shortcut generates a separate `D3D12Recovery.ini` with this stock
-viewport automatically.
+Existing profiles and their `Joy*` bindings are not migrated. Stock
+`WinDrv.WindowsClient` remains available as a manual input fallback. The
+development recovery shortcut generates a separate `D3D12Recovery.ini` using
+`XInputWinDrv.WindowsClient` and reapplies the validated controller defaults so
+gamepad navigation and the complete Input page remain available.
 
 ## FPS display
 

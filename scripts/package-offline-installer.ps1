@@ -171,6 +171,11 @@ foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'Unreal.ini'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
     $defaultProfileLines = Add-UnrealRevivedIniValue $defaultProfileLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'WinDrv.WindowsClient' 'UseJoystick' 'True'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'WinDrv.WindowsClient' 'ScaleXYZ' '85.000000'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'WinDrv.WindowsClient' 'ScaleRUV' '85.000000'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'WinDrv.WindowsClient' 'InvertVertical' 'True'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'WinDrv.WindowsClient' 'UseRawHIDInput' 'True'
     $defaultProfileLines = Copy-UnrealRevivedIniSection $defaultProfileLines 'WinDrv.WindowsClient' 'XInputWinDrv.WindowsClient'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'ViewportManager' 'XInputWinDrv.WindowsClient'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'UseJoystick' 'True'
@@ -179,8 +184,8 @@ foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'XInputControllerIndex' '-1'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'DeadZoneXYZ' 'True'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'DeadZoneRUV' 'True'
-    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'LeftStickDeadZonePercent' '24.000000'
-    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'RightStickDeadZonePercent' '27.000000'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'LeftStickDeadZonePercent' '25.000000'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'RightStickDeadZonePercent' '25.000000'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'ScaleXYZ' '85.000000'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'ScaleRUV' '85.000000'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'InvertVertical' 'True'
@@ -215,6 +220,9 @@ foreach ($defaultUserProfile in @('System\DefUser.ini', 'System64\DefUser.ini'))
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'JoyR' 'Axis aForward speed=2'
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'JoyU' 'Axis aturn speed=5.9'
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'JoyV' 'Axis aLookUp speed=-3'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.PlayerPawn' 'MouseSensitivity' '3.000000'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.PlayerPawn' 'bMouseSmoothing' 'False'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.PlayerPawn' 'bInvertMouse' 'False'
     Set-Content -LiteralPath $defaultUserProfilePath -Value $defaultUserProfileLines -Encoding ASCII
 }
 

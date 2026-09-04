@@ -30,8 +30,8 @@ diff --git a/Src/WinClient.cpp b/Src/WinClient.cpp
 +	UseXInput = FALSE;
 +	XInputFallbackToWinMM = TRUE;
 +	XInputControllerIndex = INDEX_NONE;
-+	LeftStickDeadZonePercent = 24.0f;
-+	RightStickDeadZonePercent = 27.0f;
++	LeftStickDeadZonePercent = 25.0f;
++	RightStickDeadZonePercent = 25.0f;
 @@ -101,0 +109,3 @@
 +	XInputController = new FXInputController;
 +	XInputController->Initialize();
