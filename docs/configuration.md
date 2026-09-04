@@ -177,6 +177,12 @@ flushes the renderer immediately. Unsupported sample counts automatically fall
 back to the highest lower count supported by the scene color, hit, and depth
 formats.
 
+The inherited **Anisotropic Filtering** row is also available for D3D12 and
+offers **Off**, **2x**, **4x**, **8x**, and **16x**. It updates the renderer's
+scene samplers immediately and persists through `MaxAnisotropy`; Off uses
+ordinary linear filtering. Profiles without an explicit value retain the
+renderer's previous 8x filtering behavior.
+
 **Saturation** displays a percentage instead of the renderer's stored integer:
 0% is grayscale, 100% is normal color, and 200% is the maximum boosted
 setting. Reset restores 100%.
@@ -300,6 +306,7 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | `GrayFormula` | `1` | Grayscale conversion formula. |
 | `LightMode` | `Normal` | `Normal`, `OneXBlending`, or `BrighterActors`. |
 | `LODBias` | `0.0` | Texture level-of-detail bias. |
+| `MaxAnisotropy` | `8` | Anisotropic filtering level; `0` disables it and the Video menu offers `2`, `4`, `8`, or `16`. |
 | `Hdr` | `False` | Enable HDR output where supported. |
 | `HdrScale` | `128` | HDR intensity scale. |
 | `Bloom` | `False` | Enable bloom; synchronized by the Bloom Amount slider. |
@@ -342,6 +349,7 @@ or preventing the player from changing them later:
 | Brightness | `0.550000` (110%) |
 | Contrast | `128` (100%) |
 | Saturation | `280` (120%) |
+| Anisotropic filtering | `8x` |
 | Bloom | Enabled |
 | Bloom amount | `165` (65%) |
 | FPS statistics | Disabled |

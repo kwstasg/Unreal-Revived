@@ -6,6 +6,18 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-04
 
+### Fixed D3D12 anisotropic filtering preferences
+
+- Registered the renderer's `MaxAnisotropy` config property so the inherited
+  Video Preferences control offers Off, 2x, 4x, 8x, and 16x instead of showing
+  the setting as unavailable.
+- Replaced the fixed 8x sampler state with the selected, clamped value, using
+  linear filtering for Off and rebuilding cached samplers when the setting
+  changes. Existing profiles without the property retain the former 8x default.
+- Added focused runtime cases for Off and 16x plus requested/effective setting
+  validation. The Release renderer build and deployment succeeded, and the
+  complete automated D3D12 settings suite passed, including both new cases.
+
 ### Consolidated the clean full-rebuild workflow
 
 - Added one destructive, step-by-step guide covering prerequisite checks,

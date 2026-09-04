@@ -403,6 +403,9 @@ target maintains those copies for the disposable runtime.
   do not become bloom emitters while highlights in the 3D background still do.
 - With D3D12Drv active, confirm **Antialiasing** offers Off, 2x, 4x, and 8x and
   retains the selected mode after reopening Video preferences.
+- Confirm **Anisotropic Filtering** is enabled for D3D12, offers Off, 2x, 4x,
+  8x, and 16x, changes texture filtering immediately, and retains the selected
+  level after reopening Video preferences and restarting the game.
 - Enable it and confirm the compact statistics appear during play without
   changing flyby interpolation or starting TimeDemo.
 - Disable it and confirm the overlay is removed.

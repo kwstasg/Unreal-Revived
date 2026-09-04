@@ -244,6 +244,8 @@ $settingsCases = @(
     New-TestCase -Name 'setting-msaa2' -Map 'NyLeve' -Settings @{ AntialiasMode = 'MSAA_2x' }
     New-TestCase -Name 'setting-msaa4' -Map 'NyLeve' -Settings @{ AntialiasMode = 'MSAA_4x' }
     New-TestCase -Name 'setting-msaa8' -Map 'NyLeve' -Settings @{ AntialiasMode = 'MSAA_8x' }
+    New-TestCase -Name 'setting-anisotropy-off' -Map 'NyLeve' -Settings @{ MaxAnisotropy = '0' }
+    New-TestCase -Name 'setting-anisotropy-16x' -Map 'NyLeve' -Settings @{ MaxAnisotropy = '16' }
     New-TestCase -Name 'setting-no-precache' -Map 'DmDeck16' -Settings @{ UsePrecache = 'False' }
     New-TestCase -Name 'setting-vsync' -Map 'NyLeve' -Settings @{ UseVSync = 'True' }
     New-TestCase -Name 'setting-one-x-lighting' -Map 'DmDeck16' -Settings @{ LightMode = 'OneXBlending' }
@@ -408,6 +410,12 @@ try {
         }
         if (($case.Settings.ContainsKey('AntialiasMode') -or $case.Name -match '^display-(2560x1440|3840x2160)') -and $logText -notmatch 'requested MSAA \d+x, effective MSAA \d+x') {
             throw "$($case.Name) did not log requested and effective MSAA."
+        }
+        if ($case.Settings.ContainsKey('MaxAnisotropy')) {
+            $expectedAnisotropy = [Math]::Min([Math]::Max([int]$case.Settings.MaxAnisotropy, 0), 16)
+            if ($logText -notmatch "requested anisotropy $($case.Settings.MaxAnisotropy), effective anisotropy $expectedAnisotropy") {
+                throw "$($case.Name) did not apply the requested anisotropic-filtering level."
+            }
         }
 
         $performanceMatch = $null

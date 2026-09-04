@@ -260,6 +260,7 @@ public:
 		ScenePipelineState LinePipeline[2];
 		ScenePipelineState PointPipeline[2];
 		FLOAT LODBias = 0.0f;
+		INT MaxAnisotropy = 0;
 		int Multisample = 1;
 		SceneVertex* VertexData = nullptr;
 		size_t VertexBase = 0;
@@ -343,6 +344,7 @@ public:
 	BITFIELD Bloom;
 	BYTE BloomAmount;
 	FLOAT LODBias;
+	INT MaxAnisotropy;
 	BYTE AntialiasMode;
 	BYTE GammaMode;
 	BYTE LightMode;

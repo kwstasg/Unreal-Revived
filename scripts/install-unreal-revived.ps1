@@ -126,6 +126,7 @@ $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'D3D12Drv.D3D12Ren
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'D3D12Drv.D3D12RenderDevice' 'BloomAmount' '165'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'D3D12Drv.D3D12RenderDevice' 'Contrast' '128'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'D3D12Drv.D3D12RenderDevice' 'Saturation' '280'
+$defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'D3D12Drv.D3D12RenderDevice' 'MaxAnisotropy' '8'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'D3D12Drv.D3D12RenderDevice' 'UseVSync' 'False'
 $defaultIniLines = Copy-UnrealRevivedIniSection $defaultIniLines 'WinDrv.WindowsClient' 'XInputWinDrv.WindowsClient'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'Engine.Engine' 'ViewportManager' 'XInputWinDrv.WindowsClient'

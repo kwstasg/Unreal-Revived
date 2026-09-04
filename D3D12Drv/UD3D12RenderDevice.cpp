@@ -118,6 +118,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	BloomAmount = 128;
 
 	LODBias = 0.0f;
+	MaxAnisotropy = 8;
 	LightMode = 0;
 
 	GammaCorrectScreenshots = 1;
@@ -147,6 +148,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	new(GetClass(), TEXT("Bloom"), RF_Public) UBoolProperty(CPP_PROPERTY(Bloom), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("BloomAmount"), RF_Public) UByteProperty(CPP_PROPERTY(BloomAmount), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("LODBias"), RF_Public) UFloatProperty(CPP_PROPERTY(LODBias), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("MaxAnisotropy"), RF_Public) UIntProperty(CPP_PROPERTY(MaxAnisotropy), TEXT("Display"), CPF_Config);
 
 	UEnum* AntialiasModes = new(GetClass(), TEXT("AntialiasModes"))UEnum(nullptr);
 	new(AntialiasModes->Names)FName(TEXT("Off"));
@@ -1445,10 +1447,14 @@ void UD3D12RenderDevice::CreateScenePass()
 
 void UD3D12RenderDevice::CreateSceneSamplers()
 {
+	const INT activeMaxAnisotropy = Clamp<INT>(MaxAnisotropy, 0, 16);
+	debugf(TEXT("D3D12Drv: requested anisotropy %d, effective anisotropy %d"), MaxAnisotropy, activeMaxAnisotropy);
+
 	for (int i = 0; i < 16; i++)
 	{
 		int dummyMipmapCount = (i >> 2) & 3;
-		D3D12_FILTER filter = (i & 1) ? D3D12_FILTER_MIN_MAG_MIP_POINT : D3D12_FILTER_ANISOTROPIC;
+		D3D12_FILTER filter = (i & 1) ? D3D12_FILTER_MIN_MAG_MIP_POINT
+			: (activeMaxAnisotropy > 1 ? D3D12_FILTER_ANISOTROPIC : D3D12_FILTER_MIN_MAG_MIP_LINEAR);
 		D3D12_TEXTURE_ADDRESS_MODE addressmode = (i & 2) ? D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE : D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 		D3D12_SAMPLER_DESC samplerDesc = {};
 		samplerDesc.MinLOD = dummyMipmapCount;
@@ -1458,7 +1464,7 @@ void UD3D12RenderDevice::CreateSceneSamplers()
 		samplerDesc.BorderColor[1] = 1.0f;
 		samplerDesc.BorderColor[2] = 1.0f;
 		samplerDesc.BorderColor[3] = 1.0f;
-		samplerDesc.MaxAnisotropy = 8.0f;
+		samplerDesc.MaxAnisotropy = Max<INT>(activeMaxAnisotropy, 1);
 		samplerDesc.MipLODBias = (float)dummyMipmapCount + LODBias;
 		samplerDesc.Filter = filter;
 		samplerDesc.AddressU = addressmode;
@@ -1468,6 +1474,7 @@ void UD3D12RenderDevice::CreateSceneSamplers()
 	}
 
 	ScenePass.LODBias = LODBias;
+	ScenePass.MaxAnisotropy = activeMaxAnisotropy;
 }
 
 void UD3D12RenderDevice::ReleaseSceneSamplers()
@@ -1486,7 +1493,7 @@ void UD3D12RenderDevice::UpdateScenePass()
 		CreateScenePass();
 	}
 
-	if (ScenePass.LODBias != LODBias)
+	if (ScenePass.LODBias != LODBias || ScenePass.MaxAnisotropy != Clamp<INT>(MaxAnisotropy, 0, 16))
 	{
 		ReleaseSceneSamplers();
 		CreateSceneSamplers();
