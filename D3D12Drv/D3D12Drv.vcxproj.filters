@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="D3D12Drv.cpp" />
     <ClCompile Include="FileResource.cpp" />
-    <ClCompile Include="halffloat.cpp" />
     <ClCompile Include="mat.cpp" />
     <ClCompile Include="Precomp.cpp" />
     <ClCompile Include="TextureManager.cpp" />

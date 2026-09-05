@@ -4,8 +4,16 @@ Run these commands from the Unreal Revived repository root in PowerShell.
 Generated runtimes, builds, logs, downloads, and packages stay under the
 ignored `local/` directory.
 
-For the destructive start-to-finish workflow that rebuilds every development
-and distribution artifact, use the [clean full rebuild guide](rebuild-everything.md).
+For a quiet, non-destructive rebuild of every development and distribution
+artifact, run:
+
+```powershell
+powershell -NoProfile -File scripts/rebuild-all.ps1
+```
+
+Detailed output is retained under `local/logs/rebuild/`. Use the
+[clean full rebuild guide](rebuild-everything.md) when uncommitted source must
+also be discarded.
 
 ## Requirements
 
@@ -142,9 +150,13 @@ powershell -NoProfile -File scripts/audit-game-content.ps1
 
 ## Clean full rebuild
 
+Use `scripts/rebuild-all.ps1` to recreate `local/build/`, compile and deploy
+every component, build both distribution packages, and verify the outputs
+without changing source files. Use `-ShowOutput` when live command output is
+needed in addition to the retained log.
+
 Use the [clean full rebuild guide](rebuild-everything.md) to discard
-uncommitted source changes, recreate `local/build/`, compile and deploy every
-component, build both distribution packages, and verify the outputs.
+uncommitted source changes before running the same build stages.
 
 To recreate the entire disposable runtime instead, rerun bootstrap with
 `-Force`. This replaces the marked `local/game` development copy, so preserve

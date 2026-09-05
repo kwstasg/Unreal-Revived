@@ -2,7 +2,6 @@ set(D3D12DRV_SOURCES
     D3D12Drv.cpp
     D3D12MemAlloc/D3D12MemAlloc.cpp
     FileResource.cpp
-    halffloat.cpp
     mat.cpp
     Precomp.cpp
     TextureManager.cpp

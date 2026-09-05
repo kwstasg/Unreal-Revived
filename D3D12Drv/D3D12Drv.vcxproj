@@ -284,7 +284,6 @@
     <ClCompile Include="D3D12Drv.cpp" />
     <ClCompile Include="D3D12MemAlloc\D3D12MemAlloc.cpp" />
     <ClCompile Include="FileResource.cpp" />
-    <ClCompile Include="halffloat.cpp" />
     <ClCompile Include="mat.cpp" />
     <ClCompile Include="Precomp.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -51,7 +51,6 @@ if (-not ($iniLines -match '^bShowGameBehindMenus=')) {
 }
 $iniLines = Set-UnrealRevivedVideoDefaults $iniLines
 $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
-$iniLines = Remove-UnrealRevivedIniValue $iniLines 'Engine.GameEngine' 'ServerActors' 'ModernMenu.ModernIntroTweak'
 Set-Content -LiteralPath $iniPath -Value $iniLines -Encoding ASCII
 
 if (Test-Path -LiteralPath $userIniPath -PathType Leaf) {

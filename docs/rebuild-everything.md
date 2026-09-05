@@ -4,6 +4,26 @@ Use this guide to discard all uncommitted source changes and rebuild every
 Unreal Revived development and distribution artifact. Run all commands from
 the repository root in PowerShell.
 
+## Quiet non-destructive rebuild
+
+When the source tree already contains the code that should be built, use the
+wrapper instead of the destructive cleanup steps below:
+
+```powershell
+powershell -NoProfile -File scripts/rebuild-all.ps1
+```
+
+The wrapper verifies prerequisites, removes only the ignored `local/build/`
+tree, runs the same configure, build, deployment, packaging, artifact, and
+repository checks documented below, and leaves tracked and untracked source
+files untouched. Detailed command output is written to a timestamped
+`local/logs/rebuild/<timestamp>/rebuild.log`; the console shows only stage
+status and timing. Add `-ShowOutput` to stream the full output while retaining
+the log.
+
+Use the destructive procedure below only when source changes must also be
+discarded.
+
 > [!WARNING]
 > The cleanup commands permanently delete tracked edits and untracked files.
 > They preserve ignored inputs under `local/`, except for `local/build/`, which

@@ -4,6 +4,39 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-09-05
+
+### Removed verified dead renderer and migration code
+
+- Removed the unreferenced table-based half-float conversion implementation
+  and reverse float conversion helpers while retaining the active inline
+  half-to-float decoder used by texture upload.
+- Removed the unused UTF-16-to-UTF-8 helper and the obsolete recurring cleanup
+  for the retired `ModernMenu.ModernIntroTweak` server actor. No remaining
+  source, project, script, or current generated-profile references were found.
+- The focused Release `D3D12Drv` target rebuilt and linked successfully, and
+  the updated ModernMenu build script passed PowerShell parser validation.
+  A subsequent clean full rebuild completed through the new non-destructive
+  wrapper, including all deployments, the offline installer, and developer
+  bundle. All 41 automated D3D12 runtime cases passed, followed by all 18
+  supported-renderer cases across D3D12, OpenGL, and XOpenGL. Evidence is under
+  `local/logs/automated-20260905-152536/` and
+  `local/logs/supported-renderers-20260905-153128/`.
+
+### Added quiet full-rebuild orchestration
+
+- Added a single non-destructive command that recreates only the ignored CMake
+  build tree, compiles and deploys all development components, builds both
+  distribution packages, verifies the expected artifacts, and runs the
+  repository guard without resetting or cleaning source files.
+- Redirected verbose command output to timestamped logs under
+  `local/logs/rebuild/`, with an opt-in live-output mode and concise stage
+  timing in the default console view.
+- PowerShell parser validation passed, and the logging parameters were checked
+  against the active Windows PowerShell 5.1 command surface. The underlying
+  rebuild stages had completed successfully immediately before adding the
+  wrapper; the wrapper itself was not used to repeat that expensive rebuild.
+
 ## 2026-09-04
 
 ### Standardized the preferred Video settings as global defaults
