@@ -353,11 +353,11 @@ UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client
 	NormalizeStick(State.RightX, State.RightY,
 		Client->DeadZoneRUV ? RightDeadZone : 0, RightX, RightY);
 
-	Viewport->CauseInputEvent(IK_JoyX, IST_Axis, Client->ScaleXYZ * LeftX);
-	Viewport->CauseInputEvent(IK_JoyY, IST_Axis, Client->ScaleXYZ * LeftY);
-	Viewport->CauseInputEvent(IK_JoyZ, IST_Axis, Client->ScaleXYZ * LeftX * StickFrameScale);
-	Viewport->CauseInputEvent(IK_JoyR, IST_Axis, Client->ScaleXYZ * LeftY * StickFrameScale);
-	Viewport->CauseInputEvent(IK_JoyU, IST_Axis, Client->ScaleRUV * RightX * StickFrameScale);
-	Viewport->CauseInputEvent(IK_JoyV, IST_Axis, Client->ScaleRUV * RightY * StickFrameScale * (Client->InvertVertical ? -1.0f : 1.0f));
+	Viewport->CauseInputEvent(IK_JoyX, IST_Axis, Client->ScaleXYZ * LeftX * std::fabs(LeftX) * StickFrameScale);
+	Viewport->CauseInputEvent(IK_JoyY, IST_Axis, Client->ScaleXYZ * LeftY * std::fabs(LeftY) * StickFrameScale);
+	Viewport->CauseInputEvent(IK_JoyZ, IST_Axis, Client->ScaleXYZ * LeftX);
+	Viewport->CauseInputEvent(IK_JoyR, IST_Axis, Client->ScaleXYZ * LeftY);
+	Viewport->CauseInputEvent(IK_JoyU, IST_Axis, Client->ScaleRUV * RightX * std::fabs(RightX) * StickFrameScale);
+	Viewport->CauseInputEvent(IK_JoyV, IST_Axis, Client->ScaleRUV * RightY * std::fabs(RightY) * StickFrameScale * (Client->InvertVertical ? -1.0f : 1.0f));
 	return TRUE;
 }

@@ -82,8 +82,8 @@ A/B/X/Y.
 
 | Control | Unreal input | Action |
 | --- | --- | --- |
-| Left stick | `JoyX`, `JoyY` | Menu navigation only |
-| Left stick | `JoyZ`, `JoyR` | Strafe and move during gameplay |
+| Left stick | `JoyX`, `JoyY` | Strafe and move during gameplay |
+| Left stick | `JoyZ`, `JoyR` | Menu navigation only |
 | Right stick | `JoyU`, `JoyV` | Turn and look |
 | A | `Joy1` | Jump |
 | B | `Joy2` | Unbound |
@@ -111,7 +111,11 @@ reserved and cannot be captured. Rumble, controller glyph
 artwork, and simultaneous multi-controller gameplay are not implemented.
 The shared input pipeline uses adjustable radial stick dead zones and independent digital trigger
 thresholds. The Input preferences page exposes 0–50% left- and right-stick
-dead-zone sliders; 0% disables the corresponding compatibility gate.
+dead-zone sliders; 0% disables the corresponding compatibility gate. Movement
+sensitivity and look sensitivity each span 20–300% and independently scale a
+quadratic stick response curve. Both provide finer low- and mid-stick control,
+reach the established natural output at 100% and full deflection, and permit
+lower or higher maximum movement and camera speeds when desired.
 `DeadZoneXYZ`, `DeadZoneRUV`, `LeftStickDeadZonePercent`,
 `RightStickDeadZonePercent`, `ScaleXYZ`, `ScaleRUV`, and `InvertVertical` remain
 configurable in the cloned viewport section. For SDL and native XInput,
@@ -121,14 +125,15 @@ the existing 60 FPS feel as their baseline, so movement and look do not scale
 with frame rate. The offline installer writes these client settings and the
 complete button and stick bindings into both `System` and `System64` default
 profile templates as well as the dedicated Unreal Revived launch profile. Raw
-`JoyX` and `JoyY` samples remain available to the
-menu, while normalized gameplay movement uses `JoyZ` and `JoyR`. ModernConsole
+Raw `JoyZ` and `JoyR` samples remain available to the
+menu, while normalized gameplay movement uses the proven `JoyX` and `JoyY`
+binding path. ModernConsole
 suppresses UE1's double-tap dodge detector only while those stick axes are
 active; keyboard double-tap dodge remains available when the stick is centered.
 
 Fresh development and installed profiles explicitly default to automatic
 controller selection, 25% left-stick and 25% right-stick dead zones, movement
-and look sensitivity `85`, inverted vertical controller look, raw mouse input, mouse sensitivity
+and look sensitivity `100`, inverted vertical controller look, raw mouse input, mouse sensitivity
 `3`, mouse smoothing disabled, non-inverted mouse look, and always-mouselook. Existing user
 profiles are not migrated automatically.
 

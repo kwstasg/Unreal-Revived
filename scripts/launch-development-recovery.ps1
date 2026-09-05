@@ -34,8 +34,8 @@ $recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsC
 $recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'DeadZoneRUV' 'True'
 $recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'LeftStickDeadZonePercent' '25.000000'
 $recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'RightStickDeadZonePercent' '25.000000'
-$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'ScaleXYZ' '85.000000'
-$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'ScaleRUV' '85.000000'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'ScaleXYZ' '100.000000'
+$recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'ScaleRUV' '100.000000'
 $recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'InvertVertical' 'True'
 $recoveryLines = Set-UnrealRevivedIniValue $recoveryLines 'XInputWinDrv.WindowsClient' 'UseRawHIDInput' 'True'
 Set-Content -LiteralPath $recoveryIni -Value $recoveryLines -Encoding ASCII

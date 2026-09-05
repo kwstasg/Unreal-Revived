@@ -186,7 +186,7 @@ function DrawTextLine(Canvas C, string Label, string Value, float LabelWidth, fl
 
 function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)
 {
-	if (Action == IST_Axis && (Key == IK_JoyZ || Key == IK_JoyR))
+	if (Action == IST_Axis && (Key == IK_JoyX || Key == IK_JoyY))
 		UpdateControllerDodgeSuppression(Key, Delta);
 	if (Key == IK_Joy8 && Action == IST_Press)
 	{
@@ -203,7 +203,7 @@ function UpdateControllerDodgeSuppression(EInputKey Key, float Delta)
 	Player = Viewport.Actor;
 	if (Player == None)
 		return;
-	if (Key == IK_JoyZ)
+	if (Key == IK_JoyX)
 		ControllerGameplayX = Delta;
 	else
 		ControllerGameplayY = Delta;
@@ -321,9 +321,9 @@ state UWindow
 			BindingActivationKey = int(Key);
 			return True;
 		}
-		if (Action == IST_Axis && (Key == IK_JoyX || Key == IK_JoyY))
+		if (Action == IST_Axis && (Key == IK_JoyZ || Key == IK_JoyR))
 		{
-			if (Key == IK_JoyX)
+			if (Key == IK_JoyZ)
 				ControllerMenuX = Delta / ControllerMenuScale;
 			else
 				ControllerMenuY = Delta / ControllerMenuScale;

@@ -319,15 +319,15 @@ function Notify(UWindowDialogControl C, byte E)
 	}
 	if (E == DE_Click && C == MovementSensitivityResetButton)
 	{
-		MovementSensitivitySlider.SetValue(85, True);
-		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager ScaleXYZ 85");
+		MovementSensitivitySlider.SetValue(100, True);
+		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager ScaleXYZ 100");
 		UpdateSensitivityText();
 		return;
 	}
 	if (E == DE_Click && C == LookSensitivityResetButton)
 	{
-		LookSensitivitySlider.SetValue(85, True);
-		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager ScaleRUV 85");
+		LookSensitivitySlider.SetValue(100, True);
+		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager ScaleRUV 100");
 		UpdateSensitivityText();
 		return;
 	}

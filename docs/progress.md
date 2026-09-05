@@ -231,7 +231,7 @@ technical guides; use this file for the chronological record.
 
 - Updated movement and look sensitivity sliders to use the Video page's wider
   handles, live updates, inline percentage labels, aligned reset buttons, and
-  controller A reset behavior. Both reset to the installed default of 85.
+  controller A reset behavior. Both now reset to the aligned default of 100.
 - ModernMenu compiled and deployed successfully with 4,906 lines, 554
   statements, and zero warnings.
 
@@ -304,6 +304,20 @@ technical guides; use this file for the chronological record.
 
 ### Stabilized controller UI and frame-rate-independent gameplay
 
+- Aligned movement and look sensitivity to independent 20–300% ranges with
+  100% defaults. The XInput backend applies the same signed quadratic response
+  to both sticks in the engine's expected axis units, providing finer low- and
+  mid-stick control while preserving natural full-deflection output at 100%.
+  Frame-time-normalized movement uses the
+  host-proven `JoyX`/`JoyY` binding path, while unbound raw `JoyZ`/`JoyR`
+  samples drive menu navigation. `XInputWinDrv.dll` built and deployed
+  successfully; ModernMenu compiled 5,936 lines and 671 statements with zero
+  warnings. Both artifacts were deployed to the disposable runtime and the
+  side-by-side installed product with matching SHA-256 hashes; all current
+  launch and recovery profile sections were aligned to 100% sensitivity. The
+  complete offline installer rebuilt successfully with aligned 100% WinDrv and
+  XInput defaults; its 88,311,277-byte executable matched SHA-256
+  `46D21B23BE126F91F3367963BF1788F2EFB43AA5E51D6BAB4BB348F224CE9DC0`.
 - Added exclusive message-box controller routing with immediate default focus,
   a visible gold selection outline, four-direction button cycling, A confirm,
   and B cancel. Physical controller testing confirmed the completed flow.
@@ -312,7 +326,7 @@ technical guides; use this file for the chronological record.
 - Normalized gameplay stick samples by elapsed poll time against the existing
   60 FPS feel. Physical testing confirmed consistent movement and look at about
   240 FPS with VSync and above 1000 FPS uncapped.
-- Separated raw `JoyX`/`JoyY` menu samples from normalized `JoyZ`/`JoyR`
+- Separated raw `JoyZ`/`JoyR` menu samples from normalized `JoyX`/`JoyY`
   gameplay movement. ModernConsole now suppresses dodge only while the analog
   movement stick is active, preserving keyboard double-tap dodge when centered.
   Stick movement/strafe, controller-only dodge suppression, keyboard dodge,
