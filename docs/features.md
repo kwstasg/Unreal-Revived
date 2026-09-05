@@ -85,12 +85,12 @@ boundary.
 | Fully offline installer | Packages the pinned OldUnreal 227k_15 host and Unreal Revived components so installation does not require downloading the patch at install time. |
 | No original game files included | Unreal Revived provides no original Unreal Gold maps, textures, music, sounds, or other game assets. Players must supply them from their own installation. |
 | Side-by-side installation | Creates a separate Unreal Revived directory under `C:\Games\Unreal Revived` by default and never writes to the selected original game directory. |
-| Source discovery and selection | Detects Steam installations to prefill the source while allowing the player to choose another valid original-game directory. |
+| Source acquisition and selection | Detects `C:\Unreal` and Steam installations, links to OldUnreal's official full-game installer when no source exists, supports detection after it finishes, and allows any valid original-game directory. |
 | Filtered original-game copy | Copies required original assets while excluding historical installers, copied state, and unsupported legacy renderer and audio binaries. |
 | No unnecessary elevation | Installs without requesting administrator rights when the selected destination does not require them. |
 | First-run defaults | Starts with Direct3D 12, XInputWinDrv, ALAudio, ModernMenu, validated display settings, and practical keyboard, mouse, and controller bindings. |
 | Repair and update | Offers repair or update when Setup finds an existing Unreal Revived installation. |
-| Interactive uninstall | Offers uninstall through the native setup flow and transitions into standard uninstall progress in the same window. |
+| Interactive uninstall | Removes only Unreal Revived, explicitly leaves the source Unreal Gold installation and OldUnreal downloads unchanged, and transitions into standard uninstall progress in the same window. |
 | Save preservation policy | Configures interactive and silent uninstall to retain saves by default and backs up saves and canonical profiles before removal. Complete end-to-end validation of the revised interactive uninstall flow remains pending. |
 | Reinstall protection | Accepts a retained save-only destination and prevents original-game saves from overwriting those retained files. |
 | Installed shortcuts | Creates Start Menu and desktop shortcuts that launch the canonical installed profiles without development arguments. |

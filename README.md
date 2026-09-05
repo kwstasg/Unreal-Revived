@@ -14,11 +14,48 @@ installation workflow on top of that foundation.
 
 **Unreal Revived does not provide any original Unreal Gold game files.** It
 does not include the original maps, textures, music, sounds, or other game
-assets, and it cannot be used as a standalone game. To use it, you must supply
-those files from your own existing Unreal Gold installation. You also need a
+assets, and it cannot be used as a standalone game. Setup can use an existing
+installation or guide you to OldUnreal's official full-game installer when no
+source is detected. You also need a
 Windows x64 PC, a Direct3D 12-capable graphics system, and enough free space
 for a separate copy. The installer reads your original files to create an
 independent Unreal Revived installation and never modifies the source game.
+
+## Installation
+
+### Quick start
+
+1. Start Unreal Revived Setup and confirm the detected Unreal Gold source.
+
+2. If no source is detected, use **Install via OldUnreal**, complete OldUnreal Setup, return, and select **Detect Again**.
+
+3. Keep `C:\Games\Unreal Revived` or choose another destination outside the original game folder, then complete Setup.
+
+OldUnreal is available from the
+[official installer page](https://www.oldunreal.com/downloads/unreal/full-game-installers/)
+or the [direct Windows download](https://github.com/OldUnreal/FullGameInstallers/releases/download/windows-game-installers/Unreal_Gold.exe).
+
+The offline installer creates an independent installation under
+`C:\Games\Unreal Revived` by default. It reads the original Unreal Gold files
+from the location selected by the player and does not write to that source
+directory. The bundled, pinned OldUnreal patch and Unreal Revived components
+are then applied only to the new installation. No original Unreal Gold game
+files are included with Unreal Revived; every required original asset is copied
+locally from the player's own installation.
+
+Setup detects Steam installations and the standard `C:\Unreal` location. If
+neither is available, **Install via OldUnreal** opens OldUnreal's official
+full-game installer page. After that installer finishes, **Detect Again** finds
+the new installation; the player can also browse to any folder containing
+`System\Unreal.exe`.
+
+Setup can repair or update an existing Unreal Revived installation. Uninstall
+is configured to keep save games by default and to back up saves and active
+profiles before removal. It removes only Unreal Revived and never removes or
+changes the source Unreal Gold installation or OldUnreal downloads. Direct3D
+12 is the normal renderer; OpenGL and XOpenGL
+remain available as recovery choices. ALAudio with bundled OpenAL Soft is the
+supported audio path.
 
 ## Game features and improvements
 
@@ -38,35 +75,6 @@ independent Unreal Revived installation and never modifies the source game.
 See the [detailed game feature guide](docs/features.md) for the complete
 organized feature list and a description of each improvement.
 
-## The original game, modernized
-
-Unreal Revived is intended for people who want to play both **Unreal** and
-**Return to Na Pali** on a current Windows PC while keeping the original game
-intact. It combines the maintained OldUnreal 227k_15 runtime with a native
-Direct3D 12 renderer, modern display handling, refreshed menus, and normalized
-gamepad support.
-
-The result remains the original Unreal Gold experience: both campaigns,
-multiplayer and dedicated-server support, all bundled languages, saves,
-and standard OpenGL/XOpenGL recovery paths are retained. Unreal Revived changes
-the host, renderer, input, menus, setup, and defaults; it does not replace the
-original maps, music, sounds, or other game assets.
-
-## Safe side-by-side installation
-
-The offline installer creates an independent installation under
-`C:\Games\Unreal Revived` by default. It reads the original Unreal Gold files
-from the location selected by the player and does not write to that source
-directory. The bundled, pinned OldUnreal patch and Unreal Revived components
-are then applied only to the new installation. No original Unreal Gold game
-files are included with Unreal Revived; every required original asset is copied
-locally from the player's own installation.
-
-Setup can repair or update an existing Unreal Revived installation. Uninstall
-is configured to keep save games by default and to back up saves and active
-profiles before removal. Direct3D 12 is the normal renderer; OpenGL and XOpenGL
-remain available as recovery choices. ALAudio with bundled OpenAL Soft is the
-supported audio path.
 
 ## Availability and requirements
 
@@ -77,17 +85,37 @@ from this README; the repository can build it from pinned, verified inputs.
 Players need:
 
 - A Windows x64 PC.
-- An existing Unreal Gold installation containing the original game assets.
+- An existing Unreal Gold installation containing the original game assets,
+  or an internet connection to obtain one through OldUnreal's official installer.
 - A Direct3D 12-capable graphics system for the primary renderer.
 - Enough free space for a separate side-by-side copy of the game.
 
-The installer can use a Steam installation as its source, but Steam is not used
-to launch or manage the new copy afterward. Until a public prebuilt installer
+The installer can use Steam, `C:\Unreal`, or another selected installation as
+its source, but that source is not used to launch or manage the new copy
+afterward. Until a public prebuilt installer
 is published, the repository workflow below is intended for developers and
 technically experienced testers. See [current validation
 status](docs/current-state.md) for the precise supported boundary.
 
 ## For developers
+
+### Developer quick start
+
+1. Install Unreal Gold through OldUnreal if no existing installation is available.
+
+2. Clone the Unreal Revived repository and enter its root directory.
+
+3. Run the developer bootstrap.
+
+```powershell
+git clone https://github.com/kwstasg/Unreal-Revived.git
+Set-Location Unreal-Revived
+powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
+```
+
+Use the [official OldUnreal installer page](https://www.oldunreal.com/downloads/unreal/full-game-installers/)
+or the [direct Windows download](https://github.com/OldUnreal/FullGameInstallers/releases/download/windows-game-installers/Unreal_Gold.exe).
+An existing Steam or other installation is also supported.
 
 ### Project status
 
@@ -102,27 +130,28 @@ tests, and tooling for building a fully offline installer.
 | ModernMenu | Implemented as a separate UnrealScript package |
 | Offline installer | Implemented and built locally with Inno Setup |
 
-### Quick start for development
-
-#### Requirements
+### Development requirements
 
 - Windows x64.
-- Unreal Gold installed through Steam.
+- Unreal Gold installed through OldUnreal's official full-game installer,
+  Steam, or another installation containing `System\Unreal.exe`.
 - winget, or the required development tools already installed.
 - Enough disk space for a full disposable copy of the game, the 227k_15 SDK,
   and build output.
 
-Clone the repository and run the bootstrap from its root:
+Bootstrap checks `C:\Unreal` and registered Steam libraries. If neither contains
+the game, it stops before installing tools and provides the official OldUnreal
+installer URL plus instructions to rerun bootstrap or pass `-OriginalGameRoot`.
+For an installation in another directory, run:
 
 ```powershell
-git clone https://github.com/kwstasg/Unreal-Revived.git
-Set-Location Unreal-Revived
-powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
+powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1 `
+   -OriginalGameRoot 'D:\Games\Unreal Gold'
 ```
 
 The bootstrap performs the complete setup:
 
-1. Detects Unreal Gold across registered Steam libraries.
+1. Detects Unreal Gold under `C:\Unreal` or across registered Steam libraries.
 2. Installs missing CMake, Visual Studio C++ tools, and Inno Setup through
    winget.
 3. Downloads the pinned runtime and SDK from the original OldUnreal release.
@@ -170,6 +199,8 @@ for filenames and `-RuntimeArchive`/`-SdkArchive` examples.
 ### OldUnreal references
 
 - [OldUnreal official website](https://www.oldunreal.com/)
+- [OldUnreal full-game installers](https://www.oldunreal.com/downloads/unreal/full-game-installers/)
+- [Windows Unreal Gold installer](https://github.com/OldUnreal/FullGameInstallers/releases/download/windows-game-installers/Unreal_Gold.exe)
 - [OldUnreal GitHub organization](https://github.com/OldUnreal)
 - [OldUnreal 227 testing repository](https://github.com/OldUnreal/Unreal-testing)
 - [Unreal v227k_15 release](https://github.com/OldUnreal/Unreal-testing/releases/tag/v227k_15)

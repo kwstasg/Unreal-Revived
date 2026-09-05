@@ -6,6 +6,81 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-05
 
+### Preserved established defaults across development rebuilds
+
+- Corrected disposable-runtime generation to write the configured Unreal
+  Revived system profile to both `Default.ini` and the shortcut's
+  `D3D12Test.ini` instead of leaving the fallback template at stock OldUnreal
+  values.
+- Aligned development menu wiring, network values, and HUD defaults with the
+  installed profile path, including the game-behind-menus preference.
+- Forced a fresh bootstrap with in-game tests skipped. The generated system
+  profiles were byte-identical, required user defaults were present in
+  `DefUser.ini`, ModernMenu compiled with zero warnings, and no Unreal process
+  remained running.
+- Rebuilt and checksum-verified the 88,314,841-byte offline installer with
+  SHA-256 `A767DF77789F1834FEE9FD5CE3CD1F5E82F5042497DD87B0315FCBCC65991DC8`
+  and the 150,277,515-byte developer bundle with SHA-256
+  `74AA224094F09EB532FE944281C1F216D831B26F1CF5212DA5F90A60ED3F10F7`.
+
+### Validated bootstrap from an isolated clean clone
+
+- Created an isolated clone with no inherited `local/downloads`, runtime, SDK,
+  build, or package state, then applied the exact current tracked source diff.
+- Installed Unreal Gold through the official signed OldUnreal Windows full-game
+  installer and ran `scripts/bootstrap-dev-environment.ps1` with no arguments.
+  Bootstrap automatically discovered `C:\Unreal`, downloaded both pinned
+  OldUnreal archives into the clone, and created the runtime, SDK, and CMake
+  build tree without an explicit source override or reused download cache.
+- Built and deployed D3D12Drv and XInputWinDrv, compiled ModernMenu with zero
+  warnings, and passed all six default content smoke cases. Evidence is under
+  `local/clean-clone-validation/local/logs/automated-20260905-182719/`.
+- Built the clean-clone offline installer at 88,310,390 bytes with SHA-256
+  `9C1130C6F7CD29A190AD4302B5239866B9FB8B8376DBDBD6AFAAC34C78405E74`
+  and the 150,277,515-byte developer bundle with SHA-256
+  `1B1B82AFDAD846F4C8756BD9022EE51B6BE85B17D92705F9371FA64773FE2EF0`.
+  Both checksum sidecars matched, and no Unreal process remained afterward.
+
+### Validated a clean developer bootstrap and distribution rebuild
+
+- Removed only the marked disposable runtime and ignored SDK, build, and
+  package outputs while preserving cached verified archives and all source
+  changes, then exercised bootstrap as a new developer deployment.
+- Confirmed the new missing-source guard stops before toolchain installation
+  and provides the OldUnreal installer URL. The previously detected Steam
+  source was no longer complete, so the supported `-OriginalGameRoot` override
+  was validated with an unmarked preserved full-content source.
+- Fixed fresh-bootstrap smoke tests by generating `D3D12TestUser.ini` with the
+  trailing blank line OldUnreal otherwise writes on its first launch. The
+  original run completed all six content cases before detecting that two-byte
+  normalization; a focused rerun passed, followed by a second from-empty
+  bootstrap that rebuilt the runtime, SDK, native modules, and ModernMenu with
+  zero UnrealScript warnings and passed all six content cases. Final evidence
+  is under `local/logs/automated-20260905-181149/`.
+- Rebuilt and checksum-verified the offline installer at 88,309,733 bytes with
+  SHA-256 `F26229B80173BD47A66E11C672A85334B36B587C30E6E62CCC3D21A02BE573BC`.
+  Rebuilt the 150,277,515-byte developer bundle with SHA-256
+  `DBD0918ABB32DE1FC7AE69F09CF7E82F1CD8FB56074B608CF5AA4CCC225E4067`.
+
+### Added guided original-game acquisition
+
+- Extended the offline installer's source page to detect both `C:\Unreal` and
+  registered Steam libraries, open OldUnreal's official full-game installer
+  page when no source exists, and detect the new installation after the player
+  returns without restarting Unreal Revived Setup.
+- Clarified in the interactive uninstaller that removal affects only Unreal
+  Revived; the source Unreal Gold installation and OldUnreal downloads remain
+  unchanged. Save retention remains enabled by default.
+- Compiled the complete Inno Setup package successfully with Inno Setup 6.7.3.
+  The guided external-installer interaction has not yet been manually exercised.
+- Aligned the developer bootstrap with the player installer: automatic source
+  discovery now checks `C:\Unreal` before Steam, and a missing source reports
+  the official OldUnreal installer URL plus explicit rerun and override guidance
+  before developer-tool installation begins.
+- Added separate player and developer README walkthroughs with links to the
+  official OldUnreal full-game installer page and direct Windows installer,
+  presented as three-step quick starts at the beginning of each audience section.
+
 ### Removed verified dead renderer and migration code
 
 - Removed the unreferenced table-based half-float conversion implementation

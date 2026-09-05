@@ -29,15 +29,15 @@ if (-not $GameRoot) { $GameRoot = Join-Path $repositoryRoot 'local\game' }
 if (-not $SdkRoot) { $SdkRoot = Join-Path $repositoryRoot 'local\sdk\227k_15' }
 if (-not $BuildRoot) { $BuildRoot = Join-Path $repositoryRoot 'local\build' }
 
+if (-not $OriginalGameRoot) {
+    $OriginalGameRoot = & (Join-Path $PSScriptRoot 'find-unreal-gold.ps1')
+}
+
 if (-not $SkipToolchainInstall) {
     & (Join-Path $PSScriptRoot 'get-unreal-revived-prerequisites.ps1')
 }
 elseif (-not (Get-Command cmake.exe -ErrorAction SilentlyContinue)) {
     throw 'CMake is unavailable and -SkipToolchainInstall was specified.'
-}
-
-if (-not $OriginalGameRoot) {
-    $OriginalGameRoot = & (Join-Path $PSScriptRoot 'find-unreal-gold.ps1')
 }
 
 $runtimeArguments = @{

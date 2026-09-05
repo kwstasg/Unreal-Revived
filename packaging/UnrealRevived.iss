@@ -48,9 +48,13 @@ Type: filesandordirs; Name: "{app}"
 [Code]
 const
   UninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{8D6614ED-8854-4D0E-9666-A891EC92713B}_is1';
+  OldUnrealInstallerUrl = 'https://www.oldunreal.com/downloads/unreal/full-game-installers/';
 
 var
   SourcePage: TInputDirWizardPage;
+  SourceHelpLabel: TNewStaticText;
+  GetOriginalGameButton: TNewButton;
+  DetectOriginalGameButton: TNewButton;
   KeepSaveGames: Boolean;
   UninstallOptionsAccepted: Boolean;
   PreservedSaveDirectory: String;
@@ -87,16 +91,17 @@ begin
   DescriptionLabel := TNewStaticText.Create(OptionsPanel);
   DescriptionLabel.Parent := OptionsPanel;
   DescriptionLabel.SetBounds(ScaleX(12), ScaleY(12),
-    OptionsPanel.ClientWidth - ScaleX(24), ScaleY(48));
+    OptionsPanel.ClientWidth - ScaleX(24), ScaleY(64));
   DescriptionLabel.AutoSize := False;
   DescriptionLabel.WordWrap := True;
   DescriptionLabel.Caption :=
-    'Choose whether save games remain in the Unreal Revived folder for a ' +
-    'future installation. A Documents backup is created either way.';
+    'This removes Unreal Revived only. Your original Unreal Gold installation ' +
+    'and OldUnreal downloads will not be changed. Choose whether save games ' +
+    'remain for a future installation; a Documents backup is created either way.';
 
   KeepSavesCheck := TNewCheckBox.Create(OptionsPanel);
   KeepSavesCheck.Parent := OptionsPanel;
-  KeepSavesCheck.SetBounds(ScaleX(12), ScaleY(68),
+  KeepSavesCheck.SetBounds(ScaleX(12), ScaleY(84),
     OptionsPanel.ClientWidth - ScaleX(24), ScaleY(20));
   KeepSavesCheck.Caption := 'Keep save games';
   KeepSavesCheck.Checked := True;
@@ -323,6 +328,13 @@ var
   Index: Integer;
 begin
   Result := '';
+  Candidate := 'C:\Unreal';
+  if IsOriginalGameDirectory(Candidate) then
+  begin
+    Result := Candidate;
+    Exit;
+  end;
+
   if not RegQueryStringValue(HKCU, 'Software\Valve\Steam', 'SteamPath',
     SteamPath) then
     Exit;
@@ -352,9 +364,36 @@ begin
   end;
 end;
 
+procedure DetectOriginalGameButtonClick(Sender: TObject);
+var
+  DetectedDirectory: String;
+begin
+  DetectedDirectory := DetectOriginalGameDirectory;
+  if DetectedDirectory <> '' then
+  begin
+    SourcePage.Values[0] := DetectedDirectory;
+    SourceHelpLabel.Caption := 'Unreal Gold detected. You can continue Setup.';
+  end
+  else
+    MsgBox('Unreal Gold was not detected yet. Finish the OldUnreal installer, ' +
+      'then click Detect Again, or browse to the folder containing System\Unreal.exe.',
+      mbInformation, MB_OK);
+end;
+
+procedure GetOriginalGameButtonClick(Sender: TObject);
+var
+  ErrorCode: Integer;
+begin
+  if not ShellExec('open', OldUnrealInstallerUrl, '', '', SW_SHOWNORMAL,
+    ewNoWait, ErrorCode) then
+    MsgBox('Could not open the OldUnreal installer page. Visit:' + #13#10 +
+      OldUnrealInstallerUrl, mbError, MB_OK);
+end;
+
 procedure InitializeWizard;
 var
   DetectedDirectory: String;
+  ButtonWidth: Integer;
 begin
   SourcePage := CreateInputDirPage(wpSelectDir,
     'Original Game', 'Where is your original Unreal Gold installation?',
@@ -364,6 +403,32 @@ begin
   DetectedDirectory := DetectOriginalGameDirectory;
   if DetectedDirectory <> '' then
     SourcePage.Values[0] := DetectedDirectory;
+
+  SourceHelpLabel := TNewStaticText.Create(SourcePage);
+  SourceHelpLabel.Parent := SourcePage.Surface;
+  SourceHelpLabel.SetBounds(0, ScaleY(92), SourcePage.SurfaceWidth,
+    ScaleY(42));
+  SourceHelpLabel.AutoSize := False;
+  SourceHelpLabel.WordWrap := True;
+  if DetectedDirectory <> '' then
+    SourceHelpLabel.Caption := 'Unreal Gold was detected. You can continue Setup.'
+  else
+    SourceHelpLabel.Caption := 'No installation was detected. Install Unreal Gold ' +
+      'using OldUnreal, then return here and detect it again.';
+
+  ButtonWidth := ScaleX(190);
+  GetOriginalGameButton := TNewButton.Create(SourcePage);
+  GetOriginalGameButton.Parent := SourcePage.Surface;
+  GetOriginalGameButton.SetBounds(0, ScaleY(140), ButtonWidth, ScaleY(23));
+  GetOriginalGameButton.Caption := 'Install via OldUnreal...';
+  GetOriginalGameButton.OnClick := @GetOriginalGameButtonClick;
+
+  DetectOriginalGameButton := TNewButton.Create(SourcePage);
+  DetectOriginalGameButton.Parent := SourcePage.Surface;
+  DetectOriginalGameButton.SetBounds(ButtonWidth + ScaleX(8), ScaleY(140),
+    ScaleX(100), ScaleY(23));
+  DetectOriginalGameButton.Caption := 'Detect Again';
+  DetectOriginalGameButton.OnClick := @DetectOriginalGameButtonClick;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;

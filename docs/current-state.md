@@ -23,12 +23,16 @@ history.
 - Runtime model: ignored disposable installation under `local/game/`.
 - SDK model: ignored 227k_15 SDK under `local/sdk/227k_15/`.
 - Development setup: one-command bootstrap using the original pinned OldUnreal
-  runtime and SDK downloads plus the locally installed Steam game.
-- Original Steam installation: recovery source only; never modify it.
+  runtime and SDK downloads plus a detected `C:\Unreal` or Steam installation,
+  or an explicitly selected original-game directory. Missing-source errors link
+  developers to OldUnreal's official full-game installer.
+- Original Unreal Gold installation: recovery source only; never modify it.
 - Distribution model: the fully offline Unreal Revived Inno Setup executable
   creates a side-by-side installation under `C:\Games\Unreal Revived` by
   default from the user's selected original-game directory and the bundled
-  pinned 227k_15 patch. Steam discovery prefills but does not lock that source.
+  pinned 227k_15 patch. Setup detects `C:\Unreal` and Steam, links to
+  OldUnreal's official full-game installer when neither exists, and can detect
+  the resulting installation without restarting Setup.
 - Packaging authorization: redistribution, mirroring, and offline bundling of
   the pinned OldUnreal 227k_15 Windows patch is confirmed in
   [`../PERMISSIONS.md`](../PERMISSIONS.md) and must not be reopened as a blocker.
@@ -65,7 +69,8 @@ development launch profiles, canonical argument-free installed startup, Start
 Menu shortcut, and uninstall
 backup are implemented. Interactive uninstall keeps saves by default through a
 checked option embedded in the native uninstall window, which transitions into
-progress in place; explicit silent uninstall uses the same default. Rerunning Setup opens that interactive uninstaller for uninstall,
+progress in place and states that the original source and OldUnreal downloads
+remain untouched; explicit silent uninstall uses the same default. Rerunning Setup opens that interactive uninstaller for uninstall,
 or offers repair/update and cancel. A retained save-only installation directory is accepted on
 reinstall and protected from the original-game copy. Runtime smoke automation exercises representative maps, renderer
 settings, menu state profiles, and display profiles. Retained screenshots cover

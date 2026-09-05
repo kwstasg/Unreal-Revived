@@ -2,6 +2,12 @@ param()
 
 $ErrorActionPreference = 'Stop'
 
+$oldUnrealRoot = 'C:\Unreal'
+if (Test-Path -LiteralPath (Join-Path $oldUnrealRoot 'System\Unreal.exe') -PathType Leaf) {
+    Write-Output ([IO.Path]::GetFullPath($oldUnrealRoot))
+    exit 0
+}
+
 $steamRoots = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($registryPath in @('HKCU:\Software\Valve\Steam', 'HKLM:\SOFTWARE\WOW6432Node\Valve\Steam', 'HKLM:\SOFTWARE\Valve\Steam')) {
     $steam = Get-ItemProperty -LiteralPath $registryPath -ErrorAction SilentlyContinue
@@ -44,4 +50,10 @@ foreach ($steamRoot in $steamRoots) {
     }
 }
 
-throw 'Could not find Unreal Gold in the registered Steam libraries. Pass -OriginalGameRoot explicitly.'
+throw @'
+Could not find an Unreal Gold installation in C:\Unreal or the registered Steam libraries.
+Install Unreal Gold using OldUnreal's official installer:
+https://www.oldunreal.com/downloads/unreal/full-game-installers/
+
+Then rerun bootstrap, or pass -OriginalGameRoot with the folder containing System\Unreal.exe.
+'@

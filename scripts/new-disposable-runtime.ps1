@@ -134,10 +134,18 @@ try {
     }
     $iniLines = Get-Content -LiteralPath $defaultIni
     $iniLines = Remove-UnrealRevivedIniValue $iniLines 'URL' 'EntryMap' 'EntryIII.unr'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'URL' 'LocalMap' 'Unreal.unr?Game=ModernMenu.ModernIntro'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'URL' 'AltLocalMap' 'Unreal.unr?Game=ModernMenu.ModernIntro'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'FirstRun' 'FirstRun' '227'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'GameRenderDevice' 'D3D12Drv.D3D12RenderDevice'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'WindowedRenderDevice' 'D3D12Drv.D3D12RenderDevice'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'Console' 'ModernMenu.ModernConsole'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'D3D12Test.ini'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'D3D12TestUser.ini'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernHUDConfigCW' 'bShowGameBehindMenus' 'True'
+    $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'FullscreenViewportX' '1920'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'FullscreenViewportY' '1080'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'WinDrv.WindowsClient' 'StartupFullscreen' 'True'
@@ -184,6 +192,7 @@ try {
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'InvertVertical' 'True'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'UseRawHIDInput' 'True'
     $iniLines = Set-UnrealRevivedVideoDefaults $iniLines
+    Set-Content -LiteralPath $defaultIni -Value $iniLines -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $destinationRoot 'System64\D3D12Test.ini') -Value $iniLines -Encoding ASCII
     $userIniLines = Get-Content -LiteralPath $defaultUserIni
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F11' 'ToggleFPSStatistics'
@@ -211,6 +220,8 @@ try {
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'JoyR' ''
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'JoyU' 'Axis aturn speed=5.9'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'JoyV' 'Axis aLookUp speed=-3'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'NetSpeed' '50000'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'LanSpeed' '20000'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'MainFOV' '90.000000'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'bNoFlash' 'False'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'bAlwaysMouseLook' 'True'
@@ -222,10 +233,14 @@ try {
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PawnShadow' 'ShadowDetailRes' '1024'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.ObjectShadow' 'OcclusionDistance' '0.000000'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'HudMode' '0'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'Crosshair' '0'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'HudScaler' '1.500000'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'CrosshairScale' '1.500000'
     $userIniLines = Set-UnrealRevivedUserVideoDefaults $userIniLines
     Set-Content -LiteralPath $defaultUserIni -Value $userIniLines -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $destinationRoot 'System64\D3D12TestUser.ini') `
-        -Value $userIniLines -Encoding ASCII
+        -Value @($userIniLines; '') -Encoding ASCII
 
     $marker = [ordered]@{
         schema = 1

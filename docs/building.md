@@ -9,12 +9,16 @@ material and is not the supported build entry point.
 ## Prerequisites
 
 - Windows x64
-- Unreal Gold installed through Steam
+- Unreal Gold installed through OldUnreal's official full-game installer,
+  Steam, or another installation containing `System\Unreal.exe`
 - winget, unless the development tools are already installed
 
 The bootstrap installs Git, CMake, Visual Studio 2022 Build Tools with the C++
-workload, and Inno Setup 6 when they are missing. Original Steam game assets
-are never downloaded or distributed; they are copied into the ignored,
+workload, and Inno Setup 6 when they are missing. If Unreal Gold is not already
+available, install it first from [OldUnreal's official full-game installer
+page](https://www.oldunreal.com/downloads/unreal/full-game-installers/). Original
+game assets are never downloaded by the bootstrap or distributed by Unreal
+Revived; they are copied from the detected installation into the ignored,
 disposable runtime. The authorized OldUnreal host and SDK are supplied by the
 pinned original OldUnreal release downloads. Verified copies are cached under
 `local/downloads/`.
@@ -27,12 +31,16 @@ From a fresh clone:
 powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
 ```
 
-Steam App ID 13250 is discovered across registered Steam libraries. Override
-discovery or use a previously generated local bundle with:
+The standard OldUnreal location `C:\Unreal` is checked first, followed by Steam
+App ID 13250 across registered Steam libraries. When neither is found, the
+bootstrap stops before installing developer tools, with the OldUnreal installer
+URL and instructions to rerun it.
+Override discovery for any other location or use a previously generated local
+bundle with:
 
 ```powershell
 powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1 `
-   -OriginalGameRoot 'D:\SteamLibrary\steamapps\common\Unreal Gold' `
+   -OriginalGameRoot 'D:\Games\Unreal Gold' `
    -BundlePath 'E:\UnrealRevived-DeveloperBundle-227k_15-v1.zip' `
    -SkipDownload
 ```
@@ -285,11 +293,14 @@ bytes, although generated files and source-install differences can change the
 exact installed reduction. Original Steam files are read only and are never
 removed.
 
-The Unreal Revived installer detects Steam App ID 13250 across registered Steam
-libraries and preselects that installation on an **Original Game** page. The
-user can browse to another Unreal Gold installation containing
-`System\Unreal.exe`; the selected source is validated and shown again on the
-Ready page. The installer copies the user-owned game into the default
+The Unreal Revived installer detects the standard `C:\Unreal` location and
+Steam App ID 13250 across registered Steam libraries, then preselects the first
+valid installation on an **Original Game** page. If no source is found,
+**Install via OldUnreal** opens OldUnreal's official full-game installer page;
+after it finishes, **Detect Again** checks the standard location and Steam
+libraries again. The user can always browse to another Unreal Gold installation
+containing `System\Unreal.exe`; the selected source is validated and shown again
+on the Ready page. The installer copies the source game into the default
 side-by-side directory `C:\Games\Unreal Revived`, overlays the bundled 227k_15
 patch, and installs the renderer and menu without requesting administrator
 elevation. Standard Windows permissions allow the current user to create the
@@ -306,7 +317,9 @@ and canonical profiles to a timestamped `Unreal Revived Backup` directory
 under Documents before removing the side-by-side installation. Interactive
 uninstall embeds a default-checked **Keep save games** option in Inno's native
 uninstall window; the same window transitions into removal progress after the
-user confirms. When checked, the `Save` directory is retained under the installation path for a future reinstall.
+user confirms. The dialog explicitly states that uninstall removes only Unreal
+Revived and does not change the source Unreal Gold installation or OldUnreal
+downloads. When checked, the `Save` directory is retained under the installation path for a future reinstall.
 Explicit silent uninstall keeps saves by default. Unchecking the option removes
 the installation copy after the Documents backup is created.
 Reinstall accepts a retained `Save` directory and excludes the original game's

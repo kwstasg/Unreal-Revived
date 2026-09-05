@@ -137,6 +137,12 @@ and look sensitivity `100`, inverted vertical controller look, raw mouse input, 
 `3`, mouse smoothing disabled, non-inverted mouse look, and always-mouselook. Existing user
 profiles are not migrated automatically.
 
+Fresh disposable-runtime generation writes the same Unreal Revived menu,
+renderer, display, input, network, and HUD defaults to `Default.ini` and the
+shortcut's `D3D12Test.ini`. It likewise writes the same user defaults to
+`DefUser.ini` and `D3D12TestUser.ini`, so rebuilding the runtime or using a
+profile fallback does not restore the stock OldUnreal menu settings.
+
 Existing profiles and their `Joy*` bindings are not migrated. Stock
 `WinDrv.WindowsClient` remains available as a manual input fallback. The
 development recovery shortcut generates a separate `D3D12Recovery.ini` using

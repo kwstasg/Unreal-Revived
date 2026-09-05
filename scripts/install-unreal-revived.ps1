@@ -96,6 +96,7 @@ $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'UMenu.UnrealConso
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'Unreal.ini'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
+$defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'ModernMenu.ModernHUDConfigCW' 'bShowGameBehindMenus' 'True'
 $defaultIniLines = Add-UnrealRevivedIniValue $defaultIniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'WinDrv.WindowsClient' 'FullscreenViewportX' '1920'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'WinDrv.WindowsClient' 'FullscreenViewportY' '1080'
