@@ -161,6 +161,7 @@ try {
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernVideoClientWindow' 'bShowFPS' 'False'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernVideoClientWindow' 'SavedContrastPercent' '100'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.LevelInfo' 'bDisableSpeclarLight' 'False'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'AntialiasMode' 'MSAA_4x'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'Bloom' 'True'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'D3D12Drv.D3D12RenderDevice' 'BloomAmount' '165'
@@ -182,6 +183,7 @@ try {
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'ScaleRUV' '85.000000'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'InvertVertical' 'True'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'UseRawHIDInput' 'True'
+    $iniLines = Set-UnrealRevivedVideoDefaults $iniLines
     Set-Content -LiteralPath (Join-Path $destinationRoot 'System64\D3D12Test.ini') -Value $iniLines -Encoding ASCII
     $userIniLines = Get-Content -LiteralPath $defaultUserIni
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F11' 'ToggleFPSStatistics'
@@ -217,9 +219,10 @@ try {
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'bInvertMouse' 'False'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.GameInfo' 'bCastShadow' 'True'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.GameInfo' 'bDecoShadows' 'True'
-    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'True'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PawnShadow' 'ShadowDetailRes' '1024'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.ObjectShadow' 'OcclusionDistance' '0.000000'
+    $userIniLines = Set-UnrealRevivedUserVideoDefaults $userIniLines
     Set-Content -LiteralPath $defaultUserIni -Value $userIniLines -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $destinationRoot 'System64\D3D12TestUser.ini') `
         -Value $userIniLines -Encoding ASCII

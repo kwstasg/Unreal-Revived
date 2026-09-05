@@ -12,6 +12,7 @@ boundary.
 | --- | --- |
 | Native Direct3D 12 renderer | Runs Unreal Gold through `D3D12Drv.D3D12RenderDevice` without using XOpenGL as the primary rendering path. |
 | Corrected visual effects | Correctly displays OldUnreal 227 HD lightmaps, high-precision RGB10A2 textures, and alpha-blended geometry without the corruption found during the renderer port. |
+| Smooth Brute encounters | Uses inexpensive blob shadows instead of UE227's pathological per-object realtime shadow maps and preloads the Brute projectile effect graph before combat. |
 | Multisample antialiasing | Offers Off, 2x, 4x, and 8x MSAA modes with fallback when the requested mode is unavailable. |
 | Bloom | Exposes the renderer's bloom effect through the Video preferences and keeps menu rendering isolated from bloom state. |
 | Live image controls | Brightness, contrast, saturation, and related Video settings update the rendered scene and persist through the normal profile. |

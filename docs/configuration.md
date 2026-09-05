@@ -163,6 +163,16 @@ controls immediately update each other and remain synchronized across restarts.
 Installed and disposable runtime generation also writes this binding to
 `DefUser.ini` for newly derived user profiles.
 
+`ModernConsole` also keeps the stock Brute projectile's smoke, explosion,
+child-smoke, and decal classes in the startup asset graph. These dynamically
+spawned effects would otherwise first become resident during combat. Unreal
+Revived also leaves actor shadows enabled but selects the engine's inexpensive
+blob-shadow path. UE227's realtime silhouette path regenerates and uploads many
+unique shadow maps while projectiles and decorations are active, causing the
+same severe encounter stalls on D3D12, OpenGL, and XOpenGL. Projectile visuals,
+sounds, dynamic lights, decals, physics, AI, damage, and spawn rates remain
+unchanged.
+
 **Display Mode** replaces the separate fullscreen and borderless checkboxes.
 It offers **Fullscreen**, **Borderless**, and **Windowed** when supported, and
 uses the host's live `GetScreenMode` and `SetScreenMode` commands. The selected
@@ -213,9 +223,9 @@ live changes do not require flushing renderer resources. The Video sliders use
 mouse updates its displayed value and setting continuously instead of waiting
 for the handle to be released. Every Video slider has a compact reset button
 fitted inside its
-original row width. Reset restores Brightness to `0.5`, GUI override to enabled
+original row width. Reset restores Brightness to `0.6`, GUI override to enabled
 with Scaling at `1.5x`, Lightmap LOD to `8`, Contrast to `128`, Saturation to
-`255`, and Bloom Amount to `128`, applying and saving
+`281`, and Bloom Amount to `154`, applying and saving
 the result immediately. The buttons match combo-box arrow positioning and are
 intentionally blank because the active skins provide no reset icon.
 
@@ -292,9 +302,9 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 
 | Setting | Default | Values or purpose |
 | --- | ---: | --- |
-| `UseVSync` | `True` | Synchronize presentation to the display. |
+| `UseVSync` | `False` | Synchronize presentation to the display. |
 | `UsePrecache` | `True` | Precache renderer resources. |
-| `AntialiasMode` | `Off` | `Off`, `MSAA_2x`, `MSAA_4x`, or `MSAA_8x`. |
+| `AntialiasMode` | `MSAA_4x` | `Off`, `MSAA_2x`, `MSAA_4x`, or `MSAA_8x`. |
 | `GammaMode` | `D3D9` | `D3D9` or `XOpenGL` response. |
 | `GammaOffset` | `0.0` | Global gamma offset. |
 | `GammaOffsetRed` | `0.0` | Red-channel gamma offset. |
@@ -302,15 +312,15 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | `GammaOffsetBlue` | `0.0` | Blue-channel gamma offset. |
 | `LinearBrightness` | `128` | Linear brightness control. |
 | `Contrast` | `128` | Contrast control. |
-| `Saturation` | `255` | Saturation control. |
+| `Saturation` | `281` | Saturation control (120% in Video Preferences). |
 | `GrayFormula` | `1` | Grayscale conversion formula. |
 | `LightMode` | `Normal` | `Normal`, `OneXBlending`, or `BrighterActors`. |
 | `LODBias` | `0.0` | Texture level-of-detail bias. |
-| `MaxAnisotropy` | `8` | Anisotropic filtering level; `0` disables it and the Video menu offers `2`, `4`, `8`, or `16`. |
+| `MaxAnisotropy` | `4` | Anisotropic filtering level; `0` disables it and the Video menu offers `2`, `4`, `8`, or `16`. |
 | `Hdr` | `False` | Enable HDR output where supported. |
 | `HdrScale` | `128` | HDR intensity scale. |
-| `Bloom` | `False` | Enable bloom; synchronized by the Bloom Amount slider. |
-| `BloomAmount` | `128` | Bloom intensity from `0` through `255`; `0` disables bloom in Video Preferences. |
+| `Bloom` | `True` | Enable bloom; synchronized by the Bloom Amount slider. |
+| `BloomAmount` | `154` | Bloom intensity from `0` through `255`; shown as 60% in Video Preferences. |
 | `OccludeLines` | `False` | Occlude line rendering on the 227 build. |
 | `GammaCorrectScreenshots` | `True` | Apply gamma correction to screenshots. |
 | `UseDebugLayer` | `False` | Enable the Direct3D 12 debug layer. |
@@ -346,13 +356,13 @@ or preventing the player from changing them later:
 | Field of view | `90` |
 | World texture detail | High |
 | Skin detail | High |
-| Brightness | `0.550000` (110%) |
+| Brightness | `0.600000` (120%) |
 | Contrast | `128` (100%) |
-| Saturation | `280` (120%) |
-| Anisotropic filtering | `8x` |
+| Saturation | `281` (120%) |
+| Anisotropic filtering | `4x` |
 | Bloom | Enabled |
-| Bloom amount | `165` (65%) |
-| FPS statistics | Disabled |
+| Bloom amount | `154` (60%) |
+| FPS statistics | Enabled |
 | Minimum desired frame rate | `60.000000` |
 | Lightmap LOD | `8` |
 | Skybox fog detail | `FOGDETAIL_High` |
@@ -363,14 +373,19 @@ or preventing the player from changing them later:
 | Dynamic lighting | Enabled |
 | Specular lights | Enabled |
 | Weapon flash | Enabled |
-| Pawn shadows | Realtime Ultra Res (`1024`) |
+| Pawn shadows | Blob shadows |
 | Decoration shadows | Enabled |
+| Shadow draw distance | Ultra (`8x`) |
+| Mesh flat shading | Disabled |
+| Content precaching | Enabled |
+| Trilinear filtering | Disabled |
+| NoSmooth view filtering | Disabled |
+| HD textures | Enabled |
 | Antialiasing | `MSAA_4x` |
 | Network speed | `50000` |
 | LAN speed | `20000` |
 | VSync | `False` |
-| Shadow detail resolution | `1024` |
-| Shadow draw distance | Unlimited (`0.000000`) |
+| Realtime-shadow detail resolution | `256` (inactive with blob shadows) |
 | HUD mode | `0` |
 | Crosshair | `0` |
 | HUD scale | `1.500000` |
@@ -378,4 +393,8 @@ or preventing the player from changing them later:
 
 These are installer profile choices, not changes to the render device's
 registered defaults. Existing profiles retain their saved values during normal
-game use.
+game use; reapplying the installer specifically migrates realtime silhouette
+shadows back to blob shadows to prevent the encounter-time performance defect.
+The shared profile generator writes matching 4x AA/anisotropy, disabled VSync,
+enabled precaching, and disabled trilinear-filter preferences for D3D12,
+OpenGL, and XOpenGL where each renderer exposes the corresponding option.

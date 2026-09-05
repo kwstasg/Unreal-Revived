@@ -562,7 +562,7 @@ function Notify(UWindowDialogControl C, byte E)
 		UpdateBrightnessText();
 	else if (E == DE_Click && C == BrightnessResetButton)
 	{
-		BrightnessSlider.SetValue(100, True);
+		BrightnessSlider.SetValue(120, True);
 		BrightnessChanged();
 		UpdateBrightnessText();
 	}
@@ -574,7 +574,7 @@ function Notify(UWindowDialogControl C, byte E)
 	}
 	else if (E == DE_Click && C == SaturationResetButton)
 	{
-		SaturationSlider.SetValue(255, True);
+		SaturationSlider.SetValue(281, True);
 		ApplySaturationSetting();
 		UpdateColorSettingText();
 	}
@@ -591,7 +591,7 @@ function Notify(UWindowDialogControl C, byte E)
 	}
 	else if (E == DE_Click && C == BloomAmountResetButton)
 	{
-		BloomAmountSlider.SetValue(128, True);
+		BloomAmountSlider.SetValue(154, True);
 		ApplyBloomSetting();
 		UpdateBloomAmountText();
 	}
@@ -613,6 +613,6 @@ defaultproperties
 	BloomAmountText="Bloom Amount"
 	BloomAmountHelp="Set bloom strength from 0% off to 100% maximum."
 	ResetVideoSettingHelp="Reset this setting to its Unreal Revived default."
-	bShowFPS=False
+	bShowFPS=True
 	SavedContrastPercent=-1
 }

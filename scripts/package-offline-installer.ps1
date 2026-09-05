@@ -170,6 +170,7 @@ foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'Unreal.ini'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'
     $defaultProfileLines = Add-UnrealRevivedIniValue $defaultProfileLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'WinDrv.WindowsClient' 'UseJoystick' 'True'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'WinDrv.WindowsClient' 'ScaleXYZ' '85.000000'
@@ -190,6 +191,7 @@ foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'ScaleRUV' '85.000000'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'InvertVertical' 'True'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'XInputWinDrv.WindowsClient' 'UseRawHIDInput' 'True'
+    $defaultProfileLines = Set-UnrealRevivedVideoDefaults $defaultProfileLines
     Set-Content -LiteralPath $defaultProfilePath -Value $defaultProfileLines -Encoding ASCII
 }
 
@@ -223,6 +225,7 @@ foreach ($defaultUserProfile in @('System\DefUser.ini', 'System64\DefUser.ini'))
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.PlayerPawn' 'MouseSensitivity' '3.000000'
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.PlayerPawn' 'bMouseSmoothing' 'False'
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.PlayerPawn' 'bInvertMouse' 'False'
+    $defaultUserProfileLines = Set-UnrealRevivedUserVideoDefaults $defaultUserProfileLines
     Set-Content -LiteralPath $defaultUserProfilePath -Value $defaultUserProfileLines -Encoding ASCII
 }
 

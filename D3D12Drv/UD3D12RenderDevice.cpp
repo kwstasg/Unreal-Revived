@@ -74,8 +74,8 @@ void UD3D12RenderDevice::StaticConstructor()
 	SupportsAlphaBlend = 1;
 	SupportsLazyTextures = 0;
 	PrefersDeferredLoad = 0;
-	UseVSync = 1;
-	AntialiasMode = 0;
+	UseVSync = 0;
+	AntialiasMode = 2;
 	UsePrecache = 1;
 	Coronas = 1;
 	ShinySurfaces = 1;
@@ -106,7 +106,7 @@ void UD3D12RenderDevice::StaticConstructor()
 
 	LinearBrightness = 128; // 0.0f;
 	Contrast = 128; // 1.0f;
-	Saturation = 255; // 1.0f;
+	Saturation = 281; // 1.2f;
 	GrayFormula = 1;
 
 	Hdr = 0;
@@ -114,11 +114,11 @@ void UD3D12RenderDevice::StaticConstructor()
 #if !defined(OLDUNREAL469SDK)
 	OccludeLines = 0;
 #endif
-	Bloom = 0;
-	BloomAmount = 128;
+	Bloom = 1;
+	BloomAmount = 154;
 
 	LODBias = 0.0f;
-	MaxAnisotropy = 8;
+	MaxAnisotropy = 4;
 	LightMode = 0;
 
 	GammaCorrectScreenshots = 1;

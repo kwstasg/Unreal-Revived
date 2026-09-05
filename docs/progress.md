@@ -6,14 +6,47 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-04
 
+### Standardized the preferred Video settings as global defaults
+
+- Centralized the complete Video Preferences preset used by development,
+  installed, recovery-derived, and packaged default profiles: fullscreen
+  1920x1080, 120% brightness, 100% contrast, 120% saturation, 60% bloom,
+  1.5x Gold UI, 60 minimum FPS, High textures/fog, Lightmap LOD 8, enabled
+  decals/dynamic/specular lighting/weapon flash/precaching/HD textures, 4x
+  anisotropy and antialiasing, and disabled VSync/trilinear/NoSmooth/flat
+  shading.
+- Kept pawn shadows on the blob path despite the captured Realtime Medium
+  selection, preserving the Brute-encounter performance fix. Decoration
+  shadows remain enabled and their draw-distance multiplier is now 8x.
+- Aligned the D3D12 renderer's intrinsic fallback values and the custom slider
+  reset buttons with the same preset. Existing personal profiles are not reset
+  during repair, apart from the required realtime-shadow safety migration.
+
+### Removed the Brute-encounter shadow-map stall
+
+- Traced the renderer-independent collapse to UE227's optional realtime
+  silhouette shadows, rather than Brute AI, physics, or the animated fire skin.
+  During the reproduced encounter, the engine generated 20-47 full shadow-map
+  uploads on each slow frame, frequently taking 20-43 ms.
+- Kept shadows enabled but restored the inexpensive blob-shadow path in the
+  engine profile used by new installs and disposable runtimes. Existing
+  canonical profiles are migrated when the installer is reapplied. Added
+  startup references for the stock Brute projectile effect graph to avoid
+  first-use class and texture residency work during combat.
+- On the same saved movement-and-encounter path, frames above 10 ms fell from
+  149 to 3 (the remaining frames were isolated startup/streaming work), p99
+  dropped from 23.854 ms to 1.716 ms, and average throughput rose from 585.32
+  to 859.29 FPS. Brute projectiles, smoke, explosions, dynamic lights, decals,
+  sounds, AI, physics, damage, and spawn rates were unchanged.
+
 ### Fixed D3D12 anisotropic filtering preferences
 
 - Registered the renderer's `MaxAnisotropy` config property so the inherited
   Video Preferences control offers Off, 2x, 4x, 8x, and 16x instead of showing
   the setting as unavailable.
-- Replaced the fixed 8x sampler state with the selected, clamped value, using
+- Replaced the fixed sampler state with the selected, clamped value, using
   linear filtering for Off and rebuilding cached samplers when the setting
-  changes. Existing profiles without the property retain the former 8x default.
+  changes. Profiles without the property use the current 4x global default.
 - Added focused runtime cases for Off and 16x plus requested/effective setting
   validation. The Release renderer build and deployment succeeded, and the
   complete automated D3D12 settings suite passed, including both new cases.

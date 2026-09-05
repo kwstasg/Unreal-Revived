@@ -121,6 +121,7 @@ $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'ModernMenu.Modern
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'ModernMenu.ModernVideoClientWindow' 'SavedContrastPercent' '100'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'Engine.LevelInfo' 'bDisableSpeclarLight' 'False'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'Engine.PlayerPawn' 'NetSpeed' '50000'
+$defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'D3D12Drv.D3D12RenderDevice' 'AntialiasMode' 'MSAA_4x'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'D3D12Drv.D3D12RenderDevice' 'Bloom' 'True'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'D3D12Drv.D3D12RenderDevice' 'BloomAmount' '165'
@@ -142,6 +143,7 @@ $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'XInputWinDrv.Wind
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'XInputWinDrv.WindowsClient' 'ScaleRUV' '85.000000'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'XInputWinDrv.WindowsClient' 'InvertVertical' 'True'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'XInputWinDrv.WindowsClient' 'UseRawHIDInput' 'True'
+$defaultIniLines = Set-UnrealRevivedVideoDefaults $defaultIniLines
 Set-Content -LiteralPath $defaultIni -Value $defaultIniLines -Encoding ASCII
 
 if ((Test-Path -LiteralPath $canonicalIni -PathType Leaf) -and (Select-String -LiteralPath $canonicalIni -Pattern '^\[Engine\.Engine\]$' -Quiet)) {
@@ -158,6 +160,7 @@ if ((Test-Path -LiteralPath $canonicalIni -PathType Leaf) -and (Select-String -L
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'Unreal.ini'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'
     $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
     if (-not ($iniLines -contains '[XInputWinDrv.WindowsClient]')) {
         $iniLines = Copy-UnrealRevivedIniSection $iniLines 'WinDrv.WindowsClient' 'XInputWinDrv.WindowsClient'
@@ -206,13 +209,14 @@ $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'bMo
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PlayerPawn' 'bInvertMouse' 'False'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.GameInfo' 'bCastShadow' 'True'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.GameInfo' 'bDecoShadows' 'True'
-$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'True'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.PawnShadow' 'ShadowDetailRes' '1024'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.ObjectShadow' 'OcclusionDistance' '0.000000'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'HudMode' '0'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'Crosshair' '0'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'HudScaler' '1.500000'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'CrosshairScale' '1.500000'
+$userIniLines = Set-UnrealRevivedUserVideoDefaults $userIniLines
 Set-Content -LiteralPath $defaultUserIni -Value $userIniLines -Encoding ASCII
 if (-not (Test-Path -LiteralPath $canonicalUserIni -PathType Leaf)) {
     Set-Content -LiteralPath $canonicalUserIni -Value $userIniLines -Encoding ASCII

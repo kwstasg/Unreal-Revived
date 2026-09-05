@@ -12,6 +12,7 @@ $unrealExe = Join-Path $systemDir 'Unreal.exe'
 $sourceIni = Join-Path $systemDir 'D3D12Test.ini'
 $userIni = Join-Path $systemDir 'D3D12TestUser.ini'
 $runtimeLog = Join-Path $systemDir 'Unreal.log'
+$runningMarker = Join-Path $systemDir 'Running.ini'
 $evidenceRoot = Join-Path $repoRoot (Join-Path 'local/logs' ("supported-renderers-{0}" -f (Get-Date -Format 'yyyyMMdd-HHmmss')))
 $maps = @('NyLeve', 'DmDeck16', 'Chizra', 'Vortex2', 'Dug', 'Terraniux')
 $renderers = @(
@@ -28,6 +29,9 @@ foreach ($requiredPath in @($unrealExe, $sourceIni, $userIni)) {
 if (Get-Process Unreal -ErrorAction SilentlyContinue) {
     throw 'Unreal is already running. Close it before starting automated checks.'
 }
+# This script is restricted to the disposable development runtime. A marker left
+# by an interrupted prior test would otherwise open Recovery Mode for every case.
+Remove-Item -LiteralPath $runningMarker -Force -ErrorAction SilentlyContinue
 
 function Set-IniValue {
     param(
@@ -70,11 +74,16 @@ try {
             $iniLines = Get-Content -LiteralPath $sourceIni
             $iniLines = Set-IniValue $iniLines 'Engine.Engine' 'GameRenderDevice' $renderer.Class
             $iniLines = Set-IniValue $iniLines 'Engine.Engine' 'WindowedRenderDevice' $renderer.Class
+            # Renderer smoke tests must never request an exclusive display-mode change.
+            # Besides disrupting the desktop, a rejected mode switch opens an interactive
+            # Failed3D dialog and can leave the otherwise healthy test process waiting on it.
+            $iniLines = Set-IniValue $iniLines 'WinDrv.WindowsClient' 'StartupFullscreen' 'False'
+            $iniLines = Set-IniValue $iniLines 'XInputWinDrv.WindowsClient' 'StartupFullscreen' 'False'
             Set-Content -LiteralPath $temporaryIni -Value $iniLines -Encoding Unicode
             Copy-Item -LiteralPath $temporaryIni -Destination (Join-Path $caseDir $temporaryIniName)
             Remove-Item -LiteralPath $runtimeLog -Force -ErrorAction SilentlyContinue
 
-            $arguments = @($map, "ini=$temporaryIniName", 'userini=D3D12TestUser.ini', '-nosplash')
+            $arguments = @($map, "ini=$temporaryIniName", 'userini=D3D12TestUser.ini', '-nosplash', '-windowed')
             Write-Host "Running ${caseName}: $($arguments -join ' ')"
             $process = Start-Process -FilePath $unrealExe -ArgumentList $arguments -WorkingDirectory $systemDir -PassThru
             if ($process.WaitForExit($RunSeconds * 1000)) {
@@ -84,7 +93,8 @@ try {
                 throw "$caseName did not expose a window that could be closed normally."
             }
             if (-not $process.WaitForExit(15000)) {
-                throw "$caseName did not exit within 15 seconds after a normal close request."
+                $process.Refresh()
+                throw "$caseName did not exit within 15 seconds after a normal close request (window='$($process.MainWindowTitle)', handle=$($process.MainWindowHandle))."
             }
             $process = $null
 
@@ -101,7 +111,7 @@ try {
             if (-not $logText.Contains("Bound to $($renderer.Module)") -or -not $logText.Contains("Unbound to $($renderer.Module)")) {
                 throw "$caseName did not complete a clean $($renderer.Module) bind/unbind cycle."
             }
-            if ($filteredLog -match "Critical Error|Assertion|General protection fault|Can't find file|Failed to load|Missing package|Package .* not found") {
+            if ($filteredLog -match "Critical Error|Assertion|General protection fault|Can't find file|Failed to load|Missing package|Package .* not found|Failed to set resolution|ChangeDisplaySettings failed|Errors\.Failed3D") {
                 throw "$caseName contains a runtime failure signature."
             }
 
@@ -115,8 +125,10 @@ try {
         $process.CloseMainWindow() | Out-Null
         if (-not $process.WaitForExit(5000)) {
             Stop-Process -Id $process.Id -Force
+            $process.WaitForExit()
         }
     }
+    Remove-Item -LiteralPath $runningMarker -Force -ErrorAction SilentlyContinue
     if ($temporaryIni) {
         Remove-Item -LiteralPath $temporaryIni -Force -ErrorAction SilentlyContinue
     }

@@ -22,6 +22,16 @@ var float SavedDodgeClickTime;
 var bool bControllerDodgeSuppressed;
 var int BindingActivationKey;
 
+// Keep dynamically spawned Brute projectile effects in the startup asset graph.
+// Otherwise their first encounter can synchronously load and precache the effect
+// classes and textures in the middle of a rendered frame.
+var private class<Actor> PreloadedBruteProjectileClass;
+var private class<Actor> PreloadedBruteSmokeClass;
+var private class<Actor> PreloadedBruteExplosionClass;
+var private class<Actor> PreloadedBruteExplosionChildClass;
+var private class<Actor> PreloadedBruteBlackSmokeClass;
+var private class<Actor> PreloadedBruteDecalClass;
+
 const ControllerMenuThreshold = 0.55;
 const ControllerMenuInitialRepeat = 0.45;
 const ControllerMenuRepeatInterval = 0.20;
@@ -498,4 +508,10 @@ state UWindow
 defaultproperties
 {
 	RootWindow="ModernMenu.ModernRootWindow"
+	PreloadedBruteProjectileClass=Class'UnrealShare.BruteProjectile'
+	PreloadedBruteSmokeClass=Class'UnrealShare.SpriteSmokePuff'
+	PreloadedBruteExplosionClass=Class'UnrealShare.SpriteBallExplosion'
+	PreloadedBruteExplosionChildClass=Class'UnrealShare.SpriteBallChild'
+	PreloadedBruteBlackSmokeClass=Class'UnrealShare.BlackSmoke'
+	PreloadedBruteDecalClass=Class'UnrealShare.RipperMark'
 }

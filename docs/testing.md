@@ -6,6 +6,20 @@ known log failure signatures. Screenshots remain necessary where logs cannot
 establish visual correctness. Record significant results in
 [`progress.md`](progress.md).
 
+## Supported renderer smoke matrix
+
+```powershell
+powershell -NoProfile -File scripts/test-supported-renderers.ps1 -RunSeconds 3
+```
+
+The matrix loads six representative maps with D3D12, OpenGL, and XOpenGL. It
+runs only against the asserted disposable development runtime, clears a stale
+`Running.ini` marker before launch, and forces each temporary profile windowed
+so automation cannot request an exclusive display-mode change or open Recovery
+Mode. A rejected resolution change, `Failed3D` localization event, crash
+signature, missing package, or incomplete renderer bind/unbind cycle fails the
+run. The source engine and user profiles must retain their original hashes.
+
 ## Gamepad viewport and controller
 
 Build, deploy, and run the non-hardware loader smoke case with:
@@ -406,6 +420,11 @@ target maintains those copies for the disposable runtime.
 - Confirm **Anisotropic Filtering** is enabled for D3D12, offers Off, 2x, 4x,
   8x, and 16x, changes texture filtering immediately, and retains the selected
   level after reopening Video preferences and restarting the game.
+- Enter a Brute encounter from a freshly launched process and allow several
+  projectiles to produce smoke trails and explosions. Confirm the first shot
+  does not cause the FPS sample to collapse, actor blob shadows remain visible,
+  and projectile visuals, sounds, dynamic lights, decals, damage, and Brute
+  behavior remain unchanged on D3D12, OpenGL, and XOpenGL.
 - Enable it and confirm the compact statistics appear during play without
   changing flyby interpolation or starting TimeDemo.
 - Disable it and confirm the overlay is removed.
