@@ -47,7 +47,7 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
             -InputDll "$<TARGET_FILE:XInputWinDrv>"
             -GameRoot "${UE1_GAME_ROOT}"
             -PatchArchive "${OLDUNREAL_227K15_PATCH_ARCHIVE}"
-        DEPENDS D3D12Drv XInputWinDrv deploy-modern-menu
+        DEPENDS deploy-d3d12drv deploy-xinputwindrv deploy-modern-menu
         COMMENT "Staging the hash-verified offline installer payload"
     )
     add_custom_target(package-offline-installer
@@ -58,7 +58,7 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
             -GameRoot "${UE1_GAME_ROOT}"
             -PatchArchive "${OLDUNREAL_227K15_PATCH_ARCHIVE}"
             -BuildInstaller
-        DEPENDS D3D12Drv XInputWinDrv deploy-modern-menu
+        DEPENDS deploy-d3d12drv deploy-xinputwindrv deploy-modern-menu
         COMMENT "Building the fully offline Unreal Revived installer"
     )
 else()
