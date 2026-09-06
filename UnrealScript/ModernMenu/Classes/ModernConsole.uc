@@ -21,6 +21,14 @@ var float ControllerGameplayY;
 var float SavedDodgeClickTime;
 var bool bControllerDodgeSuppressed;
 var int BindingActivationKey;
+var bool bLocalizedHudFontInitialized;
+var Font OriginalHudMedFont;
+var Font LocalizedHudMedFont;
+var Font LocalizedActionFont;
+var UnrealHUD LocalizedMOTDHud;
+var float LocalizedMOTDFadeOutTime;
+var Translator SuppressedTranslator;
+var bool bSuppressedTranslatorActive;
 
 // Keep dynamically spawned Brute projectile effects in the startup asset graph.
 // Otherwise their first encounter can synchronously load and precache the effect
@@ -37,6 +45,120 @@ const ControllerMenuInitialRepeat = 0.45;
 const ControllerMenuRepeatInterval = 0.20;
 const ControllerSliderInitialRepeat = 0.20;
 const ControllerSliderRepeatInterval = 0.04;
+const FPSStatisticsStartY = 80.0;
+
+simulated function ShowLoadGameMenu()
+{
+	Root.CreateWindow(class'ModernLoadGameWindow', 100, 100, 200, 200, None, True);
+}
+
+// The stock HUD font only contains Latin glyphs.  Replace the Canvas medium
+// font before the HUD renders when Greek is active.  This lets the original
+// HUD and Translator draw themselves once, with their original geometry and
+// colors, instead of attempting to duplicate either renderer here.
+event PreRender(Canvas C)
+{
+	InitializeLocalizedHudFont();
+	PrepareLocalizedHudRendering();
+
+	if (LocalizedHudMedFont != None)
+	{
+		class'Canvas'.Default.MedFont = LocalizedHudMedFont;
+		C.MedFont = LocalizedHudMedFont;
+	}
+	else if (OriginalHudMedFont != None)
+		C.MedFont = OriginalHudMedFont;
+
+	Super.PreRender(C);
+}
+
+function InitializeLocalizedHudFont()
+{
+	if (bLocalizedHudFontInitialized)
+		return;
+
+	bLocalizedHudFontInitialized = True;
+	OriginalHudMedFont = class'Canvas'.Default.MedFont;
+	if (class'Locale'.Static.GetLanguage() ~= "elt")
+	{
+		LocalizedHudMedFont = Font(DynamicLoadObject("UWindowFonts.Tahoma12", class'Font'));
+		LocalizedActionFont = Font(DynamicLoadObject("UWindowFonts.TahomaB15", class'Font'));
+		if (LocalizedHudMedFont != None)
+			class'Canvas'.Default.MedFont = LocalizedHudMedFont;
+	}
+}
+
+function PrepareLocalizedHudRendering()
+{
+	local Inventory Inv;
+
+	if (!(class'Locale'.Static.GetLanguage() ~= "elt") || Viewport.Actor == None)
+		return;
+
+	CaptureLocalizedMOTD();
+	SuppressedTranslator = None;
+	bSuppressedTranslatorActive = False;
+	foreach Viewport.Actor.AllInventory(class'Inventory', Inv)
+	{
+		if (Translator(Inv) != None)
+		{
+			SuppressedTranslator = Translator(Inv);
+			break;
+		}
+	}
+	if (SuppressedTranslator != None && SuppressedTranslator.bCurrentlyActivated)
+	{
+		bSuppressedTranslatorActive = True;
+		SuppressedTranslator.bCurrentlyActivated = False;
+	}
+}
+
+function CaptureLocalizedMOTD()
+{
+	local UnrealHUD CurrentHud;
+
+	if (Viewport.Actor == None)
+		return;
+	CurrentHud = UnrealHUD(Viewport.Actor.MyHUD);
+	if (CurrentHud == None)
+		return;
+	LocalizedMOTDHud = CurrentHud;
+	if (CurrentHud.MOTDFadeOutTime > 0)
+	{
+		LocalizedMOTDFadeOutTime = CurrentHud.MOTDFadeOutTime;
+		CurrentHud.MOTDFadeOutTime = 0;
+	}
+}
+
+function DrawLevelAction(Canvas C)
+{
+	local Font SavedFont, SavedMedFont, SavedLargeFont;
+	local float SavedFontScale;
+
+	if (!(class'Locale'.Static.GetLanguage() ~= "elt") || LocalizedHudMedFont == None)
+	{
+		Super.DrawLevelAction(C);
+		return;
+	}
+
+	SavedFont = C.Font;
+	SavedMedFont = C.MedFont;
+	SavedLargeFont = C.LargeFont;
+	SavedFontScale = C.FontScale;
+	C.MedFont = LocalizedHudMedFont;
+	C.FontScale = SavedFontScale * class'HUD'.Default.HudScaler;
+	if (LocalizedActionFont != None)
+		C.LargeFont = LocalizedActionFont;
+	else
+		C.LargeFont = LocalizedHudMedFont;
+
+	Super.DrawLevelAction(C);
+
+	C.Font = SavedFont;
+	C.MedFont = SavedMedFont;
+	C.LargeFont = SavedLargeFont;
+	C.FontScale = SavedFontScale;
+}
 
 function SetFPSStatistics(bool bEnabled)
 {
@@ -65,6 +187,13 @@ exec function ToggleFPSStatistics()
 
 event Tick(float Delta)
 {
+	InitializeLocalizedHudFont();
+	if (class'Locale'.Static.GetLanguage() ~= "elt")
+	{
+		CaptureLocalizedMOTD();
+		if (LocalizedMOTDFadeOutTime > 0)
+			LocalizedMOTDFadeOutTime = FMax(0, LocalizedMOTDFadeOutTime - Delta * 45);
+	}
 	Super.Tick(Delta);
 	if (!bShowFPSStatistics)
 		return;
@@ -96,9 +225,56 @@ function UpdateVSyncStatistics()
 
 event PostRender(Canvas C)
 {
+	local float HudScale;
+
+	if (LocalizedHudMedFont != None)
+		C.MedFont = LocalizedHudMedFont;
+
+	HudScale = class'HUD'.Default.HudScaler;
+	if (LocalizedMOTDHud != None
+		&& (LocalizedMOTDFadeOutTime > 0 || bSuppressedTranslatorActive))
+	{
+		C.SetOrigin(0, 0);
+		if (HudScale != 1.0)
+			C.PushCanvasScale(HudScale, True);
+		if (LocalizedMOTDFadeOutTime > 0)
+		{
+			class'ModernGameHud'.Static.DrawLocalizedMOTD(C, LocalizedMOTDHud,
+				LocalizedMOTDFadeOutTime);
+		}
+		if (SuppressedTranslator != None && bSuppressedTranslatorActive)
+			class'ModernGameHud'.Static.DrawLocalizedTranslator(C, SuppressedTranslator);
+		if (HudScale != 1.0)
+			C.PopCanvasScale();
+	}
+	if (SuppressedTranslator != None)
+		SuppressedTranslator.bCurrentlyActivated = bSuppressedTranslatorActive;
+
 	Super.PostRender(C);
 	if (bShowFPSStatistics)
 		DrawFPSStatistics(C);
+}
+
+simulated function DrawSingleView(Canvas C)
+{
+	local float HudScale;
+	local UnrealHUD CurrentHud;
+
+	if (!(class'Locale'.Static.GetLanguage() ~= "elt")
+		|| Viewport.Actor == None || UnrealHUD(Viewport.Actor.MyHUD) == None)
+	{
+		Super.DrawSingleView(C);
+		return;
+	}
+
+	CurrentHud = UnrealHUD(Viewport.Actor.MyHUD);
+	C.SetOrigin(0, 0);
+	HudScale = class'HUD'.Default.HudScaler;
+	if (HudScale != 1.0)
+		C.PushCanvasScale(HudScale, True);
+	class'ModernGameHud'.Static.DisplayLocalizedMessages(C, CurrentHud);
+	if (HudScale != 1.0)
+		C.PopCanvasScale();
 }
 
 function string FormatFPS(float Value)
@@ -143,7 +319,10 @@ function DrawFPSStatistics(Canvas C)
 	C.StrLen("VSync:", LabelWidth, UnusedHeight);
 	C.StrLen("T", UnusedHeight, LineHeight);
 	LineHeight += FMax(1, LineHeight / 3);
-	C.SetPos(16, 48);
+	// Keep the global statistics overlay below the four-line gameplay message
+	// area.  This console is shared by every map and language, and scaling the
+	// offset with HudScaler keeps the separation consistent with the messages.
+	C.SetPos(16, FPSStatisticsStartY * class'HUD'.Default.HudScaler);
 	DrawFPSLine(C, "FPS:", StatisticsFPS, LabelWidth, LineHeight);
 	DrawFPSLine(C, "AVG:", AverageFPS, LabelWidth, LineHeight);
 	DrawFPSLine(C, "Low:", StatisticsLowFPS, LabelWidth, LineHeight);
@@ -253,6 +432,13 @@ state Menuing
 
 state UWindow
 {
+	event PostRender(Canvas C)
+	{
+		if (LocalizedHudMedFont != None)
+			C.MedFont = LocalizedHudMedFont;
+		Super.PostRender(C);
+	}
+
 	function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)
 	{
 		local ModernRootWindow ModernRoot;

@@ -1,0 +1,183 @@
+﻿[Public]
+Object=(Name=Game.Game,Class=Class,MetaClass=UnrealShare.SinglePlayer,Description="Intro1;UPak.Return;Return to Na Pali")
+Object=(Name=UPak.UPakConsole,Class=Class,MetaClass=Engine.Console,Description="UGold (Deprecated)")
+Object=(Name=UPak.CrashSiteGame,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.UPakSinglePlayer,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.UPakTransitionInfo,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.UPakGame,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.CloakMatch,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.UPakCoopGame,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.DuskFallsGame,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.CloakGame,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.MarineMatch,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.GravityMatch,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.TestGameInfo,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.TerranWeaponMatch,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.UPakIntro,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.CreditsGame,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UPak.GrenadeLauncher,Class=Class,MetaClass=Engine.Weapon,Description="UMS Grenade Launcher")
+Object=(Name=UPak.RocketLauncher,Class=Class,MetaClass=Engine.Weapon,Description="UMS Rocket Launcher")
+Object=(Name=UPak.CARifle,Class=Class,MetaClass=Engine.Weapon,Description="Combat Assault Rifle")
+Preferences=(Caption="Cloak Match",Parent="Game Types",Class=UPak.CloakMatch,Immediate=True)
+Preferences=(Caption="Gravity Match",Parent="Game Types",Class=UPak.GravityMatch,Immediate=True)
+Preferences=(Caption="Marine Match",Parent="Game Types",Class=UPak.MarineMatch,Immediate=True)
+Preferences=(Caption="Terran Weapon Match",Parent="Game Types",Class=UPak.TerranWeaponMatch,Immediate=True)
+
+[TransitionNullHUD]
+Statheader="Στατιστικά εξοντώσεων: "
+CARStat="Τυφέκιο Μάχης"
+RLStat="Εκτοξευτής Ρουκετών UMS"
+GLStat="Εκτοξευτής Χειροβομβίδων UMS"
+ASMDStat="ASMD"
+AutomagStat="Automag"
+DispersionStat="Πιστόλι Διασποράς"
+EightballStat="Eightball"
+FlakCannonStat="Κανόνι Θραυσμάτων"
+GESBioRifleStat="Βιοτυφέκιο GES"
+MinigunStat="Minigun"
+RazorjackStat="Razorjack"
+RifleStat="Τυφέκιο Ελεύθερου Σκοπευτή"
+StingerStat="Stinger"
+TotalStat="Συνολικές εξοντώσεις"
+LogEntryMsg="ΚΑΤΑΧΩΡΙΣΗ ΗΜΕΡΟΛΟΓΙΟΥ:"
+
+[GrenadeLauncher]
+DeathMessage="Η χειροβομβίδα του %k ανατίναξε τον %o."
+FemDeathMessage="Η χειροβομβίδα του %k ανατίναξε την %o."
+FemKillMessage="Η χειροβομβίδα της %k ανατίναξε τον %o."
+PickupMessage="Πήρατε τον Εκτοξευτή Χειροβομβίδων UMS"
+ItemName="Εκτοξευτής Χειροβομβίδων UMS"
+
+[Cloak]
+ExpireMessage="απενεργοποιήθηκε."
+PickupMessage="Πήρατε τη Συσκευή Απόκρυψης"
+ItemName="Συσκευή Απόκρυψης"
+M_Activated=" ενεργοποιήθηκε"
+M_Deactivated=" απενεργοποιήθηκε"
+
+[UPakHUD]
+MultWeapSlotMsg="Πατήστε το πλήκτρο επιλογής όπλου για εναλλαγή όπλων."
+
+[UPakSinglePlayer]
+GameName="Πακέτο Αποστολής Unreal"
+
+[RocketLauncher]
+DeathMessage="Η ρουκέτα του %k έκανε κομμάτια τον %o."
+FemDeathMessage="Η ρουκέτα του %k έκανε κομμάτια την %o."
+FemKillMessage="Η ρουκέτα της %k έκανε κομμάτια τον %o."
+PickupMessage="Πήρατε τον Εκτοξευτή Ρουκετών UMS"
+ItemName="Εκτοξευτής Ρουκετών UMS"
+
+[UPakChooseGameMenu]
+MenuList[0]="Επιστροφή στο Na Pali"
+MenuList[1]="Unreal"
+
+[CloakMatch]
+GameName="Αγώνας Απόκρυψης"
+
+[CARifle]
+DeathMessage="Το %w του %k έκανε τον %o ελβετικό τυρί."
+FemDeathMessage="Το %w του %k έκανε την %o ελβετικό τυρί."
+FemKillMessage="Το %w της %k έκανε τον %o ελβετικό τυρί."
+PickupMessage="Πήρατε το Τυφέκιο Μάχης"
+ItemName="Τυφέκιο Μάχης"
+
+[UPakScubaGear]
+RechargedMessage="Η συσκευή κατάδυσης Πεζοναυτών επαναφορτίστηκε πλήρως."
+LowOxygenMessage="Η παροχή οξυγόνου είναι κρίσιμα χαμηλή"
+PickupMessage="Πήρατε τη συσκευή κατάδυσης Πεζοναυτών"
+ItemName="Συσκευή Κατάδυσης Πεζοναυτών"
+M_Deactivated="απενεργοποιήθηκε... Επαναφόρτιση."
+
+[MarineMatch]
+GameName="Αγώνας Πεζοναυτών"
+
+[GravityMatch]
+GameName="Αγώνας Βαρύτητας"
+
+[UPakDebugger]
+ItemName="Εργαλείο Εντοπισμού Σφαλμάτων UPak"
+
+[UPakMaleOne]
+MenuName="Άνδρας 1"
+
+[UPakFemaleOne]
+MenuName="Γυναίκα 1"
+
+[GLAmmo]
+PickupMessage="Πήρατε 10 χειροβομβίδες UMS"
+ItemName="Χειροβομβίδες UMS"
+
+[RLAmmo]
+PickupMessage="Πήρατε 10 ρουκέτες UMS"
+ItemName="Ρουκέτες UMS"
+
+[CARifleClip]
+PickupMessage="Πήρατε γεμιστήρα 50 σφαιρών για το Τυφέκιο Μάχης"
+ItemName="Γεμιστήρας Τυφεκίου Μάχης"
+
+[UPakFemaleTwo]
+MenuName="Γυναίκα 2"
+
+[UPakMaleThree]
+MenuName="Άνδρας 3"
+
+[UPakMaleTwo]
+MenuName="Άνδρας 2"
+
+[TerranWeaponMatch]
+GameName="Αγώνας Γήινων Όπλων"
+
+[CompTablet]
+PickupMessage="Πήρατε το Υπολογιστικό Tablet"
+ItemName="Υπολογιστικό Tablet"
+
+[MarineArctic]
+MenuName="Πεζοναύτης UMS Αρκτικής"
+
+[MarineDesert]
+MenuName="Πεζοναύτης UMS Ερήμου"
+
+[MarineJungle]
+MenuName="Πεζοναύτης UMS Ζούγκλας"
+
+[SpaceMarine]
+MenuName="Διαστημικός Πεζοναύτης UMS"
+
+[TransitionBrute]
+NameArticle=" ένας "
+MenuName="Brute"
+
+[TransitionCow]
+NameArticle=" μία "
+MenuName="Αγελάδα Nali"
+
+[NaliCopter]
+NameArticle=" ένα "
+MenuName="NaliCopter"
+
+[Predator]
+NameArticle=" ένας "
+MenuName="Predator"
+
+[TransitionPredator]
+NameArticle=" ένας "
+MenuName="Predator"
+
+[PackHunter]
+NameArticle=" ένας "
+MenuName="Κυνηγός Αγέλης"
+
+[Spinner]
+NameArticle=" ένας "
+MenuName="Spinner"
+
+[UPakConsole]
+ClassCaption="Unreal Gold (παρωχημένο)"
+
+[MarineInterestPoint]
+PickupMessage=""
+M_Activated=""
+M_Selected=""
+M_Deactivated=""
+

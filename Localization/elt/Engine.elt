@@ -1,0 +1,208 @@
+﻿[Public]
+Object=(Name=Engine.Console,Class=Class,MetaClass=Engine.Console,Description="Standard (Deprecated)")
+Object=(Name=Engine.ServerCommandlet,Class=Class,MetaClass=Core.Commandlet)
+Object=(Name=Engine.LinkerUpdateCommandlet,Class=Class,MetaClass=Core.Commandlet)
+Object=(Name=Engine.SHAUpdateCommandlet,Class=Class,MetaClass=Core.Commandlet)
+; Main roots
+Preferences=(Caption="Advanced",Parent="Advanced Options")
+Preferences=(Caption="Rendering",Parent="Advanced Options")
+Preferences=(Caption="Audio",Parent="Advanced Options")
+Preferences=(Caption="Networking",Parent="Advanced Options")
+Preferences=(Caption="Game Types",Parent="Advanced Options")
+Preferences=(Caption="Display",Parent="Advanced Options")
+Preferences=(Caption="Joystick",Parent="Advanced Options")
+Preferences=(Caption="Drivers",Parent="Advanced Options",Class=Engine.Engine,Immediate=False,Category=Drivers)
+Preferences=(Caption="Game Settings",Parent="Advanced Options",Class=Engine.GameInfo,Immediate=True)
+Preferences=(Caption="Decals",Parent="Advanced Options")
+; Advanced
+Preferences=(Caption="Game Engine Settings",Parent="Advanced",Class=Engine.GameEngine,Category=Settings,Immediate=True)
+Preferences=(Caption="Key Aliases",Parent="Advanced",Class=Engine.Input,Immediate=True,Category=Aliases)
+Preferences=(Caption="Raw Key Bindings",Parent="Advanced",Class=Engine.Input,Immediate=True,Category=RawKeys)
+; Networking
+Preferences=(Caption="Public Server Information",Parent="Networking",Class=Engine.GameReplicationInfo,Immediate=True)
+Preferences=(Caption="Channel Download",Parent="Networking",Class=Engine.ChannelDownload)
+Preferences=(Caption="Connection Notifications",Parent="Networking",Class=Engine.Gameinfo,Category=Networking,Immediate=True)
+Preferences=(Caption="Map Lists",Parent="Networking")
+; Decals
+Preferences=(Caption="Blood",Parent="Decals")
+Preferences=(Caption="Pawn Shadow",Parent="Decals",Class=Engine.PawnShadow,Immediate=True)
+Preferences=(Caption="Decoration Shadow",Parent="Decals",Class=Engine.DecoShadow,Immediate=True)
+Preferences=(Caption="Projectile Shadow",Parent="Decals",Class=Engine.ProjectileShadow,Immediate=True)
+; Blood
+Preferences=(Caption="Server",Parent="Blood",Class=Engine.GameInfo,Category=BloodServer,Immediate=True)
+
+[Pawn]
+NameArticle=" ένα "
+
+[Inventory]
+PickupMessage="Πήρατε ένα αντικείμενο"
+ItemArticle="ένα"
+M_Activated=" ενεργοποιήθηκε"
+M_Selected=" επιλέχθηκε"
+M_Deactivated=" απενεργοποιήθηκε"
+
+[Ammo]
+PickupMessage="Πήρατε πυρομαχικά"
+ItemName="Πυρομαχικά"
+
+[LevelInfo]
+Title="Χωρίς όνομα"
+
+[Spectator]
+MenuName="Θεατής"
+
+[Counter]
+CountMessage="Απομένουν άλλα %i..."
+CompleteMessage="Ολοκληρώθηκε!"
+
+[Progress]
+CancelledConnect="Ακυρώθηκε η προσπάθεια σύνδεσης"
+RunningNet="%ls: %ls (%i παίκτες)"
+NetReceiving="Λήψη %ls: %i/%i"
+NetReceiveOk="Έγινε επιτυχής λήψη %ls"
+NetSend="Αποστολή %ls"
+NetSending="Αποστολή %ls: %i/%i"
+Connecting="Σύνδεση..."
+Listening="Ακρόαση για πελάτες..."
+Loading="Φόρτωση"
+Saving="Αποθήκευση"
+Paused="Παύση από %ls"
+ReceiveFile="Λήψη %ls (F10 για ακύρωση)"
+ReceiveOptionalFile="Λήψη προαιρετικού αρχείου %ls (F10 για ακύρωση)"
+ReceiveSize="Μέγεθος %iK, ολοκληρώθηκε %3.1f%% = %iK, απομένουν %i πακέτα"
+ConnectingText="Σύνδεση (F10 για ακύρωση):"
+ConnectingURL="unreal://%ls/%ls"
+
+[ServerCommandlet]
+HelpCmd=server
+HelpWebLink="https://www.oldunreal.com/wiki/index.php?title=Commandlet"
+HelpOneLiner="Διακομιστής διαδικτυακού παιχνιδιού."
+HelpUsage="server map.unr[?game=gametype] [-option...] [parm=value]..."
+HelpParm[0]="Log"
+HelpDesc[0]="Καθορίζει το αρχείο καταγραφής που θα δημιουργηθεί."
+HelpParm[1]="AllAdmin"
+HelpDesc[1]="Παρέχει δικαιώματα διαχειριστή σε όλους τους παίκτες."
+
+[PlayerPawn]
+QuickSaveString="Γρήγορη αποθήκευση"
+NoPauseMessage="Το παιχνίδι δεν μπορεί να παύσει"
+ViewingFrom="Προβολή από "
+OwnCamera="προσωπική κάμερα"
+FailedView="Η αλλαγή προβολής απέτυχε."
+CantChangeNameMsg="Δεν μπορείτε να αλλάξετε όνομα κατά την καθολική καταγραφή παιχνιδιού."
+
+[Console]
+ClassCaption="Τυπική (παρωχημένη)"
+LoadingMessage="ΦΟΡΤΩΣΗ"
+SavingMessage="ΑΠΟΘΗΚΕΥΣΗ"
+ConnectingMessage="ΣΥΝΔΕΣΗ"
+PausedMessage="ΠΑΥΣΗ"
+PrecachingMessage="ΠΡΟΦΟΡΤΩΣΗ"
+
+[Menu]
+HelpMessage[1]="Αυτό το μενού δεν έχει ακόμη εφαρμοστεί."
+LeftString="Αριστερά"
+RightString="Δεξιά"
+CenterString="Κέντρο"
+EnabledString="Ενεργό"
+DisabledString="Ανενεργό"
+YesString="Ναι"
+NoString="Όχι"
+OnString="Ενεργό"
+OffString="Ανενεργό"
+
+[GameInfo]
+SwitchLevelMessage="Εναλλαγή επιπέδων"
+DefaultPlayerName="Παίκτης"
+LeftMessage=" έφυγε από το παιχνίδι."
+FailedSpawnMessage="Αποτυχία δημιουργίας παίκτη"
+FailedPlaceMessage="Δεν βρέθηκε σημείο εκκίνησης (ίσως το επίπεδο χρειάζεται έναν actor «PlayerStart»)"
+FailedTeamMessage="Δεν ήταν δυνατή η εύρεση ομάδας για παίκτη"
+NameChangedMessage="Το όνομα άλλαξε σε"
+EnteredMessage=" μπήκε στο παιχνίδι."
+GameName="Παιχνίδι"
+MaxedOutMessage="Ο διακομιστής είναι ήδη γεμάτος."
+WrongPassword="Ο κωδικός πρόσβασης που εισαγάγατε είναι λάθος."
+NeedPassword="Πρέπει να εισαγάγετε έναν κωδικό πρόσβασης για να συμμετάσχετε σε αυτό το παιχνίδι."
+MaleGender="του"
+FemaleGender="της"
+MaxedOutSpectatorsMsg="Ξεπεράστηκε το μέγιστο όριο θεατών"
+
+[Weapon]
+MessageNoAmmo=" δεν έχει σφαίρες."
+DeathMessage="%o σκοτώθηκε από %k με %w."
+FemDeathMessage="Η %o σκοτώθηκε από το %w της %k."
+FemKillMessage="Ο %o σκοτώθηκε από το %w της %k."
+PickupMessage="Πήρατε ένα όπλο"
+ItemName="Όπλο"
+
+[DamageType]
+Name="σκοτώθηκε"
+AltName="σκότωσε"
+
+[Errors]
+NetOpen="Σφάλμα κατά το άνοιγμα του αρχείου"
+NetWrite="Σφάλμα εγγραφής στο αρχείο"
+NetRefused="Ο διακομιστής αρνήθηκε να στείλει %ls"
+NetClose="Σφάλμα κατά το κλείσιμο του αρχείου"
+NetSize="Αναντιστοιχία μεγέθους αρχείου"
+NetMove="Σφάλμα μετακίνησης αρχείου"
+NetInvalid="Λήφθηκε μη έγκυρο αίτημα αρχείου"
+NoDownload="Δεν είναι δυνατή η λήψη του πακέτου %ls"
+DownloadFailed="Η λήψη του πακέτου %ls απέτυχε: %ls"
+RequestDenied="Αρχείο που ζητήθηκε από διακομιστή από εκκρεμές επίπεδο: Απορρίφθηκε"
+ConnectionFailed="Αποτυχημένη σύνδεση"
+ChAllocate="Δεν ήταν δυνατή η εκχώρηση καναλιού"
+NetAlready="Είναι ήδη σε δικτύωση"
+NetListen="Η ακρόαση απέτυχε: Δεν υπάρχει διαθέσιμο περιβάλλον σύνδεσης"
+LoadEntry="Δεν είναι δυνατή η φόρτωση της καταχώρισης: %ls"
+InvalidUrl="Μη έγκυρη διεύθυνση URL: %ls"
+InvalidLink="Μη έγκυρος σύνδεσμος: %ls"
+FailedBrowse="Αποτυχία εισαγωγής %ls: %ls"
+Listen="Η ακρόαση απέτυχε: %ls"
+AbortToEntry="Απέτυχε, επιστροφή στην είσοδο"
+ServerOpen="Οι διακομιστές δεν μπορούν να ανοίξουν διευθύνσεις URL δικτύου"
+ServerListen="Ο αποκλειστικός διακομιστής δεν μπορεί να ακούσει: %ls"
+Pending="Η σύνδεση σε εκκρεμότητα στο %ls απέτυχε. %ls"
+LoadPlayerClass="Η φόρτωση της κατηγορίας παίκτη απέτυχε"
+ServerOutdated="Η έκδοση του διακομιστή είναι ξεπερασμένη"
+Banned="Έχετε αποκλειστεί"
+TempBanned="Έχετε αποκλειστεί προσωρινά"
+Kicked="Έχετε αποβληθεί"
+
+[General]
+Upgrade="Για να συνδεθείτε σε αυτόν τον διακομιστή, χρειάζεστε την τελευταία δωρεάν ενημέρωση του Unreal από την ιστοσελίδα του OldUnreal:"
+UpgradeURL="https://www.oldunreal.com"
+UpgradeQuestion="Θέλετε να εκκινήσετε το πρόγραμμα περιήγησής σας και να μεταβείτε στη σελίδα αναβάθμισης τώρα;"
+Version="Έκδοση %i"
+
+[AdminAccessManager]
+AdminLoginText="Ο διαχειριστής %ls συνδέθηκε"
+AdminLogoutText="Ο διαχειριστής %ls αποσυνδέθηκε"
+CheatUsedStr="Ο χρήστης %ls χρησιμοποίησε εντολή διαχειριστή/cheat: %c"
+
+[AutosaveTrigger]
+AutoSaveString="Αυτόματη αποθήκευση"
+
+[Fonts]
+WhiteFont=UnrealShare.WhiteFont
+MedFont=Engine.MedFont
+LargeFont=Engine.LargeFont
+BigFont=Engine.BigFont
+SmallFont=Engine.SmallFont
+
+[LinkerUpdateCommandlet]
+HelpCmd=linkerupdate
+HelpWebLink="https://www.oldunreal.com/wiki/index.php?title=Commandlet"
+HelpOneLiner="Προσθέτει αυτόματα όλα τα αθροίσματα ελέγχου των αρχείων του φακέλου στο SHALinkerCache.ini. Χρησιμοποιείται από το anticheat UnrealIntegrity."
+HelpUsage="linkerupdate <filename>"
+HelpParm[0]="<filename>"
+HelpDesc[0]="Το αρχείο του οποίου το άθροισμα ελέγχου θα υπολογιστεί για μελλοντική αποθήκευση."
+
+[SHAUpdateCommandlet]
+HelpCmd=shaupdate
+HelpWebLink="https://www.oldunreal.com/wiki/index.php?title=Commandlet"
+HelpOneLiner="Προσθέτει αυτόματα όλα τα αθροίσματα ελέγχου SHA256 των αρχείων του φακέλου στο SHALinkerCache.ini. Χρησιμοποιείται από το anticheat UnrealIntegrity."
+HelpUsage="shaupdate <filename>"
+HelpParm[0]="<filename>"
+HelpDesc[0]="Το αρχείο του οποίου το άθροισμα ελέγχου SHA256 θα υπολογιστεί για μελλοντική αποθήκευση."

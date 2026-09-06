@@ -79,6 +79,8 @@ $stagedBrandingRoot = Join-Path $patchRoot 'UnrealRevived'
 New-Item -ItemType Directory -Path $stagedBrandingRoot -Force | Out-Null
 Copy-Item -LiteralPath $brandingIcon -Destination (Join-Path $stagedBrandingRoot $installedBrandingIconName) -Force
 
+& (Join-Path $PSScriptRoot 'install-project-localization.ps1') -GameRoot $patchRoot
+
 $contentPolicy = Get-Content -LiteralPath $contentManifestPath -Raw | ConvertFrom-Json
 if ($contentPolicy.schema -ne 1) {
     throw "Unsupported install content manifest schema: $($contentPolicy.schema)"
@@ -168,6 +170,7 @@ foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.Engine' 'Console' 'ModernMenu.ModernConsole'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+    $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'UMenu.UMenuMenuBar' 'GameUMenuDefault' 'ModernMenu.ModernGameMenu'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'Unreal.ini'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
     $defaultProfileLines = Set-UnrealRevivedIniValue $defaultProfileLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'

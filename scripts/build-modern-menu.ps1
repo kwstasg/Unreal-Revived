@@ -41,6 +41,7 @@ $iniLines = Remove-UnrealRevivedIniValue $iniLines 'URL' 'EntryMap' 'EntryIII.un
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'Console' 'ModernMenu.ModernConsole'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+$iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'GameUMenuDefault' 'ModernMenu.ModernGameMenu'
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' $IniName
 $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' $UserIniName
 if (-not ($iniLines -match '^bShowFPS=')) {
@@ -64,6 +65,7 @@ if (Test-Path -LiteralPath $editorIniPath -PathType Leaf) {
     $editorIniLines = Get-Content -LiteralPath $editorIniPath
     $editorIniLines = Set-UnrealRevivedIniValue $editorIniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
     $editorIniLines = Set-UnrealRevivedIniValue $editorIniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+    $editorIniLines = Set-UnrealRevivedIniValue $editorIniLines 'UMenu.UMenuMenuBar' 'GameUMenuDefault' 'ModernMenu.ModernGameMenu'
     $editorIniLines = Add-UnrealRevivedIniValue $editorIniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
     Set-Content -LiteralPath $editorIniPath -Value $editorIniLines -Encoding ASCII
 }
@@ -107,6 +109,7 @@ if (-not (Test-Path -LiteralPath $outputPackage)) {
 
 Copy-Item -LiteralPath $brandingLogo -Destination (Join-Path $helpDirectory 'Logo.bmp') -Force
 Copy-Item -LiteralPath $brandingSetupLogo -Destination (Join-Path $helpDirectory 'SetupLogo.bmp') -Force
+& (Join-Path $PSScriptRoot 'install-project-localization.ps1') -GameRoot $GameRoot
 & (Join-Path $PSScriptRoot 'install-development-shortcuts.ps1') -GameRoot $GameRoot
 
 Write-Host "ModernMenu deployed to $outputPackage"

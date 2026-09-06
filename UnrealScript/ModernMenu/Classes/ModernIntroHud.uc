@@ -5,6 +5,8 @@ class ModernIntroHud extends IntroNullHud;
 simulated function PostRender(Canvas Canvas)
 {
 	local float StartX, IconScale;
+	local float MessageWidth, MessageHeight;
+	local Font IntroFont;
 
 	PlayerPawn(Owner).ConsoleCommand("D3D12 BLOOMSOURCE");
 	HUDSetup(Canvas);
@@ -17,9 +19,15 @@ simulated function PostRender(Canvas Canvas)
 	else if (PlayerPawn(Owner).ProgressTimeOut > Level.TimeSeconds)
 		DisplayProgressMessage(Canvas);
 
-	Canvas.Font = Canvas.MedFont;
-	Canvas.SetPos(Canvas.ClipX / 2.0 - 66, 4);
+	IntroFont = Font(DynamicLoadObject("UWindowFonts.Tahoma10", class'Font'));
+	if (IntroFont == None)
+		IntroFont = Canvas.MedFont;
+	Canvas.Font = IntroFont;
+	Canvas.DrawColor = MakeColor(0, 255, 0);
+	Canvas.TextSize(ESCMessage, MessageWidth, MessageHeight);
+	Canvas.SetPos((Canvas.ClipX - MessageWidth) / 2.0, 4);
 	Canvas.DrawText(ESCMessage, False);
+	Canvas.DrawColor = MakeColor(255, 255, 255);
 
 	StartX = 0.5 * Canvas.ClipX - 128;
 	Canvas.SetPos(StartX, Canvas.ClipY - 58);

@@ -69,6 +69,15 @@ foreach ($name in @('UnrealShare.int', 'UPak.int')) {
         Copy-Item -LiteralPath $source -Destination (Join-Path $systemDirectory $name) -Force
     }
 }
+$projectLocalizedRoot = Join-Path $destinationRoot 'SystemLocalized'
+foreach ($languageDirectory in Get-ChildItem -LiteralPath $projectLocalizedRoot -Directory -ErrorAction SilentlyContinue) {
+    foreach ($metadataName in @('UnrealShare', 'UPak')) {
+        $localizedMetadata = Join-Path $languageDirectory.FullName "$metadataName.$($languageDirectory.Name)"
+        if (Test-Path -LiteralPath $localizedMetadata -PathType Leaf) {
+            Copy-Item -LiteralPath $localizedMetadata -Destination (Join-Path $systemDirectory "$metadataName.$($languageDirectory.Name)") -Force
+        }
+    }
+}
 $startupSource = Join-Path $localizedDirectory 'Startup.int'
 if (Test-Path -LiteralPath $startupSource -PathType Leaf) {
     Copy-Item -LiteralPath $startupSource -Destination (Join-Path $systemDirectory 'Startup.int') -Force
@@ -94,6 +103,7 @@ $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'Engine.Engine' 'W
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'Engine.Engine' 'Console' 'ModernMenu.ModernConsole'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+$defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'UMenu.UMenuMenuBar' 'GameUMenuDefault' 'ModernMenu.ModernGameMenu'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'Unreal.ini'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
 $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'ModernMenu.ModernHUDConfigCW' 'bShowGameBehindMenus' 'True'
@@ -159,6 +169,7 @@ if ((Test-Path -LiteralPath $canonicalIni -PathType Leaf) -and (Select-String -L
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'ViewportManager' 'XInputWinDrv.WindowsClient'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
+    $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'GameUMenuDefault' 'ModernMenu.ModernGameMenu'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'Unreal.ini'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'

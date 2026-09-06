@@ -1,0 +1,17 @@
+﻿[LevelInfo1]
+Title="Τέλος"
+
+[LevelSummary]
+Title="Τέλος"
+
+[TransitionGenderEvent0]
+OutDelays[1]=3.000000
+CommonText[0]="Bodega Bay προς άκατο. Παρακαλώ ταυτοποιηθείτε."
+
+[TransitionGenderEvent2]
+OutDelays[1]=3.000000
+CommonText[0]="Ταυτοποιηθείτε αμέσως, αλλιώς θα ανοίξουμε πυρ."
+
+[TransitionGenderEvent1]
+OutDelays[1]=3.000000
+CommonText[0]="Σας προειδοποιήσαμε. Ανοίγουμε πυρ."

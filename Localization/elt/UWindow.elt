@@ -1,0 +1,152 @@
+﻿[public]
+Object=(Name=UWindow.UWindowWin95LookAndFeel,Class=Class,MetaClass=UWindow.UWindowLookAndFeel,Description="Win 95")
+
+[UWindowMessageBoxCW]
+YesText="Ναι"
+NoText="Όχι"
+OKText="ΟΚ"
+CancelText="Ακύρωση"
+
+[UWindowConsoleWindow]
+WindowTitle="Κονσόλα συστήματος"
+
+[UWindowSmallCloseButton]
+CloseText="Κλείσιμο"
+
+[UWindowSmallCancelButton]
+CancelText="Ακύρωση"
+
+[UWindowSmallOKButton]
+OKText="ΟΚ"
+
+[UWindowConsoleClientWindow]
+ShowColorsText="Εμφάνιση έγχρωμων μηνυμάτων κονσόλας"
+ShowChatText="Καταγραφή μόνο μηνυμάτων συνομιλίας"
+ShowWarningText="Καταγραφή σφαλμάτων σεναρίων"
+
+[AdminGUIPlayersGrid]
+PlayerID="ID#"
+PlayerName="Όνομα παίκτη"
+PlayerIP="Διεύθυνση IP"
+PlayerClientID="ID πελάτη"
+MaxLengthExceeded="Ξεπεράστηκε το μέγιστο μήκος λίστας παικτών: %i"
+IDMismatchedStr="Το ID απάντησης δεν ταιριάζει: %i/%j"
+ClientReceivedStr="Λήφθηκε ο πελάτης %ls."
+GettingInfoStr="Λήψη λίστας παικτών από τον διακομιστή. Αν δεν συμβεί τίποτα, ίσως δεν έχετε συνδεθεί ως διαχειριστής."
+
+[AdminGUIBanLGrid]
+LengthExceeded="Ξεπεράστηκε το μέγιστο μήκος λίστας παικτών: %i"
+ResponseMismatch="Το ID απάντησης δεν ταιριάζει: %i/%j"
+ReceiveBanText="Λήφθηκε ο αποκλεισμός %ls."
+GettingBanListText="Λήψη λίστας αποκλεισμών από τον διακομιστή. Αν δεν συμβεί τίποτα, ίσως δεν έχετε συνδεθεί ως διαχειριστής (ή δεν υπάρχουν αποκλεισμοί)."
+
+[MMMusicListGrid]
+MusicNameStr="Όνομα μουσικής"
+MusicPackStr="Πακέτο μουσικής"
+FailedToPlayStr="Αποτυχία αναπαραγωγής: Η μουσική %ls δεν βρέθηκε ή δεν φορτώθηκε."
+StartedPlayStr="Ξεκίνησε η αναπαραγωγή της μουσικής %ls από το τμήμα %i."
+NullErrorStr="Αποτυχία προσθήκης: Το NULL δεν είναι έγκυρο τραγούδι."
+FailedLoadStr="Αποτυχία προσθήκης: Το αρχείο μουσικής %ls δεν βρέθηκε ή δεν φορτώθηκε."
+ConfirmInsertDuplicateTitle="Προσθήκη ήδη καταχωρισμένου κομματιού"
+ConfirmInsertDuplicateText="Αυτό το κομμάτι υπάρχει ήδη στη λίστα αναπαραγωγής. Να προστεθεί ξανά;"
+AddedStr="Προστέθηκε η μουσική %ls (%i)."
+RemoveSongStr="Αφαιρέθηκε το τραγούδι #%i."
+ClearListStr="Αφαιρέθηκαν όλα τα κομμάτια από τη λίστα."
+AddAllStr="Προστέθηκε όλη η μουσική στη λίστα."
+ConfirmClearListTitle="Επιβεβαίωση εκκαθάρισης λίστας"
+ConfirmClearListText="Θέλετε να εκκαθαρίσετε τη λίστα αναπαραγωγής;"
+BadIndexStr="Αποτυχία αφαίρεσης: Μη έγκυρος δείκτης."
+
+[AdminGUIClientWindow]
+PlayersListTxt="Λίστα πελατών"
+BanListTxt="Αποκλεισμένοι πελάτες"
+TempBanListTxt="Προσωρινά αποκλεισμένοι πελάτες"
+
+[AdminGUIManBanClientW]
+PlayerNameTxt="Όνομα πελάτη (μόνο για τη λίστα αποκλεισμών):"
+PlayerIpTxt="Διεύθυνση IP πελάτη (ή εύρος IP):"
+InsertBanTxt="Προσθήκη αποκλεισμού"
+
+[MMMainWindow]
+WindowTitle="Μενού μουσικής"
+
+[UWindowNetErrorClientWindow]
+ReconnectText="Επανασύνδεση στον διακομιστή"
+KickNetworkText="ΑΠΟΒΛΗΘΗΚΑΤΕ!|Ένας διαχειριστής σάς απέβαλε από αυτόν τον διακομιστή για το υπόλοιπο παιχνίδι.\\"
+BanNetworkText="ΑΠΟΚΛΕΙΣΤΗΚΑΤΕ!|Ένας διαχειριστής σάς απέκλεισε από αυτόν τον διακομιστή λόγω ανάρμοστης συμπεριφοράς.\\\\Αν θεωρείτε ότι ο αποκλεισμός είναι άδικος, επικοινωνήστε με τον διαχειριστή στη διεύθυνση: "
+TempBanNetworkText="ΠΡΟΣΩΡΙΝΟΣ ΑΠΟΚΛΕΙΣΜΟΣ!|Έχετε αποκλειστεί προσωρινά από αυτόν τον διακομιστή για το υπόλοιπο του χάρτη.\\"
+
+[MMControlsClient]
+MusicVolumeText="Ένταση μουσικής"
+BrowseText="Περιήγηση"
+BrowseHint="Περιήγηση στα αρχεία μουσικής"
+AddAllText="Προσθήκη όλων"
+AddAllHint="Αναζητά ολόκληρο τον φάκελο μουσικής και προσθέτει όλα τα κομμάτια στη λίστα αναπαραγωγής."
+AddAllWinHdr="ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Προσθήκη όλων των τραγουδιών;"
+AddAllWarningText="Αυτή η ενέργεια θα αργήσει και θα προσθέσει κάθε διαθέσιμο τραγούδι στη λίστα. Θέλετε να συνεχίσετε;"
+AddMusicText="Προσθήκη μουσικής"
+AddMusicHint="Προσθήκη μουσικής με το καθορισμένο όνομα"
+TimeLimitText="Χρονικό όριο"
+TimeLimitHint="Επιλέξτε χρόνο αναπαραγωγής σε λεπτά (0 = χωρίς όριο)"
+SectionText="Τμήμα τραγουδιού"
+SectionHint="Ορίστε το αρχικό τμήμα μουσικής (0 - 254)"
+MusicStoppedText="Η αναπαραγωγή μουσικής σταμάτησε."
+PlayTrackHint="Αναπαραγωγή κομματιού"
+StopTrackHint="Διακοπή κομματιού"
+PriorTrackHint="Προηγούμενο κομμάτι"
+NextTrackHint="Επόμενο κομμάτι"
+ShuffleText="Τυχαία σειρά λίστας"
+ShuffleHint="Το επόμενο κομμάτι επιλέγεται πάντα τυχαία."
+
+[UWindowNetErrorWindow]
+WindowTitle="Κατάσταση σφάλματος δικτύου παίκτη"
+
+[AdminGUIMainWindow]
+WindowTitle="Μενού διαχειριστή"
+
+[AdminGUIBanLPullDown]
+RemoveBanTxt="&Αφαίρεση αποκλεισμού"
+CloseMenuTxt="&Κλείσιμο μενού"
+RefreshTxt="&Ανανέωση λίστας αποκλεισμών"
+ManualBanTxt="&Χειροκίνητη προσθήκη αποκλεισμού"
+
+[MMMusListWindow]
+WindowTitle="Βρέθηκαν πολλά μουσικά κομμάτια:"
+
+[MMListPullDown]
+PlaySongStr="&Αναπαραγωγή"
+RemoveSongStr="&Αφαίρεση από τη λίστα"
+InsertCurrentSongStr="&Προσθήκη τρέχοντος κομματιού"
+ClearPlaylistStr="&Εκκαθάριση λίστας"
+
+[MMMusicFilesGrid]
+ErrorLoadPackage="Σφάλμα: Αποτυχία φόρτωσης πακέτου μουσικής."
+ErrorNoMusics="Σφάλμα: Δεν βρέθηκε μουσική σε αυτό το πακέτο."
+
+[AdminGUIPLPullDown]
+GetAliasesTxt="&Λήψη ψευδωνύμων παίκτη"
+KickPlayerTxt="&Αποβολή παίκτη"
+KickBanTempTxt="&Προσωρινή αποβολή και αποκλεισμός"
+KickBanTxt="Αποβολή και &αποκλεισμός παίκτη"
+CloseMenuTxt="&Κλείσιμο μενού"
+RefreshTxt="&Ανανέωση λίστας παικτών"
+
+[AdminGUIManualBanWnd]
+WindowTitle="Χειροκίνητη προσθήκη αποκλεισμού"
+
+[AdminGUITBanLGrid]
+GettingBanListText="Λήψη λίστας προσωρινών αποκλεισμών από τον διακομιστή. Αν δεν συμβεί τίποτα, ίσως δεν έχετε συνδεθεί ως διαχειριστής (ή δεν υπάρχουν προσωρινοί αποκλεισμοί)."
+
+[FontStyle]
+SmallFont=UWindowFonts.Tahoma10
+SmallFontBold=UWindowFonts.TahomaB10
+MedFont=UWindowFonts.Tahoma20
+MedFontBold=UWindowFonts.TahomaB20
+LargeFont=UWindowFonts.Tahoma30
+LargeFontBold=UWindowFonts.TahomaB30
+
+[UWindowSmallRestartButton]
+RestartText="Επανεκκίνηση"
+
+[WindowConsole]
+WarningMessage="Κάτι προκαλεί προειδοποιήσεις script..."

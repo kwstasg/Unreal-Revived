@@ -95,6 +95,17 @@ if ($LASTEXITCODE -ge 8) {
     throw "Copying original game assets failed with robocopy exit code $LASTEXITCODE."
 }
 
+$englishAudioRoot = Join-Path $destinationRoot 'Sounds\int'
+$audioRoot = Join-Path $destinationRoot 'Sounds'
+if (Test-Path -LiteralPath $englishAudioRoot -PathType Container) {
+    foreach ($audioFile in Get-ChildItem -LiteralPath $englishAudioRoot -File -Filter '*.uax') {
+        $audioDestination = Join-Path $audioRoot $audioFile.Name
+        if (-not (Test-Path -LiteralPath $audioDestination -PathType Leaf)) {
+            Copy-Item -LiteralPath $audioFile.FullName -Destination $audioDestination
+        }
+    }
+}
+
 $startupDescriptionPrefixes = @($contentPolicy.metadataFiltering.startupDescriptionPrefixes | ForEach-Object { [string]$_ })
 if ($startupDescriptionPrefixes.Count -gt 0) {
     foreach ($startupFile in Get-ChildItem -LiteralPath $destinationRoot -File -Recurse -Filter 'Startup.*' -Force) {

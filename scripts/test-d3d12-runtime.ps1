@@ -10,6 +10,9 @@ param(
     [ValidateSet('Off', 'Capture', 'Update', 'Compare')]
     [string]$ScreenshotMode = 'Off',
 
+    [ValidateSet('int', 'elt')]
+    [string]$Language = 'int',
+
     [ValidateRange(0, 255)]
     [double]$MaxMeanChannelDelta = 12,
 
@@ -322,6 +325,7 @@ try {
         New-Item -ItemType Directory -Force -Path $caseDir | Out-Null
 
         $iniLines = Get-Content -LiteralPath $sourceIni
+        $iniLines = Set-IniValue -Lines $iniLines -Section 'Engine.Engine' -Key 'Language' -Value $Language
         if ($case.CloneWindowsClient) {
             $iniLines = Copy-UnrealRevivedIniSection $iniLines 'WinDrv.WindowsClient' 'XInputWinDrv.WindowsClient'
             $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'UseJoystick' 'True'

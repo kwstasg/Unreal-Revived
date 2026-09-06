@@ -1,0 +1,325 @@
+﻿[Public]
+Object=(Name=UnrealI.KingOfTheHill,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UnrealI.DarkMatch,Class=Class,MetaClass=Engine.GameInfo)
+Object=(Name=UnrealI.FlakCannon,Class=Class,MetaClass=Engine.Weapon,Description="Flak Cannon")
+Object=(Name=UnrealI.Rifle,Class=Class,MetaClass=Engine.Weapon,Description="Sniper Rifle")
+Object=(Name=UnrealI.Minigun,Class=Class,MetaClass=Engine.Weapon,Description="Minigun")
+Object=(Name=UnrealI.GESBioRifle,Class=Class,MetaClass=Engine.Weapon,Description="GES BioRifle")
+Object=(Name=UnrealI.RazorJack,Class=Class,MetaClass=Engine.Weapon,Description="RazorJack")
+Object=(Name=UnrealI.QuadShot,Class=Class,MetaClass=Engine.Weapon,Description="Quad-Barreled Shotgun")
+Object=(Name=UnrealI.PeaceMaker,Class=Class,MetaClass=Engine.Weapon,Description="Peacemaker")
+Object=(Name=UnrealI.FemaleTwo,Class=Class,MetaClass=UnrealShare.UnrealiPlayer,Description="Female 2")
+Object=(Name=UnrealI.MaleOne,Class=Class,MetaClass=UnrealShare.UnrealiPlayer,Description="Male 1")
+Object=(Name=UnrealI.MaleTwo,Class=Class,MetaClass=UnrealShare.UnrealiPlayer,Description="Male 2")
+Object=(Name=UnrealI.SkaarjPlayer,Class=Class,MetaClass=UnrealShare.UnrealiPlayer,Description="Skaarj Trooper")
+Object=(Name=UnrealI.FemaleTwoBot,Class=Class,MetaClass=UnrealShare.Bots,Description="Female 2")
+Object=(Name=UnrealI.MaleOneBot,Class=Class,MetaClass=UnrealShare.Bots,Description="Male 1")
+Object=(Name=UnrealI.MaleTwoBot,Class=Class,MetaClass=UnrealShare.Bots,Description="Male 2")
+Object=(Name=UnrealI.SkaarjPlayerBot,Class=Class,MetaClass=UnrealShare.Bots,Description="Skaarj Trooper")
+Object=(Name=UnrealI.NaliPlayer,Class=Class,MetaClass=UnrealShare.UnrealiPlayer,Description="Nali")
+Object=(Name=UnrealI.NaliPlayerBot,Class=Class,MetaClass=UnrealShare.Bots,Description="Nali")
+Preferences=(Caption="Darkmatch",Parent="Game Types",Class=UnrealI.DarkMatch,Immediate=True)
+Preferences=(Caption="King Of The Hill",Parent="Game Types",Class=UnrealI.KingOfTheHill,Immediate=True)
+Preferences=(Caption="Darkmatch Maps",Parent="Map Lists",Class=UnrealI.DkMapList,Immediate=True)
+
+[IntroNullHud]
+ESCMessage="Πατήστε ESC για να ξεκινήσετε"
+
+[Queen]
+NameArticle=" την "
+MenuName="Βασίλισσα"
+
+[Behemoth]
+NameArticle=" ένα "
+MenuName="Τέρας"
+
+[Blob]
+NameArticle=" μία "
+MenuName="Σταγόνα"
+
+[Bloblet]
+NameArticle=" μία "
+MenuName="Σταγονίτσα"
+
+[Gasbag]
+NameArticle="μία"
+MenuName="Τσάντα υγραερίου"
+
+[GiantGasbag]
+NameArticle=" την "
+MenuName="Γιγάντια Τσάντα υγραερίου"
+
+[GiantManta]
+NameArticle=" την "
+MenuName="Γιγάντια Manta"
+
+[Krall]
+NameArticle=" ένα "
+MenuName="Krall"
+
+[KrallElite]
+NameArticle=" ένας "
+MenuName="Εκλεκτός Krall"
+
+[LeglessKrall]
+NameArticle=" ένα "
+MenuName="Krall χωρίς πόδια"
+
+[Mercenary]
+NameArticle=" έναν "
+MenuName="Μισθοφόρος"
+
+[MercenaryElite]
+NameArticle=" έναν "
+MenuName="Εκλεκτός Μισθοφόρος"
+
+[Pupae]
+NameArticle=" μία "
+MenuName="Νύμφη"
+
+[SkaarjAssassin]
+NameArticle=" έναν "
+MenuName="Δολοφόνο Skaarj"
+
+[SkaarjBerserker]
+NameArticle=" ένα "
+MenuName="Παράφρονο Skaarj"
+
+[SkaarjGunner]
+NameArticle=" έναν "
+MenuName="Πυροβολητής Skaarj"
+
+[SkaarjInfantry]
+NameArticle=" έναν "
+MenuName="Πεζικό Skaarj"
+
+[SkaarjLord]
+NameArticle=" έναν "
+MenuName="Άρχοντας Skaarj"
+
+[SkaarjOfficer]
+NameArticle="έναν"
+MenuName="Αξιωματικός Skaarj"
+
+[SkaarjSniper]
+NameArticle="έναν"
+MenuName="Σκοπευτή Skaarj"
+
+[SkaarjTrooper]
+NameArticle=" έναν "
+MenuName="Στρατιώτης Skaarj"
+
+[Titan]
+NameArticle=" έναν "
+MenuName="Τιτάνας"
+
+[StoneTitan]
+NameArticle=" τον "
+MenuName="Πέτρινο τιτάνα"
+
+[SkaarjPlayer]
+MenuName="Στρατιώτης Skaarj"
+
+[SkaarjPlayerBot]
+MenuName="Στρατιώτης Skaarj"
+
+[NaliPlayer]
+MenuName="Nali"
+
+[WarLord]
+NameArticle=" τον "
+MenuName="Πολέμαρχος"
+
+[SearchLight]
+ExpireMessage="Οι μπαταρίες του προβολέα εξαντλήθηκαν."
+PickupMessage="Πήρατε τον προβολέα"
+ItemName="Προβολέας"
+
+[RazorAmmo]
+PickupMessage="Πήρατε λεπίδες Razor"
+ItemName="Λεπίδες Razor"
+
+[DarkMatch]
+ClassCaption="DarkMatch"
+GameName="DarkMatch"
+
+[FlakBox]
+PickupMessage="Πήρατε 10 βλήματα Flak"
+ItemName="Βλήματα Flak"
+
+[MaleOne]
+MenuName="Άντρας 1"
+
+[MaleOneBot]
+MenuName="Άντρας 1"
+
+[RifleAmmo]
+PickupMessage="Πήρατε 8 σφαίρες τυφεκίου"
+ItemName="Σφαίρες Τυφεκίου"
+
+[Seeds]
+PickupMessage="Πήρατε τους σπόρους Καρπού Nali"
+ItemName="Σπόροι Καρπού Nali"
+
+[JumpBoots]
+ExpireMessage="Οι Μπότες Άλματος εξαντλήθηκαν."
+PickupMessage="Πήρατε τις Μπότες Άλματος"
+ItemName="Μπότες Άλματος"
+
+[ForceField]
+M_NoRoom="Δεν υπάρχει χώρος για ενεργοποίηση του Πεδίου Δύναμης."
+PickupMessage="Πήρατε το Πεδίο Δύναμης"
+ItemName="Πεδίο Δύναμης"
+
+[FemaleTwo]
+MenuName="Γυναίκα 2"
+
+[FemaleTwoBot]
+MenuName="Γυναίκα 2"
+
+[MaleTwo]
+MenuName="Άντρας 2"
+
+[MaleTwoBot]
+MenuName="Άντρα 1"
+
+[Sludge]
+PickupMessage="Πήρατε 25 κιλά βιολάσπης Tarydium"
+ItemName="Βιολάσπη Tarydium"
+
+[Invisibility]
+ExpireMessage="Η αορατότητα έληξε."
+PickupMessage="Αποκτήσατε Αορατότητα"
+ItemName="Αορατότητα"
+
+[AsbestosSuit]
+PickupMessage="Πήρατε τη Στολή Αμιάντου"
+ItemName="Στολή Αμιάντου"
+
+[fell]
+Name="έπεσε"
+AltName="έπεσε"
+
+[FlakShellAmmo]
+PickupMessage="Πήρατε ένα βλήμα Flak"
+ItemName="Βλήμα Flak"
+
+[drowned]
+Name="πνίγηκε"
+AltName="πνίγηκε"
+
+[Decapitated]
+Name="αποκεφαλίστηκε"
+AltName="αποκεφαλίστηκε"
+
+[Dampener]
+ExpireMessage="Ο Ακουστικός Αποσβεστήρας εξαντλήθηκε."
+PickupMessage="Πήρατε τον Ακουστικό Αποσβεστήρα"
+ItemName="Ακουστικός Αποσβεστήρας"
+
+[Corroded]
+Name="διάβρωσε"
+AltName="διάβρωσε"
+
+[ToxinSuit]
+PickupMessage="Πήρατε τη Στολή Προστασίας από Τοξίνες"
+ItemName="Στολή Προστασίας από Τοξίνες"
+
+[Burned]
+Name="κάηκε"
+AltName="κάηκε"
+
+[PowerShield]
+PickupMessage="Πήρατε την Ενεργειακή Ασπίδα"
+ItemName="Ενεργειακή Ασπίδα"
+
+[RifleRound]
+PickupMessage="Πήρατε μια σφαίρα τυφεκίου"
+ItemName="Σφαίρα Τυφεκίου"
+
+[ParentBlob]
+BlobKillMessage="διαβρώθηκε από μια Σταγόνα"
+FemBlobKillMessage="διαβρώθηκε από Blob"
+NameArticle=" μία "
+MenuName="Σταγόνα"
+
+[IceSkaarj]
+NameArticle=" ένας "
+MenuName="Παγωμένος Skaarj"
+
+[EndgameHud]
+Message1="Ο λοβός διαφυγής Skaarj απελευθερώθηκε από τη βαρυτική έλξη του πλανήτη... μετά βίας. Ωστόσο, το απόθεμα καυσίμου έχει εξαντληθεί και παρασύρεστε άσκοπα."
+Message2="Από εκεί που έχουν πεθάνει πολλοί, έχεις ξεφύγει. Γελάς μόνος σου. τόσα πολλά έχουν συμβεί, αλλά τόσα λίγα έχουν αλλάξει."
+Message3="Πριν από την προσγείωση, ήσασταν παγιδευμένοι σε ένα στενό κελί. Τώρα, για άλλη μια φορά είσαι έγκλειστος σε μια φυλακή."
+Message4="Όμως, νιώθεις σίγουρος ότι κάποιος θα έρθει στο μικρό σου σκάφος... κάποτε."
+Message5="Μέχρι τότε, παρασύρεσαι και ελπίζεις."
+Message6="Συνεχίζεται..."
+Message7="Πατήστε πυρ για επανεκκίνηση"
+
+[KingOfTheHill]
+ClassCaption="Βασιλιάς του λόφου"
+KingMessage="είναι ο νέος βασιλιάς του λόφου!"
+NewKingMessage="Ο %k είναι ο νέος βασιλιάς του λόφου!"
+NewQueenMessage="Η %k είναι η νέα βασίλισσα του λόφου!"
+GameName="Βασιλιάς του λόφου"
+
+[FlakCannon]
+DeathMessage="%o έγινε κομμάτια από %k με %w"
+FemDeathMessage="Η %o έγινε κομμάτια από το %w του %k."
+FemKillMessage="Ο %o έγινε κομμάτια από το %w της %k."
+PickupMessage="Πήρατε το Κανόνι Flak"
+ItemName="Κανόνι Flak"
+
+[Rifle]
+DeathMessage="%k έριξε σφαίρα στο κεφάλι του/της %o."
+FemDeathMessage="Ο %k έριξε μια σφαίρα στο κεφάλι της %o."
+FemKillMessage="Η %k έριξε μια σφαίρα στο κεφάλι του %o."
+PickupMessage="Πήρατε το Τυφέκιο"
+ItemName="Τυφέκιο Ελεύθερου Σκοπευτή"
+
+[Minigun]
+DeathMessage="%o έγινε κομματάκια από τον/την %k με %w"
+FemDeathMessage="Το %w του %k έκανε την %o διάτρητο κομμάτι κρέας."
+FemKillMessage="Το %w της %k έκανε τον %o διάτρητο κομμάτι κρέας."
+PickupMessage="Πήρατε το Minigun"
+ItemName="Πολυβόλο"
+
+[GESBioRifle]
+DeathMessage="%o ήπιε ένα ποτήρι πράσινης χλαπάτσας από %k"
+FemDeathMessage="Η %o ήπιε ένα ποτήρι από το πράσινο φορτίο του %k."
+FemKillMessage="Ο %o ήπιε ένα ποτήρι από το πράσινο φορτίο της %k."
+PickupMessage="Πήρατε το Βιοτυφέκιο GES"
+ItemName="Βιοτυφέκιο GES"
+
+[Squid]
+NameArticle=" a "
+MenuName="Καλαμάρι"
+
+[Chameleon]
+NameArticle=" a "
+MenuName="Χαμαιλέοντας"
+
+[RazorJack]
+DeathMessage="%k έβγαλε ένα ματωμένο κομμάτι από τον/την %o με %w."
+FemDeathMessage="Ο %k έκοψε ένα ματωμένο κομμάτι από την %o με το %w."
+FemKillMessage="Η %k έκοψε ένα ματωμένο κομμάτι από τον %o με το %w."
+PickupMessage="Πήρατε το RazorJack"
+ItemName="Αντεροβγάλτης"
+
+[QuadShot]
+DeathMessage="%o ανατινάχτηκε σε κομμάτια από τον/την %k με %w."
+FemDeathMessage="Η %o διαλύθηκε από το %w του %k."
+FemKillMessage="Ο %o διαλύθηκε από το %w της %k."
+PickupMessage="Πήρατε το Τετράκαννο"
+ItemName="Τετράκαννο"
+
+[PeaceMaker]
+DeathMessage="Ένας πύραυλος από το %w του %k ανατίναξε τον %o."
+FemDeathMessage="Ένας πύραυλος από το %w του %k ανατίναξε την %o."
+FemKillMessage="Ένας πύραυλος από το %w της %k ανατίναξε τον %o."
+PickupMessage="Πήρατε το Peacemaker"
+ItemName="Ειρηνοποιός"
+
+[WoodruffSeeds]
+PickupMessage="Πήρατε τους σπόρους Woodruff"
+ItemName="Σπόροι Woodruff"

@@ -1,0 +1,15 @@
+﻿[LevelInfo2]
+Title="Η Πηγή"
+LevelEnterText="Είσοδος στην Πηγή"
+
+[LevelSummary]
+Title="Η Πηγή"
+LevelEnterText="Είσοδος στην Πηγή"
+
+[JumpBoots0]
+ItemName="Μπότες Υπεράλματος"
+PickupMessage="Πήρατε τις Μπότες Υπεράλματος."
+ExpireMessage="Η ενέργεια των Μποτών Υπεράλματος εξαντλήθηκε."
+
+[SpecialEvent18]
+DamageString="εξαϋλώθηκε"

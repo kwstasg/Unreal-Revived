@@ -1,0 +1,27 @@
+﻿[LevelInfo0]
+Title="Τα Βάθη του Rrajigar"
+
+[LevelSummary]
+Title="Τα Βάθη του Rrajigar"
+
+[TranslatorEvent4]
+Message="ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Να είστε προσεκτικοί κοντά στα βαρέλια Tarydium."
+
+[TranslatorEvent17]
+Message="Περάστε, η λάβα είναι υπέροχη!"
+
+[TranslatorEvent18]
+Message="Ο Craig είναι ο Μέγας Δάσκαλος της Χαζομάρας."
+
+[TranslatorEvent16]
+Message="Ο Καναδάς είναι πολύ κρύος. Μου αρέσει η μπίρα Dos Equis. Οι γάτες μου είναι χνουδωτές."
+
+[TranslatorEvent3]
+Message="Δευτερεύουσα μονάδα ενεργοποίησης βαγονιού μεταφοράς Tarydium."
+
+[TranslatorEvent12]
+Message="Κατάσταση σταθμού αναδρομολόγησης αερίου: Οι πόρτες βρίσκονται υπό πίεση και είναι κλειδωμένες."
+AltMessage="Οι πόρτες αποσυμπιέστηκαν. Επιτρέπεται η πρόσβαση."
+
+[TranslatorEvent2]
+Message="Κύρια μονάδα ενεργοποίησης βαγονιού μεταφοράς Tarydium."

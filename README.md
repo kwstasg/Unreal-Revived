@@ -271,6 +271,7 @@ are implemented.
 - [Renderer port](docs/renderer-227k.md): OldUnreal 227k_15 compatibility work.
 - [Configuration](docs/configuration.md): launch syntax and renderer settings.
 - [Testing](docs/testing.md): automated and manual validation procedures.
+- [Localization](docs/localization.md): project-owned languages and the Greek translation workflow.
 - [Engineering progress](docs/progress.md): completed milestones and evidence.
 - [Project layout](docs/project-layout.md): implemented and planned components.
 - [Permissions](PERMISSIONS.md): authorized pinned payload and exclusions.
