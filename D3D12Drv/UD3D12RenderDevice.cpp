@@ -363,7 +363,7 @@ UBOOL UD3D12RenderDevice::Init(UViewport* InViewport, INT NewX, INT NewY, INT Ne
 		ThrowIfFailed(result, "CreateFence failed");
 
 		Commands.FenceHandle = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		if (Commands.FenceHandle == INVALID_HANDLE_VALUE)
+		if (!Commands.FenceHandle)
 			throw std::runtime_error("CreateEvent failed");
 
 		Commands.Current = &Commands.Batches[0];
@@ -743,6 +743,7 @@ void UD3D12RenderDevice::SubmitCommands(bool present)
 
 		DXGI_PRESENT_PARAMETERS presentParams = {};
 		result = SwapChain3->Present1(UseVSync ? 1 : 0, flags, &presentParams);
+		ThrowIfFailed(result, "SwapChain3.Present1 failed");
 	}
 
 	result = GraphicsQueue->Signal(Commands.Fence, Commands.FenceValue + 1);
@@ -866,7 +867,7 @@ void UD3D12RenderDevice::Exit()
 	Commands.Fence.reset();
 	GraphicsQueue.reset();
 
-	if (Commands.FenceHandle != INVALID_HANDLE_VALUE)
+	if (Commands.FenceHandle && Commands.FenceHandle != INVALID_HANDLE_VALUE)
 	{
 		CloseHandle(Commands.FenceHandle);
 		Commands.FenceHandle = INVALID_HANDLE_VALUE;
@@ -2797,13 +2798,12 @@ void UD3D12RenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 	CachedTexture* tex = Textures->GetTexture(Surface.Texture, !!(PolyFlags & PF_Masked));
 	CachedTexture* lightmap = Textures->GetTexture(Surface.LightMap, false);
 	CachedTexture* macrotex = Textures->GetTexture(Surface.MacroTexture, false);
-	CachedTexture* detailtex = Textures->GetTexture(Surface.DetailTexture, false);
 	CachedTexture* fogmap = (Surface.FogMap && Surface.FogMap->Mips[0] && Surface.FogMap->Mips[0]->DataPtr) ? Textures->GetTexture(Surface.FogMap, false) : nullptr;
 
 #if defined(UNREALGOLD)
-	if (Surface.DetailTexture && Surface.FogMap) detailtex = nullptr;
+	CachedTexture* detailtex = Surface.FogMap ? nullptr : Textures->GetTexture(Surface.DetailTexture, false);
 #else
-	if ((Surface.DetailTexture && Surface.FogMap) || (!DetailTextures)) detailtex = nullptr;
+	CachedTexture* detailtex = (Surface.FogMap || !DetailTextures) ? nullptr : Textures->GetTexture(Surface.DetailTexture, false);
 #endif
 
 	float UDot = Facet.MapCoords.XAxis | Facet.MapCoords.Origin;
@@ -3484,7 +3484,7 @@ void UD3D12RenderDevice::GetStats(TCHAR* Result)
 
 void UD3D12RenderDevice::ReadPixels(FColor* Pixels, UBOOL bGammaCorrectOutput)
 {
-	guard(UD3D12RenderDevice::GetStats);
+	guard(UD3D12RenderDevice::ReadPixels);
 
 	ID3D12Resource* imageResource = nullptr;
 
@@ -3577,37 +3577,36 @@ void UD3D12RenderDevice::ReadPixels(FColor* Pixels, UBOOL bGammaCorrectOutput)
 	WaitDeviceIdle();
 
 	void* data = nullptr;
-	result = buffer->Map(0, nullptr, &data);
-	if (SUCCEEDED(result))
+	D3D12_RANGE readRange = { 0, (SIZE_T)totalSize };
+	result = buffer->Map(0, &readRange, &data);
+	ThrowIfFailed(result, "Map(ReadPixelsBuffer) failed");
+	uint8_t* srcpixels = (uint8_t*)data;
+	int w = CurrentSizeX;
+	int h = CurrentSizeY;
+	void* pixelData = Pixels;
+
+	for (int y = 0; y < h; y++)
 	{
-		uint8_t* srcpixels = (uint8_t*)data;
-		int w = CurrentSizeX;
-		int h = CurrentSizeY;
-		void* data = Pixels;
-
-		for (int y = 0; y < h; y++)
+		int desty = GammaCorrectScreenshots ? y : (h - y - 1);
+		uint8_t* dest = (uint8_t*)pixelData + desty * w * 4;
+		uint16_t* src = (uint16_t*)(srcpixels + y * footprint.Footprint.RowPitch);
+		for (int x = 0; x < w; x++)
 		{
-			int desty = GammaCorrectScreenshots ? y : (h - y - 1);
-			uint8_t* dest = (uint8_t*)data + desty * w * 4;
-			uint16_t* src = (uint16_t*)(srcpixels + y * footprint.Footprint.RowPitch);
-			for (int x = 0; x < w; x++)
-			{
-				float red = halfToFloatSimple(*(src++));
-				float green = halfToFloatSimple(*(src++));
-				float blue = halfToFloatSimple(*(src++));
-				float alpha = halfToFloatSimple(*(src++));
+			float red = halfToFloatSimple(*(src++));
+			float green = halfToFloatSimple(*(src++));
+			float blue = halfToFloatSimple(*(src++));
+			float alpha = halfToFloatSimple(*(src++));
 
-				dest[0] = (int)clamp(std::round(blue * 255.0f), 0.0f, 255.0f);
-				dest[1] = (int)clamp(std::round(green * 255.0f), 0.0f, 255.0f);
-				dest[2] = (int)clamp(std::round(red * 255.0f), 0.0f, 255.0f);
-				dest[3] = (int)clamp(std::round(alpha * 255.0f), 0.0f, 255.0f);
-				dest += 4;
-			}
+			dest[0] = (int)clamp(std::round(blue * 255.0f), 0.0f, 255.0f);
+			dest[1] = (int)clamp(std::round(green * 255.0f), 0.0f, 255.0f);
+			dest[2] = (int)clamp(std::round(red * 255.0f), 0.0f, 255.0f);
+			dest[3] = (int)clamp(std::round(alpha * 255.0f), 0.0f, 255.0f);
+			dest += 4;
 		}
-
-		D3D12_RANGE writtenRange = {};
-		buffer->Unmap(0, &writtenRange);
 	}
+
+	D3D12_RANGE writtenRange = {};
+	buffer->Unmap(0, &writtenRange);
 
 	unguard;
 }

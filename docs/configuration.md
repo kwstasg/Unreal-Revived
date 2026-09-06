@@ -131,6 +131,15 @@ binding path. ModernConsole
 suppresses UE1's double-tap dodge detector only while those stick axes are
 active; keyboard double-tap dodge remains available when the stick is centered.
 
+ModernConsole also applies a canonical player `MaxStepHeight` of 32 across map
+travel and save loads. In standalone play, if walking input remains blocked for
+0.01 seconds, it temporarily reduces the local player's collision radius by
+8 units, with an absolute minimum radius of 8. The normal radius is restored as
+soon as movement resumes or walking input ends. This lets UE1's native movement
+clear problematic legacy BSP seams without manually moving the player, changing
+map geometry, affecting crouched or airborne movement, or operating in network
+play.
+
 Fresh development and installed profiles explicitly default to automatic
 controller selection, 25% left-stick and 25% right-stick dead zones, movement
 and look sensitivity `100`, inverted vertical controller look, raw mouse input, mouse sensitivity

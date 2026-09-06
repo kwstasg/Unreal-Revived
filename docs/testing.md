@@ -67,6 +67,12 @@ unpauses. Combo boxes open, navigate, and commit with the controller. A also
 resets focused Video and HUD sliders directly. Full binding-persistence and
 USB/Bluetooth hotplug coverage remain pending.
 
+In `NyLeve`, verify the first-house doorstep and the narrow blood-stained
+corridor steps can be crossed using continuous walking without jumping. Confirm
+the player does not visibly snap or accelerate, ordinary movement retains its
+normal collision radius, crouching and airborne movement remain unchanged, and
+the assist still works after normal map travel and loading a save.
+
 Compare full-stick movement and turn speed at a conventional frame rate and an
 uncapped rate. Physical testing confirmed consistent movement and look at about
 240 FPS with VSync and above 1000 FPS uncapped. Also verify that left-stick

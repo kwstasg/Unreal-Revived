@@ -15,12 +15,18 @@ TextureManager::~TextureManager()
 
 void TextureManager::UpdateTextureRect(FTextureInfo* info, int x, int y, int w, int h)
 {
-	std::unique_ptr<CachedTexture>& tex = TextureCache[0][info->CacheID];
-	if (tex)
+	bool updated = false;
+	for (int masked = 0; masked < 2; masked++)
 	{
-		renderer->Uploads->UploadTextureRect(tex.get(), *info, x, y, w, h);
-		info->bRealtimeChanged = 0;
+		auto it = TextureCache[masked].find(info->CacheID);
+		if (it != TextureCache[masked].end() && it->second)
+		{
+			renderer->Uploads->UploadTextureRect(it->second.get(), *info, x, y, w, h, masked != 0);
+			updated = true;
+		}
 	}
+	if (updated)
+		info->bRealtimeChanged = 0;
 }
 
 CachedTexture* TextureManager::GetTexture(FTextureInfo* info, bool masked)

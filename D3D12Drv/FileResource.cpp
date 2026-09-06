@@ -214,9 +214,9 @@ std::string FileResource::readAllText(const std::string& filename)
 
 			float3 dither(float3 c, float4 FragCoord)
 			{
-				float2 texSize;
-				texDither.GetDimensions(texSize.x, texSize.y);
-				float threshold = texDither.Sample(samplerDither, FragCoord.xy / texSize).r;
+				// PresentPass.DitherTexture is always the fixed 8x8 matrix created by
+				// CreatePresentPass, so avoid querying its dimensions for every pixel.
+				float threshold = texDither.Sample(samplerDither, FragCoord.xy / float2(8.0, 8.0)).r;
 				return floor(c.rgb * 255.0 + threshold) / 255.0;
 			}
 

@@ -53,17 +53,6 @@ struct TexDescriptorKey
 		return tex == other.tex && lightmap == other.lightmap && detailtex == other.detailtex && macrotex == other.macrotex;
 	}
 
-	bool operator<(const TexDescriptorKey& other) const
-	{
-		if (tex != other.tex)
-			return tex < other.tex;
-		else if (lightmap != other.lightmap)
-			return lightmap < other.lightmap;
-		else if (detailtex != other.detailtex)
-			return detailtex < other.detailtex;
-		return macrotex < other.macrotex;
-	}
-
 	CachedTexture* tex;
 	CachedTexture* lightmap;
 	CachedTexture* detailtex;
@@ -74,7 +63,19 @@ template<> struct std::hash<TexDescriptorKey>
 {
 	std::size_t operator()(const TexDescriptorKey& k) const
 	{
-		return (((std::size_t)k.tex ^ (std::size_t)k.lightmap));
+		// All four textures participate in equality, so include all four in the
+		// hash as well.  Ignoring detail and macro textures turns common material
+		// combinations into long collision chains on every draw.
+		std::size_t result = std::hash<CachedTexture*>{}(k.tex);
+		auto combine = [&result](CachedTexture* texture)
+		{
+			const std::size_t value = std::hash<CachedTexture*>{}(texture);
+			result ^= value + (std::size_t)0x9e3779b9 + (result << 6) + (result >> 2);
+		};
+		combine(k.lightmap);
+		combine(k.detailtex);
+		combine(k.macrotex);
+		return result;
 	}
 };
 

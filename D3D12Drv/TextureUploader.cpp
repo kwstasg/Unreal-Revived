@@ -235,7 +235,7 @@ int TextureUploader_RGB8::GetUploadSize(int x, int y, int w, int h)
 void TextureUploader_RGB8::UploadRect(void* dst, FMipmapBase* mip, int x, int y, int w, int h, FColor* palette, bool masked)
 {
 	int pitch = mip->USize * 3;
-	uint8_t* src = ((uint8_t*)mip->DataPtr) + x + y * pitch;
+	uint8_t* src = ((uint8_t*)mip->DataPtr) + x * 3 + y * pitch;
 	auto Ptr = (FColor*)dst;
 	for (int i = 0; i < h; i++)
 	{

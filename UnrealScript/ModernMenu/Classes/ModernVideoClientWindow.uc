@@ -332,7 +332,6 @@ function BeforePaint(Canvas C, float X, float Y)
 {
 	bShowFPS = class'ModernVideoClientWindow'.Default.bShowFPS;
 	ShowFPSCheck.bChecked = bShowFPS;
-	UpdateBrightnessText();
 	Super.BeforePaint(C, X, Y);
 	SyncDisplayMode();
 	DisplayModeCombo.WinLeft = VideoCombo.WinLeft;

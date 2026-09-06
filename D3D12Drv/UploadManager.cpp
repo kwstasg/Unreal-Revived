@@ -91,17 +91,19 @@ void UploadManager::UploadTexture(CachedTexture* tex, const FTextureInfo& Info, 
 	renderer->Stats.Uploads++;
 }
 
-void UploadManager::UploadTextureRect(CachedTexture* tex, const FTextureInfo& Info, int x, int y, int w, int h)
+void UploadManager::UploadTextureRect(CachedTexture* tex, const FTextureInfo& Info, int x, int y, int w, int h, bool masked)
 {
 	TextureUploader* uploader = TextureUploader::GetUploader(static_cast<ETextureFormat>(Info.Format));
-	if (!uploader || Info.NumMips < 1 || x < 0 || y < 0 || w <= 0 || h <= 0 || x + w > Info.Mips[0]->USize || y + h > Info.Mips[0]->VSize || !Info.Mips[0]->DataPtr)
+	if (!uploader || !tex || !tex->Texture || Info.NumMips < 1 || !Info.Mips[0] || !Info.Mips[0]->DataPtr ||
+		x < 0 || y < 0 || w <= 0 || h <= 0 || x > Info.Mips[0]->USize || y > Info.Mips[0]->VSize ||
+		w > Info.Mips[0]->USize - x || h > Info.Mips[0]->VSize - y)
 		return;
 
 	size_t pixelsSize = uploader->GetUploadSize(x, y, w, h);
 	pixelsSize = (pixelsSize + 15) / 16 * 16; // memory alignment
 
 	uint8_t* data = GetUploadBuffer(pixelsSize);
-	uploader->UploadRect(data, Info.Mips[0], x, y, w, h, Info.Palette, false);
+	uploader->UploadRect(data, Info.Mips[0], x, y, w, h, Info.Palette, masked);
 
 	UINT pitch = uploader->GetUploadSize(0, 0, w, 1);
 

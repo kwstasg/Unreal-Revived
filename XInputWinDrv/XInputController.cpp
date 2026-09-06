@@ -319,7 +319,6 @@ UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client
 	LastPollTime = CurrentPollTime;
 
 	FControllerState State;
-	appMemzero(&State, sizeof(State));
 	if (!ReadState(Client->XInputControllerIndex, State))
 	{
 		EmitButtons(Viewport, 0, Processed);

@@ -2,11 +2,12 @@ class ModernIntroHud extends IntroNullHud;
 
 #exec TEXTURE IMPORT NAME=NvidiaIntroLogo FILE=Textures\NvidiaIntroLogoRuntime.png GROUP="Logo" MIPS=OFF FLAGS=2
 
+var Font IntroFont;
+
 simulated function PostRender(Canvas Canvas)
 {
 	local float StartX, IconScale;
 	local float MessageWidth, MessageHeight;
-	local Font IntroFont;
 
 	PlayerPawn(Owner).ConsoleCommand("D3D12 BLOOMSOURCE");
 	HUDSetup(Canvas);
@@ -19,7 +20,8 @@ simulated function PostRender(Canvas Canvas)
 	else if (PlayerPawn(Owner).ProgressTimeOut > Level.TimeSeconds)
 		DisplayProgressMessage(Canvas);
 
-	IntroFont = Font(DynamicLoadObject("UWindowFonts.Tahoma10", class'Font'));
+	if (IntroFont == None)
+		IntroFont = Font(DynamicLoadObject("UWindowFonts.Tahoma10", class'Font'));
 	if (IntroFont == None)
 		IntroFont = Canvas.MedFont;
 	Canvas.Font = IntroFont;

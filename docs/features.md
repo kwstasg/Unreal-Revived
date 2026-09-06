@@ -69,6 +69,7 @@ boundary.
 
 | Feature | Description |
 | --- | --- |
+| Smoother BSP traversal | Uses a canonical 32-unit player step height and briefly narrows the local collision cylinder after a confirmed standalone walking obstruction, allowing native movement to clear legacy BSP seams without teleporting or editing maps. |
 | Both campaigns | Discovers and launches Unreal and Return to Na Pali through their localized campaign registrations. |
 | Multiplayer support | Retains the multiplayer and server packages required by the supported 227k_15 host. |
 | Dedicated server | Retains the x64 `System64/UCC.exe` dedicated-server entry point and required native and script packages. |

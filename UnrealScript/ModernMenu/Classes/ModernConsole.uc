@@ -29,6 +29,15 @@ var UnrealHUD LocalizedMOTDHud;
 var float LocalizedMOTDFadeOutTime;
 var Translator SuppressedTranslator;
 var bool bSuppressedTranslatorActive;
+var PlayerPawn SeamAssistPlayer;
+var vector SeamAssistLastLocation;
+var float SeamAssistOriginalRadius;
+var float SeamAssistBlockedTime;
+var bool bSeamAssistRadiusReduced;
+
+const PlayerMaxStepHeight = 32.0;
+const SeamAssistRadiusReduction = 8.0;
+const SeamAssistDelay = 0.01;
 
 // Keep dynamically spawned Brute projectile effects in the startup asset graph.
 // Otherwise their first encounter can synchronously load and precache the effect
@@ -195,6 +204,7 @@ event Tick(float Delta)
 			LocalizedMOTDFadeOutTime = FMax(0, LocalizedMOTDFadeOutTime - Delta * 45);
 	}
 	Super.Tick(Delta);
+	UpdateBSPSeamAssist(Delta);
 	if (!bShowFPSStatistics)
 		return;
 
@@ -253,6 +263,68 @@ event PostRender(Canvas C)
 	Super.PostRender(C);
 	if (bShowFPSStatistics)
 		DrawFPSStatistics(C);
+}
+
+// Keep one canonical player step height across travel and save loads. If native
+// walking sticks on a BSP seam, briefly narrow the collision cylinder and let
+// the engine perform the movement normally; never reposition the player.
+function UpdateBSPSeamAssist(float Delta)
+{
+	local PlayerPawn Player;
+	local vector HorizontalAcceleration;
+	local vector HorizontalMovement;
+
+	Player = Viewport.Actor;
+	if (Player == None)
+		return;
+	Player.MaxStepHeight = PlayerMaxStepHeight;
+
+	if (Player != SeamAssistPlayer)
+	{
+		RestoreSeamAssistRadius();
+		SeamAssistPlayer = Player;
+		SeamAssistOriginalRadius = Player.CollisionRadius;
+		SeamAssistLastLocation = Player.Location;
+		SeamAssistBlockedTime = 0;
+		return;
+	}
+
+	HorizontalAcceleration = Player.Acceleration;
+	HorizontalAcceleration.Z = 0;
+	HorizontalMovement = Player.Location - SeamAssistLastLocation;
+	HorizontalMovement.Z = 0;
+	SeamAssistLastLocation = Player.Location;
+	if (Player.Level.NetMode != NM_Standalone
+		|| Player.Physics != PHYS_Walking || Player.bIsCrouching
+		|| VSize(HorizontalAcceleration) < 10)
+	{
+		SeamAssistBlockedTime = 0;
+		RestoreSeamAssistRadius();
+		return;
+	}
+
+	if (VSize(HorizontalMovement) >= 0.25)
+	{
+		SeamAssistBlockedTime = 0;
+		RestoreSeamAssistRadius();
+		return;
+	}
+
+	SeamAssistBlockedTime += Delta;
+	if (!bSeamAssistRadiusReduced && SeamAssistBlockedTime >= SeamAssistDelay
+		&& Player.SetCollisionSize(FMax(8.0,
+			SeamAssistOriginalRadius - SeamAssistRadiusReduction),
+			Player.CollisionHeight, true))
+		bSeamAssistRadiusReduced = true;
+}
+
+function RestoreSeamAssistRadius()
+{
+	if (!bSeamAssistRadiusReduced || SeamAssistPlayer == None)
+		return;
+	if (SeamAssistPlayer.SetCollisionSize(SeamAssistOriginalRadius,
+		SeamAssistPlayer.CollisionHeight, true))
+		bSeamAssistRadiusReduced = false;
 }
 
 simulated function DrawSingleView(Canvas C)
