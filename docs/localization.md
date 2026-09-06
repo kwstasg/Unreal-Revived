@@ -47,6 +47,30 @@ language extension, for example `Nyleve.elt`. Relevant fields include
 transition, message, and hint. Add these files to `Localization/elt/`; the
 normal build and packaging flows deploy and validate them automatically.
 
+## Refreshing manual translations during development
+
+After editing a project-owned localization file under `Localization/elt/`,
+deploy only the localization overlay from the repository root:
+
+```powershell
+.\scripts\install-project-localization.ps1 -GameRoot (Resolve-Path .\local\game)
+```
+
+This copies and validates the files under the development runtime's
+`SystemLocalized/elt/` directory. A script-package or renderer rebuild is not
+required for text-only changes.
+
+Fully exit and restart the game after deployment, then start or reopen the
+affected map. Unreal caches localized package and map properties after they
+are loaded, so closing the Translator, loading another map, or reopening the
+menu does not reliably refresh edited `TranslatorEvent` messages in the same
+process. When testing a map translation, begin or reload that map after the
+restart so its localized actors are created from the updated file.
+
+Keep every edited `.elt` file encoded as UTF-8 with BOM. The deployment script
+rejects invalid encoding, missing English keys, changed format placeholders,
+and incomplete campaign overlays before copying anything.
+
 Before calling the Greek localization complete, test all UWindow font sizes,
 the Preferences language picker, message boxes, level-entry titles, and the
 in-game translator. Pay particular attention to tonos, dialytika, uppercase

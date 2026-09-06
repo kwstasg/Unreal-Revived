@@ -67,6 +67,7 @@ supported audio path.
 | Refreshed interface | Branded menus, focused Video, Input, Bindings, and HUD controls, an optional live game view behind menus, and persistent F11-toggled FPS statistics. |
 | Gamepad support | SDL3 support for Xbox, DualShock, DualSense, and other mapped controllers, with adjustable dead zones, sensitivity, and fallback input paths; Xbox reconnect handling is validated. |
 | Flexible controls | Up to three keyboard, mouse, or controller assignments per action, visible bindings, practical defaults, and reset controls. |
+| Greek localization | Selectable Greek interface and in-game text for both Unreal and Return to Na Pali, including menus, HUD messages, level information, and translator logs. English remains available, and save files retain their original-game compatibility. See the [localization guide](docs/localization.md). |
 | Complete game content | Both Unreal and Return to Na Pali campaigns, multiplayer and dedicated-server support, all bundled languages, saves, and recovery renderers. |
 | Easier installation | A separate offline installation that leaves the original game untouched, supports repair and update, and is configured to retain and back up saves during uninstall. |
 | Modern audio | ALAudio with bundled OpenAL Soft replaces deprecated and experimental legacy audio paths. |
