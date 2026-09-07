@@ -456,6 +456,12 @@ target maintains those copies for the disposable runtime.
   glow immediately without a restart, leaves HUD glyphs and icons sharply
   rendered without bloom halos, does not brighten the Escape menu artwork or
   text, and retains a positive amount after reopening Video preferences.
+- Confirm **Chromatic Aberration** appears directly below Bloom Amount, is fully
+  disabled at 0%, produces a strong radial color split at 100%, updates without
+  a restart, and retains its value after reopening Video preferences. Check
+  opaque, translucent, and modulated HUD/menu elements on both gameplay maps
+  and the intro: they must remain sharp, correctly blended, and free of color
+  streaks while the 3D world remains processed.
 - On the `Unreal.unr` intro, compare bloom 0 and 255 while paused. Confirm the
   vendor logos, center logo, NVIDIA badge, FPS text, and **Press ESC to begin**
   do not become bloom emitters while highlights in the 3D background still do.

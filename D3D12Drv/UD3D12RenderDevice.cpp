@@ -116,6 +116,7 @@ void UD3D12RenderDevice::StaticConstructor()
 #endif
 	Bloom = 1;
 	BloomAmount = 154;
+	ChromaticAberration = 0;
 
 	LODBias = 0.0f;
 	MaxAnisotropy = 4;
@@ -147,6 +148,7 @@ void UD3D12RenderDevice::StaticConstructor()
 #endif
 	new(GetClass(), TEXT("Bloom"), RF_Public) UBoolProperty(CPP_PROPERTY(Bloom), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("BloomAmount"), RF_Public) UByteProperty(CPP_PROPERTY(BloomAmount), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("ChromaticAberration"), RF_Public) UByteProperty(CPP_PROPERTY(ChromaticAberration), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("LODBias"), RF_Public) UFloatProperty(CPP_PROPERTY(LODBias), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("MaxAnisotropy"), RF_Public) UIntProperty(CPP_PROPERTY(MaxAnisotropy), TEXT("Display"), CPF_Config);
 
@@ -189,6 +191,7 @@ int UD3D12RenderDevice::GetSupportedMultisample(int requestedMultisample)
 	{
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		DXGI_FORMAT_R32_UINT,
+		DXGI_FORMAT_R8_UNORM,
 		DXGI_FORMAT_D32_FLOAT
 	};
 
@@ -908,14 +911,16 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 {
 	multisample = std::max(multisample, 1);
 	int requestedMultisample = multisample;
-	if (SceneBuffers.Width == width && SceneBuffers.Height == height && requestedMultisample == SceneBuffers.RequestedMultisample && SceneBuffers.ColorBuffer && SceneBuffers.HitBuffer && SceneBuffers.PPHitBuffer && SceneBuffers.StagingHitBuffer && SceneBuffers.DepthBuffer && SceneBuffers.PPImage[0] && SceneBuffers.PPImage[1])
+	if (SceneBuffers.Width == width && SceneBuffers.Height == height &&
+		requestedMultisample == SceneBuffers.RequestedMultisample && AreSceneBuffersReady())
 		return;
 
 	multisample = GetSupportedMultisample(multisample);
 	if (multisample != requestedMultisample)
 		debugf(TEXT("D3D12Drv: requested MSAA %dx, using %dx because one or more scene formats do not support the requested sample count"), requestedMultisample, multisample);
 
-	if (SceneBuffers.Width == width && SceneBuffers.Height == height && multisample == SceneBuffers.Multisample && SceneBuffers.ColorBuffer && SceneBuffers.HitBuffer && SceneBuffers.PPHitBuffer && SceneBuffers.StagingHitBuffer && SceneBuffers.DepthBuffer && SceneBuffers.PPImage[0] && SceneBuffers.PPImage[1])
+	if (SceneBuffers.Width == width && SceneBuffers.Height == height &&
+		multisample == SceneBuffers.Multisample && AreSceneBuffersReady())
 	{
 		SceneBuffers.RequestedMultisample = requestedMultisample;
 		return;
@@ -935,9 +940,10 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
 	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
 
-	D3D12_CLEAR_VALUE clearValue = {}, clearValueInt = {}, depthValue = {};
+	D3D12_CLEAR_VALUE clearValue = {}, clearValueInt = {}, clearValueMask = {}, depthValue = {};
 	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	clearValueInt.Format = DXGI_FORMAT_R32_UINT;
+	clearValueMask.Format = DXGI_FORMAT_R8_UNORM;
 	depthValue.Format = DXGI_FORMAT_D32_FLOAT;
 	depthValue.DepthStencil.Depth = 1.0f;
 
@@ -976,6 +982,18 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	ThrowIfFailed(result, "CreateCommittedResource(SceneBuffers.HitBuffer) failed");
 	SceneBuffers.HitBuffer->SetName(TEXT("SceneBuffers.HitBuffer"));
 
+	texDesc.Format = DXGI_FORMAT_R8_UNORM;
+	result = Device->CreateCommittedResource(
+		&defaultHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&texDesc,
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		&clearValueMask,
+		SceneBuffers.UICompositionMaskBuffer.GetIID(),
+		SceneBuffers.UICompositionMaskBuffer.InitPtr());
+	ThrowIfFailed(result, "CreateCommittedResource(SceneBuffers.UICompositionMaskBuffer) failed");
+	SceneBuffers.UICompositionMaskBuffer->SetName(TEXT("SceneBuffers.UICompositionMaskBuffer"));
+
 	texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 	texDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	result = Device->CreateCommittedResource(
@@ -1005,8 +1023,28 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	ThrowIfFailed(result, "CreateCommittedResource(SceneBuffers.PPHitBuffer) failed");
 	SceneBuffers.PPHitBuffer->SetName(TEXT("SceneBuffers.PPHitBuffer"));
 
+	texDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	texDesc.Format = DXGI_FORMAT_R8_UNORM;
+	result = Device->CreateCommittedResource(
+		&defaultHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&texDesc,
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		nullptr,
+		SceneBuffers.ResolvedUICompositionMask.GetIID(),
+		SceneBuffers.ResolvedUICompositionMask.InitPtr());
+	ThrowIfFailed(result, "CreateCommittedResource(SceneBuffers.ResolvedUICompositionMask) failed");
+	SceneBuffers.ResolvedUICompositionMask->SetName(TEXT("SceneBuffers.ResolvedUICompositionMask"));
+
+	texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 	texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	for (int i = 0; i < 2; i++)
+	const TCHAR* postProcessImageNames[PPI_Count] =
+	{
+		TEXT("SceneBuffers.FinalFrame"),
+		TEXT("SceneBuffers.WorldScene"),
+		TEXT("SceneBuffers.ScreenshotImage")
+	};
+	for (int i = 0; i < PPI_Count; i++)
 	{
 		result = Device->CreateCommittedResource(
 			&defaultHeapProps,
@@ -1017,12 +1055,13 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 			SceneBuffers.PPImage[i].GetIID(),
 			SceneBuffers.PPImage[i].InitPtr());
 		ThrowIfFailed(result, "CreateCommittedResource(SceneBuffers.PPImage) failed");
-		SceneBuffers.PPImage[i]->SetName(TEXT("SceneBuffers.PPImage"));
+		SceneBuffers.PPImage[i]->SetName(postProcessImageNames[i]);
 	}
 
-	SceneBuffers.SceneRTVs = Heaps.RTV->Alloc(2);
+	SceneBuffers.SceneRTVs = Heaps.RTV->Alloc(3);
 	Device->CreateRenderTargetView(SceneBuffers.ColorBuffer, nullptr, SceneBuffers.SceneRTVs.CPUHandle(0));
 	Device->CreateRenderTargetView(SceneBuffers.HitBuffer, nullptr, SceneBuffers.SceneRTVs.CPUHandle(1));
+	Device->CreateRenderTargetView(SceneBuffers.UICompositionMaskBuffer, nullptr, SceneBuffers.SceneRTVs.CPUHandle(2));
 
 	SceneBuffers.SceneDSV = Heaps.DSV->Alloc(1);
 	Device->CreateDepthStencilView(SceneBuffers.DepthBuffer, nullptr, SceneBuffers.SceneDSV.CPUHandle());
@@ -1033,7 +1072,7 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	SceneBuffers.PPHitBufferRTV = Heaps.RTV->Alloc(1);
 	Device->CreateRenderTargetView(SceneBuffers.PPHitBuffer, nullptr, SceneBuffers.PPHitBufferRTV.CPUHandle());
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < PPI_Count; i++)
 	{
 		SceneBuffers.PPImageRTV[i] = Heaps.RTV->Alloc(1);
 		SceneBuffers.PPImageSRV[i] = Heaps.Common->Alloc(1);
@@ -1041,9 +1080,11 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 		Device->CreateShaderResourceView(SceneBuffers.PPImage[i], nullptr, SceneBuffers.PPImageSRV[i].CPUHandle());
 	}
 
-	SceneBuffers.PresentSRVs = Heaps.Common->Alloc(2);
-	Device->CreateShaderResourceView(SceneBuffers.PPImage[0], nullptr, SceneBuffers.PresentSRVs.CPUHandle(0));
+	SceneBuffers.PresentSRVs = Heaps.Common->Alloc(4);
+	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_FinalFrame], nullptr, SceneBuffers.PresentSRVs.CPUHandle(0));
 	Device->CreateShaderResourceView(PresentPass.DitherTexture, nullptr, SceneBuffers.PresentSRVs.CPUHandle(1));
+	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_WorldScene], nullptr, SceneBuffers.PresentSRVs.CPUHandle(2));
+	Device->CreateShaderResourceView(SceneBuffers.ResolvedUICompositionMask, nullptr, SceneBuffers.PresentSRVs.CPUHandle(3));
 
 	int bloomWidth = width;
 	int bloomHeight = height;
@@ -1119,6 +1160,21 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 		SceneBuffers.StagingHitBuffer.InitPtr());
 	ThrowIfFailed(result, "CreateCommittedResource(SceneBuffers.StagingHitBuffer) failed");
 	SceneBuffers.StagingHitBuffer->SetName(TEXT("SceneBuffers.StagingHitBuffer"));
+}
+
+bool UD3D12RenderDevice::AreSceneBuffersReady() const
+{
+	if (!SceneBuffers.ColorBuffer || !SceneBuffers.HitBuffer || !SceneBuffers.UICompositionMaskBuffer ||
+		!SceneBuffers.DepthBuffer || !SceneBuffers.PPHitBuffer || !SceneBuffers.ResolvedUICompositionMask ||
+		!SceneBuffers.StagingHitBuffer)
+		return false;
+
+	for (int i = 0; i < PPI_Count; i++)
+	{
+		if (!SceneBuffers.PPImage[i])
+			return false;
+	}
+	return true;
 }
 
 void UD3D12RenderDevice::CreateUploadBuffer()
@@ -1208,6 +1264,25 @@ void UD3D12RenderDevice::CreateScenePass()
 	rasterizerState.DepthClipEnable = FALSE; // Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
 	rasterizerState.MultisampleEnable = SceneBuffers.Multisample > 1 ? TRUE : FALSE;
 
+	auto ConfigureSceneAttachments = [](D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc)
+	{
+		psoDesc.NumRenderTargets = 3;
+		psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		psoDesc.RTVFormats[1] = DXGI_FORMAT_R32_UINT;
+		psoDesc.RTVFormats[2] = DXGI_FORMAT_R8_UNORM;
+		psoDesc.BlendState.IndependentBlendEnable = TRUE;
+		psoDesc.BlendState.RenderTarget[1].BlendEnable = FALSE;
+		psoDesc.BlendState.RenderTarget[1].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+		psoDesc.BlendState.RenderTarget[2].BlendEnable = TRUE;
+		psoDesc.BlendState.RenderTarget[2].SrcBlend = D3D12_BLEND_ONE;
+		psoDesc.BlendState.RenderTarget[2].DestBlend = D3D12_BLEND_ONE;
+		psoDesc.BlendState.RenderTarget[2].BlendOp = D3D12_BLEND_OP_MAX;
+		psoDesc.BlendState.RenderTarget[2].SrcBlendAlpha = D3D12_BLEND_ONE;
+		psoDesc.BlendState.RenderTarget[2].DestBlendAlpha = D3D12_BLEND_ONE;
+		psoDesc.BlendState.RenderTarget[2].BlendOpAlpha = D3D12_BLEND_OP_MAX;
+		psoDesc.BlendState.RenderTarget[2].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED;
+	};
+
 	for (int i = 0; i < 64; i++)
 	{
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
@@ -1232,12 +1307,9 @@ void UD3D12RenderDevice::CreateScenePass()
 		psoDesc.RasterizerState = rasterizerState;
 		psoDesc.SampleDesc.Count = SceneBuffers.Multisample;
 		psoDesc.SampleMask = UINT_MAX;
-		psoDesc.NumRenderTargets = 2;
-		psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		psoDesc.RTVFormats[1] = DXGI_FORMAT_R32_UINT;
+		ConfigureSceneAttachments(psoDesc);
 		psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
-		psoDesc.BlendState.IndependentBlendEnable = TRUE;
 		psoDesc.BlendState.RenderTarget[0].BlendEnable = TRUE;
 		switch (i & 7)
 		{
@@ -1286,9 +1358,6 @@ void UD3D12RenderDevice::CreateScenePass()
 			psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = 0;
 		else
 			psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-		psoDesc.BlendState.RenderTarget[1].BlendEnable = FALSE;
-		psoDesc.BlendState.RenderTarget[1].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-
 		psoDesc.DepthStencilState.DepthEnable = TRUE;
 		psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 		if (i & 16) // PF_Occlude
@@ -1315,12 +1384,9 @@ void UD3D12RenderDevice::CreateScenePass()
 		psoDesc.RasterizerState = rasterizerState;
 		psoDesc.SampleDesc.Count = SceneBuffers.Multisample;
 		psoDesc.SampleMask = UINT_MAX;
-		psoDesc.NumRenderTargets = 2;
-		psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		psoDesc.RTVFormats[1] = DXGI_FORMAT_R32_UINT;
+		ConfigureSceneAttachments(psoDesc);
 		psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
-		psoDesc.BlendState.IndependentBlendEnable = TRUE;
 		psoDesc.BlendState.RenderTarget[0].BlendEnable = TRUE;
 		psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
@@ -1329,9 +1395,6 @@ void UD3D12RenderDevice::CreateScenePass()
 		psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 		psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 		psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-		psoDesc.BlendState.RenderTarget[1].BlendEnable = FALSE;
-		psoDesc.BlendState.RenderTarget[1].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-
 		psoDesc.DepthStencilState.DepthEnable = TRUE;
 		psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 		psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
@@ -1361,12 +1424,9 @@ void UD3D12RenderDevice::CreateScenePass()
 		psoDesc.RasterizerState = rasterizerState;
 		psoDesc.SampleDesc.Count = SceneBuffers.Multisample;
 		psoDesc.SampleMask = UINT_MAX;
-		psoDesc.NumRenderTargets = 2;
-		psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		psoDesc.RTVFormats[1] = DXGI_FORMAT_R32_UINT;
+		ConfigureSceneAttachments(psoDesc);
 		psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 
-		psoDesc.BlendState.IndependentBlendEnable = TRUE;
 		psoDesc.BlendState.RenderTarget[0].BlendEnable = TRUE;
 		psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
@@ -1375,9 +1435,6 @@ void UD3D12RenderDevice::CreateScenePass()
 		psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 		psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
 		psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-		psoDesc.BlendState.RenderTarget[1].BlendEnable = FALSE;
-		psoDesc.BlendState.RenderTarget[1].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-
 		psoDesc.DepthStencilState.DepthEnable = TRUE;
 		psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 		psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
@@ -1556,7 +1613,7 @@ void UD3D12RenderDevice::ReleaseSceneBuffers()
 	SceneBuffers.SceneDSV.reset();
 	SceneBuffers.PPHitBufferRTV.reset();
 	SceneBuffers.HitBufferSRV.reset();
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < PPI_Count; i++)
 	{
 		SceneBuffers.PPImageRTV[i].reset();
 		SceneBuffers.PPImageSRV[i].reset();
@@ -1565,7 +1622,9 @@ void UD3D12RenderDevice::ReleaseSceneBuffers()
 	SceneBuffers.ColorBuffer.reset();
 	SceneBuffers.StagingHitBuffer.reset();
 	SceneBuffers.PPHitBuffer.reset();
+	SceneBuffers.ResolvedUICompositionMask.reset();
 	SceneBuffers.HitBuffer.reset();
+	SceneBuffers.UICompositionMaskBuffer.reset();
 	SceneBuffers.DepthBuffer.reset();
 	for (PPBlurLevel& level : SceneBuffers.BlurLevels)
 	{
@@ -1618,7 +1677,7 @@ UD3D12RenderDevice::ScenePipelineState* UD3D12RenderDevice::GetPipeline(DWORD Po
 	return &ScenePass.Pipelines[index];
 }
 
-void UD3D12RenderDevice::CopySceneToPostProcess(int imageIndex)
+void UD3D12RenderDevice::CopySceneToPostProcess(PostProcessImageIndex imageIndex)
 {
 	if (SceneBuffers.Multisample > 1)
 	{
@@ -1650,7 +1709,66 @@ void UD3D12RenderDevice::CopySceneToPostProcess(int imageIndex)
 	}
 }
 
-void UD3D12RenderDevice::RunBloomPass(const DescriptorSet& source)
+bool UD3D12RenderDevice::IsWorldPostProcessEnabled() const
+{
+	return (Bloom && BloomAmount > 0) || ChromaticAberration > 0;
+}
+
+void UD3D12RenderDevice::BeginUIPass()
+{
+	if (IsWorldPostProcessEnabled() && !WorldSceneCaptured)
+	{
+		DrawBatches();
+		CopySceneToPostProcess(PPI_WorldScene);
+		WorldSceneCaptured = true;
+	}
+	UIPassActive = true;
+}
+
+uint32_t UD3D12RenderDevice::GetUICompositionFlags(DWORD polyFlags) const
+{
+	if (!UIPassActive)
+		return 0;
+
+	uint32_t flags = SVF_UIComposition;
+	if (polyFlags & PF_Translucent)
+		flags |= SVF_UICompositionTranslucent;
+	else if (polyFlags & PF_Modulated)
+		flags |= SVF_UICompositionModulated;
+	return flags;
+}
+
+void UD3D12RenderDevice::ResolveUICompositionMask()
+{
+	if (SceneBuffers.Multisample > 1)
+	{
+		TransitionResourceBarrier(
+			Commands.Current->Draw,
+			SceneBuffers.UICompositionMaskBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
+			SceneBuffers.ResolvedUICompositionMask, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+		Commands.Current->Draw->ResolveSubresource(
+			SceneBuffers.ResolvedUICompositionMask, 0, SceneBuffers.UICompositionMaskBuffer, 0, DXGI_FORMAT_R8_UNORM);
+
+		TransitionResourceBarrier(
+			Commands.Current->Draw,
+			SceneBuffers.UICompositionMaskBuffer, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET,
+			SceneBuffers.ResolvedUICompositionMask, D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	}
+	else
+	{
+		TransitionResourceBarrier(
+			Commands.Current->Draw,
+			SceneBuffers.UICompositionMaskBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE,
+			SceneBuffers.ResolvedUICompositionMask, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST);
+		Commands.Current->Draw->CopyResource(SceneBuffers.ResolvedUICompositionMask, SceneBuffers.UICompositionMaskBuffer);
+		TransitionResourceBarrier(
+			Commands.Current->Draw,
+			SceneBuffers.UICompositionMaskBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET,
+			SceneBuffers.ResolvedUICompositionMask, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	}
+}
+
+void UD3D12RenderDevice::RunBloomPass(const DescriptorSet& source, PostProcessImageIndex targetImageIndex)
 {
 	float blurAmount = 0.6f + BloomAmount * (1.9f / 255.0f);
 	float bloomLevel = BloomAmount / 255.0f;
@@ -1737,18 +1855,18 @@ void UD3D12RenderDevice::RunBloomPass(const DescriptorSet& source)
 
 	// Add bloom back to scene post process texture:
 
-	TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[0], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[targetImageIndex], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	viewport.Width = SceneBuffers.Width;
 	viewport.Height = SceneBuffers.Height;
-	rtv = SceneBuffers.PPImageRTV[0].CPUHandle();
+	rtv = SceneBuffers.PPImageRTV[targetImageIndex].CPUHandle();
 	Commands.Current->Draw->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
 	Commands.Current->Draw->RSSetViewports(1, &viewport);
 	Commands.Current->Draw->SetPipelineState(BloomPass.CombineAdditive);
 	Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, SceneBuffers.BlurLevels[0].VTextureSRV.GPUHandle());
 	Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
 
-	TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[0], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[targetImageIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
 void UD3D12RenderDevice::BlurStep(const DescriptorSet& input, const DescriptorSet& output, ID3D12Resource* outputResource, bool vertical)
@@ -1941,7 +2059,7 @@ void UD3D12RenderDevice::CreatePresentPass()
 	D3D12_DESCRIPTOR_RANGE texRange = {};
 	texRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	texRange.BaseShaderRegister = 0;
-	texRange.NumDescriptors = 2;
+	texRange.NumDescriptors = 4;
 	descriptorTables[0].push_back(texRange);
 
 	D3D12_ROOT_CONSTANTS pushConstants = {};
@@ -2214,14 +2332,9 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 
 	if (ParseCommand(&Cmd, TEXT("D3D12")))
 	{
-		if (ParseCommand(&Cmd, TEXT("BLOOMSOURCE")))
+		if (ParseCommand(&Cmd, TEXT("BEGINUIPASS")))
 		{
-			if (Bloom && BloomAmount > 0 && !BloomSourceCaptured)
-			{
-				DrawBatches();
-				CopySceneToPostProcess(1);
-				BloomSourceCaptured = true;
-			}
+			BeginUIPass();
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("BLOOM")))
@@ -2230,6 +2343,13 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			Bloom = BloomAmount > 0;
 			debugf(TEXT("D3D12Drv: live bloom amount %d"), (INT)BloomAmount);
 			Ar.Logf(TEXT("%d"), (INT)BloomAmount);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("CHROMATICABERRATION")))
+		{
+			ChromaticAberration = Clamp<INT>(appAtoi(Cmd), 0, 255);
+			debugf(TEXT("D3D12Drv: live chromatic aberration amount %d"), (INT)ChromaticAberration);
+			Ar.Logf(TEXT("%d"), (INT)ChromaticAberration);
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("CONTRAST")))
@@ -2360,7 +2480,8 @@ void UD3D12RenderDevice::Lock(FPlane InFlashScale, FPlane InFlashFog, FPlane Scr
 
 		HitData = InHitData;
 		HitSize = InHitSize;
-		BloomSourceCaptured = false;
+		WorldSceneCaptured = false;
+		UIPassActive = false;
 
 		FlashScale = InFlashScale;
 		FlashFog = InFlashFog;
@@ -2369,10 +2490,11 @@ void UD3D12RenderDevice::Lock(FPlane InFlashScale, FPlane InFlashFog, FPlane Scr
 
 		FLOAT color[4] = { ScreenClear.X, ScreenClear.Y, ScreenClear.Z, ScreenClear.W };
 		FLOAT zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		D3D12_CPU_DESCRIPTOR_HANDLE views[2] = { SceneBuffers.SceneRTVs.CPUHandle(0), SceneBuffers.SceneRTVs.CPUHandle(1) };
+		D3D12_CPU_DESCRIPTOR_HANDLE views[3] = { SceneBuffers.SceneRTVs.CPUHandle(0), SceneBuffers.SceneRTVs.CPUHandle(1), SceneBuffers.SceneRTVs.CPUHandle(2) };
 		D3D12_CPU_DESCRIPTOR_HANDLE depthview = SceneBuffers.SceneDSV.CPUHandle();
 		Commands.Current->Draw->ClearRenderTargetView(views[0], color, 0, nullptr);
 		Commands.Current->Draw->ClearRenderTargetView(views[1], zero, 0, nullptr);
+		Commands.Current->Draw->ClearRenderTargetView(views[2], zero, 0, nullptr);
 		Commands.Current->Draw->ClearDepthStencilView(depthview, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		D3D12_RECT box = {};
@@ -2415,6 +2537,9 @@ PresentPushConstants UD3D12RenderDevice::GetPresentPushConstants()
 {
 	PresentPushConstants pushconstants;
 	pushconstants.HdrScale = 0.8f + HdrScale * (3.0f / 255.0f);
+	pushconstants.ChromaticAberration = ChromaticAberration / 255.0f;
+	pushconstants.UseWorldPostProcess =
+		IsWorldPostProcessEnabled() && WorldSceneCaptured ? 1.0f : 0.0f;
 	if (Viewport->IsOrtho())
 	{
 		pushconstants.GammaCorrection = { 1.0f };
@@ -2482,12 +2607,14 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 
 		if (Blit)
 		{
-			CopySceneToPostProcess(0);
+			CopySceneToPostProcess(PPI_FinalFrame);
 
-			if (Bloom && BloomAmount > 0)
+			if (WorldSceneCaptured && Bloom && BloomAmount > 0)
 			{
-				RunBloomPass(SceneBuffers.PPImageSRV[BloomSourceCaptured ? 1 : 0]);
+				RunBloomPass(SceneBuffers.PPImageSRV[PPI_WorldScene], PPI_WorldScene);
 			}
+			if (WorldSceneCaptured && IsWorldPostProcessEnabled())
+				ResolveUICompositionMask();
 
 			TransitionResourceBarrier(Commands.Current->Draw, FrameBuffers[BackBufferIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
@@ -2534,7 +2661,6 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 			Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, SceneBuffers.PresentSRVs.GPUHandle());
 			Commands.Current->Draw->SetGraphicsRoot32BitConstants(1, sizeof(PresentPushConstants) / sizeof(uint32_t), &pushconstants, 0);
 			Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
-
 			TransitionResourceBarrier(Commands.Current->Draw, FrameBuffers[BackBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
 			Batch.Pipeline = nullptr;
@@ -3235,16 +3361,6 @@ void UD3D12RenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, FLOAT X
 {
 	guardSlow(UD3D12RenderDevice::DrawTile);
 
-	UCanvas* canvas = Frame->Viewport->Canvas;
-	bool renderOverlay = canvas && canvas->bZRangeHack;
-	bool renderUWindow = canvas && Frame->Viewport->bShowWindowsMouse && canvas->bNoSmooth && Abs(Z - 1.0f) <= SMALL_NUMBER;
-	if (Bloom && BloomAmount > 0 && !BloomSourceCaptured && (renderOverlay || renderUWindow))
-	{
-		DrawBatches();
-		CopySceneToPostProcess(1);
-		BloomSourceCaptured = true;
-	}
-
 	// stijn: fix for invisible actor icons in ortho viewports
 	if (GIsEditor && Frame->Viewport->Actor && (Frame->Viewport->IsOrtho() || Abs(Z) <= SMALL_NUMBER))
 	{
@@ -3252,6 +3368,7 @@ void UD3D12RenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, FLOAT X
 	}
 
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
+	uint32_t uiFlags = GetUICompositionFlags(PolyFlags);
 
 	CachedTexture* tex = Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
 
@@ -3298,10 +3415,10 @@ void UD3D12RenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, FLOAT X
 		uint32_t* iptr = alloc.iptr;
 		uint32_t vpos = alloc.vpos;
 
-		vptr[0] = { 0, vec3(RFX2 * Z * (X - Frame->FX2),      RFY2 * Z * (Y - Frame->FY2),      Z), vec2(U * UMult,        V * VMult),        vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), };
-		vptr[1] = { 0, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y - Frame->FY2),      Z), vec2((U + UL) * UMult, V * VMult),        vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), };
-		vptr[2] = { 0, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y + YL - Frame->FY2), Z), vec2((U + UL) * UMult, (V + VL) * VMult), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), };
-		vptr[3] = { 0, vec3(RFX2 * Z * (X - Frame->FX2),      RFY2 * Z * (Y + YL - Frame->FY2), Z), vec2(U * UMult,        (V + VL) * VMult), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), };
+		vptr[0] = { uiFlags, vec3(RFX2 * Z * (X - Frame->FX2),      RFY2 * Z * (Y - Frame->FY2),      Z), vec2(U * UMult,        V * VMult),        vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), };
+		vptr[1] = { uiFlags, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y - Frame->FY2),      Z), vec2((U + UL) * UMult, V * VMult),        vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), };
+		vptr[2] = { uiFlags, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y + YL - Frame->FY2), Z), vec2((U + UL) * UMult, (V + VL) * VMult), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), };
+		vptr[3] = { uiFlags, vec3(RFX2 * Z * (X - Frame->FX2),      RFY2 * Z * (Y + YL - Frame->FY2), Z), vec2(U * UMult,        (V + VL) * VMult), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), };
 
 		iptr[0] = vpos;
 		iptr[1] = vpos + 1;
@@ -3403,6 +3520,7 @@ void UD3D12RenderDevice::Draw2DLine(FSceneNode* Frame, FPlane Color, DWORD LineF
 	SetPipeline(&ScenePass.LinePipeline[occlude], D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 	SetDescriptorSet(PF_Highlighted);
 	vec4 color = ApplyInverseGamma(vec4(Color.X, Color.Y, Color.Z, 1.0f));
+	uint32_t uiFlags = GetUICompositionFlags(PF_Highlighted);
 
 	auto alloc = ReserveVertices(2, 2);
 	if (alloc.vptr)
@@ -3411,8 +3529,8 @@ void UD3D12RenderDevice::Draw2DLine(FSceneNode* Frame, FPlane Color, DWORD LineF
 		uint32_t* iptr = alloc.iptr;
 		uint32_t vpos = alloc.vpos;
 
-		vptr[0] = { 0, vec3(RFX2 * P1.Z * (P1.X - Frame->FX2), RFY2 * P1.Z * (P1.Y - Frame->FY2), P1.Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
-		vptr[1] = { 0, vec3(RFX2 * P2.Z * (P2.X - Frame->FX2), RFY2 * P2.Z * (P2.Y - Frame->FY2), P2.Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
+		vptr[0] = { uiFlags, vec3(RFX2 * P1.Z * (P1.X - Frame->FX2), RFY2 * P1.Z * (P1.Y - Frame->FY2), P1.Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
+		vptr[1] = { uiFlags, vec3(RFX2 * P2.Z * (P2.X - Frame->FX2), RFY2 * P2.Z * (P2.Y - Frame->FY2), P2.Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
 
 		iptr[0] = vpos;
 		iptr[1] = vpos + 1;
@@ -3438,6 +3556,7 @@ void UD3D12RenderDevice::Draw2DPoint(FSceneNode* Frame, FPlane Color, DWORD Line
 	SetPipeline(&ScenePass.PointPipeline[occlude], D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	SetDescriptorSet(PF_Highlighted);
 	vec4 color = ApplyInverseGamma(vec4(Color.X, Color.Y, Color.Z, 1.0f));
+	uint32_t uiFlags = GetUICompositionFlags(PF_Highlighted);
 
 	auto alloc = ReserveVertices(4, 6);
 	if (alloc.vptr)
@@ -3446,10 +3565,10 @@ void UD3D12RenderDevice::Draw2DPoint(FSceneNode* Frame, FPlane Color, DWORD Line
 		uint32_t* iptr = alloc.iptr;
 		uint32_t vpos = alloc.vpos;
 
-		vptr[0] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2 - 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
-		vptr[1] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
-		vptr[2] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y2 - Frame->FY2 + 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
-		vptr[3] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2 - 0.5f), RFY2 * Z * (Y2 - Frame->FY2 + 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
+		vptr[0] = { uiFlags, vec3(RFX2 * Z * (X1 - Frame->FX2 - 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
+		vptr[1] = { uiFlags, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
+		vptr[2] = { uiFlags, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y2 - Frame->FY2 + 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
+		vptr[3] = { uiFlags, vec3(RFX2 * Z * (X1 - Frame->FX2 - 0.5f), RFY2 * Z * (Y2 - Frame->FY2 + 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
 
 		iptr[0] = vpos;
 		iptr[1] = vpos + 1;
@@ -3490,9 +3609,9 @@ void UD3D12RenderDevice::ReadPixels(FColor* Pixels, UBOOL bGammaCorrectOutput)
 
 	if (GammaCorrectScreenshots)
 	{
-		TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[PPI_Screenshot], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = SceneBuffers.PPImageRTV[1].CPUHandle();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = SceneBuffers.PPImageRTV[PPI_Screenshot].CPUHandle();
 		Commands.Current->Draw->SetGraphicsRootSignature(PresentPass.RootSignature);
 		Commands.Current->Draw->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
 
@@ -3510,7 +3629,7 @@ void UD3D12RenderDevice::ReadPixels(FColor* Pixels, UBOOL bGammaCorrectOutput)
 		PresentPushConstants pushconstants = GetPresentPushConstants();
 
 		// Select present shader based on what the user is actually using
-		int presentShader = 16; // output is always for rgba16f for PPImage[1]
+		int presentShader = 16; // ScreenshotImage always uses rgba16f output.
 		if (ActiveHdr) presentShader |= (1 | 16); // 1 = HDR in shader, 16 = output is rgba16f
 		if (GammaMode == 1) presentShader |= 2;
 		if (pushconstants.Brightness != 0.0f || pushconstants.Contrast != 1.0f || pushconstants.Saturation != 1.0f) presentShader |= (Clamp(GrayFormula, 0, 2) + 1) << 2;
@@ -3522,13 +3641,13 @@ void UD3D12RenderDevice::ReadPixels(FColor* Pixels, UBOOL bGammaCorrectOutput)
 		Commands.Current->Draw->SetGraphicsRoot32BitConstants(1, sizeof(PresentPushConstants) / sizeof(uint32_t), &pushconstants, 0);
 		Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
 
-		TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[1], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		imageResource = SceneBuffers.PPImage[1];
+		TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[PPI_Screenshot], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		imageResource = SceneBuffers.PPImage[PPI_Screenshot];
 	}
 	else
 	{
-		TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[0], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		imageResource = SceneBuffers.PPImage[0];
+		TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[PPI_FinalFrame], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		imageResource = SceneBuffers.PPImage[PPI_FinalFrame];
 	}
 
 	D3D12_RESOURCE_DESC desc = imageResource->GetDesc();
@@ -3661,12 +3780,6 @@ void UD3D12RenderDevice::SetSceneNode(FSceneNode* Frame)
 	guardSlow(UD3D12RenderDevice::SetSceneNode);
 
 	DrawBatches();
-	if (Bloom && BloomAmount > 0 && !BloomSourceCaptured && Frame->Viewport->Canvas && Frame->Viewport->Canvas->bZRangeHack)
-	{
-		CopySceneToPostProcess(1);
-		BloomSourceCaptured = true;
-	}
-
 	CurrentFrame = Frame;
 	Aspect = Frame->FY / Frame->FX;
 	RProjZ = (float)appTan(radians(Viewport->Actor->FovAngle) * 0.5);
@@ -3722,12 +3835,12 @@ void UD3D12RenderDevice::DrawBatches(bool nextBuffer)
 
 	if (!QueuedBatches.empty())
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE views[2] = { SceneBuffers.SceneRTVs.CPUHandle(0), SceneBuffers.SceneRTVs.CPUHandle(1) };
+		D3D12_CPU_DESCRIPTOR_HANDLE views[3] = { SceneBuffers.SceneRTVs.CPUHandle(0), SceneBuffers.SceneRTVs.CPUHandle(1), SceneBuffers.SceneRTVs.CPUHandle(2) };
 		D3D12_CPU_DESCRIPTOR_HANDLE depthview = SceneBuffers.SceneDSV.CPUHandle();
 
 		Commands.Current->Draw->SetGraphicsRootSignature(ScenePass.RootSignature);
 		Commands.Current->Draw->SetGraphicsRoot32BitConstants(2, sizeof(ScenePushConstants) / sizeof(uint32_t), &SceneConstants, 0);
-		Commands.Current->Draw->OMSetRenderTargets(2, views, FALSE, &depthview);
+		Commands.Current->Draw->OMSetRenderTargets(3, views, FALSE, &depthview);
 		Commands.Current->Draw->IASetPrimitiveTopology(Commands.PrimitiveTopology);
 		Commands.Current->Draw->IASetVertexBuffers(0, 1, &ScenePass.VertexBufferView);
 		Commands.Current->Draw->IASetIndexBuffer(&ScenePass.IndexBufferView);

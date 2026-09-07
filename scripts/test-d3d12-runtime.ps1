@@ -267,6 +267,9 @@ $settingsCases = @(
     New-TestCase -Name 'setting-saturation' -Map 'NyLeve' -Settings @{ Saturation = '128' }
     New-TestCase -Name 'setting-bloom-off' -Map 'NyLeve' -Settings @{ Bloom = 'False'; BloomAmount = '0' }
     New-TestCase -Name 'setting-bloom' -Map 'NyLeve' -Settings @{ Bloom = 'True'; BloomAmount = '255' }
+    New-TestCase -Name 'setting-chromatic-aberration-off' -Map 'NyLeve' -Settings @{ Bloom = 'False'; BloomAmount = '0'; ChromaticAberration = '0' }
+    New-TestCase -Name 'setting-chromatic-aberration-max' -Map 'NyLeve' -Settings @{ Bloom = 'False'; BloomAmount = '0'; ChromaticAberration = '255' }
+    New-TestCase -Name 'setting-world-postprocess-msaa8' -Map 'NyLeve' -Settings @{ Bloom = 'True'; BloomAmount = '255'; ChromaticAberration = '255'; AntialiasMode = 'MSAA_8x' }
     New-TestCase -Name 'setting-occluded-lines' -Map 'DmDeck16' -Settings @{ OccludeLines = 'True' }
 )
 
@@ -304,7 +307,7 @@ if ($Maps) {
 }
 
 $rendererSection = 'D3D12Drv.D3D12RenderDevice'
-$failurePattern = "Critical Error|Assertion|ResizeTarget failed|ResizeViewport failed|Could not resize scene buffers|Could not flush d3d12 renderer|CreateCommittedResource.*failed|Bound to XOpenGLDrv|Can't find file|Failed to load|Missing package|Package .* not found"
+$failurePattern = "Critical Error|Assertion|ResizeTarget failed|ResizeViewport failed|Could not resize scene buffers|Could not flush d3d12 renderer|CreateCommittedResource.*failed|CreateGraphicsPipelineState.*failed|Bound to XOpenGLDrv|Can't find file|Failed to load|Missing package|Package .* not found"
 $knownEntryFallbackPattern = "(?m)^Warning: Failed to load 'EntryIII\.unr': Can't find file 'EntryIII\.unr'\r?\n?|^Warning: Failed to load 'Level None\.MyLevel': Can't find file 'EntryIII\.unr'\r?\n?"
 $sourceHash = (Get-FileHash -LiteralPath $sourceIni -Algorithm SHA256).Hash
 $userHash = (Get-FileHash -LiteralPath $userIni -Algorithm SHA256).Hash

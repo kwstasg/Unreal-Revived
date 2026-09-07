@@ -14,7 +14,7 @@ boundary.
 | Corrected visual effects | Correctly displays OldUnreal 227 HD lightmaps, high-precision RGB10A2 textures, and alpha-blended geometry without the corruption found during the renderer port. |
 | Smooth Brute encounters | Uses inexpensive blob shadows instead of UE227's pathological per-object realtime shadow maps and preloads the Brute projectile effect graph before combat. |
 | Multisample antialiasing | Offers Off, 2x, 4x, and 8x MSAA modes with fallback when the requested mode is unavailable. |
-| Bloom | Exposes the renderer's bloom effect through the Video preferences and keeps menu rendering isolated from bloom state. |
+| World-only post-processing | Exposes bloom and chromatic aberration through Video preferences. A shared world/UI composition path keeps HUD and menu drawing untouched by either effect. |
 | Live image controls | Brightness, contrast, saturation, and related Video settings update the rendered scene and persist through the normal profile. |
 | Configurable VSync | Allows synchronized or uncapped presentation and reports the active state in the optional statistics overlay. |
 | High-refresh gameplay | Supports high and uncapped frame rates; validated Xbox controller movement and look retain the intended 60 FPS response at about 240 FPS and above 1000 FPS. |

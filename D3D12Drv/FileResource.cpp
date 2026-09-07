@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "FileResource.h"
 
-// I probably should find a less brain dead way of doing this. :)
+// Embedded shader sources keep renderer deployment self-contained.
 
 std::string FileResource::readAllText(const std::string& filename)
 {
@@ -76,7 +76,12 @@ std::string FileResource::readAllText(const std::string& filename)
 			{
 				float4 outColor : SV_Target0;
 				uint outHitIndex : SV_Target1;
+				float outUIMask : SV_Target2;
 			};
+
+			static const uint SCENE_VERTEX_UI_COMPOSITION = 1u << 7;
+			static const uint SCENE_VERTEX_UI_COMPOSITION_TRANSLUCENT = 1u << 8;
+			static const uint SCENE_VERTEX_UI_COMPOSITION_MODULATED = 1u << 9;
 
 			SamplerState samplerTex;
 			SamplerState samplerTexLightmap;
@@ -145,6 +150,16 @@ std::string FileResource::readAllText(const std::string& filename)
 				output.outColor = clamp(output.outColor, 0.0, 1.0);
 
 				output.outHitIndex = input.hitIndex;
+				output.outUIMask = 0.0;
+				if ((input.flags & SCENE_VERTEX_UI_COMPOSITION) != 0)
+				{
+					float uiCoverage = output.outColor.a;
+					if ((input.flags & SCENE_VERTEX_UI_COMPOSITION_TRANSLUCENT) != 0)
+						uiCoverage = max(max(output.outColor.r, output.outColor.g), output.outColor.b);
+					else if ((input.flags & SCENE_VERTEX_UI_COMPOSITION_MODULATED) != 0)
+						uiCoverage = max(max(abs(output.outColor.r - 0.5), abs(output.outColor.g - 0.5)), abs(output.outColor.b - 0.5)) * 2.0;
+					output.outUIMask = saturate(uiCoverage);
+				}
 				return output;
 			}
 		)";
@@ -193,6 +208,8 @@ std::string FileResource::readAllText(const std::string& filename)
 				float Brightness;
 				float HdrScale;
 				float4 GammaCorrection;
+				float ChromaticAberration;
+				float UseWorldPostProcess;
 			}
 
 			SamplerState samplerTex
@@ -209,8 +226,10 @@ std::string FileResource::readAllText(const std::string& filename)
 				AddressV = Wrap;
 			};
 
-			Texture2D tex;
+			Texture2D texFinalFrame;
 			Texture2D texDither;
+			Texture2D texWorldScene;
+			Texture2D<float> texUICompositionMask;
 
 			float3 dither(float3 c, float4 FragCoord)
 			{
@@ -308,7 +327,35 @@ std::string FileResource::readAllText(const std::string& filename)
 			Output main(Input input)
 			{
 				Output output;
-				float3 color = gammaCorrect(colorCorrect(tex.Sample(samplerTex, input.texCoord).rgb));
+				float3 sceneColor;
+				if (UseWorldPostProcess > 0.0)
+				{
+					// texWorldScene is the shared world-only image. All world effects operate on
+					// this source before the untouched UI is composited over it.
+					float2 radial = input.texCoord - 0.5;
+					float radialDistance = length(radial);
+					float edgeFactor = lerp(0.35, 1.0, saturate(radialDistance * 1.414));
+					float centerFade = smoothstep(0.0, 0.06, radialDistance);
+					float2 radialDirection = radial / max(radialDistance, 0.0001);
+					float2 offset = radialDirection * (ChromaticAberration * 0.0200 * edgeFactor * centerFade);
+					float3 processedWorld = texWorldScene.Sample(samplerTex, input.texCoord).rgb;
+					if (ChromaticAberration > 0.0)
+					{
+						processedWorld.r = texWorldScene.Sample(samplerTex, input.texCoord + offset).r;
+						processedWorld.b = texWorldScene.Sample(samplerTex, input.texCoord - offset).b;
+					}
+					float3 finalColor = texFinalFrame.Sample(samplerTex, input.texCoord).rgb;
+					uint maskWidth, maskHeight;
+					texUICompositionMask.GetDimensions(maskWidth, maskHeight);
+					float uiMaskValue = texUICompositionMask.Load(int3(min(uint2(input.texCoord * float2(maskWidth, maskHeight)), uint2(maskWidth - 1, maskHeight - 1)), 0));
+					// Never reconstruct translucent UI by subtracting scene colors.
+					// A marked UI pixel comes directly from the completed frame; an
+					// unmarked pixel comes from the processed world-only image.
+					sceneColor = uiMaskValue != 0 ? finalColor : processedWorld;
+				}
+				else
+					sceneColor = texFinalFrame.Sample(samplerTex, input.texCoord).rgb;
+				float3 color = gammaCorrect(colorCorrect(sceneColor));
 			#if defined(HDR_MODE)
 				output.outColor = float4(linearHdr(color), 1.0f);
 			#else

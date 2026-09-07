@@ -4,6 +4,27 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-09-07
+
+### Consolidated world-only post-processing
+
+- Replaced the earlier overlay and menu-tile inference experiments with one
+  explicit `D3D12 BEGINUIPASS` boundary shared by bloom, chromatic aberration,
+  and future world-only effects. Removed the old command aliases and all
+  executable inference paths.
+- Added distinct final-frame, world-scene, screenshot, hit-test, and R8 UI-mask
+  resources. HUD tiles, 2D lines, and 2D points now mark the composition mask;
+  the present pass selects untouched final-frame pixels for UI instead of
+  reconstructing transparency from color subtraction.
+- Added a 0–100% Chromatic Aberration Video slider backed by the renderer's
+  0–255 setting, with 0 as the installer and renderer default. Normal campaign
+  travel and old saves receive the boundary through `ModernGameHud`, while
+  custom HUD subclasses remain untouched.
+- Rebuilt and deployed D3D12Drv, compiled ModernMenu with zero warnings, and
+  passed all 27 Settings-suite cases, including aberration off/max and combined
+  bloom plus aberration under 8x MSAA. Evidence is under
+  `local/logs/automated-20260907-150459/`.
+
 ## 2026-09-05
 
 ### Preserved established defaults across development rebuilds
@@ -774,8 +795,8 @@ technical guides; use this file for the chronological record.
 - Passed all 13 renderer settings cases on the final live command, threshold,
   and gain mapping. Evidence is under
   `local/logs/automated-20260831-223509/`.
-- Isolated bloom extraction from HUD rendering by resolving the 3D scene when
-  227 marks the start of `RenderOverlays`, then using that world-only image as
+- Superseded experiment: isolated bloom extraction from HUD rendering by
+  resolving the 3D scene when 227 marks the start of `RenderOverlays`, then using that world-only image as
   the bloom source while compositing over the completed frame. A same-process
   NyLeve capture retained a sharp HUD while the ceiling-light region changed by
   a mean 29.45 RGB levels between bloom 0 and 255. Evidence is under
@@ -783,9 +804,10 @@ technical guides; use this file for the chronological record.
 - Passed all 13 renderer settings cases after HUD isolation, including 2x, 4x,
   and 8x MSAA resolve paths. Evidence is under
   `local/logs/automated-20260831-224625/`.
-- Added a separate UWindow boundary because full-screen menus can render
+- Superseded experiment: added a separate inferred UWindow boundary because full-screen menus can render
   without first entering `RenderOverlays`. The renderer captures immediately
-  before the first mouse-visible, no-smoothing `Z=1` menu tile. In same-process
+  before the first mouse-visible, no-smoothing `Z=1` menu tile. This inference
+  has been removed in favor of the explicit shared UI pass. In same-process
   Escape-menu captures at bloom 0 and 255, the bright logo and menu bar had zero
   pixel difference and the full frame mean RGB delta was 0.099. Evidence is
   under `local/logs/live-bloom-menu-20260901-011229/`.
@@ -797,7 +819,7 @@ technical guides; use this file for the chronological record.
   canvas-only path did not expose the assumed native overlay marker at a usable
   renderer callback. The failed paused comparison is preserved under
   `local/logs/live-bloom-intro-20260901-012748/`.
-- Added `D3D12 BLOOMSOURCE` and invoked it at the start of
+- Added the explicit renderer UI-pass boundary and invoked it at the start of
   `ModernIntroHud.PostRender`, before all intro UI. In the corrected paused
   comparison, the NVIDIA badge had zero pixel difference between bloom 0 and
   255, **Press ESC to begin** had no changed samples, and the vendor logos no

@@ -21,12 +21,16 @@ var localized string SaturationHelp;
 var UWindowHSliderControl BloomAmountSlider;
 var localized string BloomAmountText;
 var localized string BloomAmountHelp;
+var UWindowHSliderControl ChromaticAberrationSlider;
+var localized string ChromaticAberrationText;
+var localized string ChromaticAberrationHelp;
 var ModernResetButton BrightnessResetButton;
 var ModernResetButton ContrastResetButton;
 var ModernResetButton SaturationResetButton;
 var ModernResetButton GUIScalingResetButton;
 var ModernResetButton LightLODResetButton;
 var ModernResetButton BloomAmountResetButton;
+var ModernResetButton ChromaticAberrationResetButton;
 var localized string ResetVideoSettingHelp;
 var string SelectedVideoDriver;
 
@@ -67,6 +71,7 @@ function Created()
 	local float SaturationTop;
 	local float ShowFPSTop;
 	local float BloomAmountTop;
+	local float ChromaticAberrationTop;
 
 	Super.Created();
 	CreateDisplayModeControl();
@@ -80,9 +85,10 @@ function Created()
 	ContrastTop = BrightnessSlider.WinTop + 25;
 	SaturationTop = ContrastTop + 25;
 	BloomAmountTop = SaturationTop + 25;
+	ChromaticAberrationTop = BloomAmountTop + 25;
 	for (Child = FirstChildWindow; Child != None; Child = Child.NextSiblingWindow)
 		if (Child.WinTop >= ContrastTop)
-			Child.WinTop += 75;
+			Child.WinTop += 100;
 
 	ShowFPSTop = DisplayModeCombo.WinTop + 25;
 	for (Child = FirstChildWindow; Child != None; Child = Child.NextSiblingWindow)
@@ -113,9 +119,16 @@ function Created()
 	BloomAmountSlider.SetRange(0, 255, 1);
 	BloomAmountSlider.SetHelpText(BloomAmountHelp);
 	BloomAmountSlider.SetFont(F_Normal);
-	ControlOffset += 100;
+
+	ChromaticAberrationSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', ShowWindowedCheck.WinLeft, ChromaticAberrationTop, ShowWindowedCheck.WinWidth, 1));
+	ChromaticAberrationSlider.bNoSlidingNotify = False;
+	ChromaticAberrationSlider.SetRange(0, 255, 1);
+	ChromaticAberrationSlider.SetHelpText(ChromaticAberrationHelp);
+	ChromaticAberrationSlider.SetFont(F_Normal);
+	ControlOffset += 125;
 	LoadColorSettings();
 	LoadBloomSetting();
+	LoadChromaticAberrationSetting();
 	WidenSliderHandles();
 	BrightnessResetButton = CreateSliderResetButton(BrightnessSlider);
 	ContrastResetButton = CreateSliderResetButton(ContrastSlider);
@@ -123,6 +136,7 @@ function Created()
 	GUIScalingResetButton = CreateSliderResetButton(GUIScalingSlider);
 	LightLODResetButton = CreateSliderResetButton(LightLODSlider);
 	BloomAmountResetButton = CreateSliderResetButton(BloomAmountSlider);
+	ChromaticAberrationResetButton = CreateSliderResetButton(ChromaticAberrationSlider);
 	ConfigureTabOrder();
 }
 
@@ -159,12 +173,14 @@ function ConfigureTabOrder()
 	RemoveFromTabOrder(GUIScalingResetButton);
 	RemoveFromTabOrder(LightLODResetButton);
 	RemoveFromTabOrder(BloomAmountResetButton);
+	RemoveFromTabOrder(ChromaticAberrationResetButton);
 
 	PlaceTabAfter(DisplayModeCombo, VideoCombo);
 	PlaceTabAfter(ShowFPSCheck, DisplayModeCombo);
 	PlaceTabAfter(ContrastSlider, BrightnessSlider);
 	PlaceTabAfter(SaturationSlider, ContrastSlider);
 	PlaceTabAfter(BloomAmountSlider, SaturationSlider);
+	PlaceTabAfter(ChromaticAberrationSlider, BloomAmountSlider);
 }
 
 function bool ResetControllerSlider(UWindowHSliderControl Slider)
@@ -181,6 +197,8 @@ function bool ResetControllerSlider(UWindowHSliderControl Slider)
 		Notify(LightLODResetButton, DE_Click);
 	else if (Slider == BloomAmountSlider)
 		Notify(BloomAmountResetButton, DE_Click);
+	else if (Slider == ChromaticAberrationSlider)
+		Notify(ChromaticAberrationResetButton, DE_Click);
 	else
 		return False;
 	return True;
@@ -352,12 +370,17 @@ function BeforePaint(Canvas C, float X, float Y)
 	BloomAmountSlider.WinTop = BrightnessSlider.WinTop + 75;
 	BloomAmountSlider.SetSize(BrightnessSlider.WinWidth, 1);
 	BloomAmountSlider.SliderWidth = BrightnessSlider.SliderWidth;
+	ChromaticAberrationSlider.WinLeft = BrightnessSlider.WinLeft;
+	ChromaticAberrationSlider.WinTop = BrightnessSlider.WinTop + 100;
+	ChromaticAberrationSlider.SetSize(BrightnessSlider.WinWidth, 1);
+	ChromaticAberrationSlider.SliderWidth = BrightnessSlider.SliderWidth;
 	LayoutSliderResetButton(BrightnessSlider, BrightnessResetButton);
 	LayoutSliderResetButton(ContrastSlider, ContrastResetButton);
 	LayoutSliderResetButton(SaturationSlider, SaturationResetButton);
 	LayoutSliderResetButton(GUIScalingSlider, GUIScalingResetButton);
 	LayoutSliderResetButton(LightLODSlider, LightLODResetButton);
 	LayoutSliderResetButton(BloomAmountSlider, BloomAmountResetButton);
+	LayoutSliderResetButton(ChromaticAberrationSlider, ChromaticAberrationResetButton);
 }
 
 function WindowShown()
@@ -368,6 +391,7 @@ function WindowShown()
 	LoadBrightnessSetting();
 	LoadColorSettings();
 	LoadBloomSetting();
+	LoadChromaticAberrationSetting();
 	SelectedVideoDriver = VideoCombo.GetValue2();
 }
 
@@ -491,6 +515,39 @@ function ApplyBloomSetting()
 	GetPlayerOwner().ConsoleCommand("D3D12 BLOOM" @ Amount);
 }
 
+function LoadChromaticAberrationSetting()
+{
+	local int Amount;
+
+	if (ChromaticAberrationSlider == None)
+		return;
+	if (!(GetVideoDriverClassName() ~= "D3D12Drv.D3D12RenderDevice"))
+	{
+		ChromaticAberrationSlider.bDisabled = True;
+		ChromaticAberrationSlider.SetValue(0, True);
+		UpdateChromaticAberrationText();
+		return;
+	}
+	ChromaticAberrationSlider.bDisabled = False;
+	Amount = Clamp(int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice ChromaticAberration")), 0, 255);
+	ChromaticAberrationSlider.SetValue(Amount, True);
+	UpdateChromaticAberrationText();
+}
+
+function UpdateChromaticAberrationText()
+{
+	ChromaticAberrationSlider.SetText(ChromaticAberrationText $ " (" $ int(ChromaticAberrationSlider.Value * 100.0 / 255.0 + 0.5) $ "%)");
+}
+
+function ApplyChromaticAberrationSetting()
+{
+	local string Amount;
+
+	Amount = string(int(ChromaticAberrationSlider.Value));
+	GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.GameRenderDevice ChromaticAberration" @ Amount);
+	GetPlayerOwner().ConsoleCommand("D3D12 CHROMATICABERRATION" @ Amount);
+}
+
 function LoadConditionallySupportedSettings()
 {
 	local string CurrentMode;
@@ -499,6 +556,7 @@ function LoadConditionallySupportedSettings()
 	if (!(GetVideoDriverClassName() ~= "D3D12Drv.D3D12RenderDevice"))
 	{
 		LoadBloomSetting();
+		LoadChromaticAberrationSetting();
 		return;
 	}
 
@@ -521,6 +579,7 @@ function LoadConditionallySupportedSettings()
 		AntialiasingCombo.SetSelectedIndex(0);
 
 	LoadBloomSetting();
+	LoadChromaticAberrationSetting();
 }
 
 function Notify(UWindowDialogControl C, byte E)
@@ -546,6 +605,11 @@ function Notify(UWindowDialogControl C, byte E)
 	{
 		ApplyBloomSetting();
 		UpdateBloomAmountText();
+	}
+	else if (E == DE_Change && C == ChromaticAberrationSlider)
+	{
+		ApplyChromaticAberrationSetting();
+		UpdateChromaticAberrationText();
 	}
 	else if (E == DE_Change && C == ContrastSlider)
 	{
@@ -594,6 +658,12 @@ function Notify(UWindowDialogControl C, byte E)
 		ApplyBloomSetting();
 		UpdateBloomAmountText();
 	}
+	else if (E == DE_Click && C == ChromaticAberrationResetButton)
+	{
+		ChromaticAberrationSlider.SetValue(0, True);
+		ApplyChromaticAberrationSetting();
+		UpdateChromaticAberrationText();
+	}
 }
 
 defaultproperties
@@ -611,6 +681,8 @@ defaultproperties
 	SaturationHelp="Adjust saturation from 0% grayscale through 100% normal color up to 200% boosted color."
 	BloomAmountText="Bloom Amount"
 	BloomAmountHelp="Set bloom strength from 0% off to 100% maximum."
+	ChromaticAberrationText="Chromatic Aberration"
+	ChromaticAberrationHelp="Separate colors toward the screen edges, from 0% off to 100% maximum."
 	ResetVideoSettingHelp="Reset this setting to its Unreal Revived default."
 	bShowFPS=True
 	SavedContrastPercent=-1

@@ -1,5 +1,13 @@
 class ModernGameHud extends UnrealHUD;
 
+simulated function PostRender(Canvas Canvas)
+{
+	// The world is complete when HUD.PostRender begins. Start the shared UI
+	// pass before UnrealHUD draws status icons, messages, or weapon overlays.
+	PlayerPawn(Owner).ConsoleCommand("D3D12 BEGINUIPASS");
+	Super.PostRender(Canvas);
+}
+
 static simulated function Font GetLocalizedMessageFont(Canvas Canvas)
 {
 	local Font MessageFont;

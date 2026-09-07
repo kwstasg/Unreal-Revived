@@ -20,6 +20,13 @@ struct SceneVertex
 	vec4 Color;
 };
 
+enum SceneVertexFlags : uint32_t
+{
+	SVF_UIComposition = 1u << 7,
+	SVF_UICompositionTranslucent = 1u << 8,
+	SVF_UICompositionModulated = 1u << 9
+};
+
 struct ScenePushConstants
 {
 	mat4 ObjectToProjection;
@@ -35,6 +42,8 @@ struct PresentPushConstants
 	float Brightness;
 	float HdrScale;
 	vec4 GammaCorrection;
+	float ChromaticAberration;
+	float UseWorldPostProcess;
 };
 
 struct BloomPushConstants
@@ -215,22 +224,32 @@ public:
 		int Height = 0;
 	};
 
+	enum PostProcessImageIndex
+	{
+		PPI_FinalFrame = 0,
+		PPI_WorldScene,
+		PPI_Screenshot,
+		PPI_Count
+	};
+
 	struct
 	{
 		ComPtr<ID3D12Resource> ColorBuffer;
 		ComPtr<ID3D12Resource> HitBuffer;
+		ComPtr<ID3D12Resource> UICompositionMaskBuffer;
 		ComPtr<ID3D12Resource> DepthBuffer;
-		ComPtr<ID3D12Resource> PPImage[2];
+		ComPtr<ID3D12Resource> PPImage[PPI_Count];
 		ComPtr<ID3D12Resource> PPHitBuffer;
+		ComPtr<ID3D12Resource> ResolvedUICompositionMask;
 		ComPtr<ID3D12Resource> StagingHitBuffer;
 
-		DescriptorSet SceneRTVs; // ColorBuffer, HitBuffer
+		DescriptorSet SceneRTVs; // ColorBuffer, HitBuffer, UICompositionMaskBuffer
 		DescriptorSet SceneDSV;  // DepthBuffer
 		DescriptorSet PPHitBufferRTV;
-		DescriptorSet PPImageRTV[2];
+		DescriptorSet PPImageRTV[PPI_Count];
 
 		DescriptorSet HitBufferSRV;
-		DescriptorSet PPImageSRV[2];
+		DescriptorSet PPImageSRV[PPI_Count];
 
 		DescriptorSet PresentSRVs;
 
@@ -344,6 +363,7 @@ public:
 #endif
 	BITFIELD Bloom;
 	BYTE BloomAmount;
+	BYTE ChromaticAberration;
 	FLOAT LODBias;
 	INT MaxAnisotropy;
 	BYTE AntialiasMode;
@@ -389,8 +409,13 @@ private:
 
 	void ReleaseSceneBuffers();
 
-	void CopySceneToPostProcess(int imageIndex);
-	void RunBloomPass(const DescriptorSet& source);
+	bool AreSceneBuffersReady() const;
+	bool IsWorldPostProcessEnabled() const;
+	void BeginUIPass();
+	uint32_t GetUICompositionFlags(DWORD polyFlags) const;
+	void CopySceneToPostProcess(PostProcessImageIndex imageIndex);
+	void ResolveUICompositionMask();
+	void RunBloomPass(const DescriptorSet& source, PostProcessImageIndex targetImageIndex);
 	void BlurStep(const DescriptorSet& input, const DescriptorSet& output, ID3D12Resource* outputResource, bool vertical);
 	float ComputeBlurGaussian(float n, float theta);
 	void ComputeBlurSamples(int sampleCount, float blurAmount, float* sampleWeights);
@@ -459,7 +484,8 @@ private:
 	FPlane FlashScale;
 	FPlane FlashFog;
 	FSceneNode* CurrentFrame = nullptr;
-	bool BloomSourceCaptured = false;
+	bool WorldSceneCaptured = false;
+	bool UIPassActive = false;
 	float Aspect;
 	float RProjZ;
 	float RFX2;

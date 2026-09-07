@@ -172,8 +172,8 @@ HUD classes and remains visible over open menus without enabling TimeDemo
 benchmarking or flyby control. The overlay renders the large font at half the
 configured HUD scale with an explicit smoothed-text polygon override and a
 sixteen-pixel left inset. Menu windows and dropdowns render above the overlay,
-so they occlude it normally. Overlay drawing restores UWindow's Canvas state,
-including its no-smoothing marker used by D3D12 bloom isolation. Its
+so they occlude it normally. Overlay drawing restores UWindow's Canvas state.
+Its
 `bShowFPS` value is saved in the active engine profile and restores the overlay
 when the game starts or restarts.
 
@@ -285,12 +285,9 @@ progressive curve, reaching about 6x at the midpoint and 16x at the maximum.
 The current percentage is shown in the slider label and reloads
 from the active engine profile when Video Preferences is reopened. Changes are
 applied directly to the active D3D12 render device and saved to the profile, so
-they are visible immediately and survive restart. Bloom extraction uses the 3D
-scene captured before 227 begins `RenderOverlays`, so HUD and menu pixels do
-not become bloom emitters. When UWindow is active, the renderer also captures
-before its first menu tile. The custom intro HUD explicitly marks its world/UI
-boundary before drawing text and logos because that 227 path does not expose a
-reliable native overlay transition.
+they are visible immediately and survive restart. Bloom uses the shared world
+image captured by `D3D12 BEGINUIPASS`; the dedicated UI mask keeps subsequent
+HUD, menu, and intro pixels out of world-only post-processing.
 
 The custom Preferences **Restart** action saves the open pages and relaunches
 with `Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini
@@ -341,6 +338,7 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | `HdrScale` | `128` | HDR intensity scale. |
 | `Bloom` | `True` | Enable bloom; synchronized by the Bloom Amount slider. |
 | `BloomAmount` | `154` | Bloom intensity from `0` through `255`; shown as 60% in Video Preferences. |
+| `ChromaticAberration` | `0` | World-only chromatic aberration from `0` (off) through `255` (maximum); shown as 0–100% in Video Preferences. |
 | `OccludeLines` | `False` | Occlude line rendering on the 227 build. |
 | `GammaCorrectScreenshots` | `True` | Apply gamma correction to screenshots. |
 | `UseDebugLayer` | `False` | Enable the Direct3D 12 debug layer. |

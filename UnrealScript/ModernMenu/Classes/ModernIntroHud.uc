@@ -9,7 +9,7 @@ simulated function PostRender(Canvas Canvas)
 	local float StartX, IconScale;
 	local float MessageWidth, MessageHeight;
 
-	PlayerPawn(Owner).ConsoleCommand("D3D12 BLOOMSOURCE");
+	PlayerPawn(Owner).ConsoleCommand("D3D12 BEGINUIPASS");
 	HUDSetup(Canvas);
 
 	if ((PlayerPawn(Owner) != None) && PlayerPawn(Owner).bShowMenu)

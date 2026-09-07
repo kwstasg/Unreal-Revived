@@ -133,13 +133,15 @@ also fill black until normal frame presentation covers the client.
 
 `AntialiasMode` supports Off, 2x, 4x, and 8x MSAA. Before scene resources or
 pipeline states are rebuilt, the renderer checks the requested sample count
-against the RGBA16F scene color, R32_UINT hit, and D32 depth formats. It steps
+against the RGBA16F scene color, R32_UINT hit, R8 UI mask, and D32 depth
+formats. It steps
 down through lower sample counts if any required format is unsupported and
 logs the requested and effective values when buffers resize.
 
 The hit-resolve pipeline targets R32_UINT, matching the single-sample hit
-buffer used for readback. Postprocessing and presentation remain single-sample
-after the color and hit resolves.
+buffer used for readback. The UI mask resolves independently to R8_UNORM for
+presentation. Post-processing and presentation remain single-sample after the
+world image and UI mask resolves.
 
 ## Performance telemetry
 
@@ -179,26 +181,40 @@ the amount is zero, so the Video Preferences slider's off position has no bloom
 cost. The `D3D12 BLOOM <0-255>` renderer command updates the active instance;
 ModernMenu uses it for immediate slider changes while persisting the profile.
 
-When `Canvas.bZRangeHack` marks the start of 227's `RenderOverlays` phase, the
-renderer resolves the current 3D scene into the otherwise idle second
-postprocess image. Bloom extraction later reads that world-only snapshot while
-the additive result is composited over the completed world and HUD image. This
-keeps HUD, weapon-overlay, and menu pixels from generating bloom without
-changing their normal drawing path, and works with both single-sample and MSAA
-scene buffers. Frames without an overlay boundary fall back to extracting from
-the completed scene.
+## Shared world/UI post-process composition
 
-UWindow does not consistently enter the `RenderOverlays` phase before drawing
-its full-screen menu. The renderer therefore also recognizes UWindow's first
-menu tile from the mouse-visible viewport, no-smoothing canvas mode, and `Z=1`
-draw state, then captures the world immediately before that tile. Requiring all
-three signals avoids treating world tiles such as coronas as a menu boundary.
+UE1 exposes no reliable native flag that identifies every world tile versus
+every HUD or UWindow tile. `Canvas.bZRangeHack`, tile depth, view angle, and
+viewport mouse state are not valid substitutes and must not be used to infer
+that boundary.
 
-The 227 intro HUD is a separate canvas-only path whose `bZRangeHack` state is
-not reliably observable through `SetSceneNode` or its first tile. ModernIntroHud
-therefore sends `D3D12 BLOOMSOURCE` at the start of `PostRender`, before
-`HUDSetup` or any text and image draws. The renderer resolves the world once per
-frame when that command is received; redundant boundaries are ignored.
+The renderer instead has one explicit, effect-independent contract. At the
+start of `HUD.PostRender`, ModernGameHud and ModernIntroHud send `D3D12
+BEGINUIPASS`. `BeginUIPass` flushes pending world batches, captures the
+completed 3D scene in `PPI_WorldScene`, sets `WorldSceneCaptured`, and marks
+later tiles, 2D lines, and 2D points while `UIPassActive`. Those draws
+accumulate coverage in a dedicated R8 UI mask render target; hit testing is a
+separate attachment and has no post-process responsibilities. Both the capture
+and state reset on the next renderer `Lock`, so the contract is strictly
+per-frame and works with both single-sample and MSAA scene buffers.
+
+Every world-only post-process effect reads and modifies `PPI_WorldScene`.
+`PPI_FinalFrame` separately preserves the completed frame containing the HUD
+and menus, while `PPI_Screenshot` is reserved for gamma-correct screenshot
+output and is never also sampled by the same pass. The present pass selects the
+untouched final-frame pixel wherever the resolved UI mask has coverage and the
+processed-world pixel everywhere else. It never
+tries to recover translucent UI by subtracting the original scene from an
+already blended pixel; that reconstruction is mathematically incomplete and
+causes colored streaks and transparency artifacts.
+
+This composition path is shared by bloom, chromatic aberration, and future
+world-only effects. New effects must use `IsWorldPostProcessEnabled`,
+`BeginUIPass`, `PPI_WorldScene`, and `ResolveUICompositionMask` rather than add
+their own HUD detection, capture, or compositing logic. A custom HUD must send
+`D3D12 BEGINUIPASS` exactly once after its last world draw and before its first
+UI draw. If it omits the command, the renderer bypasses world-only effects for
+that frame instead of guessing and accidentally processing its UI.
 
 ## Menu coordinate mapping
 

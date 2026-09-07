@@ -180,3 +180,25 @@ powershell -NoProfile -File scripts/build-unreal-revived-branding.ps1 -MenuBackg
 
 See [building.md](building.md) for setup and packaging details and
 [testing.md](testing.md) for validation expectations.
+
+## Runtime world/UI boundary command
+
+`D3D12 BEGINUIPASS` ends world rendering and begins HUD/UWindow rendering for
+the current frame. The renderer captures the completed world once, sends every
+world-only post-process effect through that shared image, and records later UI
+draw coverage in a dedicated composition mask. At presentation, marked pixels
+come directly from the untouched completed frame, while unmarked pixels come
+from the processed world image. This keeps opaque and translucent UI free of
+bloom, chromatic aberration, and reconstruction artifacts.
+
+ModernGameHud and ModernIntroHud issue the command at the start of
+`PostRender`. A custom HUD that draws through another path must issue it exactly
+once, after its last world draw and before its first HUD or UI draw:
+
+```unrealscript
+PlayerOwner.ConsoleCommand("D3D12 BEGINUIPASS");
+```
+
+Future world-only post-process effects must reuse this boundary, the captured
+world image, and the existing UI composition step. They must not introduce
+effect-specific world/UI detection.

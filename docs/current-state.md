@@ -48,6 +48,12 @@ RTX 3060 host. Borderless physical sizing follows the monitor containing the
 game window; true physical 4K output remains unvalidated on the current 1080p
 desktop.
 
+D3D12 Video preferences also expose bloom and chromatic aberration. Both use
+the renderer's single `BEGINUIPASS` contract, captured world image, and
+dedicated UI composition mask; no effect-specific HUD detection or legacy
+boundary aliases remain. Missing the explicit boundary safely bypasses
+world-only effects for that frame instead of applying them to UI.
+
 OpenXR rendering, VR input, comfort features, and the portable launcher are not
 implemented. The offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the

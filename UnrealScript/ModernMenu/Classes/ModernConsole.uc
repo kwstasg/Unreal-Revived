@@ -197,6 +197,7 @@ exec function ToggleFPSStatistics()
 event Tick(float Delta)
 {
 	InitializeLocalizedHudFont();
+	EnsureModernGameHud();
 	if (class'Locale'.Static.GetLanguage() ~= "elt")
 	{
 		CaptureLocalizedMOTD();
@@ -222,6 +223,28 @@ event Tick(float Delta)
 		UpdateVSyncStatistics();
 		StatisticsFrameCount = 0;
 		StatisticsIntervalTime = 0;
+	}
+}
+
+// Normal campaign travel and old save games can restore the stock UnrealHUD
+// without passing through the New Game dialog. Replace only that exact HUD;
+// custom game-mode HUD subclasses keep their own rendering and behavior.
+function EnsureModernGameHud()
+{
+	local PlayerPawn Player;
+
+	Player = Viewport.Actor;
+	if (Player == None)
+		return;
+
+	if (Player.HUDType == class'UnrealHUD')
+		Player.HUDType = class'ModernGameHud';
+
+	if (Player.MyHUD != None && Player.MyHUD.Class == class'UnrealHUD')
+	{
+		Player.MyHUD.Destroy();
+		Player.MyHUD = None;
+		Player.HUDType = class'ModernGameHud';
 	}
 }
 
