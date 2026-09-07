@@ -1,4 +1,8 @@
-﻿[Public]
+﻿; Unreal Revived
+; Greek Translation Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
+[Public]
 Object=(Name=UnrealI.KingOfTheHill,Class=Class,MetaClass=Engine.GameInfo)
 Object=(Name=UnrealI.DarkMatch,Class=Class,MetaClass=Engine.GameInfo)
 Object=(Name=UnrealI.FlakCannon,Class=Class,MetaClass=Engine.Weapon,Description="Flak Cannon")

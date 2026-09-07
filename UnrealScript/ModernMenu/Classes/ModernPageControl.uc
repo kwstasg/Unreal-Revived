@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 class ModernPageControl extends UMenuPageControl;
 
 function BeforePaint(Canvas C, float X, float Y)

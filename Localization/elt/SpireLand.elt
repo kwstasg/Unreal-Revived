@@ -1,4 +1,8 @@
-﻿[LevelInfo2]
+﻿; Unreal Revived
+; Greek Translation Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
+[LevelInfo2]
 Title="Κοιλάδα του Πύργου"
 LevelEnterText="Είσοδος στην Κοιλάδα του Πύργου"
 

@@ -1,3 +1,7 @@
+# Unreal Revived
+# Author: Kwstasg - Kostas Giannakakis
+# Project: https://github.com/kwstasg/Unreal-Revived
+
 param(
     [ValidateRange(3, 120)]
     [int]$RunSeconds = 8

@@ -1,4 +1,8 @@
-﻿[LevelInfo1]
+﻿; Unreal Revived
+; Greek Translation Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
+[LevelInfo1]
 Title="Μέσα στο UMS Prometheus"
 LevelEnterText="Μέσα στο UMS Prometheus"
 

@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 class ModernConsole extends UnrealConsole;
 
 const SmoothTextPolyFlags = 0x00000102;

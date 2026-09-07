@@ -14,6 +14,10 @@ pickup, and campaign-story surfaces. The complete playable map paths for both
 Unreal and Return to Na Pali include Greek level titles, translator messages,
 hints, and intermission text.
 
+The Unreal Revived Greek translation author is Kwstasg - Kostas Giannakakis.
+This credit is embedded as a comment in every tracked Greek localization file
+and is preserved when the shared-package refresh workflow regenerates files.
+
 The language is selected in **Preferences > Game > Language** and is applied
 with the **Restart** button. `Core.elt` contains the language registration that
 makes the entry discoverable by the existing data-driven picker.

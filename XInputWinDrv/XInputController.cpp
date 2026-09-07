@@ -1,3 +1,8 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+// Inherited WinDrv source remains the property of Epic Games, Inc.
+
 #include "WinDrv.h"
 
 #include <SDL3/SDL_init.h>

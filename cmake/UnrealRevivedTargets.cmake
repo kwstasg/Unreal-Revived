@@ -1,3 +1,7 @@
+# Unreal Revived
+# Author: Kwstasg - Kostas Giannakakis
+# Project: https://github.com/kwstasg/Unreal-Revived
+
 if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
     add_custom_target(deploy-d3d12drv
         COMMAND powershell -NoProfile -ExecutionPolicy Bypass

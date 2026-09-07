@@ -1,3 +1,7 @@
+; Unreal Revived
+; Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
 #ifndef StageRoot
   #error StageRoot must point to the staged offline package
 #endif

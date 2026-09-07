@@ -1,3 +1,7 @@
+# Unreal Revived
+# Author: Kwstasg - Kostas Giannakakis
+# Project: https://github.com/kwstasg/Unreal-Revived
+
 param(
     [string]$GameRoot = (Join-Path $PSScriptRoot '..\local\game'),
     [string]$ReferenceRoot = (Join-Path $PSScriptRoot '..\local\reference\UnrealTournament-Localization'),
@@ -59,6 +63,10 @@ function Write-MergedFile {
     $changed = 0
     $missing = 0
     $output = [System.Collections.Generic.List[string]]::new()
+    $output.Add('; Unreal Revived')
+    $output.Add('; Greek Translation Author: Kwstasg - Kostas Giannakakis')
+    $output.Add('; Project: https://github.com/kwstasg/Unreal-Revived')
+    $output.Add('')
 
     foreach ($line in [System.IO.File]::ReadAllLines((Resolve-Path -LiteralPath $EnglishPath))) {
         if ($line -match '^\s*\[([^]]+)\]\s*$') {

@@ -1,4 +1,8 @@
-﻿[LevelInfo3]
+﻿; Unreal Revived
+; Greek Translation Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
+[LevelInfo3]
 Title="Πέρασμα Nagomi"
 LevelEnterText="Επιστροφή στο Πέρασμα Nagomi"
 

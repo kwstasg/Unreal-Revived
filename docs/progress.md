@@ -6,6 +6,28 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-07
 
+### Added project authorship headers
+
+- Added consistent author and project URL headers to all Unreal Revived-owned
+  ModernMenu, localization, automation, packaging, and build configuration
+  code.
+- Credited Kwstasg - Kostas Giannakakis as the Greek translation author in all
+  78 Greek campaign, intermission, package, and ModernMenu localization files.
+- Added the Unreal Revived Project header to the D3D12 renderer and XInput
+  integration while preserving their documented provenance and excluding
+  third-party sources with their own license notices.
+
+### Added Unreal Revived project credits
+
+- Preserved the stock About Unreal window and all original, OldUnreal, and
+  renderer credits while replacing its client with a ModernMenu subclass.
+  The subclass appends a left-aligned Unreal Revived section after one empty
+  row below the existing entries, with the project creator identity and
+  repository.
+- Made the repository credit a mouse hyperlink with hover feedback. Replaced
+  the Help menu's Technical Support caption with OldUnreal and added an Unreal
+  Revived item directly below it; both open their respective project sites.
+
 ### Added optional retro post-processing controls
 
 - Added world-only vignette, animated monochrome film grain, and physical

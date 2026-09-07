@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 class ModernOptionsMenu extends UMenuOptionsMenu;
 
 function ShowPreferences(optional bool bNetworkSettings)

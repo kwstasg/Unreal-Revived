@@ -1,4 +1,8 @@
-﻿[LevelInfo0]
+﻿; Unreal Revived
+; Greek Translation Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
+[LevelInfo0]
 Title="ISV-KRAN Κατάστρωμα 1"
 LevelEnterText="Είσοδος στο Κατάστρωμα 1 του ISV-KRAN"
 

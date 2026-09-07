@@ -1,4 +1,8 @@
-﻿[Public]
+﻿; Unreal Revived
+; Greek Translation Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
+[Public]
 Preferences=(Caption="File System",Parent="Advanced",Class=Core.System,Immediate=True)
 
 [Language]

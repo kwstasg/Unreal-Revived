@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 class ModernRootWindow extends UMenuRootWindow;
 
 var ModernBindingsClientWindow ControllerBindings;
@@ -25,8 +29,7 @@ function Created()
 	LookAndFeelClass = "ModernMenu.ModernMetalLookAndFeel";
 	LookAndFeel = GetLookAndFeel(LookAndFeelClass);
 
-	if (class'UMenuHelpMenu'.Default.SupportURLName == "-")
-		class'UMenuHelpMenu'.Default.SupportURLName = "Technical Support";
+	class'UnrealCreditsWindow'.Default.ClientClass = class'ModernCreditsCW';
 
 	if (GetLevel().Game != None)
 	{
@@ -36,6 +39,9 @@ function Created()
 	}
 
 	Super.Created();
+	MenuBar.Help.Close(True);
+	MenuBar.Help = MenuBar.HelpItem.CreateMenu(class'ModernHelpMenu');
+	ModernHelpMenu(MenuBar.Help).Context.bChecked = MenuBar.ShowHelp;
 
 	if (class'ModernVideoClientWindow'.Default.bShowFPS)
 		SetFPSStatistics(True);

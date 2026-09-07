@@ -192,9 +192,18 @@ viewport ratios must use centered cover cropping rather than stretching or
 image-specific side extensions. The runtime log must contain no missing
 texture or package warnings.
 
-Open the Help menu and confirm **Technical Support** appears between **Unreal
-Gold Credits** and the separator above **About Epic Games**. There must not be
-two consecutive separators.
+Open the Help menu and confirm **OldUnreal** appears below **About Unreal**, with
+**Unreal Revived** immediately below it and the separator above **About Epic
+Games**. Confirm the two entries open `https://www.oldunreal.com/` and
+`https://github.com/kwstasg/Unreal-Revived` respectively, and that there are no
+consecutive separators.
+
+Open **About Unreal** and confirm every original and OldUnreal credit remains
+visible. Beneath the lowest existing entry, confirm one empty row separates a
+left-aligned **Unreal Revived** section identifying **Project Creator**,
+**Kwstasg - Kostas Giannakakis**, and `github.com/kwstasg/Unreal-Revived`.
+Hover the repository text and confirm its color and cursor change, then click it
+and confirm the project page opens.
 
 During the Unreal intro flyby, confirm the original Epic, GT Interactive,
 Digital Extremes, and Unreal logos remain visible while the dynamic OpenAL and

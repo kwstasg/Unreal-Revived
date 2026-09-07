@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 class ModernSaveGameSupport extends Object;
 
 // Canonical package name, original English title, and Greek title.  These

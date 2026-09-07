@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 class ModernGameHud extends UnrealHUD;
 
 simulated function PostRender(Canvas Canvas)

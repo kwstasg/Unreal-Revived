@@ -1,4 +1,8 @@
-﻿[Public]
+﻿; Unreal Revived
+; Greek Translation Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
+[Public]
 Object=(Name=Game.Game,Class=Class,MetaClass=UnrealShare.SinglePlayer,Description="Intro1;UPak.Return;Return to Na Pali")
 Object=(Name=UPak.UPakConsole,Class=Class,MetaClass=Engine.Console,Description="UGold (Deprecated)")
 Object=(Name=UPak.CrashSiteGame,Class=Class,MetaClass=Engine.GameInfo)

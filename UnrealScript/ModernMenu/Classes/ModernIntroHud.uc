@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 class ModernIntroHud extends IntroNullHud;
 
 #exec TEXTURE IMPORT NAME=NvidiaIntroLogo FILE=Textures\NvidiaIntroLogoRuntime.png GROUP="Logo" MIPS=OFF FLAGS=2

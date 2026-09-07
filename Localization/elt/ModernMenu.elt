@@ -1,5 +1,21 @@
-﻿[ModernOptionsClientWindow]
+﻿; Unreal Revived
+; Greek Translation Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
+[ModernOptionsClientWindow]
 BindingsTab="Πλήκτρα"
+
+[ModernCreditsCW]
+ProjectText="Unreal Revived"
+ProjectRoleText="Δημιουργός έργου"
+ProjectDeveloperText="Kwstasg - Kostas Giannakakis"
+ProjectWebsiteText="github.com/kwstasg/Unreal-Revived"
+
+[ModernHelpMenu]
+SupportURLName="&OldUnreal"
+SupportURLHelp="Ανοίξτε τον ιστότοπο OldUnreal για ενημερώσεις, υποστήριξη και πόρους της κοινότητας."
+UnrealRevivedURLName="Unreal &Revived"
+UnrealRevivedURLHelp="Ανοίξτε τη σελίδα του Unreal Revived στο GitHub."
 
 [ModernVideoClientWindow]
 ShowFPSText="Εμφάνιση στατιστικών FPS"

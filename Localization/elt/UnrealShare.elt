@@ -1,4 +1,8 @@
-﻿[Public]
+﻿; Unreal Revived
+; Greek Translation Author: Kwstasg - Kostas Giannakakis
+; Project: https://github.com/kwstasg/Unreal-Revived
+
+[Public]
 Object=(Name=UnrealShare.DeathMatchGame,Class=Class,MetaClass=Engine.GameInfo)
 Object=(Name=UnrealShare.UnrealGameInfo,Class=Class,MetaClass=Engine.GameInfo)
 Object=(Name=UnrealShare.TeamGame,Class=Class,MetaClass=Engine.GameInfo)

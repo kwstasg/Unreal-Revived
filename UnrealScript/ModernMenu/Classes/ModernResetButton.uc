@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 class ModernResetButton extends UWindowComboButton;
 
 function BeforePaint(Canvas C, float X, float Y)
