@@ -11,7 +11,10 @@
 #endif
 
 #define ProductName "Unreal Revived"
-#define ProductVersion "0.4.0"
+#define ProductVersion "0.5.0"
+#define ProductFileVersion "0.5.0.0"
+#define ProductAuthor "Kwstasg - Kostas Giannakakis"
+#define ProjectUrl "https://github.com/kwstasg/Unreal-Revived"
 #ifndef ProductIconName
   #error ProductIconName must identify the staged content-addressed icon
 #endif
@@ -20,7 +23,10 @@
 AppId={{8D6614ED-8854-4D0E-9666-A891EC92713B}
 AppName={#ProductName}
 AppVersion={#ProductVersion}
-AppPublisher=Unreal Revived
+AppPublisher={#ProductAuthor}
+AppPublisherURL={#ProjectUrl}
+AppSupportURL={#ProjectUrl}/issues
+AppUpdatesURL={#ProjectUrl}/releases
 DefaultDirName=C:\Games\Unreal Revived
 DefaultGroupName={#ProductName}
 DisableProgramGroupPage=yes
@@ -35,6 +41,12 @@ CloseApplications=yes
 UninstallDisplayName={#ProductName}
 SetupLogging=yes
 UninstallDisplayIcon={app}\UnrealRevived\{#ProductIconName}
+VersionInfoCompany={#ProductAuthor}
+VersionInfoDescription={#ProductName} Installer
+VersionInfoProductName={#ProductName}
+VersionInfoProductVersion={#ProductVersion}
+VersionInfoVersion={#ProductFileVersion}
+VersionInfoCopyright=Copyright (C) 2026 {#ProductAuthor}
 
 [Files]
 Source: "{#StageRoot}\payload\copy-original-game.ps1"; Flags: dontcopy

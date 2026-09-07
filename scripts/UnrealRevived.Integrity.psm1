@@ -1,3 +1,7 @@
+# Unreal Revived
+# Author: Kwstasg - Kostas Giannakakis
+# Project: https://github.com/kwstasg/Unreal-Revived
+
 function Assert-UnrealRevivedFileIntegrity {
     param(
         [Parameter(Mandatory = $true)]

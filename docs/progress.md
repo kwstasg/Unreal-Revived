@@ -6,6 +6,19 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-07
 
+### Prepared version 0.5.0 installer metadata
+
+- Increased the active installer and rebuild artifact version from 0.4.0 to
+  0.5.0 while retaining the existing application identity for upgrades.
+- Added Kwstasg - Kostas Giannakakis as the installer publisher and Windows
+  version-information company, plus direct GitHub project, support, release,
+  product-version, description, and copyright metadata.
+- Rebuilt the fully offline installer successfully. The 88,405,162-byte
+  `UnrealRevived-Setup-0.5.0.exe` has SHA-256
+  `1CC8678256FDCEEBB0E9C68642E279F0320D3EE35F5FE8629A7B235DA1B8A643`;
+  its embedded Windows metadata reports file version 0.5.0.0, product version
+  0.5.0, and company `Kwstasg - Kostas Giannakakis`.
+
 ### Added project authorship headers
 
 - Added consistent author and project URL headers to all Unreal Revived-owned
@@ -16,6 +29,16 @@ technical guides; use this file for the chronological record.
 - Added the Unreal Revived Project header to the D3D12 renderer and XInput
   integration while preserving their documented provenance and excluding
   third-party sources with their own license notices.
+- Rebuilt the Release D3D12 and XInput drivers, compiled ModernMenu with zero
+  warnings, passed the English and Greek save-localization commandlets, and
+  successfully rebuilt the fully offline 0.4.0 installer after the attribution
+  changes.
+- The D3D12 and supported-renderer GUI smoke harnesses remain blocked by the
+  existing first-run startup-localization state: the generated profile either
+  ignores the normal close request or exits at the missing
+  `Startup.IDDIALOG_WizardDialog` lookup before loading the requested map. This
+  is not a renderer, ModernMenu, or localization-file validation failure, but
+  interactive visual checks remain required.
 
 ### Added Unreal Revived project credits
 

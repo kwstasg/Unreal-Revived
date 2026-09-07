@@ -1,3 +1,7 @@
+# Unreal Revived Project
+# Author: Kwstasg - Kostas Giannakakis
+# Project: https://github.com/kwstasg/Unreal-Revived
+
 set(D3D12DRV_SOURCES
     D3D12Drv.cpp
     D3D12MemAlloc/D3D12MemAlloc.cpp

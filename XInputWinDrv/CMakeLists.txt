@@ -1,3 +1,7 @@
+# Unreal Revived Project
+# Author: Kwstasg - Kostas Giannakakis
+# Project: https://github.com/kwstasg/Unreal-Revived
+
 set(XINPUTWINDRV_STAGE_ROOT "${CMAKE_CURRENT_BINARY_DIR}/staged")
 set(XINPUTWINDRV_PATCH "${CMAKE_CURRENT_SOURCE_DIR}/patches/227k_15-xinputwindrv.patch")
 
