@@ -84,13 +84,46 @@ confirmed. Focused sliders use a separate fast one-step repeat cadence, which
 was manually confirmed to retain precise increments while moving smoothly.
 
 In **New Game**, verify controller focus follows Campaign, Difficulty, Classic
-Balance, Use Mutators, Mutators, optional Mirror Mode, Start, and Advanced,
+Balance, Use Mutators, Mutators, Advanced, and Start,
 wrapping in both directions. A on Start must launch the selected campaign.
+Verify Up/Down and Left/Right traverse the same focus ring with both the
+keyboard and controller. At the initial screen, each arrow direction must open
+the top menu navigation. Left/Right must continue adjusting a focused slider
+and retain native navigation in open combos and top menus.
+Verify both Enter and Space activate focused buttons and checkboxes, open and
+confirm combo-box selections, activate lists, and confirm message boxes. Space
+must remain available for typing in text-entry controls.
 For Load and Save, verify every visible slot traverses in display order,
 scrolls into view, and activates; Load must include Restart after the final
 slot. These New Game and Load/Save flows were manually confirmed. Advanced and
 Mutator-dialog controller coverage remains incomplete and requires a later
 focused pass.
+
+In the New Game **Mutators** dialog, verify both arrow keys and the gamepad can
+traverse Always Use, Mutators Not Used, Mutators Used, and Close in both
+directions, and verify Tab follows the same complete ring. Up/Down must select list entries, and Enter, Space, or gamepad A
+must transfer the selected mutator to the opposite list. In **Advanced**,
+verify every control on the selected page is reachable, followed by Start and
+Close, and that continuing past Close returns to the first page control;
+gamepad shoulder buttons must switch pages, restore the new page viewport, and
+focus its first control rather than either footer button.
+Opening Advanced must display the Match page controls immediately; the blank
+area after the Bots header is the unused remainder of the tab strip.
+After closing the Match page's Map List or Mutators child dialog, focus must
+return to the first control on the selected Advanced page and its complete
+navigation ring must remain usable.
+
+For resizable dialogs, verify all four edges resize from a four-pixel logical
+hit region and all four corners resize diagonally from a fifteen-pixel
+region. Confirm the title bar still drags the window and its close button still
+clicks normally at every supported GUI scale. Dialog controls overlapping an
+expanded border must not prevent resizing, while clickable buttons in that
+region, including their child windows, retain their input instead of starting
+a resize.
+Pay particular attention to the bottom edge and both bottom corners, whose
+expanded regions must take precedence over the client area at the frame
+boundary. Once dragging starts, the frame must own mouse capture so its size
+tracks physical pointer movement continuously rather than intermittently.
 
 ## Repository guard
 

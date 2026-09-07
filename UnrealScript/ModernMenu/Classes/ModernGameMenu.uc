@@ -2,6 +2,12 @@ class ModernGameMenu extends UMenuGameMenu;
 
 function ExecuteItem(UWindowPulldownMenuItem I)
 {
+	if (I == NewGame)
+	{
+		Root.CreateWindow(class'ModernNewGameWindow', 100, 100, 200, 200, Self, True);
+		Super(UWindowPulldownMenu).ExecuteItem(I);
+		return;
+	}
 	if (I == Load)
 	{
 		Root.CreateWindow(class'ModernLoadGameWindow', 100, 100, 300, 660, Self, True);
@@ -16,4 +22,3 @@ function ExecuteItem(UWindowPulldownMenuItem I)
 	}
 	Super.ExecuteItem(I);
 }
-

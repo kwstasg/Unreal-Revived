@@ -3,6 +3,7 @@ class ModernRootWindow extends UMenuRootWindow;
 var ModernBindingsClientWindow ControllerBindings;
 var UMenuNewGameClientWindow FocusedNewGameClient;
 var bool bSuppressFocusIndicator;
+var bool bBotmatchChildDialogOpen;
 
 #exec TEXTURE IMPORT NAME=ModernBg11 FILE=Textures\ModernBg11.bmp GROUP="Icons" MIPS=OFF VClampMode=VClamp UClampMode=UClamp
 #exec TEXTURE IMPORT NAME=ModernBg21 FILE=Textures\ModernBg21.bmp GROUP="Icons" MIPS=OFF VClampMode=VClamp UClampMode=UClamp
@@ -20,6 +21,9 @@ var bool bSuppressFocusIndicator;
 function Created()
 {
 	local class<GameInfo> GameClass;
+
+	LookAndFeelClass = "ModernMenu.ModernMetalLookAndFeel";
+	LookAndFeel = GetLookAndFeel(LookAndFeelClass);
 
 	if (class'UMenuHelpMenu'.Default.SupportURLName == "-")
 		class'UMenuHelpMenu'.Default.SupportURLName = "Technical Support";
@@ -45,8 +49,26 @@ function SetFPSStatistics(bool bEnabled)
 function Tick(float Delta)
 {
 	local UMenuNewGameClientWindow NewGameClient;
+	local UMenuBotmatchClientWindow BotmatchClient;
+	local UWindowDialogControl FirstControl;
+	local bool bChildDialogOpen;
 
 	Super.Tick(Delta);
+	BotmatchClient = FindActiveBotmatchClient(Self);
+	bChildDialogOpen = BotmatchClient != None
+		&& (FindActiveMutatorClient(Self) != None || FindActiveMapListClient(Self) != None);
+	if (bBotmatchChildDialogOpen && !bChildDialogOpen && BotmatchClient != None)
+	{
+		ConfigureBotmatchTabOrder(BotmatchClient);
+		FirstControl = BotmatchClient.CloseButton.TabNext;
+		if (FirstControl != None)
+		{
+			FirstControl.SetAcceptsFocus();
+			FirstControl.ActivateWindow(0, False);
+			RevealControllerControl(FirstControl);
+		}
+	}
+	bBotmatchChildDialogOpen = bChildDialogOpen;
 	NewGameClient = FindActiveNewGameClient(Self);
 	if (NewGameClient == None)
 	{
@@ -155,6 +177,22 @@ function ControllerConfirm()
 	WindowEvent(WM_KeyUp, None, 0, 0, Player.EInputKey.IK_Space);
 }
 
+function bool CanKeyboardConfirmFocusedControl()
+{
+	local UWindowWindow Window;
+
+	if (FindActiveMessageBox(Self) != None)
+		return True;
+	if (MenuBar != None && MenuBar.Selected != None && MenuBar.Selected.Menu != None)
+		return True;
+	if (GetFocusedCombo() != None || GetFocusedListBox() != None)
+		return True;
+	for (Window = KeyFocusWindow; Window != None && Window != Self; Window = Window.ParentWindow)
+		if (UWindowButton(Window) != None || UWindowCheckbox(Window) != None)
+			return True;
+	return False;
+}
+
 function PrepareControllerMenuClose()
 {
 	if (ControllerBindings != None && ControllerBindings.bPolling)
@@ -189,6 +227,7 @@ function ControllerNavigate(int Direction)
 	local UWindowComboBoxControl ComboBox;
 	local UWindowMessageBox MessageBox;
 	local UWindowListBox ListBox;
+	local UWindowHSliderControl Slider;
 
 	Player = GetPlayerOwner();
 	MessageBox = FindActiveMessageBox(Self);
@@ -223,14 +262,16 @@ function ControllerNavigate(int Direction)
 			FocusAdjacentControl(Direction == 3);
 		return;
 	}
+	Slider = GetFocusedSlider();
 	if ((MenuBar == None || MenuBar.Selected == None) && UWindowFramedWindow(ActiveWindow) == None)
 	{
 		OpenControllerMenuBar();
 		return;
 	}
-	if ((Direction == 0 || Direction == 1) && (MenuBar == None || MenuBar.Selected == None))
+	if ((MenuBar == None || MenuBar.Selected == None)
+		&& ((Direction == 0 || Direction == 1) || Slider == None))
 	{
-		FocusAdjacentControl(Direction == 1);
+		FocusAdjacentControl(Direction == 1 || Direction == 3);
 		return;
 	}
 
@@ -567,6 +608,10 @@ function UMenuNewGameClientWindow FindActiveNewGameClient(UWindowWindow Window)
 
 function ConfigureNewGameTabOrder(UMenuNewGameClientWindow Client)
 {
+	Client.OKButton.SetAcceptsFocus();
+	Client.MutatorButton.SetAcceptsFocus();
+	Client.AdvancedButton.SetAcceptsFocus();
+
 	Client.GameCombo.TabNext = Client.SkillCombo;
 	Client.SkillCombo.TabPrev = Client.GameCombo;
 	Client.SkillCombo.TabNext = Client.UseClassicCheck;
@@ -575,15 +620,13 @@ function ConfigureNewGameTabOrder(UMenuNewGameClientWindow Client)
 	Client.UseMutatorsCheck.TabPrev = Client.UseClassicCheck;
 	Client.UseMutatorsCheck.TabNext = Client.MutatorButton;
 	Client.MutatorButton.TabPrev = Client.UseMutatorsCheck;
-	Client.MutatorButton.TabNext = Client.MirrorModeCheck;
-	Client.MirrorModeCheck.TabPrev = Client.MutatorButton;
-	Client.MirrorModeCheck.TabNext = Client.OKButton;
-	Client.OKButton.TabPrev = Client.MirrorModeCheck;
-	Client.OKButton.TabNext = Client.AdvancedButton;
-	Client.AdvancedButton.TabPrev = Client.OKButton;
-	Client.AdvancedButton.TabNext = Client.GameCombo;
-	Client.GameCombo.TabPrev = Client.AdvancedButton;
-	Client.TabLast = Client.AdvancedButton;
+	Client.MutatorButton.TabNext = Client.AdvancedButton;
+	Client.AdvancedButton.TabPrev = Client.MutatorButton;
+	Client.AdvancedButton.TabNext = Client.OKButton;
+	Client.OKButton.TabPrev = Client.AdvancedButton;
+	Client.OKButton.TabNext = Client.GameCombo;
+	Client.GameCombo.TabPrev = Client.OKButton;
+	Client.TabLast = Client.OKButton;
 }
 
 function UMenuSlotClientWindow FindActiveSlotClient(UWindowWindow Window)
@@ -685,13 +728,27 @@ function ConfigureBotmatchTabOrder(UMenuBotmatchClientWindow Client)
 {
 	local UWindowDialogClientWindow PageDialog;
 	local UWindowDialogControl First;
+	local UWindowPageControlPage SelectedPage;
+
+	Client.StartButton.SetAcceptsFocus();
+	Client.CloseButton.SetAcceptsFocus();
 
 	if (Client.Pages == None || Client.Pages.SelectedTab == None)
 		return;
-	PageDialog = FindVisibleDialogWithControls(UWindowPageControlPage(Client.Pages.SelectedTab).Page);
+	SelectedPage = UWindowPageControlPage(Client.Pages.SelectedTab);
+	if (SelectedPage == None || SelectedPage.Page == None)
+		return;
+	if (!SelectedPage.Page.bWindowVisible)
+		Client.Pages.GotoTab(SelectedPage, True);
+	PageDialog = FindVisibleDialogWithControls(SelectedPage.Page);
 	if (PageDialog == None || PageDialog.TabLast == None)
 		return;
-	First = PageDialog.TabLast.TabNext;
+	if (PageDialog.TabLast.TabNext == Client.StartButton)
+		First = Client.CloseButton.TabNext;
+	else
+		First = PageDialog.TabLast.TabNext;
+	if (First == None || First == Client.StartButton || First == Client.CloseButton)
+		return;
 	PageDialog.TabLast.TabNext = Client.StartButton;
 	Client.StartButton.TabPrev = PageDialog.TabLast;
 	Client.StartButton.TabNext = Client.CloseButton;
@@ -699,6 +756,28 @@ function ConfigureBotmatchTabOrder(UMenuBotmatchClientWindow Client)
 	Client.CloseButton.TabNext = First;
 	First.TabPrev = Client.CloseButton;
 	Client.TabLast = Client.CloseButton;
+}
+
+function RestoreBotmatchPageTabOrder(UMenuBotmatchClientWindow Client)
+{
+	local UWindowPageControlPage SelectedPage;
+	local UWindowDialogClientWindow PageDialog;
+	local UWindowDialogControl First;
+
+	if (Client == None || Client.Pages == None || Client.Pages.SelectedTab == None)
+		return;
+	SelectedPage = UWindowPageControlPage(Client.Pages.SelectedTab);
+	if (SelectedPage == None || SelectedPage.Page == None)
+		return;
+	PageDialog = FindVisibleDialogWithControls(SelectedPage.Page);
+	if (PageDialog == None || PageDialog.TabLast == None
+		|| PageDialog.TabLast.TabNext != Client.StartButton)
+		return;
+	First = Client.CloseButton.TabNext;
+	if (First == None || First == Client.StartButton || First == Client.CloseButton)
+		return;
+	PageDialog.TabLast.TabNext = First;
+	First.TabPrev = PageDialog.TabLast;
 }
 
 function UMenuMutatorCW FindActiveMutatorClient(UWindowWindow Window)
@@ -719,6 +798,24 @@ function UMenuMutatorCW FindActiveMutatorClient(UWindowWindow Window)
 	return None;
 }
 
+function UMenuMapListCW FindActiveMapListClient(UWindowWindow Window)
+{
+	local UWindowWindow Child;
+	local UMenuMapListCW MapListClient;
+
+	MapListClient = UMenuMapListCW(Window);
+	if (MapListClient != None && MapListClient.bWindowVisible)
+		return MapListClient;
+	for (Child = Window.LastChildWindow; Child != None; Child = Child.PrevSiblingWindow)
+		if (Child.bWindowVisible)
+		{
+			MapListClient = FindActiveMapListClient(Child);
+			if (MapListClient != None)
+				return MapListClient;
+		}
+	return None;
+}
+
 function ConfigureMutatorTabOrder(UMenuMutatorCW Client)
 {
 	local UMenuMutatorWindow MutatorWindow;
@@ -726,6 +823,10 @@ function ConfigureMutatorTabOrder(UMenuMutatorCW Client)
 	MutatorWindow = UMenuMutatorWindow(Client.GetParent(class'UMenuMutatorWindow'));
 	if (MutatorWindow == None)
 		return;
+	Client.KeepCheck.SetAcceptsFocus();
+	Client.Exclude.SetAcceptsFocus();
+	Client.Include.SetAcceptsFocus();
+	MutatorWindow.CloseButton.SetAcceptsFocus();
 	Client.KeepCheck.TabNext = Client.Exclude;
 	Client.Exclude.TabPrev = Client.KeepCheck;
 	Client.Exclude.TabNext = Client.Include;
@@ -802,6 +903,7 @@ function SwitchOptionsTab(bool bNext)
 	local UWindowPageControl Pages;
 	local UWindowPageControlPage NewPage;
 	local UWindowDialogControl FirstControl;
+	local UWindowScrollingDialogClient ScrollingPage;
 
 	Options = FindVisibleOptionsClient(Self);
 	if (Options != None)
@@ -814,26 +916,33 @@ function SwitchOptionsTab(bool bNext)
 	}
 	if (Pages == None || Pages.SelectedTab == None)
 		return;
+	if (BotmatchClient != None)
+		RestoreBotmatchPageTabOrder(BotmatchClient);
 
 	if (bNext)
 	{
 		NewPage = UWindowPageControlPage(Pages.SelectedTab.Next);
-		if (NewPage == None)
+		if (NewPage == Pages.Items || NewPage == None || NewPage.Page == None)
 			NewPage = Pages.FirstPage();
 	}
 	else
 	{
 		NewPage = UWindowPageControlPage(Pages.SelectedTab.Prev);
-		if (NewPage == None)
+		if (NewPage == Pages.Items || NewPage == None || NewPage.Page == None)
 			NewPage = UWindowPageControlPage(Pages.Items.Last);
 	}
+	if (NewPage == None || NewPage == Pages.Items || NewPage.Page == None)
+		return;
 	Pages.GotoTab(NewPage, True);
 	if (BotmatchClient != None)
 	{
 		ConfigureBotmatchTabOrder(BotmatchClient);
-		FirstControl = FindFirstControllerControl(NewPage.Page);
+		FirstControl = BotmatchClient.CloseButton.TabNext;
 		if (FirstControl != None)
 		{
+			ScrollingPage = UWindowScrollingDialogClient(NewPage.Page);
+			if (ScrollingPage != None)
+				ScrollingPage.VertSB.Show(0);
 			if (UWindowSmallButton(FirstControl) != None && !FirstControl.bAcceptsFocus)
 				FirstControl.SetAcceptsFocus();
 			FirstControl.ActivateWindow(0, False);
@@ -884,6 +993,11 @@ function ModernOptionsClientWindow FindVisibleOptionsClient(UWindowWindow Window
 
 function WindowEvent(WinMessage Msg, Canvas C, float X, float Y, int Key)
 {
+	local UWindowFramedWindow Frame;
+	local UWindowWindow HitWindow;
+	local FrameHitTest FrameHit;
+	local float FrameX, FrameY;
+
 	if (Msg == WM_Paint)
 	{
 		if (GetPlayerOwner().MyHUD == None)
@@ -896,8 +1010,40 @@ function WindowEvent(WinMessage Msg, Canvas C, float X, float Y, int Key)
 		PaintClients(C, X, Y);
 		DrawFocusIndicator(C);
 	}
+	else if (Msg == WM_LMouseDown)
+	{
+		Frame = UWindowFramedWindow(ActiveWindow);
+		if (Frame != None && Frame.bSizable && Frame.bWindowVisible)
+		{
+			Frame.WindowToGlobal(0, 0, FrameX, FrameY);
+			FrameX = X - FrameX;
+			FrameY = Y - FrameY;
+			if (FrameX >= 0 && FrameX <= Frame.WinWidth
+				&& FrameY >= 0 && FrameY <= Frame.WinHeight)
+			{
+				FrameHit = LookAndFeel.FW_HitTest(Frame, FrameX, FrameY);
+				HitWindow = Frame.FindWindowUnder(FrameX, FrameY);
+				if (FrameHit != HT_None && FrameHit != HT_TitleBar
+					&& !IsWindowInsideButton(HitWindow, Frame))
+				{
+					Frame.SetMouseWindow();
+					Frame.LMouseDown(FrameX, FrameY);
+					return;
+				}
+			}
+		}
+		Super.WindowEvent(Msg, C, X, Y, Key);
+	}
 	else
 		Super.WindowEvent(Msg, C, X, Y, Key);
+}
+
+function bool IsWindowInsideButton(UWindowWindow Window, UWindowWindow StopAt)
+{
+	for (; Window != None && Window != StopAt; Window = Window.ParentWindow)
+		if (UWindowButton(Window) != None)
+			return True;
+	return False;
 }
 
 function DrawFocusIndicator(Canvas C)

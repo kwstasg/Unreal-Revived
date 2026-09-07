@@ -561,6 +561,11 @@ state UWindow
 			Bindings.FocusNextBindingControl();
 			return True;
 		}
+		if (Action == IST_Press && ModernRoot != None && Key == IK_Tab)
+		{
+			ModernRoot.FocusAdjacentControl(True);
+			return True;
+		}
 		if (Action == IST_Press && Bindings != None
 			&& (Key == IK_Delete || Key == IK_Joy4)
 			&& Bindings.ClearFocusedBinding())
@@ -578,6 +583,31 @@ state UWindow
 		{
 			BindingActivationKey = int(Key);
 			return True;
+		}
+		if (Action == IST_Press && ModernRoot != None
+			&& (Key == IK_Enter || Key == IK_Space)
+			&& ModernRoot.CanKeyboardConfirmFocusedControl())
+		{
+			ModernRoot.ControllerConfirm();
+			return True;
+		}
+		if (Action == IST_Press && ModernRoot != None)
+		{
+			switch (Key)
+			{
+			case IK_Up:
+				ModernRoot.ControllerNavigate(0);
+				return True;
+			case IK_Down:
+				ModernRoot.ControllerNavigate(1);
+				return True;
+			case IK_Left:
+				ModernRoot.ControllerNavigate(2);
+				return True;
+			case IK_Right:
+				ModernRoot.ControllerNavigate(3);
+				return True;
+			}
 		}
 		if (Action == IST_Axis && (Key == IK_JoyZ || Key == IK_JoyR))
 		{
