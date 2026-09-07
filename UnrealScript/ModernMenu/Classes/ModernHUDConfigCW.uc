@@ -156,12 +156,17 @@ function ApplyScaleSettings()
 function BeforePaint(Canvas C, float X, float Y)
 {
 	Super.BeforePaint(C, X, Y);
-	HUDConfigSlider.SetSize(HUDConfigSlider.WinWidth - HUDConfigResetButton.WinWidth - 4, 1);
-	HUDConfigSlider.SliderWidth -= HUDConfigResetButton.WinWidth + 4;
+	// Use the scale controls' standard label/edit geometry for every HUD slider.
+	// The stock layout gives the first two sliders a different width and track
+	// position, which becomes especially visible when Preferences is resized.
+	HUDConfigSlider.WinLeft = CrosshairScaleEditBox.WinLeft;
+	HUDConfigSlider.SetSize(CrosshairScaleEditBox.WinWidth - HUDConfigResetButton.WinWidth - 4, 1);
+	HUDConfigSlider.SliderWidth = CrosshairScaleEditBox.EditBoxWidth - HUDConfigResetButton.WinWidth - 4;
 	HUDConfigResetButton.WinLeft = HUDConfigSlider.WinLeft + HUDConfigSlider.WinWidth + 2;
 	HUDConfigResetButton.WinTop = HUDConfigSlider.WinTop + HUDConfigSlider.SliderDrawY + 1 - HUDConfigResetButton.WinHeight / 2;
-	CrosshairSlider.SetSize(CrosshairSlider.WinWidth - CrosshairResetButton.WinWidth - 4, 1);
-	CrosshairSlider.SliderWidth -= CrosshairResetButton.WinWidth + 4;
+	CrosshairSlider.WinLeft = CrosshairScaleEditBox.WinLeft;
+	CrosshairSlider.SetSize(CrosshairScaleEditBox.WinWidth - CrosshairResetButton.WinWidth - 4, 1);
+	CrosshairSlider.SliderWidth = CrosshairScaleEditBox.EditBoxWidth - CrosshairResetButton.WinWidth - 4;
 	CrosshairResetButton.WinLeft = CrosshairSlider.WinLeft + CrosshairSlider.WinWidth + 2;
 	CrosshairResetButton.WinTop = CrosshairSlider.WinTop + CrosshairSlider.SliderDrawY + 1 - CrosshairResetButton.WinHeight / 2;
 	CrosshairScaleSlider.WinLeft = CrosshairScaleEditBox.WinLeft;

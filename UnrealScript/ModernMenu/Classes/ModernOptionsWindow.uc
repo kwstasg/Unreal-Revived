@@ -15,4 +15,5 @@ function AfterCreate()
 defaultproperties
 {
 	ClientClass=Class'ModernMenu.ModernOptionsClientWindow'
+	WindowWidth=420
 }

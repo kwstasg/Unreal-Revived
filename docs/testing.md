@@ -90,6 +90,11 @@ Verify Up/Down and Left/Right traverse the same focus ring with both the
 keyboard and controller. At the initial screen, each arrow direction must open
 the top menu navigation. Left/Right must continue adjusting a focused slider
 and retain native navigation in open combos and top menus.
+In the two-row Preferences tab strip, gamepad shoulders must traverse tabs in
+their visible row order rather than their interleaved creation order. The tabs
+must wrap sequentially as Video, Audio, HUD, Game, Input, Bindings, and Network
+with no shortest-row redistribution. Preferences must be wide enough to keep
+that sequence in exactly two rows: four tabs followed by three.
 Verify both Enter and Space activate focused buttons and checkboxes, open and
 confirm combo-box selections, activate lists, and confirm message boxes. Space
 must remain available for typing in text-entry controls.

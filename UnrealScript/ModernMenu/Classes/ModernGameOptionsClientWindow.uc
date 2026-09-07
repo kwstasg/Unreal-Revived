@@ -21,7 +21,7 @@ function RebuildLanguageCombo()
 	bRebuildingLanguageCombo = True;
 	LanguageCombo.Clear();
 
-	LanguageCombo.AddItem(GetLanguageDescription("int", "English (International)"), "int", -200);
+	LanguageCombo.AddItem("English", "int", -200);
 	LanguageCombo.AddItem(GetLanguageDescription("elt", "Ελληνικά"), "elt", -100);
 
 	foreach GetPlayerOwner().IntDescIterator(string(class'Engine.Language'), NextDefault, NextDesc)

@@ -919,7 +919,9 @@ function SwitchOptionsTab(bool bNext)
 	if (BotmatchClient != None)
 		RestoreBotmatchPageTabOrder(BotmatchClient);
 
-	if (bNext)
+	if (Options != None)
+		NewPage = FindVisualOptionsPage(Pages, bNext);
+	else if (bNext)
 	{
 		NewPage = UWindowPageControlPage(Pages.SelectedTab.Next);
 		if (NewPage == Pages.Items || NewPage == None || NewPage.Page == None)
@@ -949,6 +951,41 @@ function SwitchOptionsTab(bool bNext)
 			RevealControllerControl(FirstControl);
 		}
 	}
+}
+
+function UWindowPageControlPage FindVisualOptionsPage(UWindowPageControl Pages, bool bNext)
+{
+	local UWindowPageControlPage Page;
+	local UWindowPageControlPage Candidate;
+	local UWindowPageControlPage WrapPage;
+	local float CurrentPosition;
+	local float PagePosition;
+	local float CandidatePosition;
+	local float WrapPosition;
+
+	CurrentPosition = Pages.SelectedTab.RowNumber * 10000 + Pages.SelectedTab.TabLeft;
+	for (Page = UWindowPageControlPage(Pages.Items.Next); Page != None;
+		Page = UWindowPageControlPage(Page.Next))
+	{
+		PagePosition = Page.RowNumber * 10000 + Page.TabLeft;
+		if (WrapPage == None || (bNext && PagePosition < WrapPosition)
+			|| (!bNext && PagePosition > WrapPosition))
+		{
+			WrapPage = Page;
+			WrapPosition = PagePosition;
+		}
+		if ((bNext && PagePosition > CurrentPosition
+				&& (Candidate == None || PagePosition < CandidatePosition))
+			|| (!bNext && PagePosition < CurrentPosition
+				&& (Candidate == None || PagePosition > CandidatePosition)))
+		{
+			Candidate = Page;
+			CandidatePosition = PagePosition;
+		}
+	}
+	if (Candidate != None)
+		return Candidate;
+	return WrapPage;
 }
 
 function bool ScrollVisibleOptions(int Direction)

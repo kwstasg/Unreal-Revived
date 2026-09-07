@@ -9,14 +9,14 @@ function Created()
 {
 	Super(UWindowDialogClientWindow).Created();
 
-	Pages = UMenuPageControl(CreateWindow(class'UMenuPageControl', 0, 0, WinWidth, WinHeight - 48));
+	Pages = UMenuPageControl(CreateWindow(class'ModernPageControl', 0, 0, WinWidth, WinHeight - 48));
 	Pages.SetMultiLine(True);
 	Pages.AddPage(VideoTab, class'ModernVideoScrollClient');
 	Pages.AddPage(AudioTab, class'UMenuAudioScrollClient');
+	Pages.AddPage(HUDTab, class'ModernHUDConfigScrollClient');
 	Pages.AddPage(GamePlayTab, class'ModernGameOptionsScrollClient');
 	Pages.AddPage(InputTab, class'ModernInputOptionsScrollClient');
 	Pages.AddPage(BindingsTab, class'ModernBindingsScrollClient');
-	Pages.AddPage(HUDTab, class'ModernHUDConfigScrollClient');
 	Network = Pages.AddPage(NetworkTab, class'UMenuNetworkScrollClient');
 	CloseButton = UWindowSmallCloseButton(CreateControl(class'UWindowSmallCloseButton', WinWidth - 56, WinHeight - 24, 48, 16));
 	RestartButton = UWindowSmallRestartButton(CreateControl(class'UWindowSmallRestartButton', WinWidth - 56, WinHeight - 24, 48, 16));
