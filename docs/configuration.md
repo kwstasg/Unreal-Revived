@@ -133,12 +133,13 @@ active; keyboard double-tap dodge remains available when the stick is centered.
 
 ModernConsole also applies a canonical player `MaxStepHeight` of 32 across map
 travel and save loads. In standalone play, if walking input remains blocked for
-0.01 seconds, it temporarily reduces the local player's collision radius by
-8 units, with an absolute minimum radius of 8. The normal radius is restored as
-soon as movement resumes or walking input ends. This lets UE1's native movement
-clear problematic legacy BSP seams without manually moving the player, changing
-map geometry, affecting crouched or airborne movement, or operating in network
-play.
+0.08 seconds and a forward collision trace confirms world geometry, it
+temporarily reduces the local player's collision radius by 8 units, with an
+absolute minimum radius of 8. The assist is suppressed near every colliding
+pawn, and the normal radius is restored only when the full cylinder cannot
+overlap one. This lets UE1's native movement clear problematic legacy BSP seams
+without manually moving the player, changing map geometry, crushing pawns,
+affecting crouched or airborne movement, or operating in network play.
 
 Fresh development and installed profiles explicitly default to automatic
 controller selection, 25% left-stick and 25% right-stick dead zones, movement
@@ -289,6 +290,14 @@ they are visible immediately and survive restart. Bloom uses the shared world
 image captured by `D3D12 BEGINUIPASS`; the dedicated UI mask keeps subsequent
 HUD, menu, and intro pixels out of world-only post-processing.
 
+The D3D12-only **Vignette**, **Film Grain**, and **CRT Scanlines** sliders follow
+Chromatic Aberration. Each uses the renderer byte range from `0` through `255`,
+shown as 0% through 100%, and defaults to 0% (disabled). Vignette darkens the
+world toward the screen corners, Film Grain adds animated monochrome noise, and
+CRT Scanlines draw a dark output-pixel row, a softer shoulder, and two subtly
+lifted phosphor rows. Changes apply live,
+persist in the active profile, and use the shared world/UI composition path.
+
 The custom Preferences **Restart** action saves the open pages and relaunches
 with `Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini
 userini=D3D12TestUser.ini`. This preserves
@@ -339,6 +348,9 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | `Bloom` | `True` | Enable bloom; synchronized by the Bloom Amount slider. |
 | `BloomAmount` | `154` | Bloom intensity from `0` through `255`; shown as 60% in Video Preferences. |
 | `ChromaticAberration` | `0` | World-only chromatic aberration from `0` (off) through `255` (maximum); shown as 0–100% in Video Preferences. |
+| `VignetteIntensity` | `0` | World-only vignette intensity from `0` (off) through `255` (maximum); shown as 0–100% in Video Preferences. |
+| `FilmGrainAmount` | `0` | World-only animated monochrome grain from `0` (off) through `255` (maximum); shown as 0–100% in Video Preferences. |
+| `ScanlineStrength` | `0` | World-only output-pixel CRT scanlines from `0` (off) through `255` (maximum); shown as 0–100% in Video Preferences. |
 | `OccludeLines` | `False` | Occlude line rendering on the 227 build. |
 | `GammaCorrectScreenshots` | `True` | Apply gamma correction to screenshots. |
 | `UseDebugLayer` | `False` | Enable the Direct3D 12 debug layer. |

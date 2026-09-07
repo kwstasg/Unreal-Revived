@@ -37,7 +37,9 @@ var bool bSeamAssistRadiusReduced;
 
 const PlayerMaxStepHeight = 32.0;
 const SeamAssistRadiusReduction = 8.0;
-const SeamAssistDelay = 0.01;
+const SeamAssistDelay = 0.08;
+const SeamAssistPawnClearance = 2.0;
+const SeamAssistTraceDistance = 10.0;
 
 // Keep dynamically spawned Brute projectile effects in the startup asset graph.
 // Otherwise their first encounter can synchronously load and precache the effect
@@ -335,15 +337,64 @@ function UpdateBSPSeamAssist(float Delta)
 
 	SeamAssistBlockedTime += Delta;
 	if (!bSeamAssistRadiusReduced && SeamAssistBlockedTime >= SeamAssistDelay
+		&& IsSeamAssistPawnClear(Player, SeamAssistOriginalRadius)
+		&& IsWorldGeometryObstruction(Player, HorizontalAcceleration)
 		&& Player.SetCollisionSize(FMax(8.0,
 			SeamAssistOriginalRadius - SeamAssistRadiusReduction),
 			Player.CollisionHeight, true))
 		bSeamAssistRadiusReduced = true;
 }
 
+// PlayerPawn permits encroachment on other pawns, whose EncroachedBy event
+// gibs them. Never use collision resizing while either cylinder is close
+// enough for restoring the player's full radius to overlap another pawn.
+function bool IsSeamAssistPawnClear(PlayerPawn Player, float TestRadius)
+{
+	local Pawn Other;
+	local vector Separation;
+	local float CombinedRadius;
+
+	for (Other = Player.Level.PawnList; Other != None; Other = Other.NextPawn)
+	{
+		if (Other == Player || Other.bDeleteMe || !Other.bCollideActors)
+			continue;
+		Separation = Other.Location - Player.Location;
+		if (Abs(Separation.Z) >= Player.CollisionHeight + Other.CollisionHeight)
+			continue;
+		CombinedRadius = TestRadius + Other.CollisionRadius
+			+ SeamAssistPawnClearance;
+		Separation.Z = 0;
+		if (Separation Dot Separation < CombinedRadius * CombinedRadius)
+			return false;
+	}
+	return true;
+}
+
+function bool IsWorldGeometryObstruction(PlayerPawn Player,
+	vector HorizontalAcceleration)
+{
+	local Actor HitActor;
+	local vector HitLocation;
+	local vector HitNormal;
+	local vector TraceExtent;
+	local vector TraceEnd;
+
+	HorizontalAcceleration.Z = 0;
+	TraceExtent.X = SeamAssistOriginalRadius;
+	TraceExtent.Y = SeamAssistOriginalRadius;
+	TraceExtent.Z = FMax(1.0, Player.CollisionHeight - 2.0);
+	TraceEnd = Player.Location + Normal(HorizontalAcceleration)
+		* SeamAssistTraceDistance;
+	HitActor = Player.Trace(HitLocation, HitNormal, TraceEnd, Player.Location,
+		true, TraceExtent);
+	return HitActor != None && HitActor.bWorldGeometry;
+}
+
 function RestoreSeamAssistRadius()
 {
 	if (!bSeamAssistRadiusReduced || SeamAssistPlayer == None)
+		return;
+	if (!IsSeamAssistPawnClear(SeamAssistPlayer, SeamAssistOriginalRadius))
 		return;
 	if (SeamAssistPlayer.SetCollisionSize(SeamAssistOriginalRadius,
 		SeamAssistPlayer.CollisionHeight, true))

@@ -15,6 +15,12 @@ SaturationText="Κορεσμός"
 SaturationHelp="Ρυθμίστε τον κορεσμό από ασπρόμαυρο 0% έως ενισχυμένο χρώμα 200%."
 BloomAmountText="Ένταση λάμψης"
 BloomAmountHelp="Ρυθμίστε την ένταση της λάμψης από 0% έως 100%."
+VignetteIntensityText="Βινιέτα"
+VignetteIntensityHelp="Σκουρύνετε τις άκρες της οθόνης, από 0% ανενεργό έως 100% μέγιστο."
+FilmGrainAmountText="Κόκκος φιλμ"
+FilmGrainAmountHelp="Προσθέστε κινούμενο μονόχρωμο κόκκο φιλμ, από 0% ανενεργό έως 100% μέγιστο."
+ScanlineStrengthText="Γραμμές σάρωσης CRT"
+ScanlineStrengthHelp="Σκουρύνετε εναλλάξ τις σειρές pixel εξόδου, από 0% ανενεργό έως 100% μέγιστο."
 ResetVideoSettingHelp="Επαναφορά αυτής της ρύθμισης στην προεπιλογή του Unreal Revived."
 
 [ModernInputOptionsClientWindow]

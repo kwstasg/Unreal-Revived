@@ -208,8 +208,17 @@ tries to recover translucent UI by subtracting the original scene from an
 already blended pixel; that reconstruction is mathematically incomplete and
 causes colored streaks and transparency artifacts.
 
-This composition path is shared by bloom, chromatic aberration, and future
-world-only effects. New effects must use `IsWorldPostProcessEnabled`,
+This composition path is shared by bloom, chromatic aberration, vignette,
+animated monochrome film grain, CRT scanlines, and future world-only effects.
+The three retro effects use independent `0` through `255` strengths and are
+fully disabled at zero. Scanlines draw one dark row, a softer shoulder, and two
+subtly lifted phosphor rows in output-pixel coordinates. Their balanced pattern
+limits average brightness loss to about 13% at maximum, with a square-root
+strength response that keeps the pattern legible at middle slider values. Film grain
+uses a non-repeating per-pixel integer
+hash with a soft particle distribution and varies it once per 24 Hz animation
+step independently of the rendered frame rate. New effects must
+use `IsWorldPostProcessEnabled`,
 `BeginUIPass`, `PPI_WorldScene`, and `ResolveUICompositionMask` rather than add
 their own HUD detection, capture, or compositing logic. A custom HUD must send
 `D3D12 BEGINUIPASS` exactly once after its last world draw and before its first

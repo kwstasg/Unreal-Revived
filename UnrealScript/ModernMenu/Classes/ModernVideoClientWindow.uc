@@ -24,6 +24,15 @@ var localized string BloomAmountHelp;
 var UWindowHSliderControl ChromaticAberrationSlider;
 var localized string ChromaticAberrationText;
 var localized string ChromaticAberrationHelp;
+var UWindowHSliderControl VignetteIntensitySlider;
+var localized string VignetteIntensityText;
+var localized string VignetteIntensityHelp;
+var UWindowHSliderControl FilmGrainAmountSlider;
+var localized string FilmGrainAmountText;
+var localized string FilmGrainAmountHelp;
+var UWindowHSliderControl ScanlineStrengthSlider;
+var localized string ScanlineStrengthText;
+var localized string ScanlineStrengthHelp;
 var ModernResetButton BrightnessResetButton;
 var ModernResetButton ContrastResetButton;
 var ModernResetButton SaturationResetButton;
@@ -31,6 +40,9 @@ var ModernResetButton GUIScalingResetButton;
 var ModernResetButton LightLODResetButton;
 var ModernResetButton BloomAmountResetButton;
 var ModernResetButton ChromaticAberrationResetButton;
+var ModernResetButton VignetteIntensityResetButton;
+var ModernResetButton FilmGrainAmountResetButton;
+var ModernResetButton ScanlineStrengthResetButton;
 var localized string ResetVideoSettingHelp;
 var string SelectedVideoDriver;
 
@@ -72,6 +84,9 @@ function Created()
 	local float ShowFPSTop;
 	local float BloomAmountTop;
 	local float ChromaticAberrationTop;
+	local float VignetteIntensityTop;
+	local float FilmGrainAmountTop;
+	local float ScanlineStrengthTop;
 
 	Super.Created();
 	CreateDisplayModeControl();
@@ -86,9 +101,12 @@ function Created()
 	SaturationTop = ContrastTop + 25;
 	BloomAmountTop = SaturationTop + 25;
 	ChromaticAberrationTop = BloomAmountTop + 25;
+	VignetteIntensityTop = ChromaticAberrationTop + 25;
+	FilmGrainAmountTop = VignetteIntensityTop + 25;
+	ScanlineStrengthTop = FilmGrainAmountTop + 25;
 	for (Child = FirstChildWindow; Child != None; Child = Child.NextSiblingWindow)
 		if (Child.WinTop >= ContrastTop)
-			Child.WinTop += 100;
+			Child.WinTop += 175;
 
 	ShowFPSTop = DisplayModeCombo.WinTop + 25;
 	for (Child = FirstChildWindow; Child != None; Child = Child.NextSiblingWindow)
@@ -125,10 +143,29 @@ function Created()
 	ChromaticAberrationSlider.SetRange(0, 255, 1);
 	ChromaticAberrationSlider.SetHelpText(ChromaticAberrationHelp);
 	ChromaticAberrationSlider.SetFont(F_Normal);
-	ControlOffset += 125;
+
+	VignetteIntensitySlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', ShowWindowedCheck.WinLeft, VignetteIntensityTop, ShowWindowedCheck.WinWidth, 1));
+	VignetteIntensitySlider.bNoSlidingNotify = False;
+	VignetteIntensitySlider.SetRange(0, 255, 1);
+	VignetteIntensitySlider.SetHelpText(VignetteIntensityHelp);
+	VignetteIntensitySlider.SetFont(F_Normal);
+
+	FilmGrainAmountSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', ShowWindowedCheck.WinLeft, FilmGrainAmountTop, ShowWindowedCheck.WinWidth, 1));
+	FilmGrainAmountSlider.bNoSlidingNotify = False;
+	FilmGrainAmountSlider.SetRange(0, 255, 1);
+	FilmGrainAmountSlider.SetHelpText(FilmGrainAmountHelp);
+	FilmGrainAmountSlider.SetFont(F_Normal);
+
+	ScanlineStrengthSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', ShowWindowedCheck.WinLeft, ScanlineStrengthTop, ShowWindowedCheck.WinWidth, 1));
+	ScanlineStrengthSlider.bNoSlidingNotify = False;
+	ScanlineStrengthSlider.SetRange(0, 255, 1);
+	ScanlineStrengthSlider.SetHelpText(ScanlineStrengthHelp);
+	ScanlineStrengthSlider.SetFont(F_Normal);
+	ControlOffset += 200;
 	LoadColorSettings();
 	LoadBloomSetting();
 	LoadChromaticAberrationSetting();
+	LoadRetroEffectSettings();
 	WidenSliderHandles();
 	BrightnessResetButton = CreateSliderResetButton(BrightnessSlider);
 	ContrastResetButton = CreateSliderResetButton(ContrastSlider);
@@ -137,6 +174,9 @@ function Created()
 	LightLODResetButton = CreateSliderResetButton(LightLODSlider);
 	BloomAmountResetButton = CreateSliderResetButton(BloomAmountSlider);
 	ChromaticAberrationResetButton = CreateSliderResetButton(ChromaticAberrationSlider);
+	VignetteIntensityResetButton = CreateSliderResetButton(VignetteIntensitySlider);
+	FilmGrainAmountResetButton = CreateSliderResetButton(FilmGrainAmountSlider);
+	ScanlineStrengthResetButton = CreateSliderResetButton(ScanlineStrengthSlider);
 	ConfigureTabOrder();
 }
 
@@ -174,6 +214,9 @@ function ConfigureTabOrder()
 	RemoveFromTabOrder(LightLODResetButton);
 	RemoveFromTabOrder(BloomAmountResetButton);
 	RemoveFromTabOrder(ChromaticAberrationResetButton);
+	RemoveFromTabOrder(VignetteIntensityResetButton);
+	RemoveFromTabOrder(FilmGrainAmountResetButton);
+	RemoveFromTabOrder(ScanlineStrengthResetButton);
 
 	PlaceTabAfter(DisplayModeCombo, VideoCombo);
 	PlaceTabAfter(ShowFPSCheck, DisplayModeCombo);
@@ -181,6 +224,9 @@ function ConfigureTabOrder()
 	PlaceTabAfter(SaturationSlider, ContrastSlider);
 	PlaceTabAfter(BloomAmountSlider, SaturationSlider);
 	PlaceTabAfter(ChromaticAberrationSlider, BloomAmountSlider);
+	PlaceTabAfter(VignetteIntensitySlider, ChromaticAberrationSlider);
+	PlaceTabAfter(FilmGrainAmountSlider, VignetteIntensitySlider);
+	PlaceTabAfter(ScanlineStrengthSlider, FilmGrainAmountSlider);
 }
 
 function bool ResetControllerSlider(UWindowHSliderControl Slider)
@@ -199,6 +245,12 @@ function bool ResetControllerSlider(UWindowHSliderControl Slider)
 		Notify(BloomAmountResetButton, DE_Click);
 	else if (Slider == ChromaticAberrationSlider)
 		Notify(ChromaticAberrationResetButton, DE_Click);
+	else if (Slider == VignetteIntensitySlider)
+		Notify(VignetteIntensityResetButton, DE_Click);
+	else if (Slider == FilmGrainAmountSlider)
+		Notify(FilmGrainAmountResetButton, DE_Click);
+	else if (Slider == ScanlineStrengthSlider)
+		Notify(ScanlineStrengthResetButton, DE_Click);
 	else
 		return False;
 	return True;
@@ -374,6 +426,18 @@ function BeforePaint(Canvas C, float X, float Y)
 	ChromaticAberrationSlider.WinTop = BrightnessSlider.WinTop + 100;
 	ChromaticAberrationSlider.SetSize(BrightnessSlider.WinWidth, 1);
 	ChromaticAberrationSlider.SliderWidth = BrightnessSlider.SliderWidth;
+	VignetteIntensitySlider.WinLeft = BrightnessSlider.WinLeft;
+	VignetteIntensitySlider.WinTop = BrightnessSlider.WinTop + 125;
+	VignetteIntensitySlider.SetSize(BrightnessSlider.WinWidth, 1);
+	VignetteIntensitySlider.SliderWidth = BrightnessSlider.SliderWidth;
+	FilmGrainAmountSlider.WinLeft = BrightnessSlider.WinLeft;
+	FilmGrainAmountSlider.WinTop = BrightnessSlider.WinTop + 150;
+	FilmGrainAmountSlider.SetSize(BrightnessSlider.WinWidth, 1);
+	FilmGrainAmountSlider.SliderWidth = BrightnessSlider.SliderWidth;
+	ScanlineStrengthSlider.WinLeft = BrightnessSlider.WinLeft;
+	ScanlineStrengthSlider.WinTop = BrightnessSlider.WinTop + 175;
+	ScanlineStrengthSlider.SetSize(BrightnessSlider.WinWidth, 1);
+	ScanlineStrengthSlider.SliderWidth = BrightnessSlider.SliderWidth;
 	LayoutSliderResetButton(BrightnessSlider, BrightnessResetButton);
 	LayoutSliderResetButton(ContrastSlider, ContrastResetButton);
 	LayoutSliderResetButton(SaturationSlider, SaturationResetButton);
@@ -381,6 +445,9 @@ function BeforePaint(Canvas C, float X, float Y)
 	LayoutSliderResetButton(LightLODSlider, LightLODResetButton);
 	LayoutSliderResetButton(BloomAmountSlider, BloomAmountResetButton);
 	LayoutSliderResetButton(ChromaticAberrationSlider, ChromaticAberrationResetButton);
+	LayoutSliderResetButton(VignetteIntensitySlider, VignetteIntensityResetButton);
+	LayoutSliderResetButton(FilmGrainAmountSlider, FilmGrainAmountResetButton);
+	LayoutSliderResetButton(ScanlineStrengthSlider, ScanlineStrengthResetButton);
 }
 
 function WindowShown()
@@ -392,6 +459,7 @@ function WindowShown()
 	LoadColorSettings();
 	LoadBloomSetting();
 	LoadChromaticAberrationSetting();
+	LoadRetroEffectSettings();
 	SelectedVideoDriver = VideoCombo.GetValue2();
 }
 
@@ -548,6 +616,47 @@ function ApplyChromaticAberrationSetting()
 	GetPlayerOwner().ConsoleCommand("D3D12 CHROMATICABERRATION" @ Amount);
 }
 
+function LoadRetroEffectSettings()
+{
+	local bool bD3D12;
+
+	if (VignetteIntensitySlider == None || FilmGrainAmountSlider == None || ScanlineStrengthSlider == None)
+		return;
+	bD3D12 = GetVideoDriverClassName() ~= "D3D12Drv.D3D12RenderDevice";
+	VignetteIntensitySlider.bDisabled = !bD3D12;
+	FilmGrainAmountSlider.bDisabled = !bD3D12;
+	ScanlineStrengthSlider.bDisabled = !bD3D12;
+	if (bD3D12)
+	{
+		VignetteIntensitySlider.SetValue(Clamp(int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice VignetteIntensity")), 0, 255), True);
+		FilmGrainAmountSlider.SetValue(Clamp(int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice FilmGrainAmount")), 0, 255), True);
+		ScanlineStrengthSlider.SetValue(Clamp(int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice ScanlineStrength")), 0, 255), True);
+	}
+	else
+	{
+		VignetteIntensitySlider.SetValue(0, True);
+		FilmGrainAmountSlider.SetValue(0, True);
+		ScanlineStrengthSlider.SetValue(0, True);
+	}
+	UpdateRetroEffectText();
+}
+
+function UpdateRetroEffectText()
+{
+	VignetteIntensitySlider.SetText(VignetteIntensityText $ " (" $ int(VignetteIntensitySlider.Value * 100.0 / 255.0 + 0.5) $ "%)");
+	FilmGrainAmountSlider.SetText(FilmGrainAmountText $ " (" $ int(FilmGrainAmountSlider.Value * 100.0 / 255.0 + 0.5) $ "%)");
+	ScanlineStrengthSlider.SetText(ScanlineStrengthText $ " (" $ int(ScanlineStrengthSlider.Value * 100.0 / 255.0 + 0.5) $ "%)");
+}
+
+function ApplyRetroEffectSetting(UWindowHSliderControl Slider, string SettingName, string CommandName)
+{
+	local string Amount;
+
+	Amount = string(int(Slider.Value));
+	GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.GameRenderDevice" @ SettingName @ Amount);
+	GetPlayerOwner().ConsoleCommand("D3D12" @ CommandName @ Amount);
+}
+
 function LoadConditionallySupportedSettings()
 {
 	local string CurrentMode;
@@ -557,6 +666,7 @@ function LoadConditionallySupportedSettings()
 	{
 		LoadBloomSetting();
 		LoadChromaticAberrationSetting();
+		LoadRetroEffectSettings();
 		return;
 	}
 
@@ -580,6 +690,7 @@ function LoadConditionallySupportedSettings()
 
 	LoadBloomSetting();
 	LoadChromaticAberrationSetting();
+	LoadRetroEffectSettings();
 }
 
 function Notify(UWindowDialogControl C, byte E)
@@ -610,6 +721,21 @@ function Notify(UWindowDialogControl C, byte E)
 	{
 		ApplyChromaticAberrationSetting();
 		UpdateChromaticAberrationText();
+	}
+	else if (E == DE_Change && C == VignetteIntensitySlider)
+	{
+		ApplyRetroEffectSetting(VignetteIntensitySlider, "VignetteIntensity", "VIGNETTE");
+		UpdateRetroEffectText();
+	}
+	else if (E == DE_Change && C == FilmGrainAmountSlider)
+	{
+		ApplyRetroEffectSetting(FilmGrainAmountSlider, "FilmGrainAmount", "FILMGRAIN");
+		UpdateRetroEffectText();
+	}
+	else if (E == DE_Change && C == ScanlineStrengthSlider)
+	{
+		ApplyRetroEffectSetting(ScanlineStrengthSlider, "ScanlineStrength", "SCANLINES");
+		UpdateRetroEffectText();
 	}
 	else if (E == DE_Change && C == ContrastSlider)
 	{
@@ -664,6 +790,24 @@ function Notify(UWindowDialogControl C, byte E)
 		ApplyChromaticAberrationSetting();
 		UpdateChromaticAberrationText();
 	}
+	else if (E == DE_Click && C == VignetteIntensityResetButton)
+	{
+		VignetteIntensitySlider.SetValue(0, True);
+		ApplyRetroEffectSetting(VignetteIntensitySlider, "VignetteIntensity", "VIGNETTE");
+		UpdateRetroEffectText();
+	}
+	else if (E == DE_Click && C == FilmGrainAmountResetButton)
+	{
+		FilmGrainAmountSlider.SetValue(0, True);
+		ApplyRetroEffectSetting(FilmGrainAmountSlider, "FilmGrainAmount", "FILMGRAIN");
+		UpdateRetroEffectText();
+	}
+	else if (E == DE_Click && C == ScanlineStrengthResetButton)
+	{
+		ScanlineStrengthSlider.SetValue(0, True);
+		ApplyRetroEffectSetting(ScanlineStrengthSlider, "ScanlineStrength", "SCANLINES");
+		UpdateRetroEffectText();
+	}
 }
 
 defaultproperties
@@ -683,6 +827,12 @@ defaultproperties
 	BloomAmountHelp="Set bloom strength from 0% off to 100% maximum."
 	ChromaticAberrationText="Chromatic Aberration"
 	ChromaticAberrationHelp="Separate colors toward the screen edges, from 0% off to 100% maximum."
+	VignetteIntensityText="Vignette"
+	VignetteIntensityHelp="Darken the screen edges, from 0% off to 100% maximum."
+	FilmGrainAmountText="Film Grain"
+	FilmGrainAmountHelp="Add animated monochrome film grain, from 0% off to 100% maximum."
+	ScanlineStrengthText="CRT Scanlines"
+	ScanlineStrengthHelp="Darken alternating output-pixel rows, from 0% off to 100% maximum."
 	ResetVideoSettingHelp="Reset this setting to its Unreal Revived default."
 	bShowFPS=True
 	SavedContrastPercent=-1

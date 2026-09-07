@@ -269,7 +269,10 @@ $settingsCases = @(
     New-TestCase -Name 'setting-bloom' -Map 'NyLeve' -Settings @{ Bloom = 'True'; BloomAmount = '255' }
     New-TestCase -Name 'setting-chromatic-aberration-off' -Map 'NyLeve' -Settings @{ Bloom = 'False'; BloomAmount = '0'; ChromaticAberration = '0' }
     New-TestCase -Name 'setting-chromatic-aberration-max' -Map 'NyLeve' -Settings @{ Bloom = 'False'; BloomAmount = '0'; ChromaticAberration = '255' }
-    New-TestCase -Name 'setting-world-postprocess-msaa8' -Map 'NyLeve' -Settings @{ Bloom = 'True'; BloomAmount = '255'; ChromaticAberration = '255'; AntialiasMode = 'MSAA_8x' }
+    New-TestCase -Name 'setting-vignette-max' -Map 'NyLeve' -Settings @{ Bloom = 'False'; BloomAmount = '0'; VignetteIntensity = '255' }
+    New-TestCase -Name 'setting-film-grain-max' -Map 'NyLeve' -Settings @{ Bloom = 'False'; BloomAmount = '0'; FilmGrainAmount = '255' }
+    New-TestCase -Name 'setting-scanlines-max' -Map 'NyLeve' -Settings @{ Bloom = 'False'; BloomAmount = '0'; ScanlineStrength = '255' }
+    New-TestCase -Name 'setting-world-postprocess-msaa8' -Map 'NyLeve' -Settings @{ Bloom = 'True'; BloomAmount = '255'; ChromaticAberration = '255'; VignetteIntensity = '255'; FilmGrainAmount = '255'; ScanlineStrength = '255'; AntialiasMode = 'MSAA_8x' }
     New-TestCase -Name 'setting-occluded-lines' -Map 'DmDeck16' -Settings @{ OccludeLines = 'True' }
 )
 

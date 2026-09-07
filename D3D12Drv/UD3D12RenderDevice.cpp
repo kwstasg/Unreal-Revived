@@ -117,6 +117,9 @@ void UD3D12RenderDevice::StaticConstructor()
 	Bloom = 1;
 	BloomAmount = 154;
 	ChromaticAberration = 0;
+	VignetteIntensity = 0;
+	FilmGrainAmount = 0;
+	ScanlineStrength = 0;
 
 	LODBias = 0.0f;
 	MaxAnisotropy = 4;
@@ -149,6 +152,9 @@ void UD3D12RenderDevice::StaticConstructor()
 	new(GetClass(), TEXT("Bloom"), RF_Public) UBoolProperty(CPP_PROPERTY(Bloom), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("BloomAmount"), RF_Public) UByteProperty(CPP_PROPERTY(BloomAmount), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("ChromaticAberration"), RF_Public) UByteProperty(CPP_PROPERTY(ChromaticAberration), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("VignetteIntensity"), RF_Public) UByteProperty(CPP_PROPERTY(VignetteIntensity), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("FilmGrainAmount"), RF_Public) UByteProperty(CPP_PROPERTY(FilmGrainAmount), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("ScanlineStrength"), RF_Public) UByteProperty(CPP_PROPERTY(ScanlineStrength), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("LODBias"), RF_Public) UFloatProperty(CPP_PROPERTY(LODBias), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("MaxAnisotropy"), RF_Public) UIntProperty(CPP_PROPERTY(MaxAnisotropy), TEXT("Display"), CPF_Config);
 
@@ -1711,7 +1717,8 @@ void UD3D12RenderDevice::CopySceneToPostProcess(PostProcessImageIndex imageIndex
 
 bool UD3D12RenderDevice::IsWorldPostProcessEnabled() const
 {
-	return (Bloom && BloomAmount > 0) || ChromaticAberration > 0;
+	return (Bloom && BloomAmount > 0) || ChromaticAberration > 0 ||
+		VignetteIntensity > 0 || FilmGrainAmount > 0 || ScanlineStrength > 0;
 }
 
 void UD3D12RenderDevice::BeginUIPass()
@@ -2352,6 +2359,27 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			Ar.Logf(TEXT("%d"), (INT)ChromaticAberration);
 			return 1;
 		}
+		else if (ParseCommand(&Cmd, TEXT("VIGNETTE")))
+		{
+			VignetteIntensity = Clamp<INT>(appAtoi(Cmd), 0, 255);
+			debugf(TEXT("D3D12Drv: live vignette intensity %d"), (INT)VignetteIntensity);
+			Ar.Logf(TEXT("%d"), (INT)VignetteIntensity);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("FILMGRAIN")))
+		{
+			FilmGrainAmount = Clamp<INT>(appAtoi(Cmd), 0, 255);
+			debugf(TEXT("D3D12Drv: live film grain amount %d"), (INT)FilmGrainAmount);
+			Ar.Logf(TEXT("%d"), (INT)FilmGrainAmount);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("SCANLINES")))
+		{
+			ScanlineStrength = Clamp<INT>(appAtoi(Cmd), 0, 255);
+			debugf(TEXT("D3D12Drv: live scanline strength %d"), (INT)ScanlineStrength);
+			Ar.Logf(TEXT("%d"), (INT)ScanlineStrength);
+			return 1;
+		}
 		else if (ParseCommand(&Cmd, TEXT("CONTRAST")))
 		{
 			Contrast = Clamp<INT>(appAtoi(Cmd), 64, 170);
@@ -2538,6 +2566,16 @@ PresentPushConstants UD3D12RenderDevice::GetPresentPushConstants()
 	PresentPushConstants pushconstants;
 	pushconstants.HdrScale = 0.8f + HdrScale * (3.0f / 255.0f);
 	pushconstants.ChromaticAberration = ChromaticAberration / 255.0f;
+	pushconstants.VignetteIntensity = VignetteIntensity / 255.0f;
+	pushconstants.FilmGrainAmount = FilmGrainAmount / 255.0f;
+	pushconstants.ScanlineStrength = ScanlineStrength / 255.0f;
+	LARGE_INTEGER grainTime;
+	QueryPerformanceCounter(&grainTime);
+	// Film grain is photographic motion, not a per-rendered-frame flicker. Keep
+	// it at 24 updates per second so uncapped 1000+ FPS presentation cannot
+	// perceptually average the particles into a flat tonal shift.
+	pushconstants.FilmGrainSeed = (float)std::fmod(
+		std::floor(grainTime.QuadPart * 24.0 / Performance.Frequency.QuadPart), 4096.0);
 	pushconstants.UseWorldPostProcess =
 		IsWorldPostProcessEnabled() && WorldSceneCaptured ? 1.0f : 0.0f;
 	if (Viewport->IsOrtho())

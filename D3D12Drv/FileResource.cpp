@@ -209,6 +209,10 @@ std::string FileResource::readAllText(const std::string& filename)
 				float HdrScale;
 				float4 GammaCorrection;
 				float ChromaticAberration;
+				float VignetteIntensity;
+				float FilmGrainAmount;
+				float ScanlineStrength;
+				float FilmGrainSeed;
 				float UseWorldPostProcess;
 			}
 
@@ -242,6 +246,27 @@ std::string FileResource::readAllText(const std::string& filename)
 			float3 linearHdr(float3 c)
 			{
 				return pow(c, float3(2.2, 2.2, 2.2)) * HdrScale;
+			}
+
+			uint filmGrainHash(uint2 pixelPosition, uint seed)
+			{
+				uint value = pixelPosition.x * 1973u + pixelPosition.y * 9277u + seed * 26699u + 0x68bc21ebu;
+				value ^= value >> 16u;
+				value *= 0x7feb352du;
+				value ^= value >> 15u;
+				value *= 0x846ca68bu;
+				return value ^ (value >> 16u);
+			}
+
+			float filmGrainNoise(float2 pixelPosition)
+			{
+				uint2 pixel = uint2(floor(pixelPosition));
+				uint seed = (uint)FilmGrainSeed;
+				// Two independent samples produce a softer triangular distribution:
+				// mostly fine particles with fewer harsh black or white extremes.
+				float grainA = (filmGrainHash(pixel, seed) & 0x00ffffffu) / 16777215.0;
+				float grainB = (filmGrainHash(pixel, seed + 1543u) & 0x00ffffffu) / 16777215.0;
+				return grainA + grainB - 1.0;
 			}
 
 			#if defined(GAMMA_MODE_D3D9)
@@ -328,6 +353,7 @@ std::string FileResource::readAllText(const std::string& filename)
 			{
 				Output output;
 				float3 sceneColor;
+				float applyWorldDisplayEffects = 0.0;
 				if (UseWorldPostProcess > 0.0)
 				{
 					// texWorldScene is the shared world-only image. All world effects operate on
@@ -344,6 +370,11 @@ std::string FileResource::readAllText(const std::string& filename)
 						processedWorld.r = texWorldScene.Sample(samplerTex, input.texCoord + offset).r;
 						processedWorld.b = texWorldScene.Sample(samplerTex, input.texCoord - offset).b;
 					}
+					if (VignetteIntensity > 0.0)
+					{
+						float vignette = smoothstep(0.30, 0.72, radialDistance);
+						processedWorld *= 1.0 - vignette * VignetteIntensity;
+					}
 					float3 finalColor = texFinalFrame.Sample(samplerTex, input.texCoord).rgb;
 					uint maskWidth, maskHeight;
 					texUICompositionMask.GetDimensions(maskWidth, maskHeight);
@@ -352,10 +383,31 @@ std::string FileResource::readAllText(const std::string& filename)
 					// A marked UI pixel comes directly from the completed frame; an
 					// unmarked pixel comes from the processed world-only image.
 					sceneColor = uiMaskValue != 0 ? finalColor : processedWorld;
+					applyWorldDisplayEffects = uiMaskValue == 0 ? 1.0 : 0.0;
 				}
 				else
 					sceneColor = texFinalFrame.Sample(samplerTex, input.texCoord).rgb;
 				float3 color = gammaCorrect(colorCorrect(sceneColor));
+				if (applyWorldDisplayEffects > 0.0 && FilmGrainAmount > 0.0)
+				{
+					float grain = filmGrainNoise(input.fragCoord.xy);
+					float luminance = dot(saturate(color), float3(0.2126, 0.7152, 0.0722));
+					float midtoneResponse = 1.0 - abs(luminance * 2.0 - 1.0);
+					float grainResponse = lerp(0.65, 1.0, midtoneResponse);
+					color = max(color + grain * (FilmGrainAmount * 0.24 * grainResponse), 0.0);
+				}
+				if (applyWorldDisplayEffects > 0.0 && ScanlineStrength > 0.0)
+				{
+					// A strong line with a softer shoulder, followed by two clear rows,
+					// remains recognizably CRT-like at native 1080p output.
+					float scanlinePhase = fmod(floor(input.fragCoord.y), 4.0);
+					float scanlineLevel = scanlinePhase < 1.0 ? 0.50 :
+						(scanlinePhase < 2.0 ? 0.82 : 1.08);
+					float visibleStrength = sqrt(ScanlineStrength);
+					// Slightly lift the two clear phosphor rows so maximum strength keeps
+					// most of the original scene brightness instead of resembling blinds.
+					color *= lerp(1.0, scanlineLevel, visibleStrength);
+				}
 			#if defined(HDR_MODE)
 				output.outColor = float4(linearHdr(color), 1.0f);
 			#else

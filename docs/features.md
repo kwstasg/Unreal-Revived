@@ -14,7 +14,7 @@ boundary.
 | Corrected visual effects | Correctly displays OldUnreal 227 HD lightmaps, high-precision RGB10A2 textures, and alpha-blended geometry without the corruption found during the renderer port. |
 | Smooth Brute encounters | Uses inexpensive blob shadows instead of UE227's pathological per-object realtime shadow maps and preloads the Brute projectile effect graph before combat. |
 | Multisample antialiasing | Offers Off, 2x, 4x, and 8x MSAA modes with fallback when the requested mode is unavailable. |
-| World-only post-processing | Exposes bloom and chromatic aberration through Video preferences. A shared world/UI composition path keeps HUD and menu drawing untouched by either effect. |
+| World-only post-processing | Exposes bloom, chromatic aberration, vignette, animated film grain, and output-pixel CRT scanlines through Video preferences. A shared world/UI composition path keeps HUD and menu drawing untouched by these effects. |
 | Live image controls | Brightness, contrast, saturation, and related Video settings update the rendered scene and persist through the normal profile. |
 | Configurable VSync | Allows synchronized or uncapped presentation and reports the active state in the optional statistics overlay. |
 | High-refresh gameplay | Supports high and uncapped frame rates; validated Xbox controller movement and look retain the intended 60 FPS response at about 240 FPS and above 1000 FPS. |
@@ -69,7 +69,7 @@ boundary.
 
 | Feature | Description |
 | --- | --- |
-| Smoother BSP traversal | Uses a canonical 32-unit player step height and briefly narrows the local collision cylinder after a confirmed standalone walking obstruction, allowing native movement to clear legacy BSP seams without teleporting or editing maps. |
+| Smoother BSP traversal | Uses a canonical 32-unit player step height and briefly narrows the local collision cylinder after a confirmed standalone world-geometry obstruction, with pawn-clearance guards that prevent collision expansion from crushing NPCs. |
 | Both campaigns | Discovers and launches Unreal and Return to Na Pali through their localized campaign registrations. |
 | Multiplayer support | Retains the multiplayer and server packages required by the supported 227k_15 host. |
 | Dedicated server | Retains the x64 `System64/UCC.exe` dedicated-server entry point and required native and script packages. |

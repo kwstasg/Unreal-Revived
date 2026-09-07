@@ -55,6 +55,12 @@ Verify that message boxes immediately outline their default button, all four
 directions cycle only their available buttons, A confirms the outlined result,
 and B cancels without changing controls behind the modal. Confirm the Input
 page presents Controller before Mouse and aligns all visible checkbox squares.
+In standalone gameplay, walk continuously across known legacy BSP floor seams
+and confirm the player clears them without a visible teleport. Press forward
+against hostile and friendly pawns for several seconds from multiple angles;
+confirm they are not damaged or killed and the player cannot pass through them.
+After clearing a seam near a pawn, back away and confirm the normal collision
+radius returns without crushing either pawn.
 On Bindings, use A to select a row and capture A, X, Y, LB/RB, View, stick
 clicks, triggers, and each D-pad direction. Verify B cancels capture, Menu closes
 without becoming a binding, and keyboard/mouse input still works. Restart and
@@ -462,6 +468,13 @@ target maintains those copies for the disposable runtime.
   opaque, translucent, and modulated HUD/menu elements on both gameplay maps
   and the intro: they must remain sharp, correctly blended, and free of color
   streaks while the 3D world remains processed.
+- Confirm **Vignette**, **Film Grain**, and **CRT Scanlines** follow Chromatic
+  Aberration, each displays 0% through 100%, defaults and resets to disabled at
+  0%, updates live, and persists after reopening Video preferences. At 100%,
+  verify darkened corners, frame-varying monochrome grain, and a balanced
+  four-row CRT pattern with a dark core, soft shoulder, and two subtly lifted
+  phosphor rows respectively. HUD, menu, and intro UI pixels must remain
+  untouched, including under 8x MSAA.
 - On the `Unreal.unr` intro, compare bloom 0 and 255 while paused. Confirm the
   vendor logos, center logo, NVIDIA badge, FPS text, and **Press ESC to begin**
   do not become bloom emitters while highlights in the 3D background still do.

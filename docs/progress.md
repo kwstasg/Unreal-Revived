@@ -6,6 +6,53 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-07
 
+### Added optional retro post-processing controls
+
+- Added world-only vignette, animated monochrome film grain, and physical
+  output-pixel CRT scanlines to the D3D12 present shader.
+- Added D3D12-only 0–100% Video sliders backed by independent 0–255 renderer
+  settings. All three default and reset to 0%, apply live, persist in the active
+  profile, and avoid world-scene capture cost while every world effect is off.
+- Built the Release D3D12Drv target successfully and compiled ModernMenu with
+  zero warnings. The automated runtime harness could not pass the environment's
+  first-time localization state, so final visual tuning used direct 1920x1080
+  in-game comparisons supplied from the development runtime.
+- Follow-up visual feedback at uncapped frame rates showed the initial
+  per-present, one-pixel grain averaging into a tonal shift and the scanlines
+  reading too faintly. Grain now uses two-pixel particles animated at a
+  frame-rate-independent 24 Hz in display space, and maximum scanline darkness
+  was increased from 65% to 90%; UI masking remains unchanged.
+- Replaced the visibly tiled 2x2 grain cells and sine hash with independent
+  per-pixel integer hashes, a softer two-sample particle distribution, and a
+  subtle midtone response. Changed scanline spacing from alternating rows to
+  one dark row followed by two clear rows so the gaps remain visible at 1080p.
+- Strengthened the scanline signature after visual review: its four-row pattern
+  now contains a strong line, a softer shoulder, and two clear rows, with a
+  square-root slider response and 95% maximum darkening.
+- Rebalanced that pattern after direct 0%/100% comparison showed excessive
+  darkening: maximum multipliers are now 0.50 for the core, 0.82 for its
+  shoulder, and 1.08 for both phosphor rows, limiting average brightness loss
+  to about 13% while preserving a clearly recognizable scanline structure.
+
+### Prepared release 0.4.0
+
+- Updated installer and rebuild metadata from 0.3.0 to 0.4.0 for the
+  world-only retro post-processing controls and pawn-safe BSP seam assistance.
+- Completed the non-destructive full rebuild: native renderer and input DLLs,
+  ModernMenu, offline installer, developer bundle, and repository guard all
+  passed. The 88,412,583-byte `UnrealRevived-Setup-0.4.0.exe` has SHA-256
+  `40CBD381CD07172D26C74E0B369C5682F1F10B08481AAB28249E725E4D36829A`;
+  the 150,277,514-byte developer bundle has SHA-256
+  `5C327EB52EDEE52E77B6BC4E8CC02A8F59F9667DD7F3B0C66C13F55A44AD3BC0`.
+
+### Pawn-safe BSP seam assistance
+
+- Restricted the collision-radius seam workaround to confirmed world-geometry
+  obstructions after a sustained 0.08-second block. Added full-cylinder pawn
+  clearance checks before shrinking and restoring the radius so UE1 pawn
+  encroachment cannot gib enemies or friendly NPCs when the player presses
+  against them.
+
 ### Consolidated world-only post-processing
 
 - Replaced the earlier overlay and menu-tile inference experiments with one

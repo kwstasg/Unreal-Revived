@@ -116,7 +116,7 @@ try {
         'local/build/D3D12Drv/Release/D3D12Drv.dll'
         'local/build/XInputWinDrv/Release/XInputWinDrv.dll'
         'local/game/System64/ModernMenu.u'
-        'local/package/offline-installer/output/UnrealRevived-Setup-0.3.0.exe'
+        'local/package/offline-installer/output/UnrealRevived-Setup-0.4.0.exe'
         'local/package/developer-bundle/UnrealRevived-DeveloperBundle-227k_15-v1.zip'
     )
 

@@ -196,6 +196,9 @@ function Set-UnrealRevivedVideoDefaults {
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'Bloom' 'True'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'BloomAmount' '154'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'ChromaticAberration' '0'
+    $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'VignetteIntensity' '0'
+    $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'FilmGrainAmount' '0'
+    $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'ScanlineStrength' '0'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'Contrast' '128'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'Saturation' '281'
 

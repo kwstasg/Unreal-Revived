@@ -43,6 +43,10 @@ struct PresentPushConstants
 	float HdrScale;
 	vec4 GammaCorrection;
 	float ChromaticAberration;
+	float VignetteIntensity;
+	float FilmGrainAmount;
+	float ScanlineStrength;
+	float FilmGrainSeed;
 	float UseWorldPostProcess;
 };
 
@@ -364,6 +368,9 @@ public:
 	BITFIELD Bloom;
 	BYTE BloomAmount;
 	BYTE ChromaticAberration;
+	BYTE VignetteIntensity;
+	BYTE FilmGrainAmount;
+	BYTE ScanlineStrength;
 	FLOAT LODBias;
 	INT MaxAnisotropy;
 	BYTE AntialiasMode;

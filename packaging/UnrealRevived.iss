@@ -7,7 +7,7 @@
 #endif
 
 #define ProductName "Unreal Revived"
-#define ProductVersion "0.3.0"
+#define ProductVersion "0.4.0"
 #ifndef ProductIconName
   #error ProductIconName must identify the staged content-addressed icon
 #endif
