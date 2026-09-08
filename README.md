@@ -93,10 +93,7 @@ The flat-screen DirectX 12 path is implemented and actively validated on
 Windows x64. A prebuilt installer is attached to the
 [latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest),
 and the repository can reproduce it from pinned, verified inputs. The latest
-attached installer is version 0.5.0 from tag
-`UnrealRevived-Setup-0.5.0`; the current branch is ahead of that tag, so its
-revised branding and existing-install flow are not in the attached 0.5.0
-binary.
+release may lag changes in the current source tree.
 
 Players need:
 
