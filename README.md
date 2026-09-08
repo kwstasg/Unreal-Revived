@@ -70,9 +70,9 @@ lag source changes as noted under [availability](#availability-and-requirements)
 
 | Area | What players get |
 | --- | --- |
-| Modern rendering | Native Direct3D 12 rendering with corrected HD lightmaps, high-quality textures, alpha blending, and configurable VSync. |
+| Modern rendering | Native Direct3D 12 rendering at resolutions up to 4K, with corrected HD lightmaps, high-quality textures, alpha blending, and configurable VSync. |
 | Post-processing effects | Adjustable bloom, chromatic aberration, vignette, animated film grain, and CRT scanlines. Effects are applied to the 3D world while keeping the HUD and menus clean. |
-| Modern displays | Widescreen and high-resolution rendering, high-refresh support, monitor-aware borderless presentation, letterboxing, and correctly mapped menu input. |
+| 4K and modern displays | Widescreen and high-resolution rendering, including validated 2560x1440 and 3840x2160 logical 4K modes, high-refresh support, monitor-aware borderless presentation, letterboxing, and correctly mapped menu input. Physical 4K display output still requires validation on 4K hardware. |
 | Image quality | Off, 2x, 4x, and 8x MSAA modes with capability-based fallback, plus in-menu brightness, contrast, saturation, and detail controls. |
 | Refreshed interface | Branded menus, focused Video, Input, Bindings, and HUD controls, an optional live game view behind menus, and persistent F11-toggled FPS statistics. |
 | Gamepad support | SDL3 support for Xbox, DualShock, DualSense, and other mapped controllers, with adjustable dead zones, sensitivity, and fallback input paths; Xbox reconnect handling is validated. |
