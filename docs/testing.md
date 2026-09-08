@@ -204,6 +204,9 @@ left-aligned **Unreal Revived** section identifying **Project Creator**,
 **Kwstasg - Kostas Giannakakis**, and `github.com/kwstasg/Unreal-Revived`.
 Hover the repository text and confirm its color and cursor change, then click it
 and confirm the project page opens.
+Confirm the dark-backed Unreal Revived banner appears proportionally above the
+credits and that the taller dialog keeps every credit and the Close button
+visible.
 
 During the Unreal intro flyby, confirm the original Epic, GT Interactive,
 Digital Extremes, and Unreal logos remain visible while the dynamic OpenAL and
@@ -213,7 +216,10 @@ confirm its HUD is unchanged.
 After source-derived branding changes, confirm `MenuBackground.bmp` is a
 3840x2160 24-bit bitmap. For manual banner changes, confirm `Logo.bmp` is a
 952x295 24-bit bitmap, `SetupLogo.bmp` is a 343x84 24-bit bitmap, and their
-deployed copies match the tracked sources. Inspect the ICO directory for 16,
+deployed copies match the tracked sources. Confirm the installer uses the
+generated portrait wizard artwork without stretching the logo, shows the
+author and clickable GitHub URL, offers a desktop-shortcut task, and offers a
+post-install launch checkbox. Inspect the ICO directory for 16,
 24, 32, 48, 64, 128, and 256 pixel frames and verify the circular crest has
 transparent corners.
 
@@ -403,6 +409,8 @@ when a menu or input behavior changes and cannot be established another way.
 - Launch through `Unreal.unr` without forcing a campaign map.
 - Open Game, then New Game.
 - Confirm both `Unreal` and `Return to Na Pali` are listed.
+- Switch between both campaigns and confirm each uses the same transparent
+  Unreal Revived wordmark without changing the original 180x90 preview bounds.
 - Start Unreal and confirm travel begins at `Vortex2`.
 - Start Return to Na Pali and confirm travel begins at `Intro1`.
 - Confirm campaign screenshots and skill selection render correctly.
@@ -507,8 +515,8 @@ target maintains those copies for the disposable runtime.
   Configuration, and keeps the ModernMenu root and saved settings.
 - Close the installed runtime, launch `System64\Unreal.exe` with no arguments,
   and confirm it opens the same ModernIntro shell without stock intro frames.
-- Confirm the installed Start Menu and desktop shortcuts have no arguments and
-  launch the same canonical profiles.
+- Confirm the installed Start Menu shortcut and, when selected during Setup,
+  the desktop shortcut have no arguments and launch the same canonical profile.
 - Reopen Video preferences after Restart and confirm the FPS checkbox retains
   its saved state.
 - Open **Options > Preferences > Game** and confirm **Console** displays
@@ -538,10 +546,11 @@ target maintains those copies for the disposable runtime.
 ## Installer uninstall checklist
 
 - Create a sentinel file under the installed `Save` directory.
-- Start interactive uninstall and confirm **Keep save games** is checked by
-  default in the native uninstall window.
-- Click **Uninstall** and confirm the same window transitions to progress with
-  no additional confirmation dialog.
+- Start uninstall through Windows Installed Apps and confirm one compact
+  branded dialog appears with the banner, clickable GitHub link, and **Keep
+  save games** checked by default.
+- Click **Uninstall** and confirm removal proceeds without an additional native
+  confirmation dialog.
 - Complete uninstall and confirm only the retained `Save` directory remains
   under the former installation path, including the sentinel file.
 - Confirm a timestamped `Unreal Revived Backup` under Documents contains the
@@ -549,7 +558,9 @@ target maintains those copies for the disposable runtime.
 - Reinstall and confirm the retained saves remain available.
 - In an isolated test installation, uncheck **Keep save games**, complete
   uninstall, and confirm the installation copy is removed after backup.
-- Confirm an explicit `/SILENT` uninstall retains saves without prompting.
+- Launch the uninstaller directly and confirm only Inno's native confirmation
+  appears; saves remain retained by default.
+- Confirm an explicit `/VERYSILENT` uninstall retains saves without prompting.
 
 ## Reporting results
 

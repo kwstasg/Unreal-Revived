@@ -40,12 +40,13 @@ $backupScript = Join-Path $repositoryRoot 'scripts\backup-unreal-revived-user-da
 $brandingRoot = Join-Path $repositoryRoot 'branding'
 $brandingLogo = Join-Path $brandingRoot 'Logo.bmp'
 $brandingSetupLogo = Join-Path $brandingRoot 'SetupLogo.bmp'
+$installerWizardImage = Join-Path $brandingRoot 'InstallerWizard.png'
 $brandingIcon = Join-Path $brandingRoot 'UnrealRevived.ico'
 $iniModule = Join-Path $repositoryRoot 'scripts\UnrealRevived.Ini.psm1'
 $permissions = Join-Path $repositoryRoot 'PERMISSIONS.md'
 $installerDefinition = Join-Path $repositoryRoot 'packaging\UnrealRevived.iss'
 
-foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $InputDll, $rendererInt, $modernMenu, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $brandingIcon, $iniModule, $permissions)) {
+foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $InputDll, $rendererInt, $modernMenu, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $installerWizardImage, $brandingIcon, $iniModule, $permissions)) {
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Missing offline package input: $requiredPath"
     }
@@ -73,6 +74,7 @@ $payloadRoot = Join-Path $stagePath 'payload'
 $patchRoot = Join-Path $stagePath 'patch'
 $outputRoot = Join-Path $stagePath 'output'
 New-Item -ItemType Directory -Path $payloadRoot, $patchRoot, $outputRoot -Force | Out-Null
+Copy-Item -LiteralPath $installerWizardImage -Destination (Join-Path $payloadRoot 'InstallerWizard.png') -Force
 
 Write-Host 'Extracting the verified patch for direct Inno Setup packaging'
 Expand-Archive -LiteralPath $PatchArchive -DestinationPath $patchRoot -Force

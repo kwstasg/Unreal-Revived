@@ -23,6 +23,7 @@
 AppId={{8D6614ED-8854-4D0E-9666-A891EC92713B}
 AppName={#ProductName}
 AppVersion={#ProductVersion}
+AppVerName={#ProductName} {#ProductVersion}
 AppPublisher={#ProductAuthor}
 AppPublisherURL={#ProjectUrl}
 AppSupportURL={#ProjectUrl}/issues
@@ -35,6 +36,8 @@ OutputBaseFilename=UnrealRevived-Setup-{#ProductVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
+WizardImageFile={#StageRoot}\payload\InstallerWizard.png
+DisableWelcomePage=no
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 CloseApplications=yes
@@ -51,12 +54,19 @@ VersionInfoCopyright=Copyright (C) 2026 {#ProductAuthor}
 [Files]
 Source: "{#StageRoot}\payload\copy-original-game.ps1"; Flags: dontcopy
 Source: "{#StageRoot}\payload\unreal-revived-install-content-v1.json"; Flags: dontcopy
-Source: "{#StageRoot}\payload\*"; DestDir: "{tmp}\UnrealRevived-Payload"; Excludes: "copy-original-game.ps1"; Flags: ignoreversion recursesubdirs createallsubdirs deleteafterinstall
+Source: "{#StageRoot}\payload\InstallerWizard.png"; DestDir: "{app}\UnrealRevived"; Flags: ignoreversion
+Source: "{#StageRoot}\payload\*"; DestDir: "{tmp}\UnrealRevived-Payload"; Excludes: "copy-original-game.ps1,InstallerWizard.png"; Flags: ignoreversion recursesubdirs createallsubdirs deleteafterinstall
 Source: "{#StageRoot}\patch\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
-Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
+Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"; Tasks: desktopicon
+
+[Tasks]
+Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional options:"
+
+[Run]
+Filename: "{app}\System64\Unreal.exe"; WorkingDir: "{app}\System64"; Description: "Launch {#ProductName}"; Flags: postinstall nowait skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
@@ -71,45 +81,88 @@ var
   SourceHelpLabel: TNewStaticText;
   GetOriginalGameButton: TNewButton;
   DetectOriginalGameButton: TNewButton;
+  ProjectLinkLabel: TNewLinkLabel;
   KeepSaveGames: Boolean;
   UninstallOptionsAccepted: Boolean;
   PreservedSaveDirectory: String;
 
-function InitializeUninstall: Boolean;
+function HasCommandLineParameter(const Parameter: String): Boolean;
+var
+  Index: Integer;
 begin
-  KeepSaveGames := True;
-  UninstallOptionsAccepted := True;
-  Result := True;
+  Result := False;
+  for Index := 1 to ParamCount do
+    if CompareText(ParamStr(Index), Parameter) = 0 then
+    begin
+      Result := True;
+      Exit;
+    end;
 end;
 
-procedure InitializeUninstallProgressForm;
+procedure ProjectLinkLabelClick(Sender: TObject; const Link: String;
+  LinkType: TSysLinkType);
 var
+  ErrorCode: Integer;
+begin
+  if LinkType = sltURL then
+    if not ShellExec('open', Link, '', '', SW_SHOWNORMAL,
+      ewNoWait, ErrorCode) then
+      MsgBox('Could not open the project page. Visit:' + #13#10 +
+        '{#ProjectUrl}', mbError, MB_OK);
+end;
+
+function ShowUninstallOptions: Boolean;
+var
+  OptionsForm: TSetupForm;
   OptionsPanel: TPanel;
+  PortraitImage: TBitmapImage;
+  HeadingLabel: TNewStaticText;
   DescriptionLabel: TNewStaticText;
   KeepSavesCheck: TNewCheckBox;
+  LinkLabel: TNewLinkLabel;
   UninstallButton: TNewButton;
   CancelButton: TNewButton;
   ButtonWidth: Integer;
+  ContentLeft: Integer;
 begin
-  if UninstallSilent then
-    Exit;
+  OptionsForm := CreateCustomForm(ScaleX(600), ScaleY(320), False, True);
+  OptionsForm.Caption := 'Uninstall Unreal Revived {#ProductVersion}';
+  OptionsForm.Position := poScreenCenter;
 
-  UninstallProgressForm.Caption := 'Uninstall Unreal Revived';
-
-  OptionsPanel := TPanel.Create(UninstallProgressForm);
-  OptionsPanel.Parent := UninstallProgressForm;
-  OptionsPanel.SetBounds(0, 0, UninstallProgressForm.ClientWidth,
-    UninstallProgressForm.ClientHeight);
+  OptionsPanel := TPanel.Create(OptionsForm);
+  OptionsPanel.Parent := OptionsForm;
+  OptionsPanel.SetBounds(0, 0, OptionsForm.ClientWidth,
+    OptionsForm.ClientHeight);
   OptionsPanel.BevelOuter := bvNone;
-  OptionsPanel.Color := clWindow;
+  OptionsPanel.Color := OptionsForm.Color;
   OptionsPanel.Anchors := [akLeft, akTop, akRight, akBottom];
+
+  PortraitImage := TBitmapImage.Create(OptionsPanel);
+  PortraitImage.Parent := OptionsPanel;
+  PortraitImage.SetBounds(ScaleX(12), ScaleY(10), ScaleX(150), ScaleY(287));
+  PortraitImage.Stretch := True;
+  if FileExists(ExpandConstant('{app}\UnrealRevived\InstallerWizard.png')) then
+    PortraitImage.PngImage.LoadFromFile(
+      ExpandConstant('{app}\UnrealRevived\InstallerWizard.png'));
+
+  ContentLeft := PortraitImage.Left + PortraitImage.Width + ScaleX(14);
+  HeadingLabel := TNewStaticText.Create(OptionsPanel);
+  HeadingLabel.Parent := OptionsPanel;
+  HeadingLabel.SetBounds(ContentLeft, ScaleY(16),
+    OptionsPanel.ClientWidth - ContentLeft - ScaleX(12), ScaleY(28));
+  HeadingLabel.AutoSize := False;
+  HeadingLabel.Color := OptionsPanel.Color;
+  HeadingLabel.Font.Style := [fsBold];
+  HeadingLabel.Font.Size := 12;
+  HeadingLabel.Caption := 'Uninstall Unreal Revived';
 
   DescriptionLabel := TNewStaticText.Create(OptionsPanel);
   DescriptionLabel.Parent := OptionsPanel;
-  DescriptionLabel.SetBounds(ScaleX(12), ScaleY(12),
-    OptionsPanel.ClientWidth - ScaleX(24), ScaleY(64));
+  DescriptionLabel.SetBounds(ContentLeft, HeadingLabel.Top + HeadingLabel.Height + ScaleY(8),
+    OptionsPanel.ClientWidth - ContentLeft - ScaleX(12), ScaleY(92));
   DescriptionLabel.AutoSize := False;
   DescriptionLabel.WordWrap := True;
+  DescriptionLabel.Color := OptionsPanel.Color;
   DescriptionLabel.Caption :=
     'This removes Unreal Revived only. Your original Unreal Gold installation ' +
     'and OldUnreal downloads will not be changed. Choose whether save games ' +
@@ -117,8 +170,9 @@ begin
 
   KeepSavesCheck := TNewCheckBox.Create(OptionsPanel);
   KeepSavesCheck.Parent := OptionsPanel;
-  KeepSavesCheck.SetBounds(ScaleX(12), ScaleY(84),
-    OptionsPanel.ClientWidth - ScaleX(24), ScaleY(20));
+  KeepSavesCheck.SetBounds(ContentLeft,
+    DescriptionLabel.Top + DescriptionLabel.Height + ScaleY(6),
+    OptionsPanel.ClientWidth - ContentLeft - ScaleX(12), ScaleY(20));
   KeepSavesCheck.Caption := 'Keep save games';
   KeepSavesCheck.Checked := True;
 
@@ -134,20 +188,57 @@ begin
   CancelButton.ModalResult := mrCancel;
   CancelButton.Cancel := True;
 
-  ButtonWidth := UninstallProgressForm.CalculateButtonWidth([UninstallButton.Caption,
+  LinkLabel := TNewLinkLabel.Create(OptionsPanel);
+  LinkLabel.Parent := OptionsPanel;
+  LinkLabel.Left := ContentLeft;
+  LinkLabel.Top := OptionsPanel.ClientHeight - ScaleY(61);
+  LinkLabel.Width := OptionsPanel.ClientWidth - ContentLeft - ScaleX(12);
+  LinkLabel.Caption := 'GitHub: <a href="{#ProjectUrl}">{#ProjectUrl}</a>';
+  LinkLabel.UseVisualStyle := True;
+  LinkLabel.OnLinkClick := @ProjectLinkLabelClick;
+
+  ButtonWidth := OptionsForm.CalculateButtonWidth([UninstallButton.Caption,
     CancelButton.Caption]);
   UninstallButton.SetBounds(
     OptionsPanel.ClientWidth - ScaleX(12) - (ButtonWidth * 2) - ScaleX(8),
     OptionsPanel.ClientHeight - ScaleY(35), ButtonWidth, ScaleY(23));
   CancelButton.SetBounds(OptionsPanel.ClientWidth - ScaleX(12) - ButtonWidth,
     OptionsPanel.ClientHeight - ScaleY(35), ButtonWidth, ScaleY(23));
-  UninstallProgressForm.ActiveControl := KeepSavesCheck;
+  OptionsForm.ActiveControl := KeepSavesCheck;
   OptionsPanel.BringToFront;
 
-  UninstallOptionsAccepted := UninstallProgressForm.ShowModal() = mrOk;
-  if UninstallOptionsAccepted then
+  Result := OptionsForm.ShowModal() = mrOk;
+  if Result then
     KeepSaveGames := KeepSavesCheck.Checked;
-  OptionsPanel.Hide;
+  OptionsForm.Free;
+end;
+
+function InitializeUninstall: Boolean;
+var
+  ResultCode: Integer;
+begin
+  KeepSaveGames := not HasCommandLineParameter('/REMOVESAVES');
+  UninstallOptionsAccepted := True;
+
+  if HasCommandLineParameter('/VERYSILENT') then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  if UninstallSilent then
+  begin
+    UninstallOptionsAccepted := ShowUninstallOptions;
+    Result := UninstallOptionsAccepted;
+    Exit;
+  end;
+
+  { Suppress Inno's native confirmation and show our single options dialog. }
+  Result := False;
+  if not Exec(ExpandConstant('{uninstallexe}'),
+    '/SILENT /SUPPRESSMSGBOXES /NORESTART', ExpandConstant('{app}'),
+    SW_SHOWNORMAL, ewNoWait, ResultCode) then
+    MsgBox('Could not start the Unreal Revived uninstaller.', mbError, MB_OK);
 end;
 
 procedure BackupUninstallUserData;
@@ -247,33 +338,27 @@ function InitializeSetup: Boolean;
 var
   Uninstaller: String;
   ResultCode: Integer;
-  Choice: Integer;
 begin
   Result := True;
   if not FindExistingUninstaller(Uninstaller) then
     Exit;
 
-  Choice := SuppressibleMsgBox(
-    'Unreal Revived is already installed.' + #13#10 + #13#10 +
-    'Yes: uninstall the existing installation and close Setup.' + #13#10 +
-    'No: continue and repair or update the existing installation.' + #13#10 +
-    'Cancel: exit without making changes.',
-    mbConfirmation, MB_YESNOCANCEL, IDNO);
-  if Choice = IDYES then
+  { Older builds do not contain the branded uninstall form. Let Setup upgrade
+    them first instead of invoking their uninstaller silently. }
+  if not FileExists(AddBackslash(ExtractFileDir(Uninstaller)) +
+    'UnrealRevived\InstallerWizard.png') then
+    Exit;
+
+  { Use the same single branded uninstall/options dialog as a direct launch. }
+  if not Exec(Uninstaller,
+    '/SILENT /SUPPRESSMSGBOXES /NORESTART', '',
+    SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
   begin
-    if not Exec(Uninstaller, '/SUPPRESSMSGBOXES /NORESTART', '',
-      SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
-    begin
-      MsgBox('Could not start the Unreal Revived uninstaller.', mbError, MB_OK);
-      Result := False;
-      Exit;
-    end;
-    if ResultCode <> 0 then
-      MsgBox(Format('Uninstall failed with exit code %d.', [ResultCode]),
-        mbError, MB_OK);
+    MsgBox('Could not start the Unreal Revived uninstaller.', mbError, MB_OK);
     Result := False;
+    Exit;
   end
-  else if Choice = IDCANCEL then
+  else if ResultCode = 0 then
     Result := False;
 end;
 
@@ -411,6 +496,31 @@ var
   DetectedDirectory: String;
   ButtonWidth: Integer;
 begin
+  WizardForm.WelcomeLabel1.Caption :=
+    'Welcome to Unreal Revived {#ProductVersion}';
+  WizardForm.WelcomeLabel2.Caption :=
+    'The definitive Unreal Gold experience for modern Windows.' + #13#10 + #13#10 +
+    '- Native Direct3D 12 with corrected HD lightmaps, modern texture ' +
+    'quality, and up to 8x MSAA' + #13#10 +
+    '- World-only post-processing: bloom, chromatic aberration, vignette, ' +
+    'animated film grain, and CRT scanlines' + #13#10 +
+    '- 4K, widescreen, borderless, and high-refresh display support' + #13#10 +
+    '- SDL3 controllers: Xbox, DualShock, DualSense, hot-plugging, and up to ' +
+    'three bindings per action' + #13#10 +
+    '- Unreal and Return to Na Pali campaigns, multiplayer, OpenAL audio, ' +
+    'ModernMenu, and recovery renderers';
+
+  ProjectLinkLabel := TNewLinkLabel.Create(WizardForm);
+  ProjectLinkLabel.Parent := WizardForm;
+  ProjectLinkLabel.AutoSize := False;
+  ProjectLinkLabel.SetBounds(ScaleX(12),
+    WizardForm.CancelButton.Top + ScaleY(3),
+    WizardForm.BackButton.Left - ScaleX(24), ScaleY(18));
+  ProjectLinkLabel.Caption := 'Unreal Revived  |  ' +
+    '<a href="{#ProjectUrl}">GitHub</a>';
+  ProjectLinkLabel.UseVisualStyle := True;
+  ProjectLinkLabel.OnLinkClick := @ProjectLinkLabelClick;
+
   SourcePage := CreateInputDirPage(wpSelectDir,
     'Original Game', 'Where is your original Unreal Gold installation?',
     'Setup will copy your existing game files into Unreal Revived. Select the ' +
@@ -549,6 +659,11 @@ begin
     RaiseException(Format('Offline installation failed with exit code %d. See the setup log for details.', [ResultCode]));
 
   if not RegWriteStringValue(HKCU, UninstallKey, 'UninstallString',
-    '"' + ExpandConstant('{uninstallexe}') + '" /SUPPRESSMSGBOXES') then
+    '"' + ExpandConstant('{uninstallexe}') +
+    '" /SILENT /SUPPRESSMSGBOXES /NORESTART') then
     RaiseException('Could not configure the registered uninstaller.');
+  if not RegWriteStringValue(HKCU, UninstallKey, 'QuietUninstallString',
+    '"' + ExpandConstant('{uninstallexe}') +
+    '" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART') then
+    RaiseException('Could not configure the quiet uninstaller.');
 end;

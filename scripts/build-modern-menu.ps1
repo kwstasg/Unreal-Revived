@@ -22,6 +22,8 @@ $sourceDirectory = Join-Path $sourcePackageDirectory 'Classes'
 $brandingDirectory = Join-Path $repositoryRoot 'branding'
 $menuTextureDirectory = Join-Path $repositoryRoot 'branding\MenuTiles'
 $introNvidiaTexture = Join-Path $brandingDirectory 'NvidiaIntroLogoRuntime.png'
+$campaignLogoTexture = Join-Path $brandingDirectory 'UnrealRevivedCampaignLogoRuntime.png'
+$aboutLogoTexture = Join-Path $brandingDirectory 'UnrealRevivedAboutLogoRuntime.png'
 $brandingLogo = Join-Path $brandingDirectory 'Logo.bmp'
 $brandingSetupLogo = Join-Path $brandingDirectory 'SetupLogo.bmp'
 $systemDirectory = Join-Path $GameRoot 'System'
@@ -34,7 +36,7 @@ $editorIniPath = Join-Path $system64Directory 'Unreal.ini'
 $runtimePackageDirectory = Join-Path $GameRoot 'ModernMenu'
 $outputPackage = Join-Path $system64Directory 'ModernMenu.u'
 
-foreach ($requiredPath in @($sourcePackageDirectory, $sourceDirectory, $menuTextureDirectory, $introNvidiaTexture, $brandingLogo, $brandingSetupLogo, $systemDirectory, $system64Directory, $helpDirectory, $ucc, $iniPath)) {
+foreach ($requiredPath in @($sourcePackageDirectory, $sourceDirectory, $menuTextureDirectory, $introNvidiaTexture, $campaignLogoTexture, $aboutLogoTexture, $brandingLogo, $brandingSetupLogo, $systemDirectory, $system64Directory, $helpDirectory, $ucc, $iniPath)) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
         throw "Missing ModernMenu build input: $requiredPath"
     }
@@ -78,6 +80,8 @@ Remove-Item -LiteralPath $runtimePackageDirectory -Recurse -Force -ErrorAction S
 Copy-Item -LiteralPath $sourcePackageDirectory -Destination $runtimePackageDirectory -Recurse
 Copy-Item -LiteralPath $menuTextureDirectory -Destination (Join-Path $runtimePackageDirectory 'Textures') -Recurse
 Copy-Item -LiteralPath $introNvidiaTexture -Destination (Join-Path $runtimePackageDirectory 'Textures\NvidiaIntroLogoRuntime.png') -Force
+Copy-Item -LiteralPath $campaignLogoTexture -Destination (Join-Path $runtimePackageDirectory 'Textures\UnrealRevivedCampaignLogoRuntime.png') -Force
+Copy-Item -LiteralPath $aboutLogoTexture -Destination (Join-Path $runtimePackageDirectory 'Textures\UnrealRevivedAboutLogoRuntime.png') -Force
 
 $stagedPackages = [Collections.Generic.List[string]]::new()
 try {

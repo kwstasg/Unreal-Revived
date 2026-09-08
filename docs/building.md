@@ -261,8 +261,14 @@ Packaging replaces both retained logo bitmaps with the original project-owned
 artwork tracked under `branding/`. It also installs the tracked seven-frame,
 16-through-256-pixel `UnrealRevived.ico` for shortcuts and uninstall metadata.
 The installed icon filename includes a prefix of its SHA-256 hash so Windows
-Explorer cannot reuse a stale cached image after artwork changes, and setup
-recreates the desktop shortcut on every install or repair.
+Explorer cannot reuse a stale cached image after artwork changes. Setup offers
+the desktop shortcut as a user-selectable task on every install or repair and
+offers to launch the game from the Completed page.
+Setup retains the portrait wordmark artwork on its Welcome and Completed pages,
+shows the standard Setup icon in page headers, adds a current feature list to
+the Welcome page, and keeps a clickable GitHub link beside
+the Unreal Revived name in the bottom bar on every page. The branded uninstall
+confirmation uses the portrait artwork.
 The baseline assets can be regenerated deterministically with
 `scripts/build-unreal-revived-branding.ps1`; packaging copies the tracked files
 directly and does not read original-game artwork. Both generic defaults and the
@@ -281,12 +287,13 @@ for other viewport ratios, so replacement artwork is never stretched.
 
 To import user-authored artwork, supply a 16:9 PNG, BMP, or JPEG to
 `scripts/build-unreal-revived-branding.ps1 -MenuBackgroundSource <path>`. Add
-`-DeriveBranding` to derive transparent logo outputs from `LogoHD.png`, BMP
-compatibility copies, and the seven-frame ICO from `icon..png`. Without that
+`-DeriveBranding` to derive transparent logo outputs and dark-backed BMP
+compatibility copies from `UnrealRevivedLogo.png`, installer artwork from
+`UnrealRevivedLogo.jpg`, and the seven-frame ICO from `icon..png`. Without that
 switch, only the canonical menu bitmap and twelve tiles change. The tracked
-952x295 BMP banners are manually authored; running a branding derivation
-replaces them. Wider viewports crop the top and bottom; narrower viewports crop
-the sides.
+952x295 and 343x84 BMP banners are generated compatibility assets because the
+legacy runtime controls cannot render PNG or BMP alpha. Wider viewports crop
+the top and bottom; narrower viewports crop the sides.
 
 The validated source snapshot omitted 305 audited paths totaling 134,784,646
 bytes, although generated files and source-install differences can change the
@@ -314,23 +321,26 @@ installer never writes into the original source. It launches with canonical
 `Unreal.ini` and `User.ini` profiles, allowing its `System64\Unreal.exe`
 and installed shortcuts to start with no arguments. Uninstall backs up saves
 and canonical profiles to a timestamped `Unreal Revived Backup` directory
-under Documents before removing the side-by-side installation. Interactive
-uninstall embeds a default-checked **Keep save games** option in Inno's native
-uninstall window; the same window transitions into removal progress after the
-user confirms. The dialog explicitly states that uninstall removes only Unreal
+under Documents before removing the side-by-side installation. Windows
+Installed Apps and a direct launch of the uninstaller both reach one branded
+uninstall confirmation with the project portrait, a clickable GitHub link, and
+a default-checked **Keep save games** option. A direct launch relaunches the
+uninstaller with `/SILENT` so Inno's redundant native confirmation does not
+appear. Running Setup over an already-installed copy opens that same single
+branded options dialog instead of displaying a separate maintenance
+confirmation first. The dialog explicitly states that uninstall removes only Unreal
 Revived and does not change the source Unreal Gold installation or OldUnreal
 downloads. When checked, the `Save` directory is retained under the installation path for a future reinstall.
-Explicit silent uninstall keeps saves by default. Unchecking the option removes
-the installation copy after the Documents backup is created.
+Explicit `/VERYSILENT` uninstall also keeps saves without prompting. Unchecking
+the option removes the installation copy after the Documents backup is created.
 Reinstall accepts a retained `Save` directory and excludes the original game's
 save folder from the copy so newer retained saves are not overwritten.
 
 Rerunning the same installer detects the registered Unreal Revived App ID and
-opens a maintenance prompt. **Yes** runs the existing uninstaller, preserves
-the configured user-data backup, shows the save-retention choice, and closes
-Setup. **No** continues into the normal wizard to repair or update the
-installation. **Cancel** exits without making changes. Both machine-wide and
-earlier per-user registrations are detected.
+opens the existing installation's branded uninstall options directly. Choosing
+**Uninstall** performs removal and closes Setup; choosing **Cancel** exits
+without changes. Both machine-wide and earlier per-user registrations are
+detected.
 
 ## Repository safety
 

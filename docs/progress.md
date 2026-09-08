@@ -463,7 +463,7 @@ technical guides; use this file for the chronological record.
 ### Rebuilt setup and shortcut branding from transparent PNG sources
 
 - Replaced generated placeholder logo artwork with transparent `Logo.png` and
-  `SetupLogo.png` derivatives of `branding/LogoHD.png`, while retaining the
+  `SetupLogo.png` derivatives of `branding/UnrealRevivedLogo.png`, while retaining the
   24-bit BMP compatibility copies hardcoded by the OldUnreal 227k host. Those
   opaque GDI banners are composited onto the standard Win32 wizard background
   because the host does not render bitmap alpha.

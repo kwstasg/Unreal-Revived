@@ -71,6 +71,7 @@ boundary.
 | --- | --- |
 | Smoother BSP traversal | Uses a canonical 32-unit player step height and briefly narrows the local collision cylinder after a confirmed standalone world-geometry obstruction, with pawn-clearance guards that prevent collision expansion from crushing NPCs. |
 | Both campaigns | Discovers and launches Unreal and Return to Na Pali through their localized campaign registrations. |
+| Unified campaign branding | Shows the transparent Unreal Revived wordmark at the original campaign-preview size for both Unreal and Return to Na Pali. |
 | Multiplayer support | Retains the multiplayer and server packages required by the supported 227k_15 host. |
 | Dedicated server | Retains the x64 `System64/UCC.exe` dedicated-server entry point and required native and script packages. |
 | Bundled languages | Retains all languages supplied by the pinned host and mirrors required localized registrations into the paths used at runtime. |
@@ -94,7 +95,8 @@ boundary.
 | Interactive uninstall | Removes only Unreal Revived, explicitly leaves the source Unreal Gold installation and OldUnreal downloads unchanged, and transitions into standard uninstall progress in the same window. |
 | Save preservation policy | Configures interactive and silent uninstall to retain saves by default and backs up saves and canonical profiles before removal. Complete end-to-end validation of the revised interactive uninstall flow remains pending. |
 | Reinstall protection | Accepts a retained save-only destination and prevents original-game saves from overwriting those retained files. |
-| Installed shortcuts | Creates Start Menu and desktop shortcuts that launch the canonical installed profiles without development arguments. |
+| Installed shortcuts | Creates a Start Menu shortcut and offers an optional desktop shortcut; both launch the canonical installed profile without development arguments. |
+| Project credits | Displays the Unreal Revived banner above the preserved original, OldUnreal, driver, author, and project-link credits. |
 
 ## Recovery and quality assurance
 

@@ -29,8 +29,6 @@ function Created()
 	LookAndFeelClass = "ModernMenu.ModernMetalLookAndFeel";
 	LookAndFeel = GetLookAndFeel(LookAndFeelClass);
 
-	class'UnrealCreditsWindow'.Default.ClientClass = class'ModernCreditsCW';
-
 	if (GetLevel().Game != None)
 	{
 		GameClass = GetLevel().Game.Class;

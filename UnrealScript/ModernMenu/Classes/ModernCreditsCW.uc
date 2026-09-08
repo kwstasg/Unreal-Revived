@@ -4,6 +4,13 @@
 
 class ModernCreditsCW extends UnrealCreditsCW;
 
+#exec TEXTURE IMPORT NAME=UnrealRevivedAboutLogo FILE=Textures\UnrealRevivedAboutLogoRuntime.png GROUP="Icons" MIPS=OFF
+
+const ABOUT_BANNER_SOURCE_WIDTH = 512;
+const ABOUT_BANNER_SOURCE_HEIGHT = 171;
+const ABOUT_BANNER_TOP = 8;
+const ABOUT_CREDIT_OFFSET = 118;
+
 var localized string ProjectText;
 var localized string ProjectRoleText;
 var localized string ProjectDeveloperText;
@@ -33,6 +40,10 @@ function Created()
 
 	Super.Created();
 
+	// Make room above the stock credits for the Unreal Revived banner.
+	for (i = 0; i < AllLabels.Size(); i++)
+		AllLabels[i].WinTop += ABOUT_CREDIT_OFFSET;
+
 	for (i = 0; i < AllLabels.Size(); i++)
 		if (AllLabels[i].WinTop > Bottom)
 			Bottom = AllLabels[i].WinTop;
@@ -55,6 +66,22 @@ function Created()
 	ProjectWebsiteLink.Align = TA_Left;
 	ProjectWebsiteLink.URL = "https://github.com/kwstasg/Unreal-Revived";
 	AllLabels.Add(ProjectWebsiteLink);
+}
+
+function Paint(Canvas C, float X, float Y)
+{
+	local float BannerWidth;
+	local float BannerHeight;
+	local float BannerLeft;
+
+	Super.Paint(C, X, Y);
+	BannerWidth = WinWidth * 0.925;
+	BannerHeight = BannerWidth * ABOUT_BANNER_SOURCE_HEIGHT / ABOUT_BANNER_SOURCE_WIDTH;
+	BannerLeft = (WinWidth - BannerWidth) / 2;
+	DrawStretchedTextureSegment(C, BannerLeft, ABOUT_BANNER_TOP,
+		BannerWidth, BannerHeight, 0, 0,
+		ABOUT_BANNER_SOURCE_WIDTH, ABOUT_BANNER_SOURCE_HEIGHT,
+		Texture'UnrealRevivedAboutLogo');
 }
 
 defaultproperties

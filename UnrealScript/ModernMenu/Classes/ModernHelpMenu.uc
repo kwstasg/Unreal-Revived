@@ -23,9 +23,18 @@ function Created()
 
 function ExecuteItem(UWindowPulldownMenuItem I)
 {
-	if (I == UnrealRevivedURL)
+	if (I == AboutButton)
+	{
+		Super(UWindowPulldownMenu).ExecuteItem(I);
+		Root.CreateWindow(class'ModernCreditsWindow', 100, 100, 200, 200, Self, True);
+	}
+	else if (I == UnrealRevivedURL)
+	{
 		GetPlayerOwner().ConsoleCommand("start https://github.com/kwstasg/Unreal-Revived");
-	Super.ExecuteItem(I);
+		Super.ExecuteItem(I);
+	}
+	else
+		Super.ExecuteItem(I);
 }
 
 function Select(UWindowPulldownMenuItem I)

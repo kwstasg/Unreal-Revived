@@ -11,7 +11,9 @@ param(
 
     [switch] $DeriveBranding,
 
-    [string] $LogoSource = (Join-Path (Split-Path -Parent $PSScriptRoot) 'branding\LogoHD.png'),
+    [string] $LogoSource = (Join-Path (Split-Path -Parent $PSScriptRoot) 'branding\UnrealRevivedLogo.png'),
+
+    [string] $InstallerBannerSource = (Join-Path (Split-Path -Parent $PSScriptRoot) 'branding\UnrealRevivedLogo.jpg'),
 
     [string] $IconSource = (Join-Path (Split-Path -Parent $PSScriptRoot) 'branding\icon..png'),
 
@@ -313,7 +315,7 @@ function Export-LogoBranding {
     $sourceImage = [Drawing.Image]::FromFile([IO.Path]::GetFullPath($Source))
     try {
         foreach ($outputSpec in @(
-            [pscustomobject]@{ Name = 'Logo'; Width = 719; Height = 200 },
+            [pscustomobject]@{ Name = 'Logo'; Width = 952; Height = 295 },
             [pscustomobject]@{ Name = 'SetupLogo'; Width = 343; Height = 84 })) {
             $transparent = New-Object Drawing.Bitmap($outputSpec.Width, $outputSpec.Height, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
             $graphics = [Drawing.Graphics]::FromImage($transparent)
@@ -339,7 +341,7 @@ function Export-LogoBranding {
                 $compatible = New-Object Drawing.Bitmap($outputSpec.Width, $outputSpec.Height, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
                 $compatibleGraphics = [Drawing.Graphics]::FromImage($compatible)
                 try {
-                    $compatibleGraphics.Clear([Drawing.Color]::FromArgb(240, 240, 240))
+                    $compatibleGraphics.Clear([Drawing.Color]::FromArgb(18, 19, 21))
                     $compatibleGraphics.DrawImageUnscaled($transparent, 0, 0)
                     $compatible.Save((Join-Path $OutputRoot ($outputSpec.Name + '.bmp')), [Drawing.Imaging.ImageFormat]::Bmp)
                 }
@@ -355,6 +357,106 @@ function Export-LogoBranding {
     }
     finally {
         $sourceImage.Dispose()
+    }
+}
+
+function Export-InstallerBannerImage {
+    param([string] $Source)
+
+    if (-not (Test-Path -LiteralPath $Source -PathType Leaf)) {
+        throw "Installer banner source does not exist: $Source"
+    }
+
+    $sourceImage = [Drawing.Image]::FromFile([IO.Path]::GetFullPath($Source))
+    $output = New-Object Drawing.Bitmap(900, 301, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $graphics = [Drawing.Graphics]::FromImage($output)
+    try {
+        $graphics.Clear([Drawing.Color]::FromArgb(18, 19, 21))
+        $graphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+        $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $graphics.DrawImage($sourceImage, 0, 0, $output.Width, $output.Height)
+        $output.Save((Join-Path $OutputRoot 'InstallerBanner.png'), [Drawing.Imaging.ImageFormat]::Png)
+    }
+    finally {
+        $graphics.Dispose()
+        $output.Dispose()
+        $sourceImage.Dispose()
+    }
+}
+
+function Export-InstallerWizardImage {
+    param([string] $Source)
+
+    if (-not (Test-Path -LiteralPath $Source -PathType Leaf)) {
+        throw "Installer image source does not exist: $Source"
+    }
+
+    $sourceImage = [Drawing.Image]::FromFile([IO.Path]::GetFullPath($Source))
+    $output = New-Object Drawing.Bitmap(600, 1149, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $graphics = [Drawing.Graphics]::FromImage($output)
+    try {
+        $graphics.Clear([Drawing.Color]::FromArgb(18, 19, 21))
+        $graphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+        $graphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $graphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $width = 560
+        $height = [int][Math]::Round($sourceImage.Height * ($width / $sourceImage.Width))
+        $left = [int](($output.Width - $width) / 2)
+        $top = [int](($output.Height - $height) / 2)
+        $graphics.DrawImage($sourceImage, $left, $top, $width, $height)
+        $output.Save((Join-Path $OutputRoot 'InstallerWizard.png'), [Drawing.Imaging.ImageFormat]::Png)
+    }
+    finally {
+        $graphics.Dispose()
+        $output.Dispose()
+        $sourceImage.Dispose()
+    }
+}
+
+function Export-ModernMenuLogos {
+    param(
+        [string] $TransparentSource,
+        [string] $BannerSource
+    )
+
+    $transparentImage = [Drawing.Image]::FromFile([IO.Path]::GetFullPath($TransparentSource))
+    # Match the preview's 2:1 shape at the nearest practical power-of-two size
+    # so Unreal does not have to downsample the previous 512x256 texture as far.
+    $campaignOutput = New-Object Drawing.Bitmap(256, 128, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $campaignGraphics = [Drawing.Graphics]::FromImage($campaignOutput)
+    try {
+        $campaignGraphics.Clear([Drawing.Color]::Transparent)
+        $campaignGraphics.CompositingMode = [Drawing.Drawing2D.CompositingMode]::SourceCopy
+        $campaignGraphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+        $campaignGraphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $campaignGraphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $width = 240
+        $height = [int][Math]::Round($transparentImage.Height * ($width / $transparentImage.Width))
+        $campaignGraphics.DrawImage($transparentImage, 8, [int]((128 - $height) / 2), $width, $height)
+        $campaignOutput.Save((Join-Path $OutputRoot 'UnrealRevivedCampaignLogoRuntime.png'), [Drawing.Imaging.ImageFormat]::Png)
+    }
+    finally {
+        $campaignGraphics.Dispose()
+        $campaignOutput.Dispose()
+        $transparentImage.Dispose()
+    }
+
+    $bannerImage = [Drawing.Image]::FromFile([IO.Path]::GetFullPath($BannerSource))
+    $aboutOutput = New-Object Drawing.Bitmap(512, 256, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $aboutGraphics = [Drawing.Graphics]::FromImage($aboutOutput)
+    try {
+        $aboutGraphics.Clear([Drawing.Color]::FromArgb(18, 19, 21))
+        $aboutGraphics.CompositingQuality = [Drawing.Drawing2D.CompositingQuality]::HighQuality
+        $aboutGraphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $aboutGraphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $aboutGraphics.DrawImage($bannerImage, 0, 0, 512, 171)
+        $aboutOutput.Save((Join-Path $OutputRoot 'UnrealRevivedAboutLogoRuntime.png'), [Drawing.Imaging.ImageFormat]::Png)
+    }
+    finally {
+        $aboutGraphics.Dispose()
+        $aboutOutput.Dispose()
+        $bannerImage.Dispose()
     }
 }
 
@@ -620,6 +722,9 @@ if ($BrandingOnly) {
         throw '-BrandingOnly cannot be combined with menu, NVIDIA, or derive options.'
     }
     Export-LogoBranding $LogoSource
+    Export-InstallerBannerImage $InstallerBannerSource
+    Export-InstallerWizardImage $InstallerBannerSource
+    Export-ModernMenuLogos $LogoSource $InstallerBannerSource
     Export-IconBranding $IconSource
     Write-Host "Logo and icon branding generated at $OutputRoot"
     return
@@ -630,6 +735,9 @@ if ($MenuBackgroundSource) {
     Export-MenuBackgroundTiles $menuBackgroundOutput
     if ($DeriveBranding) {
         Export-LogoBranding $LogoSource
+        Export-InstallerBannerImage $InstallerBannerSource
+        Export-InstallerWizardImage $InstallerBannerSource
+        Export-ModernMenuLogos $LogoSource $InstallerBannerSource
         Export-IconBranding $IconSource
     }
     Write-Host "Menu background imported and tiled from $([IO.Path]::GetFullPath($MenuBackgroundSource))"
@@ -645,6 +753,9 @@ if ($DeriveBranding) {
 }
 
 Export-LogoBranding $LogoSource
+Export-InstallerBannerImage $InstallerBannerSource
+Export-InstallerWizardImage $InstallerBannerSource
+Export-ModernMenuLogos $LogoSource $InstallerBannerSource
 Export-IconBranding $IconSource
 New-PlaceholderMenuBackground $menuBackgroundOutput
 Export-MenuBackgroundTiles $menuBackgroundOutput

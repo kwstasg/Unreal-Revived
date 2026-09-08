@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="branding/UnrealRevivedLogo.png" alt="Unreal Revived" width="800">
+</p>
+
 # Unreal Revived
 
 Unreal Revived is a modernization package for playing the original **Unreal
@@ -25,7 +29,7 @@ independent Unreal Revived installation and never modifies the source game.
 
 ### Quick start
 
-1. Start Unreal Revived Setup and confirm the detected Unreal Gold source.
+1. Download and start [Unreal Revived Setup from the latest release](https://github.com/kwstasg/Unreal-Revived/releases/latest), then confirm the detected Unreal Gold source.
 
 2. If no source is detected, use **Install via OldUnreal**, complete OldUnreal Setup, return, and select **Detect Again**.
 
@@ -61,13 +65,14 @@ supported audio path.
 
 | Area | What players get |
 | --- | --- |
-| Modern rendering | Native Direct3D 12 rendering with corrected HD lightmaps, high-quality textures, alpha blending, bloom, and configurable VSync. |
+| Modern rendering | Native Direct3D 12 rendering with corrected HD lightmaps, high-quality textures, alpha blending, and configurable VSync. |
+| Post-processing effects | Adjustable bloom, chromatic aberration, vignette, animated film grain, and CRT scanlines. Effects are applied to the 3D world while keeping the HUD and menus clean. |
 | Modern displays | Widescreen and high-resolution rendering, high-refresh support, monitor-aware borderless presentation, letterboxing, and correctly mapped menu input. |
 | Image quality | Off, 2x, 4x, and 8x MSAA modes with capability-based fallback, plus in-menu brightness, contrast, saturation, and detail controls. |
 | Refreshed interface | Branded menus, focused Video, Input, Bindings, and HUD controls, an optional live game view behind menus, and persistent F11-toggled FPS statistics. |
 | Gamepad support | SDL3 support for Xbox, DualShock, DualSense, and other mapped controllers, with adjustable dead zones, sensitivity, and fallback input paths; Xbox reconnect handling is validated. |
 | Flexible controls | Up to three keyboard, mouse, or controller assignments per action, visible bindings, practical defaults, and reset controls. |
-| Greek localization | Selectable Greek interface and in-game text for both Unreal and Return to Na Pali, including menus, HUD messages, level information, and translator logs. English remains available, and save files retain their original-game compatibility. See the [localization guide](docs/localization.md). |
+| Greek localization | Selectable Greek interface and in-game text for both Unreal and Return to Na Pali, including menus, HUD messages, level information, and translator logs. See the [localization guide](docs/localization.md). |
 | Complete game content | Both Unreal and Return to Na Pali campaigns, multiplayer and dedicated-server support, all bundled languages, saves, and recovery renderers. |
 | Easier installation | A separate offline installation that leaves the original game untouched, supports repair and update, and is configured to retain and back up saves during uninstall. |
 | Modern audio | ALAudio with bundled OpenAL Soft replaces deprecated and experimental legacy audio paths. |
