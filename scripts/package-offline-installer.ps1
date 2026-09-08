@@ -62,9 +62,15 @@ $archiveHash = Assert-UnrealRevivedFileIntegrity -Path $PatchArchive `
     -Description 'Pinned patch archive'
 
 $stagePath = [IO.Path]::GetFullPath($StageRoot)
+$stagePathRoot = [IO.Path]::GetPathRoot($stagePath).TrimEnd('\')
+$normalizedStagePath = $stagePath.TrimEnd('\')
 $repositoryPath = [IO.Path]::GetFullPath($repositoryRoot).TrimEnd('\')
-if ($stagePath.TrimEnd('\') -eq $repositoryPath) {
-    throw 'StageRoot must not be the repository root.'
+if ($normalizedStagePath -eq $stagePathRoot) {
+    throw 'StageRoot must not be a filesystem root.'
+}
+if ($normalizedStagePath -eq $repositoryPath -or
+    $repositoryPath.StartsWith("$normalizedStagePath\", [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'StageRoot must not be the repository root or one of its parent directories.'
 }
 
 if (Test-Path -LiteralPath $stagePath) {

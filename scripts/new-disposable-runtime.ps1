@@ -38,6 +38,8 @@ if (-not $SdkRoot) {
 $sourceRoot = [IO.Path]::GetFullPath($OriginalGameRoot).TrimEnd('\')
 $destinationRoot = [IO.Path]::GetFullPath($GameRoot).TrimEnd('\')
 $sdkDestination = [IO.Path]::GetFullPath($SdkRoot).TrimEnd('\')
+$repositoryPath = [IO.Path]::GetFullPath($repositoryRoot).TrimEnd('\')
+$destinationPathRoot = [IO.Path]::GetPathRoot([IO.Path]::GetFullPath($GameRoot)).TrimEnd('\')
 $hostManifest = Get-Content -LiteralPath $hostManifestPath -Raw | ConvertFrom-Json
 
 if ($BundlePath) {
@@ -69,8 +71,16 @@ else {
 if (-not (Test-Path -LiteralPath (Join-Path $sourceRoot 'System\Unreal.exe') -PathType Leaf)) {
     throw "The selected source is not Unreal Gold: $sourceRoot"
 }
-if ($sourceRoot -eq $destinationRoot -or $destinationRoot.StartsWith("$sourceRoot\", [StringComparison]::OrdinalIgnoreCase)) {
-    throw 'The disposable runtime must not be the original Steam installation or a directory inside it.'
+if ($destinationRoot -eq $destinationPathRoot) {
+    throw 'The disposable runtime must not be a filesystem root.'
+}
+if ($destinationRoot -eq $repositoryPath -or $repositoryPath.StartsWith("$destinationRoot\", [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'The disposable runtime must not be the repository root or one of its parent directories.'
+}
+if ($sourceRoot -eq $destinationRoot -or
+    $destinationRoot.StartsWith("$sourceRoot\", [StringComparison]::OrdinalIgnoreCase) -or
+    $sourceRoot.StartsWith("$destinationRoot\", [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'The disposable runtime and original Steam installation must not overlap.'
 }
 
 $developmentMarker = Join-Path $destinationRoot $developmentMarkerName
@@ -80,6 +90,17 @@ if (Test-Path -LiteralPath $destinationRoot) {
         throw "The runtime destination is nonempty and has no Unreal Revived development marker: $destinationRoot"
     }
     if ($Force -and (Test-Path -LiteralPath $developmentMarker -PathType Leaf)) {
+        try {
+            $existingMarker = Get-Content -LiteralPath $developmentMarker -Raw | ConvertFrom-Json
+        }
+        catch {
+            throw "The runtime destination has an invalid Unreal Revived development marker: $destinationRoot"
+        }
+        if ($existingMarker.schema -ne 1 -or
+            $existingMarker.product -ne 'Unreal Revived' -or
+            $existingMarker.purpose -ne 'development-runtime') {
+            throw "The runtime destination has an unrecognized Unreal Revived development marker: $destinationRoot"
+        }
         Remove-Item -LiteralPath $destinationRoot -Recurse -Force
     }
 }

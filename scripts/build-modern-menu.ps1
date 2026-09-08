@@ -13,7 +13,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$null = & (Join-Path $PSScriptRoot 'assert-development-runtime.ps1') -GameRoot $GameRoot
+$GameRoot = & (Join-Path $PSScriptRoot 'assert-development-runtime.ps1') -GameRoot $GameRoot
 Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Ini.psm1') -Force
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot

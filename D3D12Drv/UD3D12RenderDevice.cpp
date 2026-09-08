@@ -857,6 +857,10 @@ void UD3D12RenderDevice::Exit()
 
 	WaitDeviceIdle();
 
+	for (auto& it : Descriptors.Tex)
+		it.second.reset();
+	Descriptors.Tex.clear();
+
 	Uploads.reset();
 	Textures.reset();
 	ReleasePresentPass();
@@ -2234,6 +2238,10 @@ void UD3D12RenderDevice::UploadTexture(ID3D12Resource* resource, D3D12_RESOURCE_
 		if (Upload.Pos + totalSize > Upload.Size)
 		{
 			debugf(TEXT("Could not upload texture. Total memory requirements are bigger than the entire upload buffer!"));
+			if (stateAfter != D3D12_RESOURCE_STATE_COPY_DEST)
+			{
+				TransitionResourceBarrier(Commands.Current->Transfer, resource, D3D12_RESOURCE_STATE_COPY_DEST, stateAfter);
+			}
 			return;
 		}
 	}

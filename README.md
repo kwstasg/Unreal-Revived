@@ -137,6 +137,7 @@ tests, and tooling for building a fully offline installer.
 | --- | --- |
 | Host runtime | OldUnreal 227k_15 on Windows x64 |
 | Renderer | Native `D3D12Drv.D3D12RenderDevice` |
+| Input | Native `XInputWinDrv.WindowsClient` with an SDL3 gamepad backend |
 | Build | CMake, Visual Studio 2022, C++17 |
 | ModernMenu | Implemented as a separate UnrealScript package |
 | Offline installer | Implemented and built locally with Inno Setup |
