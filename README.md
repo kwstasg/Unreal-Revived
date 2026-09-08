@@ -12,7 +12,7 @@ Series controllers, DualShock 4, DualSense, and other
 [SDL-mapped controllers](docs/controllers.md).
 
 The project is built on the maintained **OldUnreal 227k_15 Windows x64**
-runtime. Unreal Revived adds its own D3D12 renderer, ModernMenu interface,
+runtime. Unreal Revived adds its own DirectX 12 renderer, ModernMenu interface,
 SDL3-based controller backend, tested defaults, branding, and side-by-side
 installation workflow on top of that foundation.
 
@@ -21,7 +21,7 @@ does not include the original maps, textures, music, sounds, or other game
 assets, and it cannot be used as a standalone game. Setup can use an existing
 installation or guide you to OldUnreal's official full-game installer when no
 source is detected. You also need a
-Windows x64 PC, a Direct3D 12-capable graphics system, and enough free space
+Windows x64 PC, a DirectX 12-capable graphics system, and enough free space
 for a separate copy. The installer reads your original files to create an
 independent Unreal Revived installation and never modifies the source game.
 
@@ -59,7 +59,7 @@ it finds a current Unreal Revived installation; canceling leaves the
 installation unchanged. Uninstall is configured to keep save games by default
 and to back up saves and active profiles before removal. It removes only Unreal
 Revived and never removes or changes the source Unreal Gold installation or
-OldUnreal downloads. Direct3D 12 is the normal renderer; OpenGL and XOpenGL
+OldUnreal downloads. DirectX 12 is the normal renderer; OpenGL and XOpenGL
 remain available as recovery choices. ALAudio with bundled OpenAL Soft is the
 supported audio path.
 
@@ -70,7 +70,7 @@ lag source changes as noted under [availability](#availability-and-requirements)
 
 | Area | What players get |
 | --- | --- |
-| Modern rendering | Native Direct3D 12 rendering at resolutions up to 4K, with corrected HD lightmaps, high-quality textures, alpha blending, and configurable VSync. |
+| Modern rendering | Native DirectX 12 rendering at resolutions up to 4K, with corrected HD lightmaps, high-quality textures, alpha blending, and configurable VSync. |
 | Post-processing effects | Adjustable bloom, chromatic aberration, vignette, animated film grain, and CRT scanlines. Effects are applied to the 3D world while keeping the HUD and menus clean. |
 | 4K and modern displays | Widescreen and high-resolution rendering, including validated 2560x1440 and 3840x2160 logical 4K modes, high-refresh support, monitor-aware borderless presentation, letterboxing, and correctly mapped menu input. Physical 4K display output still requires validation on 4K hardware. |
 | Image quality | Off, 2x, 4x, and 8x MSAA modes with capability-based fallback, plus in-menu brightness, contrast, saturation, and detail controls. |
@@ -89,7 +89,7 @@ organized feature list and a description of each improvement.
 
 ## Availability and requirements
 
-The flat-screen Direct3D 12 path is implemented and actively validated on
+The flat-screen DirectX 12 path is implemented and actively validated on
 Windows x64. A prebuilt installer is attached to the
 [latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest),
 and the repository can reproduce it from pinned, verified inputs. The latest
@@ -103,7 +103,7 @@ Players need:
 - A Windows x64 PC.
 - An existing Unreal Gold installation containing the original game assets,
   or an internet connection to obtain one through OldUnreal's official installer.
-- A Direct3D 12-capable graphics system for the primary renderer.
+- A DirectX 12-capable graphics system for the primary renderer.
 - Enough free space for a separate side-by-side copy of the game.
 
 The installer can use `C:\Unreal` or another selected installation as its
