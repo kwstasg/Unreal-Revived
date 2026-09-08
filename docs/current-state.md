@@ -37,8 +37,9 @@ history.
 - Prebuilt build: the installer is attached to the project's
   [latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest).
   The attached 0.5.0 build points to tag `UnrealRevived-Setup-0.5.0` at `b1979f8`;
-  the current source is ahead and includes installer branding and
-  existing-install flow changes that are not in that binary.
+  the current source is locally prepared as 0.6.0 and includes installer
+  branding, existing-install flow changes, and OpenXR mode-selection groundwork
+  that are not in that binary.
 - Packaging authorization: redistribution, mirroring, and offline bundling of
   the pinned OldUnreal 227k_15 Windows patch is confirmed in
   [`../PERMISSIONS.md`](../PERMISSIONS.md) and must not be reopened as a blocker.
@@ -61,7 +62,11 @@ mask; no effect-specific HUD detection or legacy boundary aliases remain.
 Missing the explicit boundary safely bypasses world-only effects for that
 frame instead of applying them to UI.
 
-OpenXR rendering, VR input, and comfort features are not implemented. The
+The D3D12 renderer now keeps OpenXR strictly opt-in: normal launches and
+`-novr` do not query or load the loader, while `-vr` or the stored
+`EnableVR=True` setting performs a diagnostic loader probe and safely returns
+to flat-screen D3D12 when unavailable. OpenXR instance/session creation,
+stereo rendering, VR input, and comfort features are not implemented. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
 filtered build-time-extracted patch tree. The policy removes only validated
@@ -92,6 +97,11 @@ profiles, and display profiles. Retained screenshots cover
 the currently validated menu layout and input alignment; external click
 automation is unavailable because UWindow exposes no automation elements and
 ignores background window messages.
+
+Disposable-runtime provisioning and offline-installer staging repair the
+missing base wizard caption in every retained `Startup.*` localization. This
+is required even with `FirstRun=227` because the 227k_15 client constructs the
+configuration wizard object before deciding that no wizard page is needed.
 
 Optional window screenshot capture and tolerant sampled-pixel comparison are
 available through `scripts/test-d3d12-runtime.ps1`. Ignored host-specific
@@ -192,6 +202,9 @@ ModernMenu root window active.
   there from `SystemLocalized/int/`.
 - Early startup recovery runs before normal localization lookup is reliable.
   Deployment must mirror `Startup.int` into both `System/` and `System64/`.
+- Every retained `Startup.*` localization must contain
+  `IDDIALOG_WizardDialog.IDC_WizardDialog`; otherwise ordinary client startup
+  can exit while constructing the dormant configuration wizard.
 - A profile generated from the pristine patch default must set
   `[FirstRun] FirstRun=227`; leaving `FirstRun=yes` invokes an unusable startup
   wizard before the normal localization paths are active.

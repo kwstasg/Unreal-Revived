@@ -9,6 +9,18 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+
+public static class UnrealRendererSmokeExit
+{
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool PostThreadMessage(uint threadId, uint message, UIntPtr wParam, IntPtr lParam);
+}
+'@
 $gameRoot = if ($env:UE1_GAME_ROOT) { [IO.Path]::GetFullPath($env:UE1_GAME_ROOT) } else { Join-Path $repoRoot 'local/game' }
 $null = & (Join-Path $PSScriptRoot 'assert-development-runtime.ps1') -GameRoot $gameRoot
 $systemDir = Join-Path $gameRoot 'System64'
@@ -59,6 +71,19 @@ function Set-IniValue {
     throw "Could not find $Key in [$Section]."
 }
 
+function Request-UnrealExit([System.Diagnostics.Process]$Process) {
+    $Process.Refresh()
+    $posted = $false
+    foreach ($thread in $Process.Threads) {
+        if ([UnrealRendererSmokeExit]::PostThreadMessage($thread.Id, 0x0012, [UIntPtr]::Zero, [IntPtr]::Zero)) {
+            $posted = $true
+        }
+    }
+    if (-not $posted) {
+        throw 'Could not post a clean shutdown request to any Unreal process thread.'
+    }
+}
+
 $sourceHash = (Get-FileHash -LiteralPath $sourceIni -Algorithm SHA256).Hash
 $userHash = (Get-FileHash -LiteralPath $userIni -Algorithm SHA256).Hash
 $results = @()
@@ -93,12 +118,11 @@ try {
             if ($process.WaitForExit($RunSeconds * 1000)) {
                 throw "$caseName exited before its $RunSeconds-second observation window."
             }
-            if (-not $process.CloseMainWindow()) {
-                throw "$caseName did not expose a window that could be closed normally."
-            }
+            $openXRLoaderLoaded = @($process.Modules | Where-Object { $_.ModuleName -ieq 'openxr_loader.dll' }).Count -gt 0
+            Request-UnrealExit $process
             if (-not $process.WaitForExit(15000)) {
                 $process.Refresh()
-                throw "$caseName did not exit within 15 seconds after a normal close request (window='$($process.MainWindowTitle)', handle=$($process.MainWindowHandle))."
+                throw "$caseName did not exit within 15 seconds after a clean shutdown request (window='$($process.MainWindowTitle)', handle=$($process.MainWindowHandle))."
             }
             $process = $null
 
@@ -118,6 +142,10 @@ try {
             if ($filteredLog -match "Critical Error|Assertion|General protection fault|Can't find file|Failed to load|Missing package|Package .* not found|Failed to set resolution|ChangeDisplaySettings failed|Errors\.Failed3D") {
                 throw "$caseName contains a runtime failure signature."
             }
+            if ($renderer.Name -eq 'd3d12' -and
+                ($openXRLoaderLoaded -or -not $logText.Contains('Unreal Revived OpenXR: disabled; loader not queried (flat-screen default)'))) {
+                throw "$caseName did not preserve strict flat-screen OpenXR isolation."
+            }
 
             $results += [pscustomobject]@{ Renderer = $renderer.Class; Map = $map; Result = 'Passed' }
         }
@@ -126,7 +154,7 @@ try {
     }
 } finally {
     if ($process -and -not $process.HasExited) {
-        $process.CloseMainWindow() | Out-Null
+        try { Request-UnrealExit $process } catch {}
         if (-not $process.WaitForExit(5000)) {
             Stop-Process -Id $process.Id -Force
             $process.WaitForExit()

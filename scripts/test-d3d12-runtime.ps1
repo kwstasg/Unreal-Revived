@@ -3,7 +3,7 @@
 # Project: https://github.com/kwstasg/Unreal-Revived
 
 param(
-    [ValidateSet('Content', 'Settings', 'MenuDisplay', 'Input', 'All')]
+    [ValidateSet('Content', 'Settings', 'MenuDisplay', 'Input', 'VRFoundation', 'All')]
     [string]$Suite = 'Content',
 
     [string[]]$Maps,
@@ -29,6 +29,18 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Ini.psm1') -Force
+
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+
+public static class UnrealAutomationExit
+{
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool PostThreadMessage(uint threadId, uint message, UIntPtr wParam, IntPtr lParam);
+}
+'@
 
 if ($ScreenshotMode -ne 'Off') {
     Add-Type -AssemblyName System.Drawing
@@ -63,6 +75,7 @@ $userIni = Join-Path $systemDir 'D3D12TestUser.ini'
 $temporaryIniName = 'D3D12Automation.ini'
 $temporaryIni = Join-Path $systemDir $temporaryIniName
 $runtimeLog = Join-Path $systemDir 'Unreal.log'
+$runningMarker = Join-Path $systemDir 'Running.ini'
 $evidenceRoot = Join-Path $repoRoot (Join-Path 'local/logs' ("automated-{0}" -f (Get-Date -Format 'yyyyMMdd-HHmmss')))
 $screenshotBaselineRoot = Join-Path $repoRoot 'local/logs/screenshot-baselines'
 
@@ -75,6 +88,9 @@ foreach ($requiredPath in @($unrealExe, $sourceIni, $userIni)) {
 if (Get-Process Unreal -ErrorAction SilentlyContinue) {
     throw 'Unreal is already running. Close it before starting automated checks.'
 }
+# A marker left by an interrupted development run would otherwise open Recovery
+# Mode instead of the requested test map.
+Remove-Item -LiteralPath $runningMarker -Force -ErrorAction SilentlyContinue
 
 function Set-IniValue {
     param(
@@ -112,6 +128,9 @@ function New-TestCase {
         [string]$Map,
         [hashtable]$Settings = @{},
         [hashtable]$ProfileSettings = @{},
+        [string[]]$AdditionalArguments = @(),
+        [ValidateSet('Disabled', 'DisabledOverride', 'Requested')]
+        [string]$OpenXRExpectation = 'Disabled',
         [bool]$CompareScreenshot = $true,
         [bool]$CloneWindowsClient = $false
     )
@@ -121,6 +140,8 @@ function New-TestCase {
         Map = $Map
         Settings = $Settings
         ProfileSettings = $ProfileSettings
+        AdditionalArguments = $AdditionalArguments
+        OpenXRExpectation = $OpenXRExpectation
         CompareScreenshot = $CompareScreenshot
         CloneWindowsClient = $CloneWindowsClient
     }
@@ -132,6 +153,19 @@ function Wait-Interval([int]$Milliseconds) {
         $null = $event.Wait($Milliseconds)
     } finally {
         $event.Dispose()
+    }
+}
+
+function Request-UnrealExit([System.Diagnostics.Process]$Process) {
+    $Process.Refresh()
+    $posted = $false
+    foreach ($thread in $Process.Threads) {
+        if ([UnrealAutomationExit]::PostThreadMessage($thread.Id, 0x0012, [UIntPtr]::Zero, [IntPtr]::Zero)) {
+            $posted = $true
+        }
+    }
+    if (-not $posted) {
+        throw 'Could not post a clean shutdown request to any Unreal process thread.'
     }
 }
 
@@ -297,6 +331,12 @@ $inputCases = @(
     New-TestCase -Name 'input-xinputwindrv-baseline' -Map 'NyLeve' -CloneWindowsClient $true -ProfileSettings @{ 'Engine.Engine|ViewportManager' = 'XInputWinDrv.WindowsClient' }
 )
 
+$vrFoundationCases = @(
+    New-TestCase -Name 'vr-command-line-opt-in' -Map 'NyLeve' -AdditionalArguments @('-vr') -OpenXRExpectation 'Requested'
+    New-TestCase -Name 'vr-config-opt-in' -Map 'NyLeve' -Settings @{ EnableVR = 'True' } -OpenXRExpectation 'Requested'
+    New-TestCase -Name 'vr-command-line-disable' -Map 'NyLeve' -Settings @{ EnableVR = 'True' } -AdditionalArguments @('-novr') -OpenXRExpectation 'DisabledOverride'
+)
+
 if ($Maps) {
     $cases = foreach ($map in $Maps) {
         New-TestCase -Name ("content-{0}" -f $map.ToLowerInvariant()) -Map $map
@@ -309,8 +349,10 @@ if ($Maps) {
     $cases = $menuDisplayCases
 } elseif ($Suite -eq 'Input') {
     $cases = $inputCases
+} elseif ($Suite -eq 'VRFoundation') {
+    $cases = $vrFoundationCases
 } else {
-    $cases = @($contentCases) + @($settingsCases) + @($menuDisplayCases) + @($inputCases)
+    $cases = @($contentCases) + @($settingsCases) + @($menuDisplayCases) + @($inputCases) + @($vrFoundationCases)
 }
 
 $rendererSection = 'D3D12Drv.D3D12RenderDevice'
@@ -354,7 +396,7 @@ try {
         Copy-Item -LiteralPath $temporaryIni -Destination (Join-Path $caseDir $temporaryIniName)
         Remove-Item -LiteralPath $runtimeLog -Force -ErrorAction SilentlyContinue
 
-        $arguments = @($case.Map, "ini=$temporaryIniName", 'userini=D3D12TestUser.ini', '-nosplash')
+        $arguments = @($case.Map, "ini=$temporaryIniName", 'userini=D3D12TestUser.ini', '-nosplash') + @($case.AdditionalArguments)
         Write-Host ("Running {0}: {1}" -f $case.Name, ($arguments -join ' '))
         $process = Start-Process -FilePath $unrealExe -ArgumentList $arguments -WorkingDirectory $systemDir -PassThru
         if ($MeasurePerformance) {
@@ -367,6 +409,7 @@ try {
         if ($process.WaitForExit($RunSeconds * 1000)) {
             throw "$($case.Name) exited before its $RunSeconds-second observation window."
         }
+        $openXRLoaderLoaded = @($process.Modules | Where-Object { $_.ModuleName -ieq 'openxr_loader.dll' }).Count -gt 0
 
         $caseScreenshot = ''
         $comparison = $null
@@ -391,11 +434,9 @@ try {
             }
         }
 
-        if (-not $process.CloseMainWindow()) {
-            throw "$($case.Name) did not expose a window that could be closed normally."
-        }
+        Request-UnrealExit $process
         if (-not $process.WaitForExit(15000)) {
-            throw "$($case.Name) did not exit within 15 seconds after a normal close request."
+            throw "$($case.Name) did not exit within 15 seconds after a clean shutdown request."
         }
         $process = $null
         if (-not (Test-Path -LiteralPath $runtimeLog -PathType Leaf)) {
@@ -422,6 +463,22 @@ try {
         if ($failureText -match $failurePattern) {
             throw "$($case.Name) contains a renderer failure signature."
         }
+        if ($case.OpenXRExpectation -eq 'Disabled') {
+            if ($openXRLoaderLoaded -or -not $logText.Contains('Unreal Revived OpenXR: disabled; loader not queried (flat-screen default)')) {
+                throw "$($case.Name) did not preserve strict flat-screen OpenXR isolation."
+            }
+        }
+        elseif ($case.OpenXRExpectation -eq 'DisabledOverride') {
+            if ($openXRLoaderLoaded -or -not $logText.Contains('Unreal Revived OpenXR: disabled; loader not queried (command-line -novr)')) {
+                throw "$($case.Name) did not honor the -novr command-line override."
+            }
+        }
+        elseif ($case.OpenXRExpectation -eq 'Requested') {
+            if ($logText -notmatch 'Unreal Revived OpenXR: requested by (command-line -vr|stored EnableVR); probing loader' -or
+                -not $logText.Contains('continuing flat-screen D3D12')) {
+                throw "$($case.Name) did not probe OpenXR and fall back safely to flat-screen D3D12."
+            }
+        }
         if (($case.Settings.ContainsKey('AntialiasMode') -or $case.Name -match '^display-(2560x1440|3840x2160)') -and $logText -notmatch 'requested MSAA \d+x, effective MSAA \d+x') {
             throw "$($case.Name) did not log requested and effective MSAA."
         }
@@ -446,6 +503,9 @@ try {
             Map = $case.Map
             Settings = (($case.Settings.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ';')
             ProfileSettings = (($case.ProfileSettings.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ';')
+            AdditionalArguments = ($case.AdditionalArguments -join ' ')
+            OpenXRExpectation = $case.OpenXRExpectation
+            OpenXRLoaderLoaded = $openXRLoaderLoaded
             Screenshot = if ($caseScreenshot) { Split-Path $caseScreenshot -Leaf } else { '' }
             ScreenshotComparison = $comparisonStatus
             MeanChannelDelta = if ($comparison) { $comparison.MeanChannelDelta } else { '' }
@@ -467,11 +527,12 @@ try {
         Remove-Item Env:\UNREAL_REVIVED_MEASURE_PERFORMANCE -ErrorAction SilentlyContinue
     }
     if ($process -and -not $process.HasExited) {
-        $process.CloseMainWindow() | Out-Null
+        try { Request-UnrealExit $process } catch {}
         if (-not $process.WaitForExit(5000)) {
             Stop-Process -Id $process.Id -Force
         }
     }
+    Remove-Item -LiteralPath $runningMarker -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $temporaryIni -Force -ErrorAction SilentlyContinue
 }
 

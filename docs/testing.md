@@ -6,6 +6,11 @@ known log failure signatures. Screenshots remain necessary where logs cannot
 establish visual correctness. Record significant results in
 [`progress.md`](progress.md).
 
+The harnesses clear a stale `Running.ini` and request shutdown by posting
+`WM_QUIT` to the Unreal process threads. Closing the viewport window alone can
+leave this host running without a viewport, while `WM_QUIT` follows the native
+engine message-pump exit path and preserves renderer unbind and log evidence.
+
 ## Supported renderer smoke matrix
 
 ```powershell
@@ -19,6 +24,12 @@ so automation cannot request an exclusive display-mode change or open Recovery
 Mode. A rejected resolution change, `Failed3D` localization event, crash
 signature, missing package, or incomplete renderer bind/unbind cycle fails the
 run. The source engine and user profiles must retain their original hashes.
+
+Provisioning and installer staging add the required
+`Startup.IDDIALOG_WizardDialog.IDC_WizardDialog` caption to every retained
+`Startup.*` localization. OldUnreal constructs that base dialog during every
+client startup, even when `FirstRun=227` prevents a configuration page from
+opening; omitting the caption can therefore abort ordinary smoke launches.
 
 ## Gamepad viewport and controller
 
@@ -361,6 +372,13 @@ from the desktop because this 227 build did not produce an image through F9,
 `EXEC=SHOT`, or `LEVACT_SaveScreenshot`. Avoid covering the game window while
 capture mode runs. A passing comparison detects broad visual changes but does
 not replace review for subtle rendering errors.
+
+Run `scripts/test-d3d12-runtime.ps1 -Suite VRFoundation` for the isolated
+OpenXR groundwork checks. The suite covers `-vr`, stored `EnableVR=True`, and
+the `-novr` override. Every ordinary D3D12 case also enumerates loaded process
+modules and requires both an absent `openxr_loader.dll` and the renderer's
+flat-screen-default diagnostic. The supported-renderer matrix applies the same
+isolation check to each D3D12 launch.
 
 Set `UE1_GAME_ROOT` explicitly when testing another disposable tree. A
 persistent override can otherwise direct the harness to an older staged

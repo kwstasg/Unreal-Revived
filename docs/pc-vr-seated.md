@@ -2,8 +2,9 @@
 
 ## Status
 
-This document is a future implementation plan. Seated PC VR and OpenXR support
-are not implemented or supported yet.
+This document is the implementation plan for a future supported VR mode. The
+initial mode-selection and loader-probe foundation is implemented, but seated
+PC VR and OpenXR rendering are not implemented or supported yet.
 
 ## Goal
 
@@ -17,16 +18,18 @@ HUD, spatial menus, and fade-based head collision.
 
 ## Mode selection and non-VR isolation
 
-- Keep flat-screen play free of all VR behavior by default.
-- Launch normal play explicitly with `-novr` and VR play with `-vr`.
-- Add a persistent **Enable VR** option that takes effect after restart.
-- Let command-line arguments override the stored preference.
+- Flat-screen play is free of all VR behavior by default.
+- `-vr` requests the OpenXR foundation probe; `-novr` disables it and wins if
+  both switches are present.
+- The persistent `EnableVR` renderer setting is available for development and
+  takes effect on launch. Its future menu checkbox is not implemented yet.
+- Command-line arguments override the stored preference.
 - Do not initialize OpenXR, activate headset software, allocate stereo targets,
   query tracking, or run VR logic during non-VR play.
 - Keep the existing single-view D3D12 path unchanged behind a strict runtime
   branch.
-- If VR initialization fails, report the cause and continue safely in
-  flat-screen D3D12.
+- A missing or invalid OpenXR loader is diagnosed and continues safely in
+  flat-screen D3D12. Runtime and session initialization remain future work.
 - Keep OpenGL and XOpenGL as non-VR recovery renderers.
 - Require a restart when entering or leaving VR; do not transition the renderer
   live.
@@ -133,4 +136,3 @@ and horizontal head-oriented locomotion. Standing tracking may work but is not
 an acceptance requirement. Motion controllers, tracked hands, teleportation,
 snap turning, room-scale design, comfort vignette, and advanced comfort
 configuration belong to later milestones.
-

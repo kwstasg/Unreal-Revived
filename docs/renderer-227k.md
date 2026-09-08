@@ -264,8 +264,14 @@ and Return to Na Pali in the required
 
 ## Scope remaining
 
-The current implementation targets flat-screen Direct3D 12 parity. OpenXR
-stereo rendering, VR input, and comfort options are not implemented and must
-not be described as supported features. RTX support and a Vulkan driver are
-also future work; their order and status are tracked in
+The renderer has an OpenXR foundation boundary, not a VR renderer. Normal and
+`-novr` launches never query the loader. `-vr` or `EnableVR=True` probes
+`openxr_loader.dll` from the application directory or System32, validates
+`xrGetInstanceProcAddr`, logs the result, and remains on the existing
+flat-screen D3D12 path. The handle is released during renderer shutdown.
+
+OpenXR instance/session creation, stereo rendering, VR input, and comfort
+options are not implemented and must not be described as supported features.
+RTX support and a Vulkan driver are also future work; their order and status
+are tracked in
 [`roadmap.md`](roadmap.md).

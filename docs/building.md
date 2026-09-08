@@ -346,6 +346,18 @@ the option removes the installation copy after the Documents backup is created.
 Reinstall accepts a retained `Save` directory and excludes the original game's
 save folder from the copy so newer retained saves are not overwritten.
 
+For deterministic silent validation, pass the source explicitly in addition to
+the destination:
+
+```powershell
+.\UnrealRevived-Setup-0.6.0.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART `
+  /DIR="C:\Games\Unreal Revived" /OriginalGameRoot="C:\Unreal"
+```
+
+Interactive installs continue to detect or request the source through the
+**Original Game** page. The explicit parameter is primarily for unattended
+testing and still receives the same source and destination validation.
+
 Rerunning the same installer detects the registered Unreal Revived App ID and
 opens the existing installation's branded uninstall options directly. Choosing
 **Uninstall** performs removal and closes Setup; choosing **Cancel** exits

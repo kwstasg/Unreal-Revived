@@ -194,6 +194,7 @@ function Set-UnrealRevivedVideoDefaults {
     $result = Set-UnrealRevivedIniValue $result 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'
 
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'UseVSync' 'False'
+    $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'EnableVR' 'False'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'UsePrecache' 'True'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'AntialiasMode' 'MSAA_4x'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'MaxAnisotropy' '4'
@@ -238,4 +239,14 @@ function Set-UnrealRevivedUserVideoDefaults {
     return $result
 }
 
-Export-ModuleMember -Function Set-UnrealRevivedIniValue, Add-UnrealRevivedIniValue, Remove-UnrealRevivedIniValue, Copy-UnrealRevivedIniSection, Set-UnrealRevivedVideoDefaults, Set-UnrealRevivedUserVideoDefaults
+function Set-UnrealRevivedStartupLocalization {
+    param([string[]] $Lines)
+
+    # OldUnreal constructs WConfigWizard during every client startup, before it
+    # decides whether a configuration page is needed. The pinned Unreal Gold
+    # Startup localizations omit the base dialog caption expected by that
+    # constructor, which makes ordinary launches exit during localization.
+    return Set-UnrealRevivedIniValue $Lines 'IDDIALOG_WizardDialog' 'IDC_WizardDialog' 'Unreal Revived Configuration'
+}
+
+Export-ModuleMember -Function Set-UnrealRevivedIniValue, Add-UnrealRevivedIniValue, Remove-UnrealRevivedIniValue, Copy-UnrealRevivedIniSection, Set-UnrealRevivedVideoDefaults, Set-UnrealRevivedUserVideoDefaults, Set-UnrealRevivedStartupLocalization

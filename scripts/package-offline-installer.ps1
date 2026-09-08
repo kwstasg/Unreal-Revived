@@ -51,6 +51,7 @@ foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchi
         throw "Missing offline package input: $requiredPath"
     }
 }
+Import-Module $iniModule -Force
 
 $brandingIconHash = (Get-FileHash -LiteralPath $brandingIcon -Algorithm SHA256).Hash.ToLowerInvariant()
 $installedBrandingIconName = "UnrealRevived-Icon-$($brandingIconHash.Substring(0, 12)).ico"
@@ -165,11 +166,11 @@ if ($startupDescriptionPrefixes.Count -gt 0) {
         if ($inDescriptions) {
             $localizedLines += $d3d12Description
         }
+        $localizedLines = Set-UnrealRevivedStartupLocalization $localizedLines
         Set-Content -LiteralPath $startupFile.FullName -Value $localizedLines -Encoding UTF8
     }
 }
 
-Import-Module $iniModule -Force
 foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
     $defaultProfilePath = Join-Path $patchRoot $defaultProfile
     $defaultProfileLines = Get-Content -LiteralPath $defaultProfilePath

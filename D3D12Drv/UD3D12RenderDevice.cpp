@@ -79,6 +79,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	SupportsLazyTextures = 0;
 	PrefersDeferredLoad = 0;
 	UseVSync = 0;
+	EnableVR = 0;
 	AntialiasMode = 2;
 	UsePrecache = 1;
 	Coronas = 1;
@@ -137,6 +138,7 @@ void UD3D12RenderDevice::StaticConstructor()
 #endif
 
 	new(GetClass(), TEXT("UseVSync"), RF_Public) UBoolProperty(CPP_PROPERTY(UseVSync), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("EnableVR"), RF_Public) UBoolProperty(CPP_PROPERTY(EnableVR), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("UsePrecache"), RF_Public) UBoolProperty(CPP_PROPERTY(UsePrecache), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("GammaCorrectScreenshots"), RF_Public) UBoolProperty(CPP_PROPERTY(GammaCorrectScreenshots), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("UseDebugLayer"), RF_Public) UBoolProperty(CPP_PROPERTY(UseDebugLayer), TEXT("Display"), CPF_Config);
@@ -412,6 +414,7 @@ UBOOL UD3D12RenderDevice::Init(UViewport* InViewport, INT NewX, INT NewY, INT Ne
 	ViewportCallback = new FD3D12ViewportCallback(Viewport, this, OriginalViewportCallback);
 	FViewportOutputAccessor::Get(Viewport) = ViewportCallback;
 	InstallWindowProcedure();
+	InitializeOpenXRFoundation();
 #endif
 
 	return 1;
@@ -845,6 +848,7 @@ void UD3D12RenderDevice::Exit()
 	guard(UD3D12RenderDevice::Exit);
 
 #if defined(UNREAL_227)
+	ReleaseOpenXRFoundation();
 	RestoreWindowProcedure();
 
 	FViewportCallback* InstalledCallback = ViewportCallback;
@@ -903,6 +907,53 @@ void UD3D12RenderDevice::Exit()
 
 	unguard;
 }
+
+#if defined(UNREAL_227)
+void UD3D12RenderDevice::InitializeOpenXRFoundation()
+{
+	const UBOOL ForceVR = ParseParam(appCmdLine(), TEXT("vr"));
+	const UBOOL ForceNoVR = ParseParam(appCmdLine(), TEXT("novr"));
+	if (ForceVR && ForceNoVR)
+		debugf(TEXT("Unreal Revived OpenXR: both -vr and -novr were specified; -novr takes precedence"));
+
+	if (ForceNoVR || (!ForceVR && !EnableVR))
+	{
+		debugf(ForceNoVR ?
+			TEXT("Unreal Revived OpenXR: disabled; loader not queried (command-line -novr)") :
+			TEXT("Unreal Revived OpenXR: disabled; loader not queried (flat-screen default)"));
+		return;
+	}
+
+	debugf(ForceVR ?
+		TEXT("Unreal Revived OpenXR: requested by command-line -vr; probing loader") :
+		TEXT("Unreal Revived OpenXR: requested by stored EnableVR; probing loader"));
+	OpenXRLoader = LoadLibraryExW(L"openxr_loader.dll", nullptr,
+		LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);
+	if (!OpenXRLoader)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: loader unavailable (Win32 error %u); continuing flat-screen D3D12"), GetLastError());
+		return;
+	}
+
+	if (!GetProcAddress(OpenXRLoader, "xrGetInstanceProcAddr"))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: loader entry point missing; continuing flat-screen D3D12"));
+		ReleaseOpenXRFoundation();
+		return;
+	}
+
+	debugf(TEXT("Unreal Revived OpenXR: loader available; stereo bridge is not implemented; continuing flat-screen D3D12"));
+}
+
+void UD3D12RenderDevice::ReleaseOpenXRFoundation()
+{
+	if (OpenXRLoader)
+	{
+		FreeLibrary(OpenXRLoader);
+		OpenXRLoader = nullptr;
+	}
+}
+#endif
 
 void UD3D12RenderDevice::LogPerformanceSummary()
 {

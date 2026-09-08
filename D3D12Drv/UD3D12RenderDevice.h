@@ -124,6 +124,8 @@ public:
 	void InstallWindowProcedure();
 	void RestoreWindowProcedure();
 	static LRESULT CALLBACK WindowProcedure(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam);
+	void InitializeOpenXRFoundation();
+	void ReleaseOpenXRFoundation();
 #endif
 #if defined(UNREALGOLD)
 	void Flush() override;
@@ -356,6 +358,7 @@ public:
 
 	// Configuration.
 	BITFIELD UseVSync;
+	BITFIELD EnableVR;
 	FLOAT GammaOffset;
 	FLOAT GammaOffsetRed;
 	FLOAT GammaOffsetGreen;
@@ -492,6 +495,7 @@ private:
 	DWORD DebugMessageCookie = 0;
 
 	UBOOL UsePrecache;
+	HMODULE OpenXRLoader = nullptr;
 	FPlane FlashScale;
 	FPlane FlashFog;
 	FSceneNode* CurrentFrame = nullptr;

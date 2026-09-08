@@ -11,8 +11,8 @@
 #endif
 
 #define ProductName "Unreal Revived"
-#define ProductVersion "0.5.0"
-#define ProductFileVersion "0.5.0.0"
+#define ProductVersion "0.6.0"
+#define ProductFileVersion "0.6.0.0"
 #define ProductAuthor "Kwstasg - Kostas Giannakakis"
 #define ProjectUrl "https://github.com/kwstasg/Unreal-Revived"
 #ifndef ProductIconName
@@ -494,6 +494,7 @@ end;
 procedure InitializeWizard;
 var
   DetectedDirectory: String;
+  RequestedDirectory: String;
   ButtonWidth: Integer;
 begin
   WizardForm.WelcomeLabel1.Caption :=
@@ -526,7 +527,11 @@ begin
     'Setup will copy your existing game files into Unreal Revived. Select the ' +
     'folder containing the System directory and Unreal.exe.', False, '');
   SourcePage.Add('Original game folder:');
-  DetectedDirectory := DetectOriginalGameDirectory;
+  RequestedDirectory := ExpandConstant('{param:OriginalGameRoot|}');
+  if RequestedDirectory <> '' then
+    DetectedDirectory := RequestedDirectory
+  else
+    DetectedDirectory := DetectOriginalGameDirectory;
   if DetectedDirectory <> '' then
     SourcePage.Values[0] := DetectedDirectory;
 

@@ -152,6 +152,12 @@ try {
 
     Assert-UnrealRevivedHostModules -HostRoot $destinationRoot -HostManifest $hostManifest
 
+    foreach ($startupFile in Get-ChildItem -LiteralPath $destinationRoot -File -Recurse -Filter 'Startup.*' -Force) {
+        $startupLines = Get-Content -LiteralPath $startupFile.FullName
+        $startupLines = Set-UnrealRevivedStartupLocalization $startupLines
+        Set-Content -LiteralPath $startupFile.FullName -Value $startupLines -Encoding UTF8
+    }
+
     $defaultIni = Join-Path $destinationRoot 'System64\Default.ini'
     $defaultUserIni = Join-Path $destinationRoot 'System64\DefUser.ini'
     if (-not (Test-Path -LiteralPath $defaultIni -PathType Leaf) -or -not (Test-Path -LiteralPath $defaultUserIni -PathType Leaf)) {

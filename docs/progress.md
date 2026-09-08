@@ -4,6 +4,56 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-09-09
+
+### Prepared 0.6.0 locally and added the OpenXR foundation boundary
+
+- Increased local installer and rebuild artifact metadata to 0.6.0. The
+  release-candidate tag is local only; no push or GitHub release was created.
+- Added strict D3D12 OpenXR selection: flat-screen is the default, `-vr` or
+  stored `EnableVR=True` requests a loader probe, and `-novr` takes precedence.
+- Limited loader discovery to the application directory and System32, checked
+  for `xrGetInstanceProcAddr`, diagnosed missing/invalid loaders, and preserved
+  the existing flat-screen D3D12 path in every outcome. No OpenXR instance,
+  session, stereo rendering, or VR support is claimed.
+- Added a focused `VRFoundation` runtime suite plus default-path module checks
+  to both runtime harnesses. The three focused cases passed under
+  `local/logs/automated-20260909-015637/`. All 50 D3D12 cases then passed under
+  `local/logs/automated-20260909-020121/`, and all 18 supported-renderer cases
+  passed under `local/logs/supported-renderers-20260909-020447/`.
+- Built the 88,673,302-byte local 0.6.0 offline installer with SHA-256
+  `77F2204FFA88302F2C0F0791461F10777565F8E542D45BD99878A0DAFEA1A7A7`.
+  Its Windows metadata reports file version 0.6.0.0 and product version 0.6.0;
+  the staged default profiles keep `EnableVR=False`.
+
+### Restored automated startup, shutdown, and release validation
+
+- Added the missing `IDDIALOG_WizardDialog.IDC_WizardDialog` caption to every
+  retained `Startup.*` localization during disposable-runtime provisioning and
+  offline-installer staging. OldUnreal 227k_15 constructs the base wizard on
+  every client startup, so the missing caption had aborted launches even with
+  `FirstRun=227`.
+- Made both runtime harnesses remove stale recovery markers and request clean
+  engine shutdown through `WM_QUIT` on the process message queues. Closing only
+  the viewport could leave the game running headless and prevented reliable
+  unbind evidence.
+- Added `/OriginalGameRoot=` for deterministic unattended installer runs while
+  retaining the normal interactive source-detection page and validation.
+- Built the Release D3D12 and SDL3 XInput drivers, deployed both, and compiled
+  ModernMenu with zero warnings. All 47 D3D12 content, settings, menu/display,
+  and input cases passed under
+  `local/logs/automated-20260909-013107/`; all 18 D3D12, OpenGL, and XOpenGL
+  map combinations passed under
+  `local/logs/supported-renderers-20260909-013419/`.
+- Rebuilt the 88,677,061-byte offline 0.5.0 installer with SHA-256
+  `00C62C06773A5F28F39DFA63840017AB8FEA05713986E51DD20F0AB749F52BC2`.
+  Its staged localization contains the required caption in all 10 languages.
+  The existing-install uninstall path retained `Save` and created the expected
+  Documents backup; a silent reinstall from explicit `C:\Unreal` succeeded,
+  preserved the retained save directory, and an argument-free installed launch
+  completed clean D3D12 and XInput bind/unbind cycles without the localization
+  failure.
+
 ## 2026-09-08
 
 ### Refined project branding and installer interaction
