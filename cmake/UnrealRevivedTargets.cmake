@@ -11,6 +11,9 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
             "$<TARGET_FILE:D3D12Drv>"
             "${UE1_GAME_ROOT}/System64/D3D12Drv.dll"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "$<TARGET_FILE:openxr_loader>"
+            "${UE1_GAME_ROOT}/System64/openxr_loader.dll"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${CMAKE_CURRENT_SOURCE_DIR}/D3D12Drv/D3D12Drv.int"
             "${UE1_GAME_ROOT}/System64/D3D12Drv.int"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
@@ -25,8 +28,8 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${UE1_GAME_ROOT}/SystemLocalized/int/Startup.int"
             "${UE1_GAME_ROOT}/System64/Startup.int"
-        DEPENDS D3D12Drv
-        COMMENT "Deploying D3D12Drv to the disposable 227k_15 System64 runtime"
+        DEPENDS D3D12Drv openxr_loader
+        COMMENT "Deploying D3D12Drv and the opt-in OpenXR loader to the disposable 227k_15 System64 runtime"
     )
     add_custom_target(deploy-xinputwindrv
         COMMAND powershell -NoProfile -ExecutionPolicy Bypass
@@ -48,6 +51,8 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
         COMMAND powershell -NoProfile -ExecutionPolicy Bypass
             -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/package-offline-installer.ps1"
             -RendererDll "$<TARGET_FILE:D3D12Drv>"
+            -LoaderDll "$<TARGET_FILE:openxr_loader>"
+            -OpenXRNotice "${openxr_SOURCE_DIR}/COPYING.adoc"
             -InputDll "$<TARGET_FILE:XInputWinDrv>"
             -GameRoot "${UE1_GAME_ROOT}"
             -PatchArchive "${OLDUNREAL_227K15_PATCH_ARCHIVE}"
@@ -58,6 +63,8 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
         COMMAND powershell -NoProfile -ExecutionPolicy Bypass
             -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/package-offline-installer.ps1"
             -RendererDll "$<TARGET_FILE:D3D12Drv>"
+            -LoaderDll "$<TARGET_FILE:openxr_loader>"
+            -OpenXRNotice "${openxr_SOURCE_DIR}/COPYING.adoc"
             -InputDll "$<TARGET_FILE:XInputWinDrv>"
             -GameRoot "${UE1_GAME_ROOT}"
             -PatchArchive "${OLDUNREAL_227K15_PATCH_ARCHIVE}"

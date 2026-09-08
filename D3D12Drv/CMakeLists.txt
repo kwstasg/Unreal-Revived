@@ -34,6 +34,7 @@ target_compile_definitions(D3D12Drv PRIVATE
     WIN32=1
     WIN64=1
     _CRT_NO_VA_START_VALIDATION
+    XR_NO_PROTOTYPES
 )
 
 target_compile_options(D3D12Drv PRIVATE
@@ -49,6 +50,7 @@ target_include_directories(D3D12Drv PRIVATE
 )
 
 target_link_libraries(D3D12Drv PRIVATE
+    OpenXR::headers
     "${UE1_227K_SDK_ROOT}/Core/Lib/x64/Core.lib"
     "${UE1_227K_SDK_ROOT}/Engine/Lib/x64/Engine.lib"
     "${UE1_227K_SDK_ROOT}/Render/Lib/x64/Render.lib"

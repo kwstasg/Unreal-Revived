@@ -123,7 +123,9 @@ cmake --build local/build --config Release
 
 The renderer is built as `D3D12Drv.dll` with C++17 and links against the 227
 Core, Engine, and Render import libraries plus the Windows Direct3D 12, DXGI,
-and shader compiler libraries.
+and shader compiler libraries. CMake also builds the hash-pinned Khronos
+OpenXR 1.1.61 loader as a standalone DLL. D3D12Drv resolves that DLL only after
+an explicit VR request, so it is not an import-time dependency.
 
 The `XInputWinDrv.dll` package is built from a generated copy of the
 pinned SDK's WinDrv source. Configure runs `scripts/stage-xinput-windrv.ps1`,
@@ -142,6 +144,11 @@ in `manifests/provenance/sdl3-3.4.16.json`. Configuring a fresh build therefore
 requires network access unless CMake's FetchContent cache already contains the
 verified archive.
 
+The same FetchContent policy pins the Khronos OpenXR SDK 1.1.61 archive by
+SHA-256. Its unmodified dynamic loader is deployed and packaged beside
+`Unreal.exe`; upstream licensing and provenance are retained. Normal
+flat-screen launches leave the loader unloaded.
+
 ## Deploy
 
 When `<game-root>/System64/Unreal.exe` exists, CMake exposes the deployment
@@ -155,7 +162,8 @@ cmake --build local/build --target deploy-modern-menu --config Release
 
 The targets perform these operations in the disposable game installation:
 
-1. Copies `D3D12Drv.dll` and `D3D12Drv.int` to `System64/`.
+1. Copies `D3D12Drv.dll`, `D3D12Drv.int`, and `openxr_loader.dll` to
+   `System64/`.
 2. Copies the localized `UnrealShare.int` and `UPak.int` files from
    `SystemLocalized/int/` to `System/`.
 3. Copies the complete localized `Startup.int` to both `System/` and

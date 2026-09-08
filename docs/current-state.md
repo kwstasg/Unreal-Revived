@@ -63,10 +63,11 @@ Missing the explicit boundary safely bypasses world-only effects for that
 frame instead of applying them to UI.
 
 The D3D12 renderer now keeps OpenXR strictly opt-in: normal launches and
-`-novr` do not query or load the loader, while `-vr` or the stored
-`EnableVR=True` setting performs a diagnostic loader probe and safely returns
-to flat-screen D3D12 when unavailable. OpenXR instance/session creation,
-stereo rendering, VR input, and comfort features are not implemented. The
+`-novr` do not query or load the bundled Khronos loader. `-vr` or the stored
+`EnableVR=True` setting creates a diagnostics-only OpenXR instance, reports the
+active runtime and HMD system when available, then safely remains on
+flat-screen D3D12. OpenXR session creation, stereo rendering, VR input, and
+comfort features are not implemented. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
 filtered build-time-extracted patch tree. The policy removes only validated

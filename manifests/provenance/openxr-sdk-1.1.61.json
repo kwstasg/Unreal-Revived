@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "component": "OpenXR SDK loader",
+  "owner": "The Khronos Group and OpenXR contributors",
+  "source": {
+    "repository": "KhronosGroup/OpenXR-SDK",
+    "tag": "release-1.1.61",
+    "commit": "5267613",
+    "archive": "OpenXR-SDK-release-1.1.61.tar.gz",
+    "archiveSize": 791607,
+    "archiveSha256": "d5e2773d282642e6e250bd10266f316fc3ff3b8602c83db009a1f434205998e6"
+  },
+  "integration": {
+    "build": "CMake FetchContent dynamic library",
+    "consumer": "D3D12Drv.dll through explicit runtime loading",
+    "features": "OpenXR runtime and head-mounted-system discovery"
+  },
+  "redistributionBasis": {
+    "type": "upstream-apache-2.0-or-mit-license",
+    "license": "LICENSE and COPYING.adoc in the pinned OpenXR SDK source archive",
+    "url": "https://github.com/KhronosGroup/OpenXR-SDK/tree/release-1.1.61"
+  },
+  "notices": [
+    "The Khronos loader is built unmodified and shipped beside Unreal.exe.",
+    "Normal flat-screen launches do not load the OpenXR loader."
+  ]
+}

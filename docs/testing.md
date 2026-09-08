@@ -375,8 +375,9 @@ not replace review for subtle rendering errors.
 
 Run `scripts/test-d3d12-runtime.ps1 -Suite VRFoundation` for the isolated
 OpenXR groundwork checks. The suite covers `-vr`, stored `EnableVR=True`, and
-the `-novr` override. Every ordinary D3D12 case also enumerates loaded process
-modules and requires both an absent `openxr_loader.dll` and the renderer's
+the `-novr` override, requiring a runtime-detection result whenever the loader
+is present. Every ordinary D3D12 case also enumerates loaded process modules
+and requires both an absent `openxr_loader.dll` and the renderer's
 flat-screen-default diagnostic. The supported-renderer matrix applies the same
 isolation check to each D3D12 launch.
 

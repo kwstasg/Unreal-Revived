@@ -19,13 +19,15 @@ Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Ini.psm1') -Force
 $payloadManifestPath = Join-Path $PayloadRoot 'payload-manifest.json'
 $rendererDll = Join-Path $PayloadRoot 'D3D12Drv.dll'
 $rendererInt = Join-Path $PayloadRoot 'D3D12Drv.int'
+$openXRLoader = Join-Path $PayloadRoot 'openxr_loader.dll'
+$openXRNotice = Join-Path $PayloadRoot 'OPENXR-COPYING.adoc'
 $inputDll = Join-Path $PayloadRoot 'XInputWinDrv.dll'
 $modernMenu = Join-Path $PayloadRoot 'ModernMenu.u'
 $hostManifestPath = Join-Path $PayloadRoot 'unreal-gold-227k_15-win64.json'
 $backupScript = Join-Path $PayloadRoot 'backup-unreal-revived-user-data.ps1'
 $permissions = Join-Path $PayloadRoot 'PERMISSIONS.md'
 
-foreach ($requiredPath in @($payloadManifestPath, $rendererDll, $rendererInt, $inputDll, $modernMenu, $hostManifestPath, $backupScript, $permissions)) {
+foreach ($requiredPath in @($payloadManifestPath, $rendererDll, $rendererInt, $openXRLoader, $openXRNotice, $inputDll, $modernMenu, $hostManifestPath, $backupScript, $permissions)) {
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Installer payload is incomplete: $requiredPath"
     }
@@ -63,6 +65,7 @@ if (-not (Test-Path -LiteralPath $revivedIcon -PathType Leaf)) {
 
 Copy-Item -LiteralPath $rendererDll -Destination (Join-Path $system64Directory 'D3D12Drv.dll') -Force
 Copy-Item -LiteralPath $rendererInt -Destination (Join-Path $system64Directory 'D3D12Drv.int') -Force
+Copy-Item -LiteralPath $openXRLoader -Destination (Join-Path $system64Directory 'openxr_loader.dll') -Force
 Copy-Item -LiteralPath $inputDll -Destination (Join-Path $system64Directory 'XInputWinDrv.dll') -Force
 Copy-Item -LiteralPath $modernMenu -Destination (Join-Path $system64Directory 'ModernMenu.u') -Force
 
@@ -256,10 +259,11 @@ foreach ($name in @('Core.dll', 'Engine.dll', 'Render.dll', 'Unreal.exe', 'WinDr
     $installedModules[$name] = $actualHash
 }
 $installedModules['XInputWinDrv.dll'] = (Get-FileHash -LiteralPath (Join-Path $system64Directory 'XInputWinDrv.dll') -Algorithm SHA256).Hash
+$installedModules['openxr_loader.dll'] = (Get-FileHash -LiteralPath (Join-Path $system64Directory 'openxr_loader.dll') -Algorithm SHA256).Hash
 
 $revivedDirectory = Join-Path $destinationRoot 'UnrealRevived'
 New-Item -ItemType Directory -Path $revivedDirectory -Force | Out-Null
-foreach ($name in @('backup-unreal-revived-user-data.ps1', 'PERMISSIONS.md', 'payload-manifest.json', 'unreal-gold-227k_15-win64.json')) {
+foreach ($name in @('backup-unreal-revived-user-data.ps1', 'PERMISSIONS.md', 'OPENXR-COPYING.adoc', 'payload-manifest.json', 'unreal-gold-227k_15-win64.json')) {
     Copy-Item -LiteralPath (Join-Path $PayloadRoot $name) -Destination (Join-Path $revivedDirectory $name) -Force
 }
 

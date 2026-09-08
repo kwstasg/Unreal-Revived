@@ -478,6 +478,10 @@ try {
                 -not $logText.Contains('continuing flat-screen D3D12')) {
                 throw "$($case.Name) did not probe OpenXR and fall back safely to flat-screen D3D12."
             }
+            if ($openXRLoaderLoaded -and
+                $logText -notmatch 'Unreal Revived OpenXR: (runtime=|active runtime unavailable|active runtime does not support|instance creation failed)') {
+                throw "$($case.Name) loaded OpenXR without reporting the runtime detection result."
+            }
         }
         if (($case.Settings.ContainsKey('AntialiasMode') -or $case.Name -match '^display-(2560x1440|3840x2160)') -and $logText -notmatch 'requested MSAA \d+x, effective MSAA \d+x') {
             throw "$($case.Name) did not log requested and effective MSAA."

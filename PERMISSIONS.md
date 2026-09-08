@@ -31,6 +31,14 @@ NVIDIA and the NVIDIA logo are trademarks and/or registered trademarks of
 NVIDIA Corporation in the United States and other countries. The NVIDIA logo
 remains the property of NVIDIA Corporation.
 
+## Khronos OpenXR loader
+
+The unmodified Khronos OpenXR loader is built from the hash-pinned OpenXR SDK
+1.1.61 source archive and distributed under its Apache-2.0 OR MIT terms. The
+installer retains the upstream `COPYING.adoc` beside Unreal Revived's install
+records, and [`manifests/provenance/openxr-sdk-1.1.61.json`](manifests/provenance/openxr-sdk-1.1.61.json)
+records the exact source and archive identity.
+
 Source-control exclusions for archives and binaries remain intentional. The
 pinned patch may be supplied from ignored local release inputs and embedded in
 generated installer artifacts without committing it to the source tree.

@@ -11,6 +11,7 @@
 #include "UploadManager.h"
 #include "CachedTexture.h"
 #include "D3D12MemAlloc/D3D12MemAlloc.h"
+#include <openxr/openxr.h>
 #include <functional>
 
 struct SceneVertex
@@ -496,6 +497,8 @@ private:
 
 	UBOOL UsePrecache;
 	HMODULE OpenXRLoader = nullptr;
+	XrInstance OpenXRInstance = XR_NULL_HANDLE;
+	PFN_xrGetInstanceProcAddr OpenXRGetInstanceProcAddr = nullptr;
 	FPlane FlashScale;
 	FPlane FlashFog;
 	FSceneNode* CurrentFrame = nullptr;

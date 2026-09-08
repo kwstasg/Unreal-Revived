@@ -6,25 +6,32 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-09
 
-### Prepared 0.6.0 locally and added the OpenXR foundation boundary
+### Prepared 0.6.0 locally with OpenXR runtime and HMD detection
 
 - Increased local installer and rebuild artifact metadata to 0.6.0. The
   release-candidate tag is local only; no push or GitHub release was created.
 - Added strict D3D12 OpenXR selection: flat-screen is the default, `-vr` or
-  stored `EnableVR=True` requests a loader probe, and `-novr` takes precedence.
-- Limited loader discovery to the application directory and System32, checked
-  for `xrGetInstanceProcAddr`, diagnosed missing/invalid loaders, and preserved
-  the existing flat-screen D3D12 path in every outcome. No OpenXR instance,
-  session, stereo rendering, or VR support is claimed.
-- Added a focused `VRFoundation` runtime suite plus default-path module checks
-  to both runtime harnesses. The three focused cases passed under
-  `local/logs/automated-20260909-015637/`. All 50 D3D12 cases then passed under
-  `local/logs/automated-20260909-020121/`, and all 18 supported-renderer cases
-  passed under `local/logs/supported-renderers-20260909-020447/`.
-- Built the 88,673,302-byte local 0.6.0 offline installer with SHA-256
-  `77F2204FFA88302F2C0F0791461F10777565F8E542D45BD99878A0DAFEA1A7A7`.
-  Its Windows metadata reports file version 0.6.0.0 and product version 0.6.0;
-  the staged default profiles keep `EnableVR=False`.
+  stored `EnableVR=True` requests detection, and `-novr` takes precedence.
+- Pinned the official Khronos OpenXR SDK 1.1.61 source archive by SHA-256,
+  builds its unmodified dynamic loader, and retains upstream provenance and
+  license terms in installed packages. The loader is not an import dependency.
+- Requested launches create a diagnostics-only OpenXR 1.0 instance, report the
+  runtime and HMD system properties when available, and destroy the instance
+  during renderer shutdown. Missing or unavailable runtimes and HMDs fall back
+  safely. No session, stereo rendering, or VR support is claimed.
+- The current host's registered Oculus/Meta runtime was reached through the
+  loader but returned `XR_ERROR_RUNTIME_UNAVAILABLE`; no HMD was detected in
+  that state. The diagnostic directs the player to start the headset software
+  and connect or wake the device.
+- The focused detection cases passed under
+  `local/logs/automated-20260909-024421/`. All 50 D3D12 cases then passed under
+  `local/logs/automated-20260909-024642/`, and all 18 supported-renderer cases
+  passed under `local/logs/supported-renderers-20260909-025011/`. Every normal
+  D3D12 launch kept `openxr_loader.dll` unloaded.
+- Built the 88,893,707-byte local 0.6.0 offline installer with SHA-256
+  `2402D38CC770090394873810216865F75E4EA8972EA6DB303FBC6F3926317C59`.
+  It includes the 652,800-byte loader and its upstream copying notice, reports
+  file version 0.6.0.0, and keeps `EnableVR=False` in staged defaults.
 
 ### Restored automated startup, shutdown, and release validation
 

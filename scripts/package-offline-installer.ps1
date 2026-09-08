@@ -7,6 +7,12 @@ param(
     [string] $RendererDll,
 
     [Parameter(Mandatory = $true)]
+    [string] $LoaderDll,
+
+    [Parameter(Mandatory = $true)]
+    [string] $OpenXRNotice,
+
+    [Parameter(Mandatory = $true)]
     [string] $InputDll,
 
     [Parameter(Mandatory = $true)]
@@ -46,7 +52,7 @@ $iniModule = Join-Path $repositoryRoot 'scripts\UnrealRevived.Ini.psm1'
 $permissions = Join-Path $repositoryRoot 'PERMISSIONS.md'
 $installerDefinition = Join-Path $repositoryRoot 'packaging\UnrealRevived.iss'
 
-foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $InputDll, $rendererInt, $modernMenu, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $installerWizardImage, $brandingIcon, $iniModule, $permissions)) {
+foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $LoaderDll, $OpenXRNotice, $InputDll, $rendererInt, $modernMenu, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $installerWizardImage, $brandingIcon, $iniModule, $permissions)) {
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Missing offline package input: $requiredPath"
     }
@@ -248,6 +254,8 @@ foreach ($defaultUserProfile in @('System\DefUser.ini', 'System64\DefUser.ini'))
 $payloadSources = [ordered]@{
     'D3D12Drv.dll' = $RendererDll
     'D3D12Drv.int' = $rendererInt
+    'openxr_loader.dll' = $LoaderDll
+    'OPENXR-COPYING.adoc' = $OpenXRNotice
     'XInputWinDrv.dll' = $InputDll
     'ModernMenu.u' = $modernMenu
     'install-unreal-revived.ps1' = $installScript

@@ -38,9 +38,10 @@ not an alternative to the supported CMake build.
 
 ## Future source layout
 
-No placeholder source directories are assigned to roadmap features. The seated
-PC VR plan expects OpenXR lifecycle and D3D12 binding work in the D3D12 package
-plus a narrow, version-pinned host bridge, but its final file layout should be
-chosen during implementation. RTX support and the Vulkan driver also have no
-assigned source layout yet. See [`roadmap.md`](roadmap.md) for milestone order
-and [`pc-vr-seated.md`](pc-vr-seated.md) for the first milestone's scope.
+The initial OpenXR mode selection and runtime/HMD detection live in the D3D12
+package, with the Khronos loader supplied as a pinned CMake dependency. Session,
+stereo, and tracking work still require a narrow, version-pinned host bridge;
+its final file layout should be chosen during implementation. RTX support and
+the Vulkan driver also have no assigned source layout yet. See
+[`roadmap.md`](roadmap.md) for milestone order and
+[`pc-vr-seated.md`](pc-vr-seated.md) for the first milestone's scope.

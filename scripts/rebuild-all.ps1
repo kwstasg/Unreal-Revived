@@ -118,6 +118,7 @@ try {
 
     $artifacts = @(
         'local/build/D3D12Drv/Release/D3D12Drv.dll'
+        'local/game/System64/openxr_loader.dll'
         'local/build/XInputWinDrv/Release/XInputWinDrv.dll'
         'local/game/System64/ModernMenu.u'
         'local/package/offline-installer/output/UnrealRevived-Setup-0.6.0.exe'

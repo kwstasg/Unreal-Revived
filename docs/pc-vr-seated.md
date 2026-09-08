@@ -3,8 +3,9 @@
 ## Status
 
 This document is the implementation plan for a future supported VR mode. The
-initial mode-selection and loader-probe foundation is implemented, but seated
-PC VR and OpenXR rendering are not implemented or supported yet.
+initial mode-selection, loader, runtime, and HMD-detection foundation is
+implemented, but seated PC VR and OpenXR rendering are not implemented or
+supported yet.
 
 ## Goal
 
@@ -19,8 +20,8 @@ HUD, spatial menus, and fade-based head collision.
 ## Mode selection and non-VR isolation
 
 - Flat-screen play is free of all VR behavior by default.
-- `-vr` requests the OpenXR foundation probe; `-novr` disables it and wins if
-  both switches are present.
+- `-vr` requests OpenXR runtime and HMD detection; `-novr` disables it and
+  wins if both switches are present.
 - The persistent `EnableVR` renderer setting is available for development and
   takes effect on launch. Its future menu checkbox is not implemented yet.
 - Command-line arguments override the stored preference.
@@ -28,8 +29,9 @@ HUD, spatial menus, and fade-based head collision.
   query tracking, or run VR logic during non-VR play.
 - Keep the existing single-view D3D12 path unchanged behind a strict runtime
   branch.
-- A missing or invalid OpenXR loader is diagnosed and continues safely in
-  flat-screen D3D12. Runtime and session initialization remain future work.
+- Missing loaders or runtimes and unavailable HMDs are diagnosed and continue
+  safely in flat-screen D3D12. A diagnostics-only instance is created when
+  possible; session initialization remains future work.
 - Keep OpenGL and XOpenGL as non-VR recovery renderers.
 - Require a restart when entering or leaving VR; do not transition the renderer
   live.
@@ -105,8 +107,8 @@ Broader comfort and motion-control options are deferred.
 - Tear down OpenXR resources safely during shutdown and failure recovery.
 - Preserve existing maps, saves, gameplay classes, multiplayer protocol,
   configuration, installation, uninstall, and recovery workflows.
-- Package the OpenXR loader for VR use while keeping it unloaded during normal
-  play.
+- The pinned Khronos OpenXR loader is packaged for VR use and remains unloaded
+  during normal play.
 
 ## Acceptance testing
 

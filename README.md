@@ -266,8 +266,9 @@ output that could otherwise enter source control.
 | `local/` | Ignored machine-local inputs and generated output |
 
 Seated OpenXR VR, RTX support, and a Vulkan driver remain roadmap components.
-The renderer now has strict opt-in OpenXR mode selection and a safe diagnostic
-loader probe, but it does not yet create a runtime session or render in stereo.
+The renderer now has strict opt-in OpenXR mode selection, a bundled pinned
+Khronos loader, and diagnostics for the active runtime and HMD. It does not yet
+create a runtime session or render in stereo.
 The detailed scope is documented in the
 [seated PC VR plan](docs/pc-vr-seated.md); VR remains unsupported.
 

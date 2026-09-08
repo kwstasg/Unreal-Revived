@@ -88,8 +88,9 @@ cmake -S . -B local/build -A x64
 cmake --build local/build --config Release --parallel
 ```
 
-This builds the Release `D3D12Drv.dll`, `XInputWinDrv.dll`, and pinned static
-SDL3 dependency from a fresh CMake build tree.
+This builds the Release `D3D12Drv.dll`, `XInputWinDrv.dll`, pinned static SDL3
+dependency, and pinned dynamic Khronos OpenXR loader from a fresh CMake build
+tree.
 
 ## 4. Deploy all development components
 

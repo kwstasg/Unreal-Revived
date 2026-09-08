@@ -935,18 +935,130 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		return;
 	}
 
-	if (!GetProcAddress(OpenXRLoader, "xrGetInstanceProcAddr"))
+	OpenXRGetInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(
+		GetProcAddress(OpenXRLoader, "xrGetInstanceProcAddr"));
+	if (!OpenXRGetInstanceProcAddr)
 	{
 		debugf(TEXT("Unreal Revived OpenXR: loader entry point missing; continuing flat-screen D3D12"));
 		ReleaseOpenXRFoundation();
 		return;
 	}
 
-	debugf(TEXT("Unreal Revived OpenXR: loader available; stereo bridge is not implemented; continuing flat-screen D3D12"));
+	PFN_xrVoidFunction RawFunction = nullptr;
+	XrResult Result = OpenXRGetInstanceProcAddr(XR_NULL_HANDLE, "xrCreateInstance", &RawFunction);
+	if (XR_FAILED(Result) || !RawFunction)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: xrCreateInstance unavailable (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+
+	const PFN_xrCreateInstance CreateInstance = reinterpret_cast<PFN_xrCreateInstance>(RawFunction);
+	XrInstanceCreateInfo CreateInfo = { XR_TYPE_INSTANCE_CREATE_INFO };
+	strncpy_s(CreateInfo.applicationInfo.applicationName, "Unreal Revived", _TRUNCATE);
+	CreateInfo.applicationInfo.applicationVersion = 6;
+	strncpy_s(CreateInfo.applicationInfo.engineName, "Unreal Engine 1", _TRUNCATE);
+	CreateInfo.applicationInfo.engineVersion = 227;
+	CreateInfo.applicationInfo.apiVersion = XR_API_VERSION_1_0;
+	Result = CreateInstance(&CreateInfo, &OpenXRInstance);
+	if (XR_FAILED(Result) || OpenXRInstance == XR_NULL_HANDLE)
+	{
+		OpenXRInstance = XR_NULL_HANDLE;
+		if (Result == XR_ERROR_RUNTIME_UNAVAILABLE)
+			debugf(TEXT("Unreal Revived OpenXR: active runtime unavailable; start the headset software and connect or wake the HMD (result %d); continuing flat-screen D3D12"), Result);
+		else if (Result == XR_ERROR_API_VERSION_UNSUPPORTED)
+			debugf(TEXT("Unreal Revived OpenXR: active runtime does not support OpenXR 1.0 (result %d); continuing flat-screen D3D12"), Result);
+		else
+			debugf(TEXT("Unreal Revived OpenXR: instance creation failed (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+
+	RawFunction = nullptr;
+	Result = OpenXRGetInstanceProcAddr(OpenXRInstance, "xrGetInstanceProperties", &RawFunction);
+	if (XR_SUCCEEDED(Result) && RawFunction)
+	{
+		XrInstanceProperties Properties = { XR_TYPE_INSTANCE_PROPERTIES };
+		Result = reinterpret_cast<PFN_xrGetInstanceProperties>(RawFunction)(OpenXRInstance, &Properties);
+		if (XR_SUCCEEDED(Result))
+		{
+			debugf(TEXT("Unreal Revived OpenXR: runtime=%ls version=%u.%u.%u"),
+				appFromAnsi(Properties.runtimeName),
+				(UINT)XR_VERSION_MAJOR(Properties.runtimeVersion),
+				(UINT)XR_VERSION_MINOR(Properties.runtimeVersion),
+				(UINT)XR_VERSION_PATCH(Properties.runtimeVersion));
+		}
+		else
+			debugf(TEXT("Unreal Revived OpenXR: runtime properties query failed (result %d)"), Result);
+	}
+	else
+		debugf(TEXT("Unreal Revived OpenXR: xrGetInstanceProperties unavailable (result %d)"), Result);
+
+	RawFunction = nullptr;
+	Result = OpenXRGetInstanceProcAddr(OpenXRInstance, "xrGetSystem", &RawFunction);
+	if (XR_FAILED(Result) || !RawFunction)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: xrGetSystem unavailable (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+
+	XrSystemGetInfo SystemInfo = { XR_TYPE_SYSTEM_GET_INFO };
+	SystemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
+	XrSystemId SystemId = XR_NULL_SYSTEM_ID;
+	Result = reinterpret_cast<PFN_xrGetSystem>(RawFunction)(OpenXRInstance, &SystemInfo, &SystemId);
+	if (Result == XR_ERROR_FORM_FACTOR_UNAVAILABLE)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: headset unavailable; connect and wake the HMD before launching with -vr"));
+	}
+	else if (Result == XR_ERROR_FORM_FACTOR_UNSUPPORTED)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: active runtime does not support a head-mounted display"));
+	}
+	else if (XR_FAILED(Result) || SystemId == XR_NULL_SYSTEM_ID)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: headset query failed (result %d)"), Result);
+	}
+	else
+	{
+		RawFunction = nullptr;
+		Result = OpenXRGetInstanceProcAddr(OpenXRInstance, "xrGetSystemProperties", &RawFunction);
+		if (XR_SUCCEEDED(Result) && RawFunction)
+		{
+			XrSystemProperties Properties = { XR_TYPE_SYSTEM_PROPERTIES };
+			Result = reinterpret_cast<PFN_xrGetSystemProperties>(RawFunction)(OpenXRInstance, SystemId, &Properties);
+			if (XR_SUCCEEDED(Result))
+			{
+				debugf(TEXT("Unreal Revived OpenXR: headset detected=%ls vendor=%u orientationTracking=%s positionTracking=%s"),
+					appFromAnsi(Properties.systemName), Properties.vendorId,
+					Properties.trackingProperties.orientationTracking ? TEXT("true") : TEXT("false"),
+					Properties.trackingProperties.positionTracking ? TEXT("true") : TEXT("false"));
+			}
+			else
+				debugf(TEXT("Unreal Revived OpenXR: headset detected, but system properties failed (result %d)"), Result);
+		}
+		else
+			debugf(TEXT("Unreal Revived OpenXR: headset detected, but xrGetSystemProperties is unavailable (result %d)"), Result);
+	}
+
+	debugf(TEXT("Unreal Revived OpenXR: detection complete; stereo bridge is not implemented; continuing flat-screen D3D12"));
 }
 
 void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
+	if (OpenXRInstance != XR_NULL_HANDLE && OpenXRGetInstanceProcAddr)
+	{
+		PFN_xrVoidFunction RawFunction = nullptr;
+		const XrResult Result = OpenXRGetInstanceProcAddr(OpenXRInstance, "xrDestroyInstance", &RawFunction);
+		if (XR_SUCCEEDED(Result) && RawFunction)
+		{
+			const XrResult DestroyResult = reinterpret_cast<PFN_xrDestroyInstance>(RawFunction)(OpenXRInstance);
+			if (XR_FAILED(DestroyResult))
+				debugf(TEXT("Unreal Revived OpenXR: instance destruction failed (result %d)"), DestroyResult);
+		}
+		else
+			debugf(TEXT("Unreal Revived OpenXR: xrDestroyInstance unavailable during shutdown (result %d)"), Result);
+		OpenXRInstance = XR_NULL_HANDLE;
+	}
+	OpenXRGetInstanceProcAddr = nullptr;
+
 	if (OpenXRLoader)
 	{
 		FreeLibrary(OpenXRLoader);
