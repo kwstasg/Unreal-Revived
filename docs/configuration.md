@@ -211,8 +211,8 @@ formats.
 The inherited **Anisotropic Filtering** row is also available for D3D12 and
 offers **Off**, **2x**, **4x**, **8x**, and **16x**. It updates the renderer's
 scene samplers immediately and persists through `MaxAnisotropy`; Off uses
-ordinary linear filtering. Profiles without an explicit value retain the
-renderer's previous 8x filtering behavior.
+ordinary linear filtering. Profiles without an explicit value use the
+renderer-registered 4x default.
 
 **Saturation** displays a percentage instead of the renderer's stored integer:
 0% is grayscale, 100% is normal color, and 200% is the maximum boosted
@@ -374,10 +374,9 @@ as interchangeable when changing this code.
 ## Installer profile defaults
 
 The offline installer creates canonical `Unreal.ini` and `User.ini` profiles
-from the pinned host defaults. Repair reapplies required startup and menu
-integration without resetting player preferences. The installer applies the
-following initial preferences without changing the original game installation
-or preventing the player from changing them later:
+from the pinned host defaults. It applies the following initial preferences
+without changing the original game installation or preventing the player from
+changing them later:
 
 | Setting | Initial value |
 | --- | ---: |

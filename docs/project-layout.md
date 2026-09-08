@@ -30,7 +30,7 @@ The checked-in `D3D12Drv.vcxproj` and `.filters` files preserve inherited
 upstream project structure and debugging metadata. They are reference material,
 not an alternative to the supported CMake build.
 
-## Planned
+## Proposed roadmap paths
 
 ```text
 launcher/                    Portable installation and profile launcher
@@ -41,6 +41,6 @@ tests/                       Automated renderer and integration tests
 tools/evidence/              ABI and binary evidence tooling
 ```
 
-Planned directories gain tracked files only when implementation or a concrete
-component contract is added. Their presence does not imply that the component
-is implemented.
+These paths describe the intended organization only. They are not present in
+the repository yet and should gain tracked files only when implementation or a
+concrete component contract is added.

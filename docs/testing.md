@@ -254,6 +254,7 @@ powershell -NoProfile -File scripts/audit-game-content.ps1 `
 cmake -S . -B local/build -A x64
 cmake --build local/build --config Release
 cmake --build local/build --target deploy-d3d12drv --config Release
+cmake --build local/build --target deploy-xinputwindrv --config Release
 cmake --build local/build --target deploy-modern-menu --config Release
 ```
 
@@ -558,8 +559,9 @@ target maintains those copies for the disposable runtime.
 - Reinstall and confirm the retained saves remain available.
 - In an isolated test installation, uncheck **Keep save games**, complete
   uninstall, and confirm the installation copy is removed after backup.
-- Launch the uninstaller directly and confirm only Inno's native confirmation
-  appears; saves remain retained by default.
+- Launch the uninstaller directly and confirm the same branded dialog appears
+  without Inno's additional native confirmation; saves remain retained by
+  default.
 - Confirm an explicit `/VERYSILENT` uninstall retains saves without prompting.
 
 ## Reporting results

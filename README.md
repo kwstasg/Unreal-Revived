@@ -53,13 +53,13 @@ full-game installer page. After that installer finishes, **Detect Again** finds
 the new installation; the player can also browse to any folder containing
 `System\Unreal.exe`.
 
-Setup can repair or update an existing Unreal Revived installation. Uninstall
+When Setup finds a current Unreal Revived installation, it opens the branded
+uninstall dialog first; canceling leaves the installation unchanged. Uninstall
 is configured to keep save games by default and to back up saves and active
 profiles before removal. It removes only Unreal Revived and never removes or
 changes the source Unreal Gold installation or OldUnreal downloads. Direct3D
-12 is the normal renderer; OpenGL and XOpenGL
-remain available as recovery choices. ALAudio with bundled OpenAL Soft is the
-supported audio path.
+12 is the normal renderer; OpenGL and XOpenGL remain available as recovery
+choices. ALAudio with bundled OpenAL Soft is the supported audio path.
 
 ## Game features and improvements
 
@@ -74,7 +74,7 @@ supported audio path.
 | Flexible controls | Up to three keyboard, mouse, or controller assignments per action, visible bindings, practical defaults, and reset controls. |
 | Greek localization | Selectable Greek interface and in-game text for both Unreal and Return to Na Pali, including menus, HUD messages, level information, and translator logs. See the [localization guide](docs/localization.md). |
 | Complete game content | Both Unreal and Return to Na Pali campaigns, multiplayer and dedicated-server support, all bundled languages, saves, and recovery renderers. |
-| Easier installation | A separate offline installation that leaves the original game untouched, supports repair and update, and is configured to retain and back up saves during uninstall. |
+| Easier installation | A separate offline installation that leaves the original game untouched, detects an existing copy before reinstalling, and is configured to retain and back up saves during uninstall. |
 | Modern audio | ALAudio with bundled OpenAL Soft replaces deprecated and experimental legacy audio paths. |
 | Recovery options | OpenGL and XOpenGL renderers, stock WinDrv input, a recovery shortcut, and automated regression coverage provide fallback paths and release confidence. |
 
@@ -85,8 +85,9 @@ organized feature list and a description of each improvement.
 ## Availability and requirements
 
 The flat-screen Direct3D 12 path is implemented and actively validated on
-Windows x64. There is not yet a public prebuilt Unreal Revived installer linked
-from this README; the repository can build it from pinned, verified inputs.
+Windows x64. A public, prebuilt installer is available from the
+[latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest).
+The repository can also reproduce it from pinned, verified inputs.
 
 Players need:
 
@@ -98,10 +99,10 @@ Players need:
 
 The installer can use Steam, `C:\Unreal`, or another selected installation as
 its source, but that source is not used to launch or manage the new copy
-afterward. Until a public prebuilt installer
-is published, the repository workflow below is intended for developers and
-technically experienced testers. See [current validation
-status](docs/current-state.md) for the precise supported boundary.
+afterward. The repository workflow below is intended for developers and
+technically experienced testers who want to build the project themselves. See
+[current validation status](docs/current-state.md) for the precise supported
+boundary.
 
 ## For developers
 
@@ -165,7 +166,7 @@ The bootstrap performs the complete setup:
 5. Creates a full disposable game copy under `local/game/`.
 6. Applies the verified 227k_15 host and installs the SDK under
    `local/sdk/227k_15/`.
-7. Configures and builds the D3D12 renderer and ModernMenu.
+7. Configures and builds the D3D12 renderer, SDL3 input driver, and ModernMenu.
 8. Runs the automated D3D12 content smoke suite.
 9. Creates normal and recovery shortcuts in `local/game/`.
 
@@ -258,9 +259,9 @@ output that could otherwise enter source control.
 | `docs/` | Architecture, configuration, build, testing, and progress detail |
 | `local/` | Ignored machine-local inputs and generated output |
 
-OpenXR, VR bridge, hook, launcher, and evidence directories are retained as
-roadmap or compatibility surfaces. Their presence does not imply those features
-are implemented.
+The portable launcher and OpenXR/VR bridge remain roadmap components; their
+proposed paths are documented in [project layout](docs/project-layout.md), but
+they are not implemented or present as source directories yet.
 
 ### Documentation
 

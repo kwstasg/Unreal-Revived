@@ -91,8 +91,8 @@ boundary.
 | Filtered original-game copy | Copies required original assets while excluding historical installers, copied state, and unsupported legacy renderer and audio binaries. |
 | No unnecessary elevation | Installs without requesting administrator rights when the selected destination does not require them. |
 | First-run defaults | Starts with Direct3D 12, XInputWinDrv, ALAudio, ModernMenu, validated display settings, and practical keyboard, mouse, and controller bindings. |
-| Repair and update | Offers repair or update when Setup finds an existing Unreal Revived installation. |
-| Interactive uninstall | Removes only Unreal Revived, explicitly leaves the source Unreal Gold installation and OldUnreal downloads unchanged, and transitions into standard uninstall progress in the same window. |
+| Existing-install handling | Opens the branded uninstall dialog when Setup finds a current Unreal Revived installation; canceling leaves the existing copy unchanged. |
+| Interactive uninstall | Uses one branded confirmation before standard uninstall progress, removes only Unreal Revived, and explicitly leaves the source Unreal Gold installation and OldUnreal downloads unchanged. |
 | Save preservation policy | Configures interactive and silent uninstall to retain saves by default and backs up saves and canonical profiles before removal. Complete end-to-end validation of the revised interactive uninstall flow remains pending. |
 | Reinstall protection | Accepts a retained save-only destination and prevents original-game saves from overwriting those retained files. |
 | Installed shortcuts | Creates a Start Menu shortcut and offers an optional desktop shortcut; both launch the canonical installed profile without development arguments. |

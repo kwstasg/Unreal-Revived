@@ -33,6 +33,8 @@ history.
   pinned 227k_15 patch. Setup detects `C:\Unreal` and Steam, links to
   OldUnreal's official full-game installer when neither exists, and can detect
   the resulting installation without restarting Setup.
+- Public build: the prebuilt installer is published on the project's
+  [GitHub Releases page](https://github.com/kwstasg/Unreal-Revived/releases/latest).
 - Packaging authorization: redistribution, mirroring, and offline bundling of
   the pinned OldUnreal 227k_15 Windows patch is confirmed in
   [`../PERMISSIONS.md`](../PERMISSIONS.md) and must not be reopened as a blocker.
@@ -48,11 +50,12 @@ RTX 3060 host. Borderless physical sizing follows the monitor containing the
 game window; true physical 4K output remains unvalidated on the current 1080p
 desktop.
 
-D3D12 Video preferences also expose bloom and chromatic aberration. Both use
-the renderer's single `BEGINUIPASS` contract, captured world image, and
-dedicated UI composition mask; no effect-specific HUD detection or legacy
-boundary aliases remain. Missing the explicit boundary safely bypasses
-world-only effects for that frame instead of applying them to UI.
+D3D12 Video preferences also expose bloom, chromatic aberration, vignette,
+animated film grain, and CRT scanlines. All five use the renderer's single
+`BEGINUIPASS` contract, captured world image, and dedicated UI composition
+mask; no effect-specific HUD detection or legacy boundary aliases remain.
+Missing the explicit boundary safely bypasses world-only effects for that
+frame instead of applying them to UI.
 
 OpenXR rendering, VR input, comfort features, and the portable launcher are not
 implemented. The offline installer includes visual source selection, hidden
@@ -72,14 +75,16 @@ and uses tracked original Unreal Revived artwork; installed shortcuts use the
 tracked project-owned multi-resolution icon. The in-game menu desktop uses a
 tracked Unreal Revived background embedded in `ModernMenu.u`. Dedicated
 development launch profiles, canonical argument-free installed startup, Start
-Menu shortcut, and uninstall
-backup are implemented. Interactive uninstall keeps saves by default through a
-checked option embedded in the native uninstall window, which transitions into
-progress in place and states that the original source and OldUnreal downloads
-remain untouched; explicit silent uninstall uses the same default. Rerunning Setup opens that interactive uninstaller for uninstall,
-or offers repair/update and cancel. A retained save-only installation directory is accepted on
-reinstall and protected from the original-game copy. Runtime smoke automation exercises representative maps, renderer
-settings, menu state profiles, and display profiles. Retained screenshots cover
+Menu shortcut, and uninstall backup are implemented. Windows Installed Apps,
+a direct uninstaller launch, and rerunning Setup over a current installation
+all lead to one branded uninstall dialog with a default-checked save-retention
+option. Choosing Uninstall continues into standard progress; choosing Cancel
+leaves the installation unchanged. The dialog states that the original source
+and OldUnreal downloads remain untouched, and explicit `/VERYSILENT` uninstall
+retains saves without prompting. A retained save-only installation directory
+is accepted on reinstall and protected from the original-game copy. Runtime
+smoke automation exercises representative maps, renderer settings, menu state
+profiles, and display profiles. Retained screenshots cover
 the currently validated menu layout and input alignment; external click
 automation is unavailable because UWindow exposes no automation elements and
 ignores background window messages.
@@ -142,6 +147,7 @@ powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
 cmake -S . -B local/build -A x64
 cmake --build local/build --config Release
 cmake --build local/build --target deploy-d3d12drv --config Release
+cmake --build local/build --target deploy-xinputwindrv --config Release
 cmake --build local/build --target deploy-modern-menu --config Release
 cmake --build local/build --target package-offline-installer --config Release
 powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite All
