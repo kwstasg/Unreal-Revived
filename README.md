@@ -11,8 +11,7 @@ menus, improved controls, and broad gamepad support for devices such as Xbox
 Series controllers, DualShock 4, DualSense, and other
 [SDL-mapped controllers](docs/controllers.md).
 
-The project is built on the maintained **OldUnreal 227k_15 Windows x64**
-runtime. Unreal Revived adds its own DirectX 12 renderer, ModernMenu interface,
+Unreal Revived adds its own DirectX 12 renderer, ModernMenu interface,
 SDL3-based controller backend, tested defaults, branding, and side-by-side
 installation workflow on top of that foundation.
 
