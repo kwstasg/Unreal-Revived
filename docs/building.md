@@ -9,8 +9,8 @@ material and is not the supported build entry point.
 ## Prerequisites
 
 - Windows x64
-- Unreal Gold installed through OldUnreal's official full-game installer,
-  Steam, or another installation containing `System\Unreal.exe`
+- Unreal Gold installed through OldUnreal's official full-game installer or
+  another installation containing `System\Unreal.exe`
 - winget, unless the development tools are already installed
 
 The bootstrap installs Git, CMake, Visual Studio 2022 Build Tools with the C++
@@ -31,10 +31,10 @@ From a fresh clone:
 powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
 ```
 
-The standard OldUnreal location `C:\Unreal` is checked first, followed by Steam
-App ID 13250 across registered Steam libraries. When neither is found, the
-bootstrap stops before installing developer tools, with the OldUnreal installer
-URL and instructions to rerun it.
+The standard OldUnreal location `C:\Unreal` is checked first, followed by a
+legacy Steam App ID 13250 installation for existing owners. When neither is
+found, the bootstrap stops before installing developer tools, with the
+OldUnreal installer URL and instructions to rerun it.
 Override discovery for any other location or use a previously generated local
 bundle with:
 
@@ -85,6 +85,7 @@ WinDrv/Src/WinClient.cpp
 WinDrv/Src/WinDrv.cpp
 WinDrv/Src/WinInput.cpp
 WinDrv/Src/WinViewport.cpp
+WinDrv/Src/Res/WinDrvRes.rc
 Core/Lib/x64/Core.lib
 Engine/Lib/x64/Engine.lib
 Render/Lib/x64/Render.lib
@@ -144,7 +145,7 @@ verified archive.
 ## Deploy
 
 When `<game-root>/System64/Unreal.exe` exists, CMake exposes the deployment
-target:
+targets:
 
 ```powershell
 cmake --build local/build --target deploy-d3d12drv --config Release
@@ -162,6 +163,9 @@ The targets perform these operations in the disposable game installation:
    localization paths are available.
 4. Copies the side-by-side `XInputWinDrv.dll` package to `System64/` without
    replacing the pinned `WinDrv.dll`.
+5. Compiles `ModernMenu.u`, overlays project localization, installs runtime
+   branding, updates the development profiles, and recreates the development
+   shortcuts.
 
 The second operation is required because 227's `IntDescIterator` discovers the
 single-player campaign registrations beside the game packages in `System/`.
@@ -174,8 +178,8 @@ recovery dialog displays localization keys instead of labels.
 
 Deployment and runtime-test scripts require
 `.unreal-revived-development.json`. The bootstrap creates this marker only in
-the physical disposable copy. Unmarked trees and the original Steam
-installation are rejected.
+the physical disposable copy. Unmarked trees and the original game installation
+are rejected.
 
 After a successful build and optional content test, bootstrap creates
 `Unreal Revived.lnk` and `Unreal Revived Recovery.lnk` in the disposable game
@@ -269,11 +273,15 @@ shows the standard Setup icon in page headers, adds a current feature list to
 the Welcome page, and keeps a clickable GitHub link beside
 the Unreal Revived name in the bottom bar on every page. The branded uninstall
 confirmation uses the portrait artwork.
-The baseline assets can be regenerated deterministically with
-`scripts/build-unreal-revived-branding.ps1`; packaging copies the tracked files
-directly and does not read original-game artwork. Both generic defaults and the
-dedicated launch profile select D3D12, and every localized first-time
-configuration page carries the D3D12 recommendation text.
+The logo, installer, runtime, and icon derivatives can be regenerated
+deterministically with
+`scripts/build-unreal-revived-branding.ps1 -BrandingOnly`. Regenerating the
+menu background requires an explicit authored source as described below;
+running the generator without options creates placeholder menu artwork.
+Packaging copies the tracked files directly and does not read original-game
+artwork. Both generic defaults and the dedicated launch profile select D3D12,
+and every localized first-time configuration page carries the D3D12
+recommendation text.
 
 The same generator imports tracked 16:9 source artwork into a 3840x2160 in-game
 menu master and twelve 256x256 tiles under `branding/MenuTiles`. It resamples
@@ -297,20 +305,22 @@ the top and bottom; narrower viewports crop the sides.
 
 The validated source snapshot omitted 305 audited paths totaling 134,784,646
 bytes, although generated files and source-install differences can change the
-exact installed reduction. Original Steam files are read only and are never
+exact installed reduction. Original game files are read only and are never
 removed.
 
-The Unreal Revived installer detects the standard `C:\Unreal` location and
-Steam App ID 13250 across registered Steam libraries, then preselects the first
-valid installation on an **Original Game** page. If no source is found,
+The Unreal Revived installer detects the standard `C:\Unreal` location first.
+For existing owners, it can also detect legacy Steam App ID 13250 installations
+across registered libraries. It preselects the first valid installation on an
+**Original Game** page. If no source is found,
 **Install via OldUnreal** opens OldUnreal's official full-game installer page;
-after it finishes, **Detect Again** checks the standard location and Steam
-libraries again. The user can always browse to another Unreal Gold installation
+after it finishes, **Detect Again** checks the known source locations again. The
+user can always browse to another Unreal Gold installation
 containing `System\Unreal.exe`; the selected source is validated and shown again
 on the Ready page. The installer copies the source game into the default
 side-by-side directory `C:\Games\Unreal Revived`, overlays the bundled 227k_15
-patch, and installs the renderer and menu without requesting administrator
-elevation. Standard Windows permissions allow the current user to create the
+patch, and installs the renderer, input driver, ModernMenu, localization, and
+branding without requesting administrator elevation. Standard Windows
+permissions allow the current user to create the
 top-level `C:\Games` directory; a custom destination must also be user-writable.
 
 The selected original game is copied by a hidden helper before Inno's file

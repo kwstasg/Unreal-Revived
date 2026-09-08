@@ -265,5 +265,7 @@ and Return to Na Pali in the required
 ## Scope remaining
 
 The current implementation targets flat-screen Direct3D 12 parity. OpenXR
-stereo rendering, VR input, comfort options, and the portable launcher are not
-implemented and must not be described as supported features.
+stereo rendering, VR input, and comfort options are not implemented and must
+not be described as supported features. RTX support and a Vulkan driver are
+also future work; their order and status are tracked in
+[`roadmap.md`](roadmap.md).

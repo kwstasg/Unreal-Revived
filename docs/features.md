@@ -1,9 +1,10 @@
 # Game features and improvements
 
-This guide describes the player-facing features currently implemented in
-Unreal Revived. It separates supported improvements from roadmap work and does
-not treat an implemented but unvalidated path as a confirmed compatibility
-claim. See [`current-state.md`](current-state.md) for the precise validation
+This guide describes the player-facing features currently implemented in the
+repository source. Released binaries may lag the source tree. This guide
+separates supported improvements from roadmap work and does not treat an
+implemented but unvalidated path as a confirmed compatibility claim. See
+[`current-state.md`](current-state.md) for the precise validation and release
 boundary.
 
 ## Rendering and image quality
@@ -87,7 +88,7 @@ boundary.
 | Fully offline installer | Packages the pinned OldUnreal 227k_15 host and Unreal Revived components so installation does not require downloading the patch at install time. |
 | No original game files included | Unreal Revived provides no original Unreal Gold maps, textures, music, sounds, or other game assets. Players must supply them from their own installation. |
 | Side-by-side installation | Creates a separate Unreal Revived directory under `C:\Games\Unreal Revived` by default and never writes to the selected original game directory. |
-| Source acquisition and selection | Detects `C:\Unreal` and Steam installations, links to OldUnreal's official full-game installer when no source exists, supports detection after it finishes, and allows any valid original-game directory. |
+| Source acquisition and selection | Uses OldUnreal's full-game installer as the primary acquisition path, detects `C:\Unreal`, retains legacy Steam detection for existing owners, and allows any valid original-game directory. |
 | Filtered original-game copy | Copies required original assets while excluding historical installers, copied state, and unsupported legacy renderer and audio binaries. |
 | No unnecessary elevation | Installs without requesting administrator rights when the selected destination does not require them. |
 | First-run defaults | Starts with Direct3D 12, XInputWinDrv, ALAudio, ModernMenu, validated display settings, and practical keyboard, mouse, and controller bindings. |

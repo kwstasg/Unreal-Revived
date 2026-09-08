@@ -4,6 +4,25 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-09-08
+
+### Refined project branding and installer interaction
+
+- Replaced the previous logo source with the current transparent and
+  dark-backed Unreal Revived artwork and derived dedicated campaign, About,
+  Setup, and uninstall assets.
+- Added unified campaign-preview branding and expanded the preserved About
+  credits with the Unreal Revived project identity and link.
+- Changed current-source existing-install handling to open one branded
+  uninstall options dialog before standard progress, with save retention
+  enabled by default. Direct uninstaller launches suppress Inno's redundant
+  native confirmation.
+- Added an optional desktop-shortcut task, a post-install launch option, and
+  current feature text to the Setup welcome page.
+- These changes are newer than the attached 0.5.0 release at `b1979f8` and
+  require a new installer build and release before users receive them through
+  the Releases page.
+
 ## 2026-09-07
 
 ### Prepared version 0.5.0 installer metadata

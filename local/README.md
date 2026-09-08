@@ -8,14 +8,15 @@ local/
   sdk/227k_15/      Extracted OldUnreal 227k_15 Windows SDK
   downloads/        Verified patch and SDK archives
   package/          Generated installer and developer-bundle output
-  references/       Reference repository clones and research material
+  reference/        Reference repository clones and research material
   backups/          Local configuration and save backups
   logs/             Collected runtime and diagnostic logs
   build/            Local build and staging output
 ```
 
-The original Steam installation is the recovery source and must remain
-unmodified. Create or refresh the complete local environment with:
+The selected original Unreal Gold installation is the recovery source and must
+remain unmodified, whether it came from OldUnreal or another valid source.
+Create or refresh the complete local environment with:
 
 ```powershell
 powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1

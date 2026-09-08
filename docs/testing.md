@@ -70,8 +70,8 @@ Manual Xbox controller validation confirmed that Escape and Menu open the menu
 shell, A or D-pad opens a closed pull-down, all four D-pad and left-stick
 directions navigate pull-downs, B closes the pull-down, and Menu exits and
 unpauses. Combo boxes open, navigate, and commit with the controller. A also
-resets focused Video and HUD sliders directly. Full binding-persistence and
-USB/Bluetooth hotplug coverage remain pending.
+resets focused Video and HUD sliders directly. Broader USB/Bluetooth hotplug
+coverage remains pending.
 
 In `NyLeve`, verify the first-house doorstep and the narrow blood-stained
 corridor steps can be crossed using continuous walking without jumping. Confirm
@@ -164,7 +164,7 @@ is accepted.
 `candidate` means suitable for reversible quarantine testing, not approved for
 removal. `unknown` always means retain. Runtime logs, saves, and other generated
 state are included, so exact totals may change between snapshots. The audit
-does not modify the original Steam installation, disposable runtime, extracted
+does not modify the original game installation, disposable runtime, extracted
 patch, installer copy rules, or staged payload.
 
 The installer currently consumes
@@ -457,7 +457,7 @@ target maintains those copies for the disposable runtime.
   Video page is reopened. Confirm stale raw Contrast values below `64` or above
   `170` render at the nearest supported endpoint. Confirm Saturation reset
   restores 100%. Confirm
-  Brightness displays its default `0.5` value as 100% and the slider handles
+  Brightness displays its neutral `0.5` value as 100% and the slider handles
   are 8 pixels wide. Confirm stale Brightness values outside `0.25` through
   `1.0` snap to the nearest slider endpoint when Video Preferences opens.
   Confirm Brightness and Contrast move and display in 1%

@@ -5,12 +5,18 @@
 ```text
 D3D12Drv/                    OldUnreal 227k adapter and native package project
 XInputWinDrv/                Generated-source Windows viewport package project
+UnrealScript/ModernMenu/     Project-owned menu, HUD, input, and save UI
+Localization/                Project-owned localization overlays
+branding/                    Authored and generated project artwork
 cmake/                       Deployment and packaging target declarations
+docs/                        Current guides, validation records, and roadmap
+manifests/content/           Installer content policy
 manifests/developer/         Optional developer-bundle artifact identity
 manifests/hosts/             Supported host fingerprints
+manifests/provenance/        Third-party input identity and provenance
 packaging/                   Offline installer definition
 PERMISSIONS.md               Pinned payload authorization and packaging scope
-local/                       Ignored game, SDK, references, and output
+local/                       Ignored game, SDK, reference material, and output
 scripts/                     Bootstrap, packaging, deployment, and validation
 ```
 
@@ -30,17 +36,11 @@ The checked-in `D3D12Drv.vcxproj` and `.filters` files preserve inherited
 upstream project structure and debugging metadata. They are reference material,
 not an alternative to the supported CMake build.
 
-## Proposed roadmap paths
+## Future source layout
 
-```text
-launcher/                    Portable installation and profile launcher
-src/openxr/                  Phase-two OpenXR backend
-src/hooks/VRHook227k15/      Optional version-pinned VR hook bridge
-UnrealScript/VRBridge/       Phase-two gameplay and input policy
-tests/                       Automated renderer and integration tests
-tools/evidence/              ABI and binary evidence tooling
-```
-
-These paths describe the intended organization only. They are not present in
-the repository yet and should gain tracked files only when implementation or a
-concrete component contract is added.
+No placeholder source directories are assigned to roadmap features. The seated
+PC VR plan expects OpenXR lifecycle and D3D12 binding work in the D3D12 package
+plus a narrow, version-pinned host bridge, but its final file layout should be
+chosen during implementation. RTX support and the Vulkan driver also have no
+assigned source layout yet. See [`roadmap.md`](roadmap.md) for milestone order
+and [`pc-vr-seated.md`](pc-vr-seated.md) for the first milestone's scope.

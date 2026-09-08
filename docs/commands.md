@@ -46,7 +46,7 @@ powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1 -SkipDownload 
 ```
 
 `-Force` recreates an existing marked development runtime. It never authorizes
-modifying an unmarked directory or the original Steam installation.
+modifying an unmarked directory or the original game installation.
 
 ## Configure and compile
 
@@ -164,15 +164,16 @@ any local saves or settings you need first.
 
 ## Branding commands
 
-Regenerate the tracked branding assets from their configured sources:
+Regenerate the tracked logo, installer, runtime, and icon derivatives without
+replacing the authored menu background:
 
 ```powershell
-powershell -NoProfile -File scripts/build-unreal-revived-branding.ps1
+powershell -NoProfile -File scripts/build-unreal-revived-branding.ps1 -BrandingOnly
 ```
 
-`-DeriveBranding` requires `-MenuBackgroundSource` and rewrites tracked banners
-and the icon as well as the menu artwork. Review those changes before keeping
-them:
+To regenerate the menu artwork too, `-DeriveBranding` requires
+`-MenuBackgroundSource` and rewrites tracked banners and the icon as well as the
+menu artwork. Review those changes before keeping them:
 
 ```powershell
 powershell -NoProfile -File scripts/build-unreal-revived-branding.ps1 -MenuBackgroundSource <path-to-16x9-image> -DeriveBranding

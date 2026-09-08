@@ -23,18 +23,22 @@ history.
 - Runtime model: ignored disposable installation under `local/game/`.
 - SDK model: ignored 227k_15 SDK under `local/sdk/227k_15/`.
 - Development setup: one-command bootstrap using the original pinned OldUnreal
-  runtime and SDK downloads plus a detected `C:\Unreal` or Steam installation,
-  or an explicitly selected original-game directory. Missing-source errors link
+  runtime and SDK downloads plus a detected `C:\Unreal` installation or an
+  explicitly selected original-game directory. Missing-source errors link
   developers to OldUnreal's official full-game installer.
 - Original Unreal Gold installation: recovery source only; never modify it.
 - Distribution model: the fully offline Unreal Revived Inno Setup executable
   creates a side-by-side installation under `C:\Games\Unreal Revived` by
   default from the user's selected original-game directory and the bundled
-  pinned 227k_15 patch. Setup detects `C:\Unreal` and Steam, links to
-  OldUnreal's official full-game installer when neither exists, and can detect
-  the resulting installation without restarting Setup.
-- Public build: the prebuilt installer is published on the project's
-  [GitHub Releases page](https://github.com/kwstasg/Unreal-Revived/releases/latest).
+  pinned 227k_15 patch. Setup checks `C:\Unreal` first, retains legacy Steam
+  detection for existing owners, links to OldUnreal's official full-game
+  installer when no source exists, and can detect the resulting installation
+  without restarting Setup.
+- Prebuilt build: the installer is attached to the project's
+  [latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest).
+  The attached 0.5.0 build points to tag `UnrealRevived-Setup-0.5.0` at `b1979f8`;
+  the current source is ahead and includes installer branding and
+  existing-install flow changes that are not in that binary.
 - Packaging authorization: redistribution, mirroring, and offline bundling of
   the pinned OldUnreal 227k_15 Windows patch is confirmed in
   [`../PERMISSIONS.md`](../PERMISSIONS.md) and must not be reopened as a blocker.
@@ -43,7 +47,7 @@ The renderer builds, deploys, and loads without XOpenGL fallback. Native and
 lower logical resolutions, borderless letterboxing, menu coordinate mapping,
 HD lightmaps, RGB10A2 textures, 227 alpha-blended geometry, normal startup, and
 campaign metadata discovery have been implemented and validated. The Video
-preferences page exposes a persistent checkbox for 227's built-in FPS
+preferences page exposes a persistent checkbox for Unreal Revived's compact FPS
 statistics and the D3D12 Off/2x/4x/8x antialiasing modes. Logical 2560x1440 and
 3840x2160 rendering, including 4K with MSAA 8x, is validated on the current
 RTX 3060 host. Borderless physical sizing follows the monitor containing the
@@ -57,8 +61,8 @@ mask; no effect-specific HUD detection or legacy boundary aliases remain.
 Missing the explicit boundary safely bypasses world-only effects for that
 frame instead of applying them to UI.
 
-OpenXR rendering, VR input, comfort features, and the portable launcher are not
-implemented. The offline installer includes visual source selection, hidden
+OpenXR rendering, VR input, and comfort features are not implemented. The
+offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
 filtered build-time-extracted patch tree. The policy removes only validated
 historical distribution media, copied state, and obsolete D3D7, D3D9, Glide,
@@ -104,8 +108,8 @@ automatic controller selection and WinMM fallback, and keeps stock WinDrv
 available for recovery. A DualShock 4 v2 was manually validated without Steam
 or DS4Windows over Bluetooth and USB for standard menu and gameplay controls,
 including sticks, D-pad, face and shoulder buttons, triggers, Share, Options,
-and stick clicks. Hotplug, binding persistence, rumble, touchpad, gyro, and
-lightbar behavior remain unvalidated. An Xbox Series controller was also
+and stick clicks. DualShock 4 hotplug plus rumble, touchpad, gyro, and lightbar
+behavior remain unvalidated. An Xbox Series controller was also
 manually regression-tested over Bluetooth and USB; SDL selected it natively on
 both transports and its standard menu and gameplay controls remained correct.
 Disconnect handling emits button releases and neutral axes before fallback.
@@ -132,8 +136,9 @@ the Load order; these flows were manually confirmed. Advanced and Mutator
 dialogs have initial combo, list, and cross-window tab handling compiled, but
 their complete controller workflows remain pending and are not a supported
 claim yet.
-Binding persistence and broader lifecycle coverage remain unvalidated and are
-not yet supported claims.
+The three-assignment binding workflow and persistence across restart were
+manually validated. Broader controller lifecycle coverage beyond the documented
+Xbox reconnect cases remains unvalidated.
 
 ## Verified commands
 
@@ -198,12 +203,14 @@ ModernMenu root window active.
 
 ## Next priorities
 
-1. Add deterministic camera control for currently dynamic visual cases.
-2. Expand automated checks where engine integration permits stronger
-  assertions than process and log validation.
-3. Improve installer UX and release-signing automation.
-4. Begin OpenXR architecture only after flat-screen behavior has a stable
-   validation baseline.
+The ordered major additions are maintained in [`roadmap.md`](roadmap.md):
+
+1. Seated PC VR through OpenXR.
+2. RTX support.
+3. A native Vulkan driver.
+
+These remain planning items only. Continue flat-screen validation, automated
+regression coverage, installer UX, and release automation alongside them.
 
 ## Updating the handoff
 

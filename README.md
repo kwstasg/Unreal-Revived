@@ -31,7 +31,7 @@ independent Unreal Revived installation and never modifies the source game.
 
 1. Download and start [Unreal Revived Setup from the latest release](https://github.com/kwstasg/Unreal-Revived/releases/latest), then confirm the detected Unreal Gold source.
 
-2. If no source is detected, use **Install via OldUnreal**, complete OldUnreal Setup, return, and select **Detect Again**.
+2. If no source is detected, use **Install via OldUnreal**, complete OldUnreal Setup, return, and select **Detect Again**. If you installed OldUnreal in a custom folder, select **Browse** and choose that folder manually.
 
 3. Keep `C:\Games\Unreal Revived` or choose another destination outside the original game folder, then complete Setup.
 
@@ -47,21 +47,26 @@ are then applied only to the new installation. No original Unreal Gold game
 files are included with Unreal Revived; every required original asset is copied
 locally from the player's own installation.
 
-Setup detects Steam installations and the standard `C:\Unreal` location. If
-neither is available, **Install via OldUnreal** opens OldUnreal's official
-full-game installer page. After that installer finishes, **Detect Again** finds
-the new installation; the player can also browse to any folder containing
+Setup checks the standard `C:\Unreal` location first. It can also detect a
+legacy Steam installation for players who already own the game. If no source is
+available, **Install via OldUnreal** opens OldUnreal's official full-game
+installer page. After that installer finishes, **Detect Again** finds the new
+installation; the player can also browse to any folder containing
 `System\Unreal.exe`.
 
-When Setup finds a current Unreal Revived installation, it opens the branded
-uninstall dialog first; canceling leaves the installation unchanged. Uninstall
-is configured to keep save games by default and to back up saves and active
-profiles before removal. It removes only Unreal Revived and never removes or
-changes the source Unreal Gold installation or OldUnreal downloads. Direct3D
-12 is the normal renderer; OpenGL and XOpenGL remain available as recovery
-choices. ALAudio with bundled OpenAL Soft is the supported audio path.
+In current source builds, Setup opens the branded uninstall dialog first when
+it finds a current Unreal Revived installation; canceling leaves the
+installation unchanged. Uninstall is configured to keep save games by default
+and to back up saves and active profiles before removal. It removes only Unreal
+Revived and never removes or changes the source Unreal Gold installation or
+OldUnreal downloads. Direct3D 12 is the normal renderer; OpenGL and XOpenGL
+remain available as recovery choices. ALAudio with bundled OpenAL Soft is the
+supported audio path.
 
 ## Game features and improvements
+
+This table describes the current repository source. The attached release may
+lag source changes as noted under [availability](#availability-and-requirements).
 
 | Area | What players get |
 | --- | --- |
@@ -85,9 +90,13 @@ organized feature list and a description of each improvement.
 ## Availability and requirements
 
 The flat-screen Direct3D 12 path is implemented and actively validated on
-Windows x64. A public, prebuilt installer is available from the
-[latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest).
-The repository can also reproduce it from pinned, verified inputs.
+Windows x64. A prebuilt installer is attached to the
+[latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest),
+and the repository can reproduce it from pinned, verified inputs. The latest
+attached installer is version 0.5.0 from tag
+`UnrealRevived-Setup-0.5.0`; the current branch is ahead of that tag, so its
+revised branding and existing-install flow are not in the attached 0.5.0
+binary.
 
 Players need:
 
@@ -97,12 +106,11 @@ Players need:
 - A Direct3D 12-capable graphics system for the primary renderer.
 - Enough free space for a separate side-by-side copy of the game.
 
-The installer can use Steam, `C:\Unreal`, or another selected installation as
-its source, but that source is not used to launch or manage the new copy
-afterward. The repository workflow below is intended for developers and
-technically experienced testers who want to build the project themselves. See
-[current validation status](docs/current-state.md) for the precise supported
-boundary.
+The installer can use `C:\Unreal` or another selected installation as its
+source. That source is not used to launch or manage the new copy afterward. The
+repository workflow below is intended for developers and technically
+experienced testers who want to build the project themselves. See [current
+validation status](docs/current-state.md) for the precise supported boundary.
 
 ## For developers
 
@@ -122,7 +130,7 @@ powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
 
 Use the [official OldUnreal installer page](https://www.oldunreal.com/downloads/unreal/full-game-installers/)
 or the [direct Windows download](https://github.com/OldUnreal/FullGameInstallers/releases/download/windows-game-installers/Unreal_Gold.exe).
-An existing Steam or other installation is also supported.
+An existing installation from another source is also supported.
 
 ### Project status
 
@@ -140,15 +148,16 @@ tests, and tooling for building a fully offline installer.
 ### Development requirements
 
 - Windows x64.
-- Unreal Gold installed through OldUnreal's official full-game installer,
-  Steam, or another installation containing `System\Unreal.exe`.
+- Unreal Gold installed through OldUnreal's official full-game installer or
+  another installation containing `System\Unreal.exe`.
 - winget, or the required development tools already installed.
 - Enough disk space for a full disposable copy of the game, the 227k_15 SDK,
   and build output.
 
-Bootstrap checks `C:\Unreal` and registered Steam libraries. If neither contains
-the game, it stops before installing tools and provides the official OldUnreal
-installer URL plus instructions to rerun bootstrap or pass `-OriginalGameRoot`.
+Bootstrap checks the supported standard source locations. If it cannot find the
+game, it stops before installing tools and provides the official OldUnreal
+installer URL plus instructions to rerun bootstrap or pass
+`-OriginalGameRoot`.
 For an installation in another directory, run:
 
 ```powershell
@@ -158,7 +167,7 @@ powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1 `
 
 The bootstrap performs the complete setup:
 
-1. Detects Unreal Gold under `C:\Unreal` or across registered Steam libraries.
+1. Detects Unreal Gold in a supported standard location.
 2. Installs missing CMake, Visual Studio C++ tools, and Inno Setup through
    winget.
 3. Downloads the pinned runtime and SDK from the original OldUnreal release.
@@ -259,9 +268,10 @@ output that could otherwise enter source control.
 | `docs/` | Architecture, configuration, build, testing, and progress detail |
 | `local/` | Ignored machine-local inputs and generated output |
 
-The portable launcher and OpenXR/VR bridge remain roadmap components; their
-proposed paths are documented in [project layout](docs/project-layout.md), but
-they are not implemented or present as source directories yet.
+Seated OpenXR VR, RTX support, and a Vulkan driver remain roadmap components.
+The detailed VR scope is documented in the
+[seated PC VR plan](docs/pc-vr-seated.md), but none of these additions is
+implemented yet.
 
 ### Documentation
 
@@ -281,11 +291,21 @@ they are not implemented or present as source directories yet.
 - [Localization](docs/localization.md): project-owned languages and the Greek translation workflow.
 - [Engineering progress](docs/progress.md): completed milestones and evidence.
 - [Project layout](docs/project-layout.md): implemented and planned components.
+- [Roadmap](docs/roadmap.md): ordered future milestones for seated PC VR, RTX
+  support, and a Vulkan driver.
+- [Seated PC VR plan](docs/pc-vr-seated.md): scope and acceptance criteria for
+  the first future milestone.
 - [Permissions](PERMISSIONS.md): authorized pinned payload and exclusions.
 
 ### Roadmap
 
-1. Continue flat-screen D3D12 parity and regression coverage.
-2. Add release automation and a portable profile launcher.
-3. Begin native OpenXR stereo rendering, input, and comfort features after the
-   flat-screen baseline remains stable.
+The three main future additions, in planned order, are:
+
+1. Add optional [seated PC VR through OpenXR](docs/pc-vr-seated.md), while
+   preserving flat-screen D3D12 as the default.
+2. Add RTX support after the seated PC VR milestone.
+3. Add a native Vulkan driver after RTX support.
+
+See the [full roadmap](docs/roadmap.md) for scope and current status. Continue
+flat-screen D3D12 regression coverage and release automation alongside these
+milestones.
