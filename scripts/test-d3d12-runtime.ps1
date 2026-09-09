@@ -494,11 +494,6 @@ try {
                 $logText -notmatch 'Unreal Revived OpenXR: first monoscopic game frame submitted to both eyes') {
                 throw "$($case.Name) began an OpenXR stereo session without submitting the game image."
             }
-            if ($logText -match 'Unreal Revived OpenXR: stereo session begun' -and
-                ($logText -notmatch 'Unreal Revived OpenXR: head orientation baseline captured' -or
-                 $logText -notmatch 'Unreal Revived OpenXR: render-only head orientation applied; gameplay view rotation remains unchanged')) {
-                throw "$($case.Name) began an OpenXR stereo session without applying isolated head orientation."
-            }
         }
         if (($case.Settings.ContainsKey('AntialiasMode') -or $case.Name -match '^display-(2560x1440|3840x2160)') -and $logText -notmatch 'requested MSAA \d+x, effective MSAA \d+x') {
             throw "$($case.Name) did not log requested and effective MSAA."

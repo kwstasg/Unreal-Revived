@@ -379,8 +379,7 @@ the `-novr` override, requiring a runtime-detection result whenever the loader
 is present. If an HMD is detected, the test also requires a reported D3D12
 session outcome. A compatible live session must report two ready eye
 swapchains, and a begun session must submit at least one monoscopic game frame
-to both eyes, capture a head-orientation baseline, and apply the render-only
-orientation without retaining it in gameplay view state.
+to both eyes.
 Every ordinary D3D12 case also enumerates loaded process modules and requires
 both an absent `openxr_loader.dll` and the renderer's
 flat-screen-default diagnostic. The supported-renderer matrix applies the same

@@ -6,7 +6,24 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-09
 
-### Connected render-only headset orientation
+### Removed the invalid pawn-view VR camera experiment
+
+- Flat and VR desktop-mirror captures of the flyby showed materially different
+  scripted camera pitch and roll: the normal view looked toward the castle,
+  while the VR override looked sharply down at the floor.
+- Removed the `PlayerPawn.ViewRotation` override and all follow-on experimental
+  stereo camera/projection work. The deployed renderer again submits UE1's
+  untouched completed image to both eyes.
+- Corrected the implementation boundary: future head tracking and stereo must
+  transform UE1's authoritative calculated scene camera, including flybys and
+  view targets, rather than treating pawn view state as the rendered camera.
+- The rollback built and deployed successfully. The three-case VR foundation
+  suite passed under `local/logs/automated-20260909-134039/`, and the six-map
+  flat-screen Content suite passed under
+  `local/logs/automated-20260909-134106/`.
+- No GitHub push or release was created.
+
+### Tested render-only headset orientation (later removed)
 
 - Fed the latest valid OpenXR headset orientation into the next UE1 scene draw
   relative to a per-session neutral baseline, including yaw, pitch, and roll.
@@ -15,9 +32,10 @@ technical guides; use this file for the chronological record.
   replication, and saved gameplay state.
 - Reset pose validity and the neutral baseline across session stop, exit, loss,
   restart, and renderer shutdown paths.
-- Live Oculus Rift CV1 validation confirmed correctly directed yaw, pitch, and
-  roll in the headset. Both eyes still intentionally receive the same completed
-  camera image, so stereo depth and eye alignment remain pending.
+- An initial Oculus Rift CV1 movement check appeared to confirm yaw, pitch, and
+  roll, but later matched flat/VR flyby captures disproved that result by showing
+  the scripted camera was not preserved. The experiment was subsequently
+  removed as recorded above.
 - The Release renderer built and deployed successfully. The three-case
   `VRFoundation` suite passed under `local/logs/automated-20260909-122944/`, and
   the six-map flat-screen Content suite passed under

@@ -5,10 +5,10 @@
 This document is the implementation plan for a future supported VR mode. The
 initial mode-selection, loader, runtime/HMD detection, D3D12 compatibility,
 session lifecycle, frame timing, and stereo test submission are implemented.
-The completed UE1 game image is presented to both eyes and headset orientation
-temporarily drives scene rendering without changing gameplay view state.
-Independent eye cameras are not connected, so seated PC VR is not implemented
-or supported yet.
+The completed UE1 game image is presented unchanged to both eyes. A pawn-view
+orientation experiment was removed after flyby comparison exposed that it did
+not preserve UE1's calculated scripted camera. Independent eye cameras are not
+connected, so seated PC VR is not implemented or supported yet.
 
 ## Goal
 

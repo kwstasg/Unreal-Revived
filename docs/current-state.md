@@ -70,10 +70,10 @@ feature-level requirements, and creates a guarded OpenXR session. It allocates
 two runtime-recommended eye swapchains, begins the session when it reaches
 `READY`, locates both eye views, and presents the completed UE1 game frame to
 both eyes with aspect-preserving scaling while retaining normal monitor output.
-The predicted headset orientation is applied as a temporary render-only camera
-offset and restored immediately after drawing, leaving pawn rotation, aiming,
-replication, and saved gameplay state unchanged. Both eyes currently receive
-the same camera image; positional tracking, independent stereo cameras, VR
+Both eyes currently receive the same untouched UE1 camera image. A render-only
+`PlayerPawn.ViewRotation` experiment was removed after flat/VR flyby comparison
+showed that pawn view state is not UE1's authoritative calculated camera for
+scripted views. Head and positional tracking, independent stereo cameras, VR
 input, and comfort features are not connected yet. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
