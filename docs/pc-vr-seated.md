@@ -4,8 +4,9 @@
 
 This document is the implementation plan for a future supported VR mode. The
 initial mode-selection, loader, runtime/HMD detection, D3D12 compatibility,
-and guarded session foundation is implemented, but seated PC VR and OpenXR
-rendering are not implemented or supported yet.
+session lifecycle, frame timing, and stereo test submission are implemented.
+The UE1 world renderer and camera are not connected, so seated PC VR is not
+implemented or supported yet.
 
 ## Goal
 
@@ -30,9 +31,9 @@ HUD, spatial menus, and fade-based head collision.
 - Keep the existing single-view D3D12 path unchanged behind a strict runtime
   branch.
 - Missing loaders or runtimes, unavailable HMDs, and incompatible graphics
-  adapters are diagnosed and continue safely in flat-screen D3D12. A session
-  is created when compatible, but remains unbegun until the stereo frame loop
-  exists.
+  adapters are diagnosed and continue safely in flat-screen D3D12. A compatible
+  session submits a solid-color stereo test field while the monitor path stays
+  active.
 - Keep OpenGL and XOpenGL as non-VR recovery renderers.
 - Require a restart when entering or leaving VR; do not transition the renderer
   live.

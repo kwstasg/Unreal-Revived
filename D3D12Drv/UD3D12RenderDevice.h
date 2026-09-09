@@ -127,7 +127,10 @@ public:
 	void RestoreWindowProcedure();
 	static LRESULT CALLBACK WindowProcedure(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam);
 	void InitializeOpenXRFoundation();
+	UBOOL InitializeOpenXRRendering();
 	void PollOpenXRSession();
+	UBOOL PrepareOpenXRFrame();
+	void FinishOpenXRFrame();
 	void ReleaseOpenXRFoundation();
 #endif
 #if defined(UNREALGOLD)
@@ -502,8 +505,50 @@ private:
 	XrInstance OpenXRInstance = XR_NULL_HANDLE;
 	XrSystemId OpenXRSystemId = XR_NULL_SYSTEM_ID;
 	XrSession OpenXRSession = XR_NULL_HANDLE;
+	XrSpace OpenXRLocalSpace = XR_NULL_HANDLE;
 	XrSessionState OpenXRSessionState = XR_SESSION_STATE_UNKNOWN;
 	PFN_xrGetInstanceProcAddr OpenXRGetInstanceProcAddr = nullptr;
+	struct OpenXRDispatch
+	{
+		PFN_xrPollEvent PollEvent = nullptr;
+		PFN_xrBeginSession BeginSession = nullptr;
+		PFN_xrEndSession EndSession = nullptr;
+		PFN_xrCreateReferenceSpace CreateReferenceSpace = nullptr;
+		PFN_xrDestroySpace DestroySpace = nullptr;
+		PFN_xrEnumerateViewConfigurationViews EnumerateViewConfigurationViews = nullptr;
+		PFN_xrEnumerateEnvironmentBlendModes EnumerateEnvironmentBlendModes = nullptr;
+		PFN_xrEnumerateSwapchainFormats EnumerateSwapchainFormats = nullptr;
+		PFN_xrCreateSwapchain CreateSwapchain = nullptr;
+		PFN_xrDestroySwapchain DestroySwapchain = nullptr;
+		PFN_xrEnumerateSwapchainImages EnumerateSwapchainImages = nullptr;
+		PFN_xrWaitFrame WaitFrame = nullptr;
+		PFN_xrBeginFrame BeginFrame = nullptr;
+		PFN_xrLocateViews LocateViews = nullptr;
+		PFN_xrAcquireSwapchainImage AcquireSwapchainImage = nullptr;
+		PFN_xrWaitSwapchainImage WaitSwapchainImage = nullptr;
+		PFN_xrReleaseSwapchainImage ReleaseSwapchainImage = nullptr;
+		PFN_xrEndFrame EndFrame = nullptr;
+	} OpenXRFunctions;
+	struct OpenXRViewSwapchain
+	{
+		XrSwapchain Handle = XR_NULL_HANDLE;
+		INT Width = 0;
+		INT Height = 0;
+		std::vector<XrSwapchainImageD3D12KHR> Images;
+		DescriptorSet RTVs;
+		uint32_t AcquiredImage = 0;
+		UBOOL ImageReady = 0;
+	};
+	std::vector<XrViewConfigurationView> OpenXRConfigurationViews;
+	std::vector<XrView> OpenXRViews;
+	std::vector<OpenXRViewSwapchain> OpenXRSwapchains;
+	XrEnvironmentBlendMode OpenXRBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+	XrTime OpenXRPredictedDisplayTime = 0;
+	UBOOL OpenXRSessionRunning = 0;
+	UBOOL OpenXRRenderingReady = 0;
+	UBOOL OpenXRFrameBegun = 0;
+	UBOOL OpenXRSubmitLayer = 0;
+	UBOOL OpenXRFirstFrameLogged = 0;
 	FPlane FlashScale;
 	FPlane FlashFog;
 	FSceneNode* CurrentFrame = nullptr;

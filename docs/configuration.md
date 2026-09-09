@@ -330,7 +330,7 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | --- | ---: | --- |
 | `UseVSync` | `False` | Synchronize presentation to the display. |
 | `UsePrecache` | `True` | Precache renderer resources. |
-| `EnableVR` | `False` | Opt in to OpenXR runtime, HMD detection, and the guarded D3D12 session handshake on the next launch; no stereo VR path exists yet. |
+| `EnableVR` | `False` | Opt in to the experimental OpenXR D3D12 session and solid-color stereo test output on the next launch; the game world is not rendered in VR yet. |
 | `AntialiasMode` | `MSAA_4x` | `Off`, `MSAA_2x`, `MSAA_4x`, or `MSAA_8x`. |
 | `GammaMode` | `D3D9` | `D3D9` or `XOpenGL` response. |
 | `GammaOffset` | `0.0` | Global gamma offset. |
@@ -361,8 +361,10 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 switches are present. Disabled launches never query `openxr_loader.dll`.
 Requested launches create an OpenXR instance, query the active runtime and
 head-mounted-display system, validate the D3D12 adapter and feature level, and
-attempt to create a session. They poll lifecycle events but do not begin the
-session or activate stereo rendering.
+attempt to create a session. When compatible, they allocate two eye swapchains,
+begin the session, locate the runtime views, and submit a solid dark-blue test
+field. This proves headset presentation only; it does not render the game world
+or apply head movement to the camera.
 
 The 227 adapter fixes `MaxTextureSize` at 4096, disables the engine lightmap
 atlas, disables masked-font requirements, and advertises the renderer as

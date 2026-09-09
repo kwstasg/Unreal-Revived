@@ -847,6 +847,8 @@ void UD3D12RenderDevice::Exit()
 {
 	guard(UD3D12RenderDevice::Exit);
 
+	WaitDeviceIdle();
+
 #if defined(UNREAL_227)
 	ReleaseOpenXRFoundation();
 	RestoreWindowProcedure();
@@ -858,8 +860,6 @@ void UD3D12RenderDevice::Exit()
 	OriginalViewportCallback = nullptr;
 	delete InstalledCallback;
 #endif
-
-	WaitDeviceIdle();
 
 	for (auto& it : Descriptors.Tex)
 		it.second.reset();
@@ -1146,23 +1146,208 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		return;
 	}
 
-	debugf(TEXT("Unreal Revived OpenXR: D3D12 session created; frame loop and stereo swapchains are not implemented; continuing flat-screen D3D12 monitor rendering"));
+	if (!InitializeOpenXRRendering())
+	{
+		debugf(TEXT("Unreal Revived OpenXR: D3D12 session created, but stereo test rendering initialization failed; continuing flat-screen D3D12"));
+		return;
+	}
+
+	debugf(TEXT("Unreal Revived OpenXR: D3D12 session and stereo test rendering initialized; monitor rendering remains active"));
 	PollOpenXRSession();
+}
+
+UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
+{
+	auto Resolve = [this](const char* Name, PFN_xrVoidFunction* Function) -> UBOOL
+	{
+		*Function = nullptr;
+		const XrResult Result = OpenXRGetInstanceProcAddr(OpenXRInstance, Name, Function);
+		if (XR_FAILED(Result) || !*Function)
+		{
+			debugf(TEXT("Unreal Revived OpenXR: required function %ls unavailable (result %d)"), appFromAnsi(Name), Result);
+			return 0;
+		}
+		return 1;
+	};
+
+#define RESOLVE_OPENXR_FUNCTION(Name) \
+	if (!Resolve("xr" #Name, reinterpret_cast<PFN_xrVoidFunction*>(&OpenXRFunctions.Name))) return 0
+	RESOLVE_OPENXR_FUNCTION(PollEvent);
+	RESOLVE_OPENXR_FUNCTION(BeginSession);
+	RESOLVE_OPENXR_FUNCTION(EndSession);
+	RESOLVE_OPENXR_FUNCTION(CreateReferenceSpace);
+	RESOLVE_OPENXR_FUNCTION(DestroySpace);
+	RESOLVE_OPENXR_FUNCTION(EnumerateViewConfigurationViews);
+	RESOLVE_OPENXR_FUNCTION(EnumerateEnvironmentBlendModes);
+	RESOLVE_OPENXR_FUNCTION(EnumerateSwapchainFormats);
+	RESOLVE_OPENXR_FUNCTION(CreateSwapchain);
+	RESOLVE_OPENXR_FUNCTION(DestroySwapchain);
+	RESOLVE_OPENXR_FUNCTION(EnumerateSwapchainImages);
+	RESOLVE_OPENXR_FUNCTION(WaitFrame);
+	RESOLVE_OPENXR_FUNCTION(BeginFrame);
+	RESOLVE_OPENXR_FUNCTION(LocateViews);
+	RESOLVE_OPENXR_FUNCTION(AcquireSwapchainImage);
+	RESOLVE_OPENXR_FUNCTION(WaitSwapchainImage);
+	RESOLVE_OPENXR_FUNCTION(ReleaseSwapchainImage);
+	RESOLVE_OPENXR_FUNCTION(EndFrame);
+#undef RESOLVE_OPENXR_FUNCTION
+
+	uint32_t ViewCount = 0;
+	XrResult Result = OpenXRFunctions.EnumerateViewConfigurationViews(OpenXRInstance, OpenXRSystemId,
+		XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &ViewCount, nullptr);
+	if (XR_FAILED(Result) || ViewCount != 2)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: primary stereo view query returned count=%u result=%d; two views are required"), ViewCount, Result);
+		return 0;
+	}
+	OpenXRConfigurationViews.assign(ViewCount, { XR_TYPE_VIEW_CONFIGURATION_VIEW });
+	Result = OpenXRFunctions.EnumerateViewConfigurationViews(OpenXRInstance, OpenXRSystemId,
+		XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, ViewCount, &ViewCount, OpenXRConfigurationViews.data());
+	if (XR_FAILED(Result) || ViewCount != OpenXRConfigurationViews.size())
+	{
+		debugf(TEXT("Unreal Revived OpenXR: primary stereo view configuration failed (result %d)"), Result);
+		return 0;
+	}
+	OpenXRViews.assign(ViewCount, { XR_TYPE_VIEW });
+
+	uint32_t BlendModeCount = 0;
+	Result = OpenXRFunctions.EnumerateEnvironmentBlendModes(OpenXRInstance, OpenXRSystemId,
+		XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &BlendModeCount, nullptr);
+	if (XR_FAILED(Result) || BlendModeCount == 0)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: environment blend mode query failed (result %d)"), Result);
+		return 0;
+	}
+	std::vector<XrEnvironmentBlendMode> BlendModes(BlendModeCount);
+	Result = OpenXRFunctions.EnumerateEnvironmentBlendModes(OpenXRInstance, OpenXRSystemId,
+		XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, BlendModeCount, &BlendModeCount, BlendModes.data());
+	if (XR_FAILED(Result))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: environment blend modes unavailable (result %d)"), Result);
+		return 0;
+	}
+	OpenXRBlendMode = BlendModes[0];
+	for (XrEnvironmentBlendMode Mode : BlendModes)
+	{
+		if (Mode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
+		{
+			OpenXRBlendMode = Mode;
+			break;
+		}
+	}
+
+	XrReferenceSpaceCreateInfo SpaceInfo = { XR_TYPE_REFERENCE_SPACE_CREATE_INFO };
+	SpaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
+	SpaceInfo.poseInReferenceSpace.orientation.w = 1.0f;
+	Result = OpenXRFunctions.CreateReferenceSpace(OpenXRSession, &SpaceInfo, &OpenXRLocalSpace);
+	if (XR_FAILED(Result) || OpenXRLocalSpace == XR_NULL_HANDLE)
+	{
+		OpenXRLocalSpace = XR_NULL_HANDLE;
+		debugf(TEXT("Unreal Revived OpenXR: seated local reference space creation failed (result %d)"), Result);
+		return 0;
+	}
+
+	uint32_t FormatCount = 0;
+	Result = OpenXRFunctions.EnumerateSwapchainFormats(OpenXRSession, 0, &FormatCount, nullptr);
+	if (XR_FAILED(Result) || FormatCount == 0)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: swapchain format query failed (result %d)"), Result);
+		return 0;
+	}
+	std::vector<int64_t> Formats(FormatCount);
+	Result = OpenXRFunctions.EnumerateSwapchainFormats(OpenXRSession, FormatCount, &FormatCount, Formats.data());
+	if (XR_FAILED(Result))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: swapchain formats unavailable (result %d)"), Result);
+		return 0;
+	}
+	const DXGI_FORMAT PreferredFormats[] = {
+		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+		DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		DXGI_FORMAT_B8G8R8A8_UNORM
+	};
+	DXGI_FORMAT SelectedFormat = DXGI_FORMAT_UNKNOWN;
+	for (DXGI_FORMAT Preferred : PreferredFormats)
+	{
+		if (std::find(Formats.begin(), Formats.end(), static_cast<int64_t>(Preferred)) != Formats.end())
+		{
+			SelectedFormat = Preferred;
+			break;
+		}
+	}
+	if (SelectedFormat == DXGI_FORMAT_UNKNOWN)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: runtime offered no supported color swapchain format"));
+		return 0;
+	}
+
+	OpenXRSwapchains.resize(ViewCount);
+	for (uint32_t ViewIndex = 0; ViewIndex < ViewCount; ViewIndex++)
+	{
+		OpenXRViewSwapchain& ViewSwapchain = OpenXRSwapchains[ViewIndex];
+		const XrViewConfigurationView& View = OpenXRConfigurationViews[ViewIndex];
+		ViewSwapchain.Width = static_cast<INT>(View.recommendedImageRectWidth);
+		ViewSwapchain.Height = static_cast<INT>(View.recommendedImageRectHeight);
+		XrSwapchainCreateInfo SwapchainInfo = { XR_TYPE_SWAPCHAIN_CREATE_INFO };
+		SwapchainInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+		SwapchainInfo.format = static_cast<int64_t>(SelectedFormat);
+		SwapchainInfo.sampleCount = 1;
+		SwapchainInfo.width = View.recommendedImageRectWidth;
+		SwapchainInfo.height = View.recommendedImageRectHeight;
+		SwapchainInfo.faceCount = 1;
+		SwapchainInfo.arraySize = 1;
+		SwapchainInfo.mipCount = 1;
+		Result = OpenXRFunctions.CreateSwapchain(OpenXRSession, &SwapchainInfo, &ViewSwapchain.Handle);
+		if (XR_FAILED(Result) || ViewSwapchain.Handle == XR_NULL_HANDLE)
+		{
+			ViewSwapchain.Handle = XR_NULL_HANDLE;
+			debugf(TEXT("Unreal Revived OpenXR: view %u swapchain creation failed (result %d)"), ViewIndex, Result);
+			return 0;
+		}
+
+		uint32_t ImageCount = 0;
+		Result = OpenXRFunctions.EnumerateSwapchainImages(ViewSwapchain.Handle, 0, &ImageCount, nullptr);
+		if (XR_FAILED(Result) || ImageCount == 0)
+		{
+			debugf(TEXT("Unreal Revived OpenXR: view %u swapchain image count failed (result %d)"), ViewIndex, Result);
+			return 0;
+		}
+		ViewSwapchain.Images.assign(ImageCount, { XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR });
+		Result = OpenXRFunctions.EnumerateSwapchainImages(ViewSwapchain.Handle, ImageCount, &ImageCount,
+			reinterpret_cast<XrSwapchainImageBaseHeader*>(ViewSwapchain.Images.data()));
+		if (XR_FAILED(Result))
+		{
+			debugf(TEXT("Unreal Revived OpenXR: view %u swapchain image enumeration failed (result %d)"), ViewIndex, Result);
+			return 0;
+		}
+		ViewSwapchain.RTVs = Heaps.RTV->Alloc(static_cast<INT>(ImageCount));
+		for (uint32_t ImageIndex = 0; ImageIndex < ImageCount; ImageIndex++)
+		{
+			D3D12_RENDER_TARGET_VIEW_DESC RTVDesc = {};
+			RTVDesc.Format = SelectedFormat;
+			RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+			Device->CreateRenderTargetView(ViewSwapchain.Images[ImageIndex].texture, &RTVDesc,
+				ViewSwapchain.RTVs.CPUHandle(static_cast<INT>(ImageIndex)));
+		}
+	}
+
+	OpenXRRenderingReady = 1;
+	debugf(TEXT("Unreal Revived OpenXR: stereo swapchains ready views=%u size=%dx%d format=%d blendMode=%d"),
+		ViewCount, OpenXRSwapchains[0].Width, OpenXRSwapchains[0].Height, (INT)SelectedFormat, (INT)OpenXRBlendMode);
+	return 1;
 }
 
 void UD3D12RenderDevice::PollOpenXRSession()
 {
 	if (OpenXRInstance == XR_NULL_HANDLE || OpenXRSession == XR_NULL_HANDLE || !OpenXRGetInstanceProcAddr)
 		return;
-	PFN_xrVoidFunction RawFunction = nullptr;
-	XrResult Result = OpenXRGetInstanceProcAddr(OpenXRInstance, "xrPollEvent", &RawFunction);
-	if (XR_FAILED(Result) || !RawFunction)
+	if (!OpenXRFunctions.PollEvent)
 		return;
-	const PFN_xrPollEvent PollEvent = reinterpret_cast<PFN_xrPollEvent>(RawFunction);
 	for (;;)
 	{
 		XrEventDataBuffer Event = { XR_TYPE_EVENT_DATA_BUFFER };
-		Result = PollEvent(OpenXRInstance, &Event);
+		XrResult Result = OpenXRFunctions.PollEvent(OpenXRInstance, &Event);
 		if (Result == XR_EVENT_UNAVAILABLE)
 			break;
 		if (XR_FAILED(Result))
@@ -1175,16 +1360,201 @@ void UD3D12RenderDevice::PollOpenXRSession()
 			const XrEventDataSessionStateChanged* StateEvent =
 				reinterpret_cast<const XrEventDataSessionStateChanged*>(&Event);
 			OpenXRSessionState = StateEvent->state;
-			debugf(TEXT("Unreal Revived OpenXR: session state=%d%s"), (INT)OpenXRSessionState,
-				OpenXRSessionState == XR_SESSION_STATE_READY ? TEXT(" (ready; waiting for the future stereo frame loop)") : TEXT(""));
+			debugf(TEXT("Unreal Revived OpenXR: session state=%d"), (INT)OpenXRSessionState);
+			if (OpenXRSessionState == XR_SESSION_STATE_READY && OpenXRRenderingReady && !OpenXRSessionRunning)
+			{
+				XrSessionBeginInfo BeginInfo = { XR_TYPE_SESSION_BEGIN_INFO };
+				BeginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+				Result = OpenXRFunctions.BeginSession(OpenXRSession, &BeginInfo);
+				if (XR_SUCCEEDED(Result))
+				{
+					OpenXRSessionRunning = 1;
+					debugf(TEXT("Unreal Revived OpenXR: stereo session begun"));
+				}
+				else
+					debugf(TEXT("Unreal Revived OpenXR: session begin failed (result %d)"), Result);
+			}
+			else if (OpenXRSessionState == XR_SESSION_STATE_STOPPING && OpenXRSessionRunning)
+			{
+				OpenXRSessionRunning = 0;
+				Result = OpenXRFunctions.EndSession(OpenXRSession);
+				if (XR_FAILED(Result))
+					debugf(TEXT("Unreal Revived OpenXR: session end failed (result %d)"), Result);
+			}
+			else if (OpenXRSessionState == XR_SESSION_STATE_EXITING || OpenXRSessionState == XR_SESSION_STATE_LOSS_PENDING)
+				OpenXRSessionRunning = 0;
 		}
 		else if (Event.type == XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING)
 			debugf(TEXT("Unreal Revived OpenXR: runtime reported instance loss pending"));
 	}
 }
 
+UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
+{
+	if (!OpenXRSessionRunning || !OpenXRRenderingReady || OpenXRFrameBegun)
+		return 0;
+
+	XrFrameWaitInfo WaitInfo = { XR_TYPE_FRAME_WAIT_INFO };
+	XrFrameState FrameState = { XR_TYPE_FRAME_STATE };
+	XrResult Result = OpenXRFunctions.WaitFrame(OpenXRSession, &WaitInfo, &FrameState);
+	if (XR_FAILED(Result))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: xrWaitFrame failed (result %d)"), Result);
+		OpenXRSessionRunning = 0;
+		return 0;
+	}
+	XrFrameBeginInfo BeginInfo = { XR_TYPE_FRAME_BEGIN_INFO };
+	Result = OpenXRFunctions.BeginFrame(OpenXRSession, &BeginInfo);
+	if (XR_FAILED(Result))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: xrBeginFrame failed (result %d)"), Result);
+		OpenXRSessionRunning = 0;
+		return 0;
+	}
+	OpenXRFrameBegun = 1;
+	OpenXRSubmitLayer = 0;
+	OpenXRPredictedDisplayTime = FrameState.predictedDisplayTime;
+	for (OpenXRViewSwapchain& Swapchain : OpenXRSwapchains)
+		Swapchain.ImageReady = 0;
+	if (!FrameState.shouldRender)
+		return 1;
+
+	XrViewLocateInfo LocateInfo = { XR_TYPE_VIEW_LOCATE_INFO };
+	LocateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+	LocateInfo.displayTime = OpenXRPredictedDisplayTime;
+	LocateInfo.space = OpenXRLocalSpace;
+	XrViewState ViewState = { XR_TYPE_VIEW_STATE };
+	uint32_t ViewCount = 0;
+	Result = OpenXRFunctions.LocateViews(OpenXRSession, &LocateInfo, &ViewState,
+		static_cast<uint32_t>(OpenXRViews.size()), &ViewCount, OpenXRViews.data());
+	if (XR_FAILED(Result) || ViewCount != OpenXRViews.size())
+	{
+		debugf(TEXT("Unreal Revived OpenXR: xrLocateViews failed count=%u result=%d"), ViewCount, Result);
+		return 1;
+	}
+	if ((ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
+		(ViewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0)
+		return 1;
+
+	const FLOAT TestColor[4] = { 0.025f, 0.12f, 0.30f, 1.0f };
+	for (uint32_t ViewIndex = 0; ViewIndex < OpenXRSwapchains.size(); ViewIndex++)
+	{
+		OpenXRViewSwapchain& Swapchain = OpenXRSwapchains[ViewIndex];
+		XrSwapchainImageAcquireInfo AcquireInfo = { XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+		Result = OpenXRFunctions.AcquireSwapchainImage(Swapchain.Handle, &AcquireInfo, &Swapchain.AcquiredImage);
+		if (XR_FAILED(Result) || Swapchain.AcquiredImage >= Swapchain.Images.size())
+		{
+			debugf(TEXT("Unreal Revived OpenXR: view %u image acquire failed (result %d)"), ViewIndex, Result);
+			return 1;
+		}
+		XrSwapchainImageWaitInfo ImageWaitInfo = { XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
+		ImageWaitInfo.timeout = XR_INFINITE_DURATION;
+		Result = OpenXRFunctions.WaitSwapchainImage(Swapchain.Handle, &ImageWaitInfo);
+		if (XR_FAILED(Result))
+		{
+			debugf(TEXT("Unreal Revived OpenXR: view %u image wait failed (result %d)"), ViewIndex, Result);
+			return 1;
+		}
+		Swapchain.ImageReady = 1;
+		Commands.Current->Draw->ClearRenderTargetView(
+			Swapchain.RTVs.CPUHandle(static_cast<INT>(Swapchain.AcquiredImage)), TestColor, 0, nullptr);
+	}
+	OpenXRSubmitLayer = 1;
+	return 1;
+}
+
+void UD3D12RenderDevice::FinishOpenXRFrame()
+{
+	if (!OpenXRFrameBegun)
+		return;
+
+	std::vector<XrCompositionLayerProjectionView> LayerViews(OpenXRViews.size(),
+		{ XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW });
+	UBOOL AllImagesReleased = OpenXRSubmitLayer;
+	for (uint32_t ViewIndex = 0; ViewIndex < OpenXRSwapchains.size(); ViewIndex++)
+	{
+		OpenXRViewSwapchain& Swapchain = OpenXRSwapchains[ViewIndex];
+		if (Swapchain.ImageReady)
+		{
+			XrSwapchainImageReleaseInfo ReleaseInfo = { XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
+			const XrResult ReleaseResult = OpenXRFunctions.ReleaseSwapchainImage(Swapchain.Handle, &ReleaseInfo);
+			if (XR_FAILED(ReleaseResult))
+			{
+				AllImagesReleased = 0;
+				debugf(TEXT("Unreal Revived OpenXR: view %u image release failed (result %d)"), ViewIndex, ReleaseResult);
+			}
+			Swapchain.ImageReady = 0;
+		}
+		else
+			AllImagesReleased = 0;
+
+		LayerViews[ViewIndex].pose = OpenXRViews[ViewIndex].pose;
+		LayerViews[ViewIndex].fov = OpenXRViews[ViewIndex].fov;
+		LayerViews[ViewIndex].subImage.swapchain = Swapchain.Handle;
+		LayerViews[ViewIndex].subImage.imageRect.offset = { 0, 0 };
+		LayerViews[ViewIndex].subImage.imageRect.extent = { Swapchain.Width, Swapchain.Height };
+	}
+
+	XrCompositionLayerProjection Layer = { XR_TYPE_COMPOSITION_LAYER_PROJECTION };
+	Layer.space = OpenXRLocalSpace;
+	Layer.viewCount = AllImagesReleased ? static_cast<uint32_t>(LayerViews.size()) : 0;
+	Layer.views = AllImagesReleased ? LayerViews.data() : nullptr;
+	const XrCompositionLayerBaseHeader* Layers[] = {
+		reinterpret_cast<const XrCompositionLayerBaseHeader*>(&Layer)
+	};
+	XrFrameEndInfo EndInfo = { XR_TYPE_FRAME_END_INFO };
+	EndInfo.displayTime = OpenXRPredictedDisplayTime;
+	EndInfo.environmentBlendMode = OpenXRBlendMode;
+	EndInfo.layerCount = AllImagesReleased ? 1 : 0;
+	EndInfo.layers = AllImagesReleased ? Layers : nullptr;
+	const XrResult Result = OpenXRFunctions.EndFrame(OpenXRSession, &EndInfo);
+	if (XR_FAILED(Result))
+		debugf(TEXT("Unreal Revived OpenXR: xrEndFrame failed (result %d)"), Result);
+	else if (AllImagesReleased && !OpenXRFirstFrameLogged)
+	{
+		OpenXRFirstFrameLogged = 1;
+		debugf(TEXT("Unreal Revived OpenXR: first stereo test frame submitted"));
+	}
+	OpenXRFrameBegun = 0;
+	OpenXRSubmitLayer = 0;
+}
+
 void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
+	OpenXRSessionRunning = 0;
+	OpenXRRenderingReady = 0;
+	for (OpenXRViewSwapchain& Swapchain : OpenXRSwapchains)
+	{
+		if (Swapchain.ImageReady && Swapchain.Handle != XR_NULL_HANDLE && OpenXRFunctions.ReleaseSwapchainImage)
+		{
+			XrSwapchainImageReleaseInfo ReleaseInfo = { XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
+			OpenXRFunctions.ReleaseSwapchainImage(Swapchain.Handle, &ReleaseInfo);
+			Swapchain.ImageReady = 0;
+		}
+	}
+	if (OpenXRFrameBegun && OpenXRFunctions.EndFrame)
+	{
+		XrFrameEndInfo EndInfo = { XR_TYPE_FRAME_END_INFO };
+		EndInfo.displayTime = OpenXRPredictedDisplayTime;
+		EndInfo.environmentBlendMode = OpenXRBlendMode;
+		OpenXRFunctions.EndFrame(OpenXRSession, &EndInfo);
+	}
+	OpenXRFrameBegun = 0;
+	OpenXRSubmitLayer = 0;
+	for (OpenXRViewSwapchain& Swapchain : OpenXRSwapchains)
+	{
+		Swapchain.RTVs.reset();
+		if (Swapchain.Handle != XR_NULL_HANDLE && OpenXRFunctions.DestroySwapchain)
+			OpenXRFunctions.DestroySwapchain(Swapchain.Handle);
+		Swapchain.Handle = XR_NULL_HANDLE;
+		Swapchain.Images.clear();
+	}
+	OpenXRSwapchains.clear();
+	OpenXRViews.clear();
+	OpenXRConfigurationViews.clear();
+	if (OpenXRLocalSpace != XR_NULL_HANDLE && OpenXRFunctions.DestroySpace)
+		OpenXRFunctions.DestroySpace(OpenXRLocalSpace);
+	OpenXRLocalSpace = XR_NULL_HANDLE;
 	if (OpenXRSession != XR_NULL_HANDLE && OpenXRInstance != XR_NULL_HANDLE && OpenXRGetInstanceProcAddr)
 	{
 		PFN_xrVoidFunction RawFunction = nullptr;
@@ -1201,6 +1571,7 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 	}
 	OpenXRSessionState = XR_SESSION_STATE_UNKNOWN;
 	OpenXRSystemId = XR_NULL_SYSTEM_ID;
+	OpenXRFunctions = {};
 	if (OpenXRInstance != XR_NULL_HANDLE && OpenXRGetInstanceProcAddr)
 	{
 		PFN_xrVoidFunction RawFunction = nullptr;
@@ -1216,6 +1587,7 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 		OpenXRInstance = XR_NULL_HANDLE;
 	}
 	OpenXRGetInstanceProcAddr = nullptr;
+	OpenXRFirstFrameLogged = 0;
 
 	if (OpenXRLoader)
 	{
@@ -3046,7 +3418,14 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 			Batch.Macrotex = nullptr;
 			Batch.SceneIndexStart = 0;
 
+#if defined(UNREAL_227)
+			const UBOOL OpenXRFramePending = PrepareOpenXRFrame();
+#endif
 			SubmitCommands(true);
+#if defined(UNREAL_227)
+			if (OpenXRFramePending)
+				FinishOpenXRFrame();
+#endif
 
 			if (Performance.Enabled)
 			{

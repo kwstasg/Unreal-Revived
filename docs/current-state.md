@@ -64,12 +64,13 @@ frame instead of applying them to UI.
 
 The D3D12 renderer now keeps OpenXR strictly opt-in: normal launches and
 `-novr` do not query or load the bundled Khronos loader. `-vr` or the stored
-`EnableVR=True` setting creates a diagnostics-only OpenXR instance, reports the
-active runtime and HMD system when available, verifies the runtime's D3D12
-adapter and feature-level requirements, and creates a guarded OpenXR session.
-It polls session events but does not begin the session until a stereo frame
-loop exists, then safely remains on flat-screen D3D12. Stereo rendering, VR
-input, and comfort features are not implemented. The
+`EnableVR=True` setting creates an OpenXR instance, reports the active runtime
+and HMD system when available, verifies the runtime's D3D12 adapter and
+feature-level requirements, and creates a guarded OpenXR session. It allocates
+two runtime-recommended eye swapchains, begins the session when it reaches
+`READY`, locates both eye views, and submits a solid dark-blue stereo test
+field while retaining the normal monitor output. The UE1 world renderer,
+head-tracked camera, VR input, and comfort features are not connected yet. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
 filtered build-time-extracted patch tree. The policy removes only validated

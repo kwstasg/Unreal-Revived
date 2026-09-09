@@ -39,10 +39,11 @@ not an alternative to the supported CMake build.
 ## Future source layout
 
 The OpenXR mode selection, runtime/HMD detection, D3D12 compatibility checks,
-and initial session lifecycle live in the D3D12 package, with the Khronos
-loader supplied as a pinned CMake dependency. Stereo and tracking work still
-require a narrow, version-pinned host bridge; its final file layout should be
-chosen during implementation. RTX support and the Vulkan driver also have no
-assigned source layout yet. See
+session lifecycle, reference space, frame timing, eye swapchains, and test
+submission live in the D3D12 package, with the Khronos loader supplied as a
+pinned CMake dependency. Connecting the UE1 scene renderer and camera to the
+runtime views still requires a narrow, version-pinned host bridge; its final
+file layout should be chosen during implementation. RTX support and the Vulkan
+driver also have no assigned source layout yet. See
 [`roadmap.md`](roadmap.md) for milestone order and
 [`pc-vr-seated.md`](pc-vr-seated.md) for the first milestone's scope.

@@ -377,8 +377,10 @@ Run `scripts/test-d3d12-runtime.ps1 -Suite VRFoundation` for the isolated
 OpenXR groundwork checks. The suite covers `-vr`, stored `EnableVR=True`, and
 the `-novr` override, requiring a runtime-detection result whenever the loader
 is present. If an HMD is detected, the test also requires a reported D3D12
-session outcome. Every ordinary D3D12 case also enumerates loaded process
-modules and requires both an absent `openxr_loader.dll` and the renderer's
+session outcome. A compatible live session must report two ready eye
+swapchains, and a begun session must submit at least one stereo test frame.
+Every ordinary D3D12 case also enumerates loaded process modules and requires
+both an absent `openxr_loader.dll` and the renderer's
 flat-screen-default diagnostic. The supported-renderer matrix applies the same
 isolation check to each D3D12 launch.
 

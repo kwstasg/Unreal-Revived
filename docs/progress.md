@@ -6,6 +6,27 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-09
 
+### Submitted the first OpenXR stereo test image
+
+- Added a seated `LOCAL` reference space, primary-stereo view configuration,
+  runtime-selected sRGB color format, and separate runtime-recommended
+  swapchains for the left and right eyes.
+- Added session begin/end handling and the required wait/begin/locate,
+  acquire/wait, D3D12 submission, release, and end-frame sequence. The current
+  eye images are cleared to a stable dark-blue validation field; UE1 scene
+  rendering is deliberately not connected yet.
+- Live Quest Link validation created two 1344x1600 eye swapchains through the
+  Oculus 1.207.0 runtime, reached the focused state, submitted the first stereo
+  test frame, displayed the blue field in the headset, and shut down cleanly.
+- Strengthened the runtime harness to require two ready eye swapchains and a
+  submitted frame whenever a live session begins.
+- All 50 D3D12 cases passed under
+  `local/logs/automated-20260909-033510/`; all 18 D3D12, OpenGL, and XOpenGL
+  renderer cases passed under
+  `local/logs/supported-renderers-20260909-033845/`. Normal launches kept the
+  OpenXR loader unloaded.
+- No GitHub push or release was created.
+
 ### Added the guarded OpenXR D3D12 session handshake
 
 - Enabled `XR_KHR_D3D12_enable` only for explicit VR launches, queried the
