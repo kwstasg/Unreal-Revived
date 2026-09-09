@@ -483,16 +483,16 @@ try {
                 throw "$($case.Name) loaded OpenXR without reporting the runtime detection result."
             }
             if ($logText -match 'Unreal Revived OpenXR: headset detected=' -and
-                $logText -notmatch 'Unreal Revived OpenXR: (D3D12 session (created|and stereo test rendering initialized)|runtime requires a different graphics adapter|runtime requires D3D feature level|D3D12 graphics requirements|xrCreateSession unavailable|D3D12 session creation failed)') {
+                $logText -notmatch 'Unreal Revived OpenXR: (D3D12 session (created|and monoscopic game presentation initialized)|runtime requires a different graphics adapter|runtime requires D3D feature level|D3D12 graphics requirements|xrCreateSession unavailable|D3D12 session creation failed)') {
                 throw "$($case.Name) detected an HMD without reporting a D3D12 session outcome."
             }
-            if ($logText -match 'Unreal Revived OpenXR: D3D12 session and stereo test rendering initialized' -and
+            if ($logText -match 'Unreal Revived OpenXR: D3D12 session and monoscopic game presentation initialized' -and
                 $logText -notmatch 'Unreal Revived OpenXR: stereo swapchains ready views=2') {
-                throw "$($case.Name) initialized stereo test rendering without reporting two ready eye swapchains."
+                throw "$($case.Name) initialized headset presentation without reporting two ready eye swapchains."
             }
             if ($logText -match 'Unreal Revived OpenXR: stereo session begun' -and
-                $logText -notmatch 'Unreal Revived OpenXR: first stereo test frame submitted') {
-                throw "$($case.Name) began an OpenXR stereo session without submitting a test frame."
+                $logText -notmatch 'Unreal Revived OpenXR: first monoscopic game frame submitted to both eyes') {
+                throw "$($case.Name) began an OpenXR stereo session without submitting the game image."
             }
         }
         if (($case.Settings.ContainsKey('AntialiasMode') -or $case.Name -match '^display-(2560x1440|3840x2160)') -and $logText -notmatch 'requested MSAA \d+x, effective MSAA \d+x') {

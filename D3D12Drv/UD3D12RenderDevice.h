@@ -549,6 +549,7 @@ private:
 	UBOOL OpenXRFrameBegun = 0;
 	UBOOL OpenXRSubmitLayer = 0;
 	UBOOL OpenXRFirstFrameLogged = 0;
+	ComPtr<ID3D12PipelineState> OpenXRPresentPipelines[8];
 	FPlane FlashScale;
 	FPlane FlashFog;
 	FSceneNode* CurrentFrame = nullptr;

@@ -417,6 +417,15 @@ std::string FileResource::readAllText(const std::string& filename)
 			#else
 				output.outColor = float4(dither(color, input.fragCoord), 1.0f);
 			#endif
+			#if defined(OPENXR_SRGB_OUTPUT)
+				// The desktop swapchain stores display-encoded values directly in an
+				// UNORM target. Convert those values back to linear before an sRGB
+				// OpenXR RTV encodes them, preserving the established presentation.
+				float3 srgb = saturate(output.outColor.rgb);
+				float3 low = srgb / 12.92;
+				float3 high = pow(max((srgb + 0.055) / 1.055, 0.0), 2.4);
+				output.outColor.rgb = lerp(high, low, step(srgb, 0.04045));
+			#endif
 				return output;
 			}
 		)";

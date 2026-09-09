@@ -129,7 +129,8 @@ an explicit VR request, so it is not an import-time dependency. Requested VR
 launches resolve the OpenXR entry points dynamically and bind a compatible
 D3D12 device and direct queue to the guarded session foundation. The current
 experimental frame loop creates two runtime-owned eye swapchains and submits a
-solid-color validation image; it does not yet render UE1 scenes into them.
+completed UE1 game frame to both. It does not yet render independent UE1 scene
+cameras for each runtime view.
 
 The `XInputWinDrv.dll` package is built from a generated copy of the
 pinned SDK's WinDrv source. Configure runs `scripts/stage-xinput-windrv.ps1`,

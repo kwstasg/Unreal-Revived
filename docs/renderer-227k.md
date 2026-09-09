@@ -272,14 +272,15 @@ the runtime-required adapter LUID and minimum feature level before creating a
 D3D12-bound session. Session events are polled, but the session is not begun
 until two per-eye color swapchains and a seated local reference space are
 ready. The frame loop uses runtime-predicted display timing and view poses to
-submit a solid dark-blue test field to both eyes. Runtime-owned images are
+present the completed UE1 game frame to both eyes through an sRGB-aware
+fullscreen pass with aspect-preserving scaling. Runtime-owned images are
 released before the swapchains, session, and instance are destroyed during
 renderer shutdown. Missing runtimes, sleeping or disconnected HMDs, adapter
 mismatches, and API failures are diagnosed without failing D3D12.
 
-The UE1 world and camera are not connected to those views. Independent scene
-rendering, head tracking, VR input, and comfort options are not implemented and
-must not be described as supported features.
+Both eyes currently receive the same already-completed camera image.
+Independent scene rendering, head tracking, VR input, and comfort options are
+not implemented and must not be described as supported features.
 RTX support and a Vulkan driver are also future work; their order and status
 are tracked in
 [`roadmap.md`](roadmap.md).

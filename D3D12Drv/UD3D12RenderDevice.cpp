@@ -1146,13 +1146,22 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		return;
 	}
 
-	if (!InitializeOpenXRRendering())
+	UBOOL RenderingInitialized = 0;
+	try
 	{
-		debugf(TEXT("Unreal Revived OpenXR: D3D12 session created, but stereo test rendering initialization failed; continuing flat-screen D3D12"));
+		RenderingInitialized = InitializeOpenXRRendering();
+	}
+	catch (const std::exception& Error)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: stereo rendering setup failed: %s"), to_utf16(Error.what()).c_str());
+	}
+	if (!RenderingInitialized)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: D3D12 session created, but headset presentation initialization failed; continuing flat-screen D3D12"));
 		return;
 	}
 
-	debugf(TEXT("Unreal Revived OpenXR: D3D12 session and stereo test rendering initialized; monitor rendering remains active"));
+	debugf(TEXT("Unreal Revived OpenXR: D3D12 session and monoscopic game presentation initialized; monitor rendering remains active"));
 	PollOpenXRSession();
 }
 
@@ -1332,6 +1341,47 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 		}
 	}
 
+	std::vector<D3D12_INPUT_ELEMENT_DESC> Elements =
+	{
+		{ "AttrPos", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+	const auto VertexShader = CompileHlsl("shaders/PPStep.vert", "vs");
+	static const char* GammaModes[2] = { "GAMMA_MODE_D3D9", "GAMMA_MODE_XOPENGL" };
+	static const char* ColorModes[4] = { nullptr, "COLOR_CORRECT_MODE0", "COLOR_CORRECT_MODE1", "COLOR_CORRECT_MODE2" };
+	const UBOOL IsSRGB = SelectedFormat == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ||
+		SelectedFormat == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+	for (INT PipelineIndex = 0; PipelineIndex < 8; PipelineIndex++)
+	{
+		std::vector<std::string> Defines;
+		Defines.push_back(GammaModes[PipelineIndex & 1]);
+		if (ColorModes[(PipelineIndex >> 1) & 3])
+			Defines.push_back(ColorModes[(PipelineIndex >> 1) & 3]);
+		if (IsSRGB)
+			Defines.push_back("OPENXR_SRGB_OUTPUT");
+		const auto PixelShader = CompileHlsl("shaders/Present.frag", "ps", Defines);
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineDesc = {};
+		PipelineDesc.pRootSignature = PresentPass.RootSignature;
+		PipelineDesc.InputLayout.NumElements = static_cast<UINT>(Elements.size());
+		PipelineDesc.InputLayout.pInputElementDescs = Elements.data();
+		PipelineDesc.VS.pShaderBytecode = VertexShader.data();
+		PipelineDesc.VS.BytecodeLength = VertexShader.size();
+		PipelineDesc.PS.pShaderBytecode = PixelShader.data();
+		PipelineDesc.PS.BytecodeLength = PixelShader.size();
+		PipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		PipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+		PipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		PipelineDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+		PipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		PipelineDesc.SampleDesc.Count = 1;
+		PipelineDesc.SampleMask = UINT_MAX;
+		PipelineDesc.NumRenderTargets = 1;
+		PipelineDesc.RTVFormats[0] = SelectedFormat;
+		const HRESULT PipelineResult = Device->CreateGraphicsPipelineState(&PipelineDesc,
+			OpenXRPresentPipelines[PipelineIndex].GetIID(), OpenXRPresentPipelines[PipelineIndex].InitPtr());
+		ThrowIfFailed(PipelineResult, "CreateGraphicsPipelineState(OpenXRPresent) failed");
+	}
+
 	OpenXRRenderingReady = 1;
 	debugf(TEXT("Unreal Revived OpenXR: stereo swapchains ready views=%u size=%dx%d format=%d blendMode=%d"),
 		ViewCount, OpenXRSwapchains[0].Width, OpenXRSwapchains[0].Height, (INT)SelectedFormat, (INT)OpenXRBlendMode);
@@ -1436,7 +1486,11 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 		(ViewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0)
 		return 1;
 
-	const FLOAT TestColor[4] = { 0.025f, 0.12f, 0.30f, 1.0f };
+	const FLOAT BackgroundColor[4] = { 0.005f, 0.012f, 0.025f, 1.0f };
+	const PresentPushConstants PushConstants = GetPresentPushConstants();
+	INT PresentPipeline = GammaMode == 1 ? 1 : 0;
+	if (PushConstants.Brightness != 0.0f || PushConstants.Contrast != 1.0f || PushConstants.Saturation != 1.0f)
+		PresentPipeline |= (Clamp(GrayFormula, 0, 2) + 1) << 1;
 	for (uint32_t ViewIndex = 0; ViewIndex < OpenXRSwapchains.size(); ViewIndex++)
 	{
 		OpenXRViewSwapchain& Swapchain = OpenXRSwapchains[ViewIndex];
@@ -1456,8 +1510,30 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 			return 1;
 		}
 		Swapchain.ImageReady = 1;
-		Commands.Current->Draw->ClearRenderTargetView(
-			Swapchain.RTVs.CPUHandle(static_cast<INT>(Swapchain.AcquiredImage)), TestColor, 0, nullptr);
+		const D3D12_CPU_DESCRIPTOR_HANDLE RTV =
+			Swapchain.RTVs.CPUHandle(static_cast<INT>(Swapchain.AcquiredImage));
+		Commands.Current->Draw->ClearRenderTargetView(RTV, BackgroundColor, 0, nullptr);
+		Commands.Current->Draw->SetGraphicsRootSignature(PresentPass.RootSignature);
+		Commands.Current->Draw->OMSetRenderTargets(1, &RTV, FALSE, nullptr);
+
+		const FLOAT Scale = Min(Swapchain.Width / static_cast<FLOAT>(CurrentSizeX),
+			Swapchain.Height / static_cast<FLOAT>(CurrentSizeY));
+		D3D12_VIEWPORT EyeViewport = {};
+		EyeViewport.Width = CurrentSizeX * Scale;
+		EyeViewport.Height = CurrentSizeY * Scale;
+		EyeViewport.TopLeftX = (Swapchain.Width - EyeViewport.Width) * 0.5f;
+		EyeViewport.TopLeftY = (Swapchain.Height - EyeViewport.Height) * 0.5f;
+		EyeViewport.MaxDepth = 1.0f;
+		Commands.Current->Draw->RSSetViewports(1, &EyeViewport);
+		D3D12_RECT EyeScissor = { 0, 0, Swapchain.Width, Swapchain.Height };
+		Commands.Current->Draw->RSSetScissorRects(1, &EyeScissor);
+		Commands.Current->Draw->SetPipelineState(OpenXRPresentPipelines[PresentPipeline]);
+		Commands.Current->Draw->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		Commands.Current->Draw->IASetVertexBuffers(0, 1, &PresentPass.PPStepVertexBufferView);
+		Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, SceneBuffers.PresentSRVs.GPUHandle());
+		Commands.Current->Draw->SetGraphicsRoot32BitConstants(1,
+			sizeof(PresentPushConstants) / sizeof(uint32_t), &PushConstants, 0);
+		Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
 	}
 	OpenXRSubmitLayer = 1;
 	return 1;
@@ -1513,7 +1589,7 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 	else if (AllImagesReleased && !OpenXRFirstFrameLogged)
 	{
 		OpenXRFirstFrameLogged = 1;
-		debugf(TEXT("Unreal Revived OpenXR: first stereo test frame submitted"));
+		debugf(TEXT("Unreal Revived OpenXR: first monoscopic game frame submitted to both eyes"));
 	}
 	OpenXRFrameBegun = 0;
 	OpenXRSubmitLayer = 0;
@@ -1550,6 +1626,8 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 		Swapchain.Images.clear();
 	}
 	OpenXRSwapchains.clear();
+	for (ComPtr<ID3D12PipelineState>& Pipeline : OpenXRPresentPipelines)
+		Pipeline.reset();
 	OpenXRViews.clear();
 	OpenXRConfigurationViews.clear();
 	if (OpenXRLocalSpace != XR_NULL_HANDLE && OpenXRFunctions.DestroySpace)

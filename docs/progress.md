@@ -6,6 +6,26 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-09
 
+### Presented the UE1 game image in the headset
+
+- Replaced the solid-color eye clear with the existing completed UE1 frame,
+  rendered through a swapchain-format-compatible D3D12 presentation pipeline
+  into both OpenXR eye images.
+- Preserved the source aspect ratio with centered dark borders and added the
+  correct display-to-linear conversion before writing through an sRGB OpenXR
+  render-target view, avoiding an extra transfer-function application.
+- Live Quest Link validation displayed the expected OldUnreal image in the
+  headset and logged `first monoscopic game frame submitted to both eyes`, with
+  the Oculus session returning cleanly through stopping to idle.
+- Both eyes intentionally use the same camera image. Independent eye cameras,
+  runtime FOV projection, and head tracking remain the next renderer bridge.
+- All 50 D3D12 cases passed under
+  `local/logs/automated-20260909-104934/`; all 18 D3D12, OpenGL, and XOpenGL
+  renderer cases passed under
+  `local/logs/supported-renderers-20260909-105306/`. Normal launches kept the
+  OpenXR loader unloaded.
+- No GitHub push or release was created.
+
 ### Submitted the first OpenXR stereo test image
 
 - Added a seated `LOCAL` reference space, primary-stereo view configuration,

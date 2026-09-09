@@ -41,9 +41,10 @@ not an alternative to the supported CMake build.
 The OpenXR mode selection, runtime/HMD detection, D3D12 compatibility checks,
 session lifecycle, reference space, frame timing, eye swapchains, and test
 submission live in the D3D12 package, with the Khronos loader supplied as a
-pinned CMake dependency. Connecting the UE1 scene renderer and camera to the
-runtime views still requires a narrow, version-pinned host bridge; its final
-file layout should be chosen during implementation. RTX support and the Vulkan
-driver also have no assigned source layout yet. See
+pinned CMake dependency. The completed UE1 frame is now presented to both eyes.
+Connecting independent UE1 scene cameras to the runtime poses and projections
+still requires a narrow, version-pinned host bridge; its final file layout
+should be chosen during implementation. RTX support and the Vulkan driver also
+have no assigned source layout yet. See
 [`roadmap.md`](roadmap.md) for milestone order and
 [`pc-vr-seated.md`](pc-vr-seated.md) for the first milestone's scope.
