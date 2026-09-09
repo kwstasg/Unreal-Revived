@@ -6,6 +6,24 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-09
 
+### Connected render-only headset orientation
+
+- Fed the latest valid OpenXR headset orientation into the next UE1 scene draw
+  relative to a per-session neutral baseline, including yaw, pitch, and roll.
+- Applied the pose only around the viewport draw and restored the player's view
+  rotation immediately afterward, preserving pawn rotation, aiming,
+  replication, and saved gameplay state.
+- Reset pose validity and the neutral baseline across session stop, exit, loss,
+  restart, and renderer shutdown paths.
+- Live Oculus Rift CV1 validation confirmed correctly directed yaw, pitch, and
+  roll in the headset. Both eyes still intentionally receive the same completed
+  camera image, so stereo depth and eye alignment remain pending.
+- The Release renderer built and deployed successfully. The three-case
+  `VRFoundation` suite passed under `local/logs/automated-20260909-122944/`, and
+  the six-map flat-screen Content suite passed under
+  `local/logs/automated-20260909-110843/` with the loader remaining isolated.
+- No GitHub push or release was created.
+
 ### Presented the UE1 game image in the headset
 
 - Replaced the solid-color eye clear with the existing completed UE1 frame,

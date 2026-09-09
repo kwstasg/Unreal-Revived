@@ -126,6 +126,7 @@ public:
 	void InstallWindowProcedure();
 	void RestoreWindowProcedure();
 	static LRESULT CALLBACK WindowProcedure(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam);
+	void DrawViewportWithOpenXR(FViewportCallback* Original, UBOOL Blit);
 	void InitializeOpenXRFoundation();
 	UBOOL InitializeOpenXRRendering();
 	void PollOpenXRSession();
@@ -549,6 +550,11 @@ private:
 	UBOOL OpenXRFrameBegun = 0;
 	UBOOL OpenXRSubmitLayer = 0;
 	UBOOL OpenXRFirstFrameLogged = 0;
+	XrQuaternionf OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+	XrQuaternionf OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+	UBOOL OpenXRHeadPoseValid = 0;
+	UBOOL OpenXRBaseOrientationValid = 0;
+	UBOOL OpenXRHeadTrackingLogged = 0;
 	ComPtr<ID3D12PipelineState> OpenXRPresentPipelines[8];
 	FPlane FlashScale;
 	FPlane FlashFog;

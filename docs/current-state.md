@@ -70,8 +70,11 @@ feature-level requirements, and creates a guarded OpenXR session. It allocates
 two runtime-recommended eye swapchains, begins the session when it reaches
 `READY`, locates both eye views, and presents the completed UE1 game frame to
 both eyes with aspect-preserving scaling while retaining normal monitor output.
-Both eyes currently receive the same camera image. Independent stereo cameras,
-head tracking, VR input, and comfort features are not connected yet. The
+The predicted headset orientation is applied as a temporary render-only camera
+offset and restored immediately after drawing, leaving pawn rotation, aiming,
+replication, and saved gameplay state unchanged. Both eyes currently receive
+the same camera image; positional tracking, independent stereo cameras, VR
+input, and comfort features are not connected yet. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
 filtered build-time-extracted patch tree. The policy removes only validated
