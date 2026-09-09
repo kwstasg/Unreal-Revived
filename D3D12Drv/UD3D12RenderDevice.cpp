@@ -57,6 +57,38 @@ private:
 	UD3D12RenderDevice* Renderer;
 	FViewportCallback* Original;
 };
+
+static XrQuaternionf MultiplyOpenXRQuaternions(const XrQuaternionf& A, const XrQuaternionf& B)
+{
+	return {
+		A.w * B.x + A.x * B.w + A.y * B.z - A.z * B.y,
+		A.w * B.y - A.x * B.z + A.y * B.w + A.z * B.x,
+		A.w * B.z + A.x * B.y - A.y * B.x + A.z * B.w,
+		A.w * B.w - A.x * B.x - A.y * B.y - A.z * B.z
+	};
+}
+
+static XrQuaternionf NormalizeOpenXRQuaternion(const XrQuaternionf& Q)
+{
+	const FLOAT Length = appSqrt(Q.x * Q.x + Q.y * Q.y + Q.z * Q.z + Q.w * Q.w);
+	if (Length <= 0.00001f)
+		return { 0.0f, 0.0f, 0.0f, 1.0f };
+	const FLOAT InverseLength = 1.0f / Length;
+	return { Q.x * InverseLength, Q.y * InverseLength, Q.z * InverseLength, Q.w * InverseLength };
+}
+
+static FVector RotateOpenXRVector(const XrQuaternionf& Q, const FVector& Vector)
+{
+	const FVector QuaternionVector(Q.x, Q.y, Q.z);
+	const FVector TwiceCross = (QuaternionVector ^ Vector) * 2.0f;
+	return Vector + TwiceCross * Q.w + (QuaternionVector ^ TwiceCross);
+}
+
+static FVector OpenXRVectorToUnreal(const FVector& Vector)
+{
+	// OpenXR is +X right, +Y up, -Z forward. UE1 is +X forward, +Y right, +Z up.
+	return FVector(-Vector.Z, Vector.X, Vector.Y);
+}
 #endif
 
 UD3D12RenderDevice::UD3D12RenderDevice()
@@ -1418,6 +1450,11 @@ void UD3D12RenderDevice::PollOpenXRSession()
 				Result = OpenXRFunctions.BeginSession(OpenXRSession, &BeginInfo);
 				if (XR_SUCCEEDED(Result))
 				{
+					OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+					OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+					OpenXRRelativeHeadRotation = FRotator(0, 0, 0);
+					OpenXRHeadPoseValid = 0;
+					OpenXRBaseOrientationValid = 0;
 					OpenXRSessionRunning = 1;
 					debugf(TEXT("Unreal Revived OpenXR: stereo session begun"));
 				}
@@ -1427,12 +1464,18 @@ void UD3D12RenderDevice::PollOpenXRSession()
 			else if (OpenXRSessionState == XR_SESSION_STATE_STOPPING && OpenXRSessionRunning)
 			{
 				OpenXRSessionRunning = 0;
+				OpenXRHeadPoseValid = 0;
+				OpenXRBaseOrientationValid = 0;
 				Result = OpenXRFunctions.EndSession(OpenXRSession);
 				if (XR_FAILED(Result))
 					debugf(TEXT("Unreal Revived OpenXR: session end failed (result %d)"), Result);
 			}
 			else if (OpenXRSessionState == XR_SESSION_STATE_EXITING || OpenXRSessionState == XR_SESSION_STATE_LOSS_PENDING)
+			{
 				OpenXRSessionRunning = 0;
+				OpenXRHeadPoseValid = 0;
+				OpenXRBaseOrientationValid = 0;
+			}
 		}
 		else if (Event.type == XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING)
 			debugf(TEXT("Unreal Revived OpenXR: runtime reported instance loss pending"));
@@ -1482,6 +1525,33 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 		debugf(TEXT("Unreal Revived OpenXR: xrLocateViews failed count=%u result=%d"), ViewCount, Result);
 		return 1;
 	}
+	if ((ViewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) != 0)
+	{
+		OpenXRHeadOrientation = NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation);
+		OpenXRHeadPoseValid = 1;
+		if (!OpenXRBaseOrientationValid)
+		{
+			OpenXRBaseOrientation = OpenXRHeadOrientation;
+			OpenXRBaseOrientationValid = 1;
+			debugf(TEXT("Unreal Revived OpenXR: head orientation baseline captured for PlayerCalcView"));
+		}
+
+		const XrQuaternionf BaseInverse = {
+			-OpenXRBaseOrientation.x, -OpenXRBaseOrientation.y,
+			-OpenXRBaseOrientation.z, OpenXRBaseOrientation.w
+		};
+		const XrQuaternionf RelativeOrientation = NormalizeOpenXRQuaternion(
+			MultiplyOpenXRQuaternions(BaseInverse, OpenXRHeadOrientation));
+		const FVector Forward = OpenXRVectorToUnreal(
+			RotateOpenXRVector(RelativeOrientation, FVector(0.0f, 0.0f, -1.0f)));
+		const FVector Right = OpenXRVectorToUnreal(
+			RotateOpenXRVector(RelativeOrientation, FVector(1.0f, 0.0f, 0.0f)));
+		const FVector Up = OpenXRVectorToUnreal(
+			RotateOpenXRVector(RelativeOrientation, FVector(0.0f, 1.0f, 0.0f)));
+		OpenXRRelativeHeadRotation = FCoords(FVector(0.0f, 0.0f, 0.0f), Forward, Right, Up).OrthoRotation();
+	}
+	else
+		OpenXRHeadPoseValid = 0;
 	if ((ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
 		(ViewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0)
 		return 1;
@@ -1599,6 +1669,11 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
 	OpenXRSessionRunning = 0;
 	OpenXRRenderingReady = 0;
+	OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+	OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+	OpenXRRelativeHeadRotation = FRotator(0, 0, 0);
+	OpenXRHeadPoseValid = 0;
+	OpenXRBaseOrientationValid = 0;
 	for (OpenXRViewSwapchain& Swapchain : OpenXRSwapchains)
 	{
 		if (Swapchain.ImageReady && Swapchain.Handle != XR_NULL_HANDLE && OpenXRFunctions.ReleaseSwapchainImage)
@@ -3122,6 +3197,18 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 
 	if (ParseCommand(&Cmd, TEXT("D3D12")))
 	{
+		#if defined(UNREAL_227)
+		if (ParseCommand(&Cmd, TEXT("OPENXRPOSE")))
+		{
+			if (OpenXRSessionRunning && OpenXRHeadPoseValid && OpenXRBaseOrientationValid)
+				Ar.Logf(TEXT("1 %d %d %d"), OpenXRRelativeHeadRotation.Pitch,
+					OpenXRRelativeHeadRotation.Yaw, OpenXRRelativeHeadRotation.Roll);
+			else
+				Ar.Logf(TEXT("0"));
+			return 1;
+		}
+		else
+		#endif
 		if (ParseCommand(&Cmd, TEXT("BEGINUIPASS")))
 		{
 			BeginUIPass();

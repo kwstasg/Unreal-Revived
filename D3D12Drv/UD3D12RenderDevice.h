@@ -542,10 +542,15 @@ private:
 	std::vector<XrViewConfigurationView> OpenXRConfigurationViews;
 	std::vector<XrView> OpenXRViews;
 	std::vector<OpenXRViewSwapchain> OpenXRSwapchains;
+	XrQuaternionf OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+	XrQuaternionf OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+	FRotator OpenXRRelativeHeadRotation = FRotator(0, 0, 0);
 	XrEnvironmentBlendMode OpenXRBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 	XrTime OpenXRPredictedDisplayTime = 0;
 	UBOOL OpenXRSessionRunning = 0;
 	UBOOL OpenXRRenderingReady = 0;
+	UBOOL OpenXRHeadPoseValid = 0;
+	UBOOL OpenXRBaseOrientationValid = 0;
 	UBOOL OpenXRFrameBegun = 0;
 	UBOOL OpenXRSubmitLayer = 0;
 	UBOOL OpenXRFirstFrameLogged = 0;

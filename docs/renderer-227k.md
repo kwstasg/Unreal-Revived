@@ -278,9 +278,13 @@ released before the swapchains, session, and instance are destroyed during
 renderer shutdown. Missing runtimes, sleeping or disconnected HMDs, adapter
 mismatches, and API failures are diagnosed without failing D3D12.
 
-Both eyes currently receive the same already-completed camera image.
-Independent scene rendering, head tracking, VR input, and comfort options are
-not implemented and must not be described as supported features.
+Both eyes currently receive the same already-completed camera image. On 227,
+the renderer exposes its relative headset orientation to a `PlayerInteraction`
+that composes it onto the authoritative `PlayerCalcView` result before scene
+culling. This preserves scripted flybys and view targets while leaving gameplay
+aim unchanged. Independent eye rendering, positional tracking, VR input, and
+comfort options are not implemented, so VR must not yet be described as a
+supported feature.
 RTX support and a Vulkan driver are also future work; their order and status
 are tracked in
 [`roadmap.md`](roadmap.md).

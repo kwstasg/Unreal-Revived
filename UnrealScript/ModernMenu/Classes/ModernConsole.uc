@@ -38,6 +38,7 @@ var vector SeamAssistLastLocation;
 var float SeamAssistOriginalRadius;
 var float SeamAssistBlockedTime;
 var bool bSeamAssistRadiusReduced;
+var PlayerPawn VRInteractionPlayer;
 
 const PlayerMaxStepHeight = 32.0;
 const SeamAssistRadiusReduction = 8.0;
@@ -204,6 +205,7 @@ event Tick(float Delta)
 {
 	InitializeLocalizedHudFont();
 	EnsureModernGameHud();
+	EnsureVRInteraction();
 	if (class'Locale'.Static.GetLanguage() ~= "elt")
 	{
 		CaptureLocalizedMOTD();
@@ -229,6 +231,26 @@ event Tick(float Delta)
 		UpdateVSyncStatistics();
 		StatisticsFrameCount = 0;
 		StatisticsIntervalTime = 0;
+	}
+}
+
+// Install the camera hook only after the active renderer reports a valid
+// OpenXR pose. AddInteraction's unique mode also covers player replacement on
+// map travel without accumulating callbacks.
+function EnsureVRInteraction()
+{
+	local PlayerPawn Player;
+	local string Pose;
+
+	Player = Viewport.Actor;
+	if (Player == None || Player == VRInteractionPlayer)
+		return;
+
+	Pose = Player.ConsoleCommand("D3D12 OPENXRPOSE");
+	if (Left(Pose, 1) == "1")
+	{
+		Player.AddInteraction(class'ModernVRInteraction', True);
+		VRInteractionPlayer = Player;
 	}
 }
 

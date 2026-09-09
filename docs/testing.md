@@ -380,6 +380,14 @@ is present. If an HMD is detected, the test also requires a reported D3D12
 session outcome. A compatible live session must report two ready eye
 swapchains, and a begun session must submit at least one monoscopic game frame
 to both eyes.
+
+For live orientation validation, begin with the headset facing comfortably
+forward and compare the intro flyby's initial direction with a flat launch.
+Yaw, pitch, and roll must move naturally without changing the scripted base
+direction or exposing black visibility gaps. Both eyes still contain the same
+image, so defer stereo-depth, eye-focus, and final visual-comfort judgments
+until independent eye cameras are implemented.
+
 Every ordinary D3D12 case also enumerates loaded process modules and requires
 both an absent `openxr_loader.dll` and the renderer's
 flat-screen-default diagnostic. The supported-renderer matrix applies the same

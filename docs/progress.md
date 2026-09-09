@@ -6,6 +6,29 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-09
 
+### Restored headset orientation through the authoritative camera hook
+
+- Added a narrow renderer command that exposes the latest valid OpenXR
+  orientation relative to a per-session neutral baseline.
+- Added a highest-priority 227 `PlayerInteraction` that first obtains the
+  player's fully calculated camera, including scripted flybys and view targets,
+  then composes yaw, pitch, and roll onto that camera before scene culling.
+  Pawn rotation, gameplay aim, and the underlying scripted camera remain
+  unchanged.
+- Live Oculus Rift CV1 validation confirmed that the intro begins in the same
+  correct direction as the flat view and that all head rotations feel correct.
+  The earlier severe direction error and black culling wedges were absent.
+  Fine visual-comfort assessment remains limited until true per-eye stereo is
+  implemented.
+- The Release renderer and `ModernMenu` package built and deployed successfully.
+  The three-case VR foundation suite passed under
+  `local/logs/automated-20260909-140641/`, and the six-map flat-screen Content
+  suite passed under `local/logs/automated-20260909-140731/`.
+- Both eyes still intentionally receive the same image. Positional tracking,
+  independent eye cameras, runtime FOV projection, and VR input remain future
+  work.
+- No GitHub push or release was created.
+
 ### Removed the invalid pawn-view VR camera experiment
 
 - Flat and VR desktop-mirror captures of the flyby showed materially different
