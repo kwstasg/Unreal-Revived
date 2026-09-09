@@ -39,6 +39,7 @@ var float SeamAssistOriginalRadius;
 var float SeamAssistBlockedTime;
 var bool bSeamAssistRadiusReduced;
 var PlayerPawn VRInteractionPlayer;
+var ModernVRAimHook VRAimHook;
 
 const PlayerMaxStepHeight = 32.0;
 const SeamAssistRadiusReduction = 8.0;
@@ -206,6 +207,7 @@ event Tick(float Delta)
 	InitializeLocalizedHudFont();
 	EnsureModernGameHud();
 	EnsureVRInteraction();
+	EnsureVRAimHook();
 	if (class'Locale'.Static.GetLanguage() ~= "elt")
 	{
 		CaptureLocalizedMOTD();
@@ -232,6 +234,25 @@ event Tick(float Delta)
 		StatisticsFrameCount = 0;
 		StatisticsIntervalTime = 0;
 	}
+}
+
+// Hook the original PlayerPawn implementation, including pawns restored from
+// old saves. Hooks are detached by 227 on every map change and rebound here.
+function EnsureVRAimHook()
+{
+	local PlayerPawn Player;
+	local string Pose;
+
+	Player = Viewport.Actor;
+	if (Player == None)
+		return;
+	Pose = Player.ConsoleCommand("D3D12 OPENXRPOSE");
+	if (Left(Pose, 1) != "1")
+		return;
+	if (VRAimHook == None)
+		VRAimHook = new(Self) class'ModernVRAimHook';
+	if (!VRAimHook.bHasHooks)
+		VRAimHook.InstallHooks();
 }
 
 // Install the camera hook only after the active renderer reports a valid

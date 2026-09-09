@@ -81,6 +81,7 @@ event bool RenderOverlays(Canvas Canvas)
 	local vector LocalHeadOffset;
 	local vector VRWeaponOffset;
 	local vector SavedWeaponViewOffset;
+	local float SavedWeaponDrawScale;
 	local Weapon RenderWeapon;
 
 	if (PlayerOwner == None || !ReadHeadPose(HeadRotation, EyeOffset, HeadOffset))
@@ -106,16 +107,23 @@ event bool RenderOverlays(Canvas Canvas)
 		// little farther forward, lower, and toward the selected hand in VR. This
 		// keeps more of the view clear without changing gameplay or muzzle origin.
 		VRWeaponOffset.X = 2.7;
-		VRWeaponOffset.Y = -PlayerOwner.Handedness * 1.5;
-		VRWeaponOffset.Z = -1.0;
+		VRWeaponOffset.Y = -PlayerOwner.Handedness * 2.2;
+		VRWeaponOffset.Z = -1.7;
 		SavedWeaponViewOffset = RenderWeapon.PlayerViewOffset;
+		SavedWeaponDrawScale = RenderWeapon.DrawScale;
 		RenderWeapon.PlayerViewOffset += (LocalHeadOffset + VRWeaponOffset) * 100.0;
+		// First-person models authored for a flat display feel undersized at
+		// headset depth. Scale only the temporary VR overlay render.
+		RenderWeapon.DrawScale *= 1.15;
 	}
 	bRenderOverlays = False;
 	PlayerOwner.RenderOverlays(Canvas);
 	bRenderOverlays = True;
 	if (RenderWeapon != None)
+	{
 		RenderWeapon.PlayerViewOffset = SavedWeaponViewOffset;
+		RenderWeapon.DrawScale = SavedWeaponDrawScale;
+	}
 	PlayerOwner.ViewRotation = SavedViewRotation;
 	return True;
 }
