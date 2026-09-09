@@ -80,8 +80,13 @@ the same base-camera space. Live Oculus Rift CV1 validation confirmed fused
 stereo with natural depth, correct base direction, natural yaw/pitch/roll, no
 black visibility gaps, and no rotational stretching or swimming. The OpenXR
 swapchains use the runtime-recommended 1344x1600 resolution, while the scene is
-still sourced from the selected logical game resolution. Gameplay aim and
-controls remain unchanged; head-gaze aiming, locomotion semantics, recentering,
+still sourced from the selected logical game resolution. The first-person
+weapon now follows headset rotation and seated head-center translation through
+a render-only overlay hook, with a conservative lower, handed placement that
+does not alter gameplay state. Live validation retained scripted flybys,
+controls, stereo fusion, and distortion-free tracking; finer weapon placement
+tuning remains a TODO. Gameplay aim and controls remain unchanged; crosshair
+gaze alignment, firing along headset gaze, locomotion semantics, recentering,
 spatial UI, collision fade, mirror options, and broader acceptance testing are
 not connected yet. The
 offline installer includes visual source selection, hidden

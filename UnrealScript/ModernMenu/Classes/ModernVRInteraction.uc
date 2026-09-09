@@ -17,7 +17,7 @@ function bool PopPoseValue(out string Pose, out string Value)
 	return True;
 }
 
-function bool ReadHeadPose(out rotator HeadRotation, out vector EyeOffset)
+function bool ReadHeadPose(out rotator HeadRotation, out vector EyeOffset, out vector HeadOffset)
 {
 	local string Pose;
 	local string Value;
@@ -42,7 +42,81 @@ function bool ReadHeadPose(out rotator HeadRotation, out vector EyeOffset)
 	if (!PopPoseValue(Pose, Value))
 		return False;
 	EyeOffset.Y = float(Value);
-	EyeOffset.Z = float(Pose);
+	if (!PopPoseValue(Pose, Value))
+		return False;
+	EyeOffset.Z = float(Value);
+	if (!PopPoseValue(Pose, Value))
+		return False;
+	HeadOffset.X = float(Value);
+	if (!PopPoseValue(Pose, Value))
+		return False;
+	HeadOffset.Y = float(Value);
+	HeadOffset.Z = float(Pose);
+	return True;
+}
+
+function rotator ComposeRotation(rotator BaseRotation, rotator HeadRotation)
+{
+	local vector BaseX, BaseY, BaseZ;
+	local vector HeadX, HeadY, HeadZ;
+	local vector NewX, NewY, NewZ;
+
+	GetAxes(BaseRotation, BaseX, BaseY, BaseZ);
+	GetAxes(HeadRotation, HeadX, HeadY, HeadZ);
+	NewX = BaseX * HeadX.X + BaseY * HeadX.Y + BaseZ * HeadX.Z;
+	NewY = BaseX * HeadY.X + BaseY * HeadY.Y + BaseZ * HeadY.Z;
+	NewZ = BaseX * HeadZ.X + BaseY * HeadZ.Y + BaseZ * HeadZ.Z;
+	return OrthoRotation(NewX, NewY, NewZ);
+}
+
+event bool RenderOverlays(Canvas Canvas)
+{
+	local rotator HeadRotation;
+	local rotator AimRotation;
+	local rotator SavedViewRotation;
+	local vector BaseX, BaseY, BaseZ;
+	local vector EyeOffset;
+	local vector HeadOffset;
+	local vector WorldHeadOffset;
+	local vector LocalHeadOffset;
+	local vector VRWeaponOffset;
+	local vector SavedWeaponViewOffset;
+	local Weapon RenderWeapon;
+
+	if (PlayerOwner == None || !ReadHeadPose(HeadRotation, EyeOffset, HeadOffset))
+		return False;
+
+	// Weapon.RenderOverlays derives its model rotation and draw offset from the
+	// player's ViewRotation. Expose headset-composed aim only for this rendering
+	// callback, then restore gameplay state before returning.
+	SavedViewRotation = PlayerOwner.ViewRotation;
+	AimRotation = ComposeRotation(SavedViewRotation, HeadRotation);
+	PlayerOwner.ViewRotation = AimRotation;
+
+	// CalcDrawOffset anchors the first-person weapon at Owner.Location. Add the
+	// tracked head-center translation to its temporary view offset so the model
+	// follows leaning without applying per-eye IPD to the weapon itself.
+	RenderWeapon = PlayerOwner.Weapon;
+	if (RenderWeapon != None)
+	{
+		GetAxes(SavedViewRotation, BaseX, BaseY, BaseZ);
+		WorldHeadOffset = BaseX * HeadOffset.X + BaseY * HeadOffset.Y + BaseZ * HeadOffset.Z;
+		LocalHeadOffset = WorldHeadOffset << AimRotation;
+		// Preserve each weapon's authored offset, but place the complete model a
+		// little farther forward, lower, and toward the selected hand in VR. This
+		// keeps more of the view clear without changing gameplay or muzzle origin.
+		VRWeaponOffset.X = 2.7;
+		VRWeaponOffset.Y = -PlayerOwner.Handedness * 1.5;
+		VRWeaponOffset.Z = -1.0;
+		SavedWeaponViewOffset = RenderWeapon.PlayerViewOffset;
+		RenderWeapon.PlayerViewOffset += (LocalHeadOffset + VRWeaponOffset) * 100.0;
+	}
+	bRenderOverlays = False;
+	PlayerOwner.RenderOverlays(Canvas);
+	bRenderOverlays = True;
+	if (RenderWeapon != None)
+		RenderWeapon.PlayerViewOffset = SavedWeaponViewOffset;
+	PlayerOwner.ViewRotation = SavedViewRotation;
 	return True;
 }
 
@@ -53,8 +127,9 @@ event bool PlayerCalcView(out actor ViewActor, out vector CameraLocation, out ro
 	local vector HeadX, HeadY, HeadZ;
 	local vector NewX, NewY, NewZ;
 	local vector EyeOffset;
+	local vector HeadOffset;
 
-	if (PlayerOwner == None || !ReadHeadPose(HeadRotation, EyeOffset))
+	if (PlayerOwner == None || !ReadHeadPose(HeadRotation, EyeOffset, HeadOffset))
 		return False;
 
 	// Re-enter the real player implementation with this highest-priority hook
@@ -79,5 +154,6 @@ event bool PlayerCalcView(out actor ViewActor, out vector CameraLocation, out ro
 defaultproperties
 {
 	Priority=255
+	bRenderOverlays=True
 	bPlayerCalcView=True
 }

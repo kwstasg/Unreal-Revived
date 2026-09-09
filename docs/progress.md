@@ -6,6 +6,32 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-09
 
+### Added stable render-only VR weapon following
+
+- Composed the relative headset rotation into `ViewRotation` only while the
+  existing first-person weapon overlay renders, then restored gameplay state.
+  Scripted cameras, player aim, locomotion, and right-stick behavior therefore
+  remain authoritative and unchanged.
+- Exposed the tracked head-center translation separately from the per-eye
+  offset and applied it to the temporary weapon view offset. The weapon follows
+  forward/backward and left/right leaning without inheriting IPD twice.
+- Added a conservative VR-only placement adjustment that moves each weapon
+  farther forward, lower, and toward the configured hand while preserving its
+  authored per-weapon offset.
+- Live headset validation confirmed stable weapon placement through all head
+  movements, correct left/right lean following, believable stereo depth,
+  preserved scripted flybys and controls, and unchanged stereo fusion and
+  distortion-free tracking.
+- Fine weapon distance, scale, and lower-right placement tuning is deferred.
+  Crosshair gaze alignment and actual firing direction remain separate future
+  stages and are not implemented by this render-only milestone.
+- `ModernMenu` compiled with zero warnings. The flat-screen Content and Input
+  suites passed under `local/logs/automated-20260909-180738/`,
+  `local/logs/automated-20260909-180839/`,
+  `local/logs/automated-20260909-182044/`, and
+  `local/logs/automated-20260909-182142/` across the head-follow and final
+  placement revisions.
+
 ### Reached stable distortion-free OpenXR stereo rendering
 
 - Replaced the shared monoscopic headset image with two independently culled

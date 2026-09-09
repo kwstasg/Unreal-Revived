@@ -3287,6 +3287,7 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			{
 				FRotator EyeRotation = OpenXRRelativeHeadRotation;
 				FVector EyeOffset(0.0f, 0.0f, 0.0f);
+				FVector HeadOffset(0.0f, 0.0f, 0.0f);
 				if (OpenXRStereoDrawEye >= 0 && OpenXRViewsValid && OpenXRViews.size() == 2)
 				{
 					EyeRotation = RelativeOpenXRRotation(OpenXRBaseOrientation,
@@ -3301,10 +3302,19 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 							Position.y - OpenXRBaseHeadPosition.y,
 							Position.z - OpenXRBaseHeadPosition.z));
 					EyeOffset = OpenXRVectorToUnreal(LocalDelta) * 50.0f;
+					const FVector CurrentHeadPosition(
+						(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
+						(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
+						(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f);
+					const FVector LocalHeadDelta = RotateOpenXRVector(BaseInverse,
+						CurrentHeadPosition - FVector(OpenXRBaseHeadPosition.x,
+							OpenXRBaseHeadPosition.y, OpenXRBaseHeadPosition.z));
+					HeadOffset = OpenXRVectorToUnreal(LocalHeadDelta) * 50.0f;
 				}
-				Ar.Logf(TEXT("1 %d %d %d %.6f %.6f %.6f"), EyeRotation.Pitch,
+				Ar.Logf(TEXT("1 %d %d %d %.6f %.6f %.6f %.6f %.6f %.6f"), EyeRotation.Pitch,
 					EyeRotation.Yaw, EyeRotation.Roll,
-					EyeOffset.X, EyeOffset.Y, EyeOffset.Z);
+					EyeOffset.X, EyeOffset.Y, EyeOffset.Z,
+					HeadOffset.X, HeadOffset.Y, HeadOffset.Z);
 			}
 			else
 				Ar.Logf(TEXT("0"));
