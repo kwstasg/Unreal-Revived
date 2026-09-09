@@ -126,10 +126,12 @@ public:
 	void InstallWindowProcedure();
 	void RestoreWindowProcedure();
 	static LRESULT CALLBACK WindowProcedure(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam);
+	void DrawViewportWithOpenXR(FViewportCallback* Original, UBOOL Blit);
 	void InitializeOpenXRFoundation();
 	UBOOL InitializeOpenXRRendering();
 	void PollOpenXRSession();
 	UBOOL PrepareOpenXRFrame();
+	UBOOL PresentOpenXREye(uint32_t ViewIndex);
 	void FinishOpenXRFrame();
 	void ReleaseOpenXRFoundation();
 #endif
@@ -544,6 +546,7 @@ private:
 	std::vector<OpenXRViewSwapchain> OpenXRSwapchains;
 	XrQuaternionf OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 	XrQuaternionf OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+	XrVector3f OpenXRBaseHeadPosition = { 0.0f, 0.0f, 0.0f };
 	FRotator OpenXRRelativeHeadRotation = FRotator(0, 0, 0);
 	XrEnvironmentBlendMode OpenXRBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 	XrTime OpenXRPredictedDisplayTime = 0;
@@ -551,9 +554,13 @@ private:
 	UBOOL OpenXRRenderingReady = 0;
 	UBOOL OpenXRHeadPoseValid = 0;
 	UBOOL OpenXRBaseOrientationValid = 0;
+	UBOOL OpenXRViewsValid = 0;
 	UBOOL OpenXRFrameBegun = 0;
 	UBOOL OpenXRSubmitLayer = 0;
 	UBOOL OpenXRFirstFrameLogged = 0;
+	UBOOL OpenXRStereoRenderingLogged = 0;
+	UBOOL OpenXRFovLogged = 0;
+	INT OpenXRStereoDrawEye = -1;
 	ComPtr<ID3D12PipelineState> OpenXRPresentPipelines[8];
 	FPlane FlashScale;
 	FPlane FlashFog;

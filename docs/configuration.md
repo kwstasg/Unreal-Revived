@@ -330,7 +330,7 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | --- | ---: | --- |
 | `UseVSync` | `False` | Synchronize presentation to the display. |
 | `UsePrecache` | `True` | Precache renderer resources. |
-| `EnableVR` | `False` | Opt in to the experimental OpenXR D3D12 session and monoscopic game-image output on the next launch; true stereo and head tracking are not implemented yet. |
+| `EnableVR` | `False` | Opt in to the experimental OpenXR D3D12 stereo session and seated head tracking on the next launch; the broader VR milestone remains unsupported. |
 | `AntialiasMode` | `MSAA_4x` | `Off`, `MSAA_2x`, `MSAA_4x`, or `MSAA_8x`. |
 | `GammaMode` | `D3D9` | `D3D9` or `XOpenGL` response. |
 | `GammaOffset` | `0.0` | Global gamma offset. |
@@ -362,9 +362,11 @@ switches are present. Disabled launches never query `openxr_loader.dll`.
 Requested launches create an OpenXR instance, query the active runtime and
 head-mounted-display system, validate the D3D12 adapter and feature level, and
 attempt to create a session. When compatible, they allocate two eye swapchains,
-begin the session, locate the runtime views, and present the completed UE1 game
-frame to both eyes. This is monoscopic headset presentation: it does not render
-independent eye cameras or apply head movement to the game camera.
+begin the session, locate the runtime views, and render independently culled
+eye cameras with runtime pose, IPD, asymmetric FOV, and seated head movement.
+This remains an experimental rendering milestone: head-gaze gameplay aim,
+recenter controls, spatial UI, collision comfort, and full acceptance coverage
+are not implemented.
 
 The 227 adapter fixes `MaxTextureSize` at 4096, disables the engine lightmap
 atlas, disables masked-font requirements, and advertises the renderer as

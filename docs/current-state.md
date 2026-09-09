@@ -68,16 +68,22 @@ The D3D12 renderer now keeps OpenXR strictly opt-in: normal launches and
 and HMD system when available, verifies the runtime's D3D12 adapter and
 feature-level requirements, and creates a guarded OpenXR session. It allocates
 two runtime-recommended eye swapchains, begins the session when it reaches
-`READY`, locates both eye views, and presents the completed UE1 game frame to
-both eyes with aspect-preserving scaling while retaining normal monitor output.
-Both eyes currently receive the same UE1 camera image. A render-only
+`READY`, locates both eye views, and renders two independently culled UE1 views
+using the runtime eye poses, IPD, asymmetric FOV, and frame timing while
+retaining normal monitor output. A render-only
 `PlayerPawn.ViewRotation` experiment was removed after flat/VR flyby comparison
 showed that pawn view state is not UE1's authoritative calculated camera for
 scripted views. Orientation tracking now uses a 227 `PlayerInteraction` to
 compose the relative OpenXR pose onto the authoritative `PlayerCalcView` result
-before scene culling; live validation confirmed correct base direction and
-yaw, pitch, and roll. Positional tracking, independent stereo cameras, VR input,
-and comfort features are not connected yet. The
+before scene culling, with per-eye position and seated translation applied in
+the same base-camera space. Live Oculus Rift CV1 validation confirmed fused
+stereo with natural depth, correct base direction, natural yaw/pitch/roll, no
+black visibility gaps, and no rotational stretching or swimming. The OpenXR
+swapchains use the runtime-recommended 1344x1600 resolution, while the scene is
+still sourced from the selected logical game resolution. Gameplay aim and
+controls remain unchanged; head-gaze aiming, locomotion semantics, recentering,
+spatial UI, collision fade, mirror options, and broader acceptance testing are
+not connected yet. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
 filtered build-time-extracted patch tree. The policy removes only validated

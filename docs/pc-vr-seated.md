@@ -3,12 +3,36 @@
 ## Status
 
 This document is the implementation plan for a future supported VR mode. The
-initial mode-selection, loader, runtime/HMD detection, D3D12 compatibility,
-session lifecycle, frame timing, and stereo test submission are implemented.
-The completed UE1 game image is presented unchanged to both eyes. A pawn-view
-orientation experiment was removed after flyby comparison exposed that it did
-not preserve UE1's calculated scripted camera. Independent eye cameras are not
-connected, so seated PC VR is not implemented or supported yet.
+mode-selection, loader, runtime/HMD detection, D3D12 compatibility, session
+lifecycle, frame timing, independent eye rendering, runtime IPD, asymmetric
+projection, and seated head-pose bridge are implemented locally. Live Oculus
+Rift CV1 validation confirms fused stereo with natural depth, correct scripted
+camera direction, natural yaw/pitch/roll, no visibility gaps, and no rotational
+stretching or swimming. The vertical optical-center mapping accounts for UE1's
+positive-down camera Y and the renderer's final vertical presentation flip.
+
+This is a validated rendering milestone, not a supported VR release. Head-gaze
+aiming, head-oriented locomotion, recentering, head-collision fade, spatial HUD
+and menus, mirror selection, broader gameplay validation, and SteamVR coverage
+remain incomplete. The eye swapchains use the runtime-recommended resolution;
+the UE1 scene is still rendered at the selected logical game resolution before
+being scaled into those swapchains.
+
+## Implementation alignment checkpoint
+
+- Complete and live-validated: strict opt-in mode isolation, runtime/HMD and
+  D3D12 checks, session lifecycle, predicted frame timing, two eye swapchains,
+  independently culled views, runtime IPD and asymmetric FOV, correct scripted
+  camera direction, and distortion-free yaw/pitch/roll on Oculus Rift CV1.
+- Implemented but needing focused live validation: seated positional leaning
+  and representative stereo rendering across geometry, skyboxes, particles,
+  transparency, weapons, mirrors, portals, and scripted cameras.
+- Still to implement: recentering, headset-yaw locomotion, right-stick body
+  semantics, head-gaze weapon aim, collision fade, spatial HUD and menus,
+  desktop-mirror selection, VR preferences, and incompatible-overlay handling.
+- Still to validate before support: saves and multiplayer behavior in VR,
+  recovery/failure cases with a live runtime, Meta and SteamVR parity, extended
+  comfort testing, and packaged-install behavior.
 
 ## Goal
 

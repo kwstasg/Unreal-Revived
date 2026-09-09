@@ -31,7 +31,7 @@ public:
 	}
 
 	void ViewportDestroyed() override { Original->ViewportDestroyed(); }
-	void Draw(UBOOL Blit) override { Original->Draw(Blit); }
+	void Draw(UBOOL Blit) override { Renderer->DrawViewportWithOpenXR(Original, Blit); }
 	UBOOL InputEvent(EInputKey Key, EInputAction State, FLOAT Delta) override { return Original->InputEvent(Key, State, Delta); }
 	UBOOL Key(EInputKey Key, INT KeyValue) override { return Original->Key(Key, KeyValue); }
 
@@ -89,12 +89,80 @@ static FVector OpenXRVectorToUnreal(const FVector& Vector)
 	// OpenXR is +X right, +Y up, -Z forward. UE1 is +X forward, +Y right, +Z up.
 	return FVector(-Vector.Z, Vector.X, Vector.Y);
 }
+
+static FRotator RelativeOpenXRRotation(const XrQuaternionf& BaseOrientation,
+	const XrQuaternionf& Orientation)
+{
+	const XrQuaternionf BaseInverse = {
+		-BaseOrientation.x, -BaseOrientation.y, -BaseOrientation.z, BaseOrientation.w
+	};
+	const XrQuaternionf RelativeOrientation = NormalizeOpenXRQuaternion(
+		MultiplyOpenXRQuaternions(BaseInverse, NormalizeOpenXRQuaternion(Orientation)));
+	const FVector Forward = OpenXRVectorToUnreal(
+		RotateOpenXRVector(RelativeOrientation, FVector(0.0f, 0.0f, -1.0f)));
+	const FVector Right = OpenXRVectorToUnreal(
+		RotateOpenXRVector(RelativeOrientation, FVector(1.0f, 0.0f, 0.0f)));
+	const FVector Up = OpenXRVectorToUnreal(
+		RotateOpenXRVector(RelativeOrientation, FVector(0.0f, 1.0f, 0.0f)));
+	return FCoords(FVector(0.0f, 0.0f, 0.0f), Forward, Right, Up).OrthoRotation();
+}
 #endif
 
 UD3D12RenderDevice::UD3D12RenderDevice()
 {
 	QueryPerformanceFrequency(&Performance.Frequency);
 }
+
+#if defined(UNREAL_227)
+void UD3D12RenderDevice::DrawViewportWithOpenXR(FViewportCallback* Original, UBOOL Blit)
+{
+	APlayerPawn* Player = Viewport ? Viewport->Actor : nullptr;
+	if (!Original)
+		return;
+
+	PollOpenXRSession();
+	const UBOOL OpenXRFramePending = Player && OpenXRSessionRunning && PrepareOpenXRFrame();
+	if (!OpenXRFramePending || !OpenXRViewsValid || !OpenXRHeadPoseValid || !OpenXRBaseOrientationValid)
+	{
+		Original->Draw(Blit);
+		if (OpenXRFramePending)
+			FinishOpenXRFrame();
+		return;
+	}
+
+	const FLOAT SavedFovAngle = Player->FovAngle;
+	try
+	{
+		for (uint32_t ViewIndex = 0; ViewIndex < OpenXRViews.size() && OpenXRSessionRunning; ViewIndex++)
+		{
+			const XrFovf& EyeFov = OpenXRViews[ViewIndex].fov;
+			const FLOAT HorizontalTangent = Max(-appTan(EyeFov.angleLeft), appTan(EyeFov.angleRight));
+			const FLOAT VerticalTangent = Max(-appTan(EyeFov.angleDown), appTan(EyeFov.angleUp));
+			const FLOAT SourceAspect = CurrentSizeX > 0 ? CurrentSizeY / static_cast<FLOAT>(CurrentSizeX) : 0.75f;
+			const FLOAT CullingTangent = Max(HorizontalTangent, VerticalTangent / Max(SourceAspect, 0.01f));
+			Player->FovAngle = Clamp(degrees(2.0f * appAtan(CullingTangent)), 5.0f, 170.0f);
+			OpenXRStereoDrawEye = static_cast<INT>(ViewIndex);
+			Original->Draw(Blit);
+		}
+	}
+	catch (...)
+	{
+		Player->FovAngle = SavedFovAngle;
+		OpenXRStereoDrawEye = -1;
+		FinishOpenXRFrame();
+		throw;
+	}
+	Player->FovAngle = SavedFovAngle;
+	OpenXRStereoDrawEye = -1;
+	const UBOOL StereoSubmitted = OpenXRSubmitLayer;
+	FinishOpenXRFrame();
+	if (StereoSubmitted && !OpenXRStereoRenderingLogged)
+	{
+		OpenXRStereoRenderingLogged = 1;
+		debugf(TEXT("Unreal Revived OpenXR: independent pre-culling left and right eye camera passes submitted"));
+	}
+}
+#endif
 
 void UD3D12RenderDevice::StaticConstructor()
 {
@@ -1193,7 +1261,7 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		return;
 	}
 
-	debugf(TEXT("Unreal Revived OpenXR: D3D12 session and monoscopic game presentation initialized; monitor rendering remains active"));
+	debugf(TEXT("Unreal Revived OpenXR: D3D12 session and stereo game presentation initialized; monitor rendering remains active"));
 	PollOpenXRSession();
 }
 
@@ -1452,9 +1520,14 @@ void UD3D12RenderDevice::PollOpenXRSession()
 				{
 					OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 					OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+					OpenXRBaseHeadPosition = { 0.0f, 0.0f, 0.0f };
 					OpenXRRelativeHeadRotation = FRotator(0, 0, 0);
 					OpenXRHeadPoseValid = 0;
 					OpenXRBaseOrientationValid = 0;
+					OpenXRViewsValid = 0;
+					OpenXRStereoRenderingLogged = 0;
+					OpenXRFovLogged = 0;
+					OpenXRStereoDrawEye = -1;
 					OpenXRSessionRunning = 1;
 					debugf(TEXT("Unreal Revived OpenXR: stereo session begun"));
 				}
@@ -1466,6 +1539,7 @@ void UD3D12RenderDevice::PollOpenXRSession()
 				OpenXRSessionRunning = 0;
 				OpenXRHeadPoseValid = 0;
 				OpenXRBaseOrientationValid = 0;
+				OpenXRViewsValid = 0;
 				Result = OpenXRFunctions.EndSession(OpenXRSession);
 				if (XR_FAILED(Result))
 					debugf(TEXT("Unreal Revived OpenXR: session end failed (result %d)"), Result);
@@ -1475,6 +1549,7 @@ void UD3D12RenderDevice::PollOpenXRSession()
 				OpenXRSessionRunning = 0;
 				OpenXRHeadPoseValid = 0;
 				OpenXRBaseOrientationValid = 0;
+				OpenXRViewsValid = 0;
 			}
 		}
 		else if (Event.type == XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING)
@@ -1506,6 +1581,7 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 	}
 	OpenXRFrameBegun = 1;
 	OpenXRSubmitLayer = 0;
+	OpenXRViewsValid = 0;
 	OpenXRPredictedDisplayTime = FrameState.predictedDisplayTime;
 	for (OpenXRViewSwapchain& Swapchain : OpenXRSwapchains)
 		Swapchain.ImageReady = 0;
@@ -1529,26 +1605,21 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 	{
 		OpenXRHeadOrientation = NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation);
 		OpenXRHeadPoseValid = 1;
-		if (!OpenXRBaseOrientationValid)
+		if (!OpenXRBaseOrientationValid &&
+			(ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) != 0)
 		{
 			OpenXRBaseOrientation = OpenXRHeadOrientation;
+			OpenXRBaseHeadPosition = {
+				(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
+				(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
+				(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f
+			};
 			OpenXRBaseOrientationValid = 1;
 			debugf(TEXT("Unreal Revived OpenXR: head orientation baseline captured for PlayerCalcView"));
 		}
 
-		const XrQuaternionf BaseInverse = {
-			-OpenXRBaseOrientation.x, -OpenXRBaseOrientation.y,
-			-OpenXRBaseOrientation.z, OpenXRBaseOrientation.w
-		};
-		const XrQuaternionf RelativeOrientation = NormalizeOpenXRQuaternion(
-			MultiplyOpenXRQuaternions(BaseInverse, OpenXRHeadOrientation));
-		const FVector Forward = OpenXRVectorToUnreal(
-			RotateOpenXRVector(RelativeOrientation, FVector(0.0f, 0.0f, -1.0f)));
-		const FVector Right = OpenXRVectorToUnreal(
-			RotateOpenXRVector(RelativeOrientation, FVector(1.0f, 0.0f, 0.0f)));
-		const FVector Up = OpenXRVectorToUnreal(
-			RotateOpenXRVector(RelativeOrientation, FVector(0.0f, 1.0f, 0.0f)));
-		OpenXRRelativeHeadRotation = FCoords(FVector(0.0f, 0.0f, 0.0f), Forward, Right, Up).OrthoRotation();
+		OpenXRRelativeHeadRotation = RelativeOpenXRRotation(
+			OpenXRBaseOrientation, OpenXRHeadOrientation);
 	}
 	else
 		OpenXRHeadPoseValid = 0;
@@ -1556,56 +1627,62 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 		(ViewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0)
 		return 1;
 
+	OpenXRViewsValid = 1;
+	return 1;
+}
+
+UBOOL UD3D12RenderDevice::PresentOpenXREye(uint32_t ViewIndex)
+{
+	if (!OpenXRFrameBegun || !OpenXRViewsValid || ViewIndex >= OpenXRSwapchains.size())
+		return 0;
+
 	const FLOAT BackgroundColor[4] = { 0.005f, 0.012f, 0.025f, 1.0f };
 	const PresentPushConstants PushConstants = GetPresentPushConstants();
 	INT PresentPipeline = GammaMode == 1 ? 1 : 0;
 	if (PushConstants.Brightness != 0.0f || PushConstants.Contrast != 1.0f || PushConstants.Saturation != 1.0f)
 		PresentPipeline |= (Clamp(GrayFormula, 0, 2) + 1) << 1;
-	for (uint32_t ViewIndex = 0; ViewIndex < OpenXRSwapchains.size(); ViewIndex++)
+	OpenXRViewSwapchain& Swapchain = OpenXRSwapchains[ViewIndex];
+	XrResult Result;
+	XrSwapchainImageAcquireInfo AcquireInfo = { XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+	Result = OpenXRFunctions.AcquireSwapchainImage(Swapchain.Handle, &AcquireInfo, &Swapchain.AcquiredImage);
+	if (XR_FAILED(Result) || Swapchain.AcquiredImage >= Swapchain.Images.size())
 	{
-		OpenXRViewSwapchain& Swapchain = OpenXRSwapchains[ViewIndex];
-		XrSwapchainImageAcquireInfo AcquireInfo = { XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
-		Result = OpenXRFunctions.AcquireSwapchainImage(Swapchain.Handle, &AcquireInfo, &Swapchain.AcquiredImage);
-		if (XR_FAILED(Result) || Swapchain.AcquiredImage >= Swapchain.Images.size())
-		{
-			debugf(TEXT("Unreal Revived OpenXR: view %u image acquire failed (result %d)"), ViewIndex, Result);
-			return 1;
-		}
-		XrSwapchainImageWaitInfo ImageWaitInfo = { XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
-		ImageWaitInfo.timeout = XR_INFINITE_DURATION;
-		Result = OpenXRFunctions.WaitSwapchainImage(Swapchain.Handle, &ImageWaitInfo);
-		if (XR_FAILED(Result))
-		{
-			debugf(TEXT("Unreal Revived OpenXR: view %u image wait failed (result %d)"), ViewIndex, Result);
-			return 1;
-		}
-		Swapchain.ImageReady = 1;
-		const D3D12_CPU_DESCRIPTOR_HANDLE RTV =
-			Swapchain.RTVs.CPUHandle(static_cast<INT>(Swapchain.AcquiredImage));
-		Commands.Current->Draw->ClearRenderTargetView(RTV, BackgroundColor, 0, nullptr);
-		Commands.Current->Draw->SetGraphicsRootSignature(PresentPass.RootSignature);
-		Commands.Current->Draw->OMSetRenderTargets(1, &RTV, FALSE, nullptr);
-
-		const FLOAT Scale = Min(Swapchain.Width / static_cast<FLOAT>(CurrentSizeX),
-			Swapchain.Height / static_cast<FLOAT>(CurrentSizeY));
-		D3D12_VIEWPORT EyeViewport = {};
-		EyeViewport.Width = CurrentSizeX * Scale;
-		EyeViewport.Height = CurrentSizeY * Scale;
-		EyeViewport.TopLeftX = (Swapchain.Width - EyeViewport.Width) * 0.5f;
-		EyeViewport.TopLeftY = (Swapchain.Height - EyeViewport.Height) * 0.5f;
-		EyeViewport.MaxDepth = 1.0f;
-		Commands.Current->Draw->RSSetViewports(1, &EyeViewport);
-		D3D12_RECT EyeScissor = { 0, 0, Swapchain.Width, Swapchain.Height };
-		Commands.Current->Draw->RSSetScissorRects(1, &EyeScissor);
-		Commands.Current->Draw->SetPipelineState(OpenXRPresentPipelines[PresentPipeline]);
-		Commands.Current->Draw->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		Commands.Current->Draw->IASetVertexBuffers(0, 1, &PresentPass.PPStepVertexBufferView);
-		Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, SceneBuffers.PresentSRVs.GPUHandle());
-		Commands.Current->Draw->SetGraphicsRoot32BitConstants(1,
-			sizeof(PresentPushConstants) / sizeof(uint32_t), &PushConstants, 0);
-		Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
+		debugf(TEXT("Unreal Revived OpenXR: view %u image acquire failed (result %d)"), ViewIndex, Result);
+		return 0;
 	}
+	XrSwapchainImageWaitInfo ImageWaitInfo = { XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
+	ImageWaitInfo.timeout = XR_INFINITE_DURATION;
+	Result = OpenXRFunctions.WaitSwapchainImage(Swapchain.Handle, &ImageWaitInfo);
+	if (XR_FAILED(Result))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: view %u image wait failed (result %d)"), ViewIndex, Result);
+		return 0;
+	}
+	Swapchain.ImageReady = 1;
+	const D3D12_CPU_DESCRIPTOR_HANDLE RTV =
+		Swapchain.RTVs.CPUHandle(static_cast<INT>(Swapchain.AcquiredImage));
+	Commands.Current->Draw->ClearRenderTargetView(RTV, BackgroundColor, 0, nullptr);
+	Commands.Current->Draw->SetGraphicsRootSignature(PresentPass.RootSignature);
+	Commands.Current->Draw->OMSetRenderTargets(1, &RTV, FALSE, nullptr);
+
+	D3D12_VIEWPORT EyeViewport = {};
+	EyeViewport.Width = static_cast<FLOAT>(Swapchain.Width);
+	EyeViewport.Height = static_cast<FLOAT>(Swapchain.Height);
+	EyeViewport.MaxDepth = 1.0f;
+	Commands.Current->Draw->RSSetViewports(1, &EyeViewport);
+	D3D12_RECT EyeScissor = { 0, 0, Swapchain.Width, Swapchain.Height };
+	Commands.Current->Draw->RSSetScissorRects(1, &EyeScissor);
+	Commands.Current->Draw->SetPipelineState(OpenXRPresentPipelines[PresentPipeline]);
+	Commands.Current->Draw->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	Commands.Current->Draw->IASetVertexBuffers(0, 1, &PresentPass.PPStepVertexBufferView);
+	Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, SceneBuffers.PresentSRVs.GPUHandle());
+	Commands.Current->Draw->SetGraphicsRoot32BitConstants(1,
+		sizeof(PresentPushConstants) / sizeof(uint32_t), &PushConstants, 0);
+	Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
+
 	OpenXRSubmitLayer = 1;
+	for (const OpenXRViewSwapchain& EyeSwapchain : OpenXRSwapchains)
+		OpenXRSubmitLayer = OpenXRSubmitLayer && EyeSwapchain.ImageReady;
 	return 1;
 }
 
@@ -1659,7 +1736,7 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 	else if (AllImagesReleased && !OpenXRFirstFrameLogged)
 	{
 		OpenXRFirstFrameLogged = 1;
-		debugf(TEXT("Unreal Revived OpenXR: first monoscopic game frame submitted to both eyes"));
+		debugf(TEXT("Unreal Revived OpenXR: first independent stereo game frame submitted"));
 	}
 	OpenXRFrameBegun = 0;
 	OpenXRSubmitLayer = 0;
@@ -1671,9 +1748,14 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 	OpenXRRenderingReady = 0;
 	OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 	OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+	OpenXRBaseHeadPosition = { 0.0f, 0.0f, 0.0f };
 	OpenXRRelativeHeadRotation = FRotator(0, 0, 0);
 	OpenXRHeadPoseValid = 0;
 	OpenXRBaseOrientationValid = 0;
+	OpenXRViewsValid = 0;
+	OpenXRStereoDrawEye = -1;
+	OpenXRStereoRenderingLogged = 0;
+	OpenXRFovLogged = 0;
 	for (OpenXRViewSwapchain& Swapchain : OpenXRSwapchains)
 	{
 		if (Swapchain.ImageReady && Swapchain.Handle != XR_NULL_HANDLE && OpenXRFunctions.ReleaseSwapchainImage)
@@ -1692,6 +1774,7 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 	}
 	OpenXRFrameBegun = 0;
 	OpenXRSubmitLayer = 0;
+	OpenXRViewsValid = 0;
 	for (OpenXRViewSwapchain& Swapchain : OpenXRSwapchains)
 	{
 		Swapchain.RTVs.reset();
@@ -3201,8 +3284,28 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 		if (ParseCommand(&Cmd, TEXT("OPENXRPOSE")))
 		{
 			if (OpenXRSessionRunning && OpenXRHeadPoseValid && OpenXRBaseOrientationValid)
-				Ar.Logf(TEXT("1 %d %d %d"), OpenXRRelativeHeadRotation.Pitch,
-					OpenXRRelativeHeadRotation.Yaw, OpenXRRelativeHeadRotation.Roll);
+			{
+				FRotator EyeRotation = OpenXRRelativeHeadRotation;
+				FVector EyeOffset(0.0f, 0.0f, 0.0f);
+				if (OpenXRStereoDrawEye >= 0 && OpenXRViewsValid && OpenXRViews.size() == 2)
+				{
+					EyeRotation = RelativeOpenXRRotation(OpenXRBaseOrientation,
+						OpenXRViews[OpenXRStereoDrawEye].pose.orientation);
+					const XrVector3f& Position = OpenXRViews[OpenXRStereoDrawEye].pose.position;
+					const XrQuaternionf BaseInverse = {
+						-OpenXRBaseOrientation.x, -OpenXRBaseOrientation.y,
+						-OpenXRBaseOrientation.z, OpenXRBaseOrientation.w
+					};
+					const FVector LocalDelta = RotateOpenXRVector(BaseInverse,
+						FVector(Position.x - OpenXRBaseHeadPosition.x,
+							Position.y - OpenXRBaseHeadPosition.y,
+							Position.z - OpenXRBaseHeadPosition.z));
+					EyeOffset = OpenXRVectorToUnreal(LocalDelta) * 50.0f;
+				}
+				Ar.Logf(TEXT("1 %d %d %d %.6f %.6f %.6f"), EyeRotation.Pitch,
+					EyeRotation.Yaw, EyeRotation.Roll,
+					EyeOffset.X, EyeOffset.Y, EyeOffset.Z);
+			}
 			else
 				Ar.Logf(TEXT("0"));
 			return 1;
@@ -3584,15 +3687,18 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 			Batch.SceneIndexStart = 0;
 
 #if defined(UNREAL_227)
-			const UBOOL OpenXRFramePending = PrepareOpenXRFrame();
-#endif
+			if (OpenXRStereoDrawEye >= 0)
+				PresentOpenXREye(static_cast<uint32_t>(OpenXRStereoDrawEye));
+			SubmitCommands(OpenXRStereoDrawEye != 0);
+#else
 			SubmitCommands(true);
-#if defined(UNREAL_227)
-			if (OpenXRFramePending)
-				FinishOpenXRFrame();
 #endif
 
-			if (Performance.Enabled)
+			if (Performance.Enabled
+#if defined(UNREAL_227)
+				&& OpenXRStereoDrawEye != 0
+#endif
+			)
 			{
 				LARGE_INTEGER PresentTime;
 				QueryPerformanceCounter(&PresentTime);
@@ -4714,7 +4820,31 @@ void UD3D12RenderDevice::SetSceneNode(FSceneNode* Frame)
 	SceneViewport.MaxDepth = 1.0f;
 	Commands.Current->Draw->RSSetViewports(1, &SceneViewport);
 
-	SceneConstants.ObjectToProjection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+	if (OpenXRStereoDrawEye >= 0 && OpenXRViewsValid &&
+		static_cast<uint32_t>(OpenXRStereoDrawEye) < OpenXRViews.size())
+	{
+		const XrFovf& EyeFov = OpenXRViews[OpenXRStereoDrawEye].fov;
+		const FLOAT Left = appTan(EyeFov.angleLeft);
+		const FLOAT Right = appTan(EyeFov.angleRight);
+		// UE1 camera-space Y is positive down, and the renderer's final present
+		// pass flips the scene vertically. Convert OpenXR's positive-up FOV into
+		// those bounds while preserving the runtime's asymmetric optical center.
+		const FLOAT Bottom = -appTan(EyeFov.angleUp);
+		const FLOAT Top = -appTan(EyeFov.angleDown);
+		SceneConstants.ObjectToProjection = mat4::frustum(Left, Right, Bottom, Top,
+			1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+		if (!OpenXRFovLogged && OpenXRStereoDrawEye == 1)
+		{
+			OpenXRFovLogged = 1;
+			debugf(TEXT("Unreal Revived OpenXR: asymmetric eye projection applied left=(%.3f %.3f %.3f %.3f) right=(%.3f %.3f %.3f %.3f)"),
+				OpenXRViews[0].fov.angleLeft, OpenXRViews[0].fov.angleRight,
+				OpenXRViews[0].fov.angleUp, OpenXRViews[0].fov.angleDown,
+				OpenXRViews[1].fov.angleLeft, OpenXRViews[1].fov.angleRight,
+				OpenXRViews[1].fov.angleUp, OpenXRViews[1].fov.angleDown);
+		}
+	}
+	else
+		SceneConstants.ObjectToProjection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
 	SceneConstants.NearClip = vec4(Frame->NearClip.X, Frame->NearClip.Y, Frame->NearClip.Z, Frame->NearClip.W);
 
 	unguardSlow;

@@ -6,6 +6,34 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-09
 
+### Reached stable distortion-free OpenXR stereo rendering
+
+- Replaced the shared monoscopic headset image with two independently culled
+  UE1 camera passes using the runtime's eye poses, IPD, asymmetric FOV, frame
+  timing, and 1344x1600 Oculus Rift CV1 swapchains.
+- Extended the authoritative `PlayerCalcView` bridge with per-eye position and
+  seated head translation while preserving the original scripted camera as the
+  gameplay base. Live validation confirmed correct initial direction and
+  natural yaw, pitch, and roll without the previous black visibility gaps.
+- Diagnosed an asymmetric vertical-projection error hidden by ordinary
+  symmetric flat-screen projection. UE1 camera-space Y is positive down and
+  the D3D12 final presentation pass flips vertically, so OpenXR's positive-up
+  upper/lower FOV bounds must be exchanged and negated for scene projection.
+- Live Oculus Rift CV1 validation confirmed that both eyes fuse with correct
+  depth, rotational stretching/swimming is completely gone in up/down and
+  left/right motion, and existing gamepad controls remain unchanged.
+- A focused timing capture measured 2.640 ms for the left eye, 2.505 ms for the
+  right eye, and 5.190 ms through submission against the runtime's 11.111 ms
+  display period, ruling out missed frame timing as the distortion source. The
+  temporary timing instrumentation was removed afterward.
+- The Release renderer built and deployed successfully. The six-map flat-screen
+  Content suite passed after the final projection correction under
+  `local/logs/automated-20260909-170147/`.
+- This is a local rendering milestone, not completion of the seated VR plan.
+  Head-gaze aiming, locomotion semantics, recentering, spatial UI, collision
+  fade, mirror options, and broader runtime/gameplay validation remain.
+- No GitHub push or release was created.
+
 ### Restored headset orientation through the authoritative camera hook
 
 - Added a narrow renderer command that exposes the latest valid OpenXR

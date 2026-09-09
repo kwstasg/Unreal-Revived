@@ -269,11 +269,13 @@ Seated OpenXR VR, RTX support, and a Vulkan driver remain roadmap components.
 The renderer now has strict opt-in OpenXR mode selection, a bundled pinned
 Khronos loader, diagnostics for the active runtime and HMD, and a guarded
 Direct3D 12 stereo session. The frame loop now presents the completed UE1 game
-frame to both runtime-recommended eye swapchains. Orientation tracking is
-composed onto UE1's authoritative calculated camera before culling, preserving
-scripted camera direction and gameplay aim. Both eyes currently receive the
-same camera image; independent stereo cameras and positional tracking are not
-connected yet.
+through independently culled eye cameras using runtime IPD, asymmetric FOV,
+recommended eye swapchains, and seated head pose. Orientation is composed onto
+UE1's authoritative calculated camera before culling, preserving scripted
+camera direction. Live Oculus Rift CV1 validation confirms fused depth,
+correct yaw/pitch/roll, and distortion-free rotation. Gameplay aim still uses
+the original non-VR view direction; head-gaze aiming, spatial UI, collision
+fade, recentering, and broader acceptance testing remain incomplete.
 The detailed scope is documented in the
 [seated PC VR plan](docs/pc-vr-seated.md); VR remains unsupported.
 

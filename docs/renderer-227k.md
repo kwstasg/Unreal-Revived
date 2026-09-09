@@ -262,29 +262,40 @@ The deployment target therefore mirrors localized `UnrealShare.int` and
 and Return to Na Pali in the required
 `StartingMap;Screenshot;Campaign name` format.
 
-## Scope remaining
+## Experimental OpenXR rendering boundary
 
-The renderer has an OpenXR detection boundary, not a VR renderer. Normal and
-`-novr` launches never query the loader. `-vr` or `EnableVR=True` loads the
+Normal launches and `-novr` launches never query the loader. `-vr` or
+`EnableVR=True` loads the
 bundled Khronos `openxr_loader.dll`, creates a core OpenXR 1.0 instance with
 `XR_KHR_D3D12_enable`, and reports runtime and HMD system properties. It checks
 the runtime-required adapter LUID and minimum feature level before creating a
 D3D12-bound session. Session events are polled, but the session is not begun
 until two per-eye color swapchains and a seated local reference space are
 ready. The frame loop uses runtime-predicted display timing and view poses to
-present the completed UE1 game frame to both eyes through an sRGB-aware
-fullscreen pass with aspect-preserving scaling. Runtime-owned images are
+render two independently culled UE1 camera passes with runtime IPD and
+asymmetric FOV, then copies each completed eye through an sRGB-aware fullscreen
+pass into its runtime-recommended swapchain image. Runtime-owned images are
 released before the swapchains, session, and instance are destroyed during
 renderer shutdown. Missing runtimes, sleeping or disconnected HMDs, adapter
 mismatches, and API failures are diagnosed without failing D3D12.
 
-Both eyes currently receive the same already-completed camera image. On 227,
-the renderer exposes its relative headset orientation to a `PlayerInteraction`
-that composes it onto the authoritative `PlayerCalcView` result before scene
-culling. This preserves scripted flybys and view targets while leaving gameplay
-aim unchanged. Independent eye rendering, positional tracking, VR input, and
-comfort options are not implemented, so VR must not yet be described as a
-supported feature.
+On 227, the renderer exposes each eye's relative headset orientation and
+position to a `PlayerInteraction` that composes them onto the authoritative
+`PlayerCalcView` result before scene culling. This preserves scripted flybys
+and view targets while leaving gameplay aim unchanged. UE1 camera-space Y is
+positive down and the final presentation pass flips vertically, so the OpenXR
+positive-up upper/lower FOV bounds are exchanged and negated when constructing
+the scene projection. Live Rift CV1 validation confirmed fused depth and
+distortion-free head rotation after this correction.
+
+The eye swapchains use the runtime's recommended 1344x1600 resolution on the
+validated Rift CV1, but each eye currently originates at the selected logical
+UE1 game resolution and is scaled to the swapchain. This preserves normalized
+projection and stereo alignment but makes headset sharpness dependent on the
+logical resolution. Direct per-eye rendering at the runtime-recommended size
+remains a quality improvement. VR input, head-gaze aim, recentering, spatial UI,
+collision comfort, and the full acceptance matrix are not implemented, so VR
+must not yet be described as a supported feature.
 RTX support and a Vulkan driver are also future work; their order and status
 are tracked in
 [`roadmap.md`](roadmap.md).
