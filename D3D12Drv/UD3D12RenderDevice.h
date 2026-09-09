@@ -12,6 +12,7 @@
 #include "CachedTexture.h"
 #include "D3D12MemAlloc/D3D12MemAlloc.h"
 #include <openxr/openxr.h>
+#include <openxr/openxr_platform.h>
 #include <functional>
 
 struct SceneVertex
@@ -126,6 +127,7 @@ public:
 	void RestoreWindowProcedure();
 	static LRESULT CALLBACK WindowProcedure(HWND Window, UINT Message, WPARAM WParam, LPARAM LParam);
 	void InitializeOpenXRFoundation();
+	void PollOpenXRSession();
 	void ReleaseOpenXRFoundation();
 #endif
 #if defined(UNREALGOLD)
@@ -498,6 +500,9 @@ private:
 	UBOOL UsePrecache;
 	HMODULE OpenXRLoader = nullptr;
 	XrInstance OpenXRInstance = XR_NULL_HANDLE;
+	XrSystemId OpenXRSystemId = XR_NULL_SYSTEM_ID;
+	XrSession OpenXRSession = XR_NULL_HANDLE;
+	XrSessionState OpenXRSessionState = XR_SESSION_STATE_UNKNOWN;
 	PFN_xrGetInstanceProcAddr OpenXRGetInstanceProcAddr = nullptr;
 	FPlane FlashScale;
 	FPlane FlashFog;

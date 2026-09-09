@@ -35,6 +35,8 @@ target_compile_definitions(D3D12Drv PRIVATE
     WIN64=1
     _CRT_NO_VA_START_VALIDATION
     XR_NO_PROTOTYPES
+    XR_USE_PLATFORM_WIN32
+    XR_USE_GRAPHICS_API_D3D12
 )
 
 target_compile_options(D3D12Drv PRIVATE

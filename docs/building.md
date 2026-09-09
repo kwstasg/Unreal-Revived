@@ -125,7 +125,9 @@ The renderer is built as `D3D12Drv.dll` with C++17 and links against the 227
 Core, Engine, and Render import libraries plus the Windows Direct3D 12, DXGI,
 and shader compiler libraries. CMake also builds the hash-pinned Khronos
 OpenXR 1.1.61 loader as a standalone DLL. D3D12Drv resolves that DLL only after
-an explicit VR request, so it is not an import-time dependency.
+an explicit VR request, so it is not an import-time dependency. Requested VR
+launches resolve the OpenXR entry points dynamically and bind a compatible
+D3D12 device and direct queue to the guarded session foundation.
 
 The `XInputWinDrv.dll` package is built from a generated copy of the
 pinned SDK's WinDrv source. Configure runs `scripts/stage-xinput-windrv.ps1`,

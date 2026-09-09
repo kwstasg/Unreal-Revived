@@ -482,6 +482,10 @@ try {
                 $logText -notmatch 'Unreal Revived OpenXR: (runtime=|active runtime unavailable|active runtime does not support|instance creation failed)') {
                 throw "$($case.Name) loaded OpenXR without reporting the runtime detection result."
             }
+            if ($logText -match 'Unreal Revived OpenXR: headset detected=' -and
+                $logText -notmatch 'Unreal Revived OpenXR: (D3D12 session created|runtime requires a different graphics adapter|runtime requires D3D feature level|D3D12 graphics requirements|xrCreateSession unavailable|D3D12 session creation failed)') {
+                throw "$($case.Name) detected an HMD without reporting a D3D12 session outcome."
+            }
         }
         if (($case.Settings.ContainsKey('AntialiasMode') -or $case.Name -match '^display-(2560x1440|3840x2160)') -and $logText -notmatch 'requested MSAA \d+x, effective MSAA \d+x') {
             throw "$($case.Name) did not log requested and effective MSAA."

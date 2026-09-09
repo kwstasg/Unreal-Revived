@@ -266,14 +266,17 @@ and Return to Na Pali in the required
 
 The renderer has an OpenXR detection boundary, not a VR renderer. Normal and
 `-novr` launches never query the loader. `-vr` or `EnableVR=True` loads the
-bundled Khronos `openxr_loader.dll`, creates a core OpenXR 1.0 instance without
-graphics extensions, reports runtime and HMD system properties, and remains on
-the existing flat-screen D3D12 path. The instance is destroyed before the
-loader is released during renderer shutdown. Missing runtimes, sleeping or
-disconnected HMDs, and API failures are diagnosed without failing D3D12.
+bundled Khronos `openxr_loader.dll`, creates a core OpenXR 1.0 instance with
+`XR_KHR_D3D12_enable`, and reports runtime and HMD system properties. It checks
+the runtime-required adapter LUID and minimum feature level before creating a
+D3D12-bound session. Session events are polled, but the session is not begun
+until the stereo frame loop exists. The session and instance are destroyed
+before the loader is released during renderer shutdown. Missing runtimes,
+sleeping or disconnected HMDs, adapter mismatches, and API failures are
+diagnosed without failing D3D12.
 
-OpenXR session creation, stereo rendering, VR input, and comfort options are
-not implemented and must not be described as supported features.
+OpenXR frame timing, swapchains, stereo rendering, VR input, and comfort
+options are not implemented and must not be described as supported features.
 RTX support and a Vulkan driver are also future work; their order and status
 are tracked in
 [`roadmap.md`](roadmap.md).

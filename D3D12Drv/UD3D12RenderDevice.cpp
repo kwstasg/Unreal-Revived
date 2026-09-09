@@ -953,12 +953,54 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 	}
 
 	const PFN_xrCreateInstance CreateInstance = reinterpret_cast<PFN_xrCreateInstance>(RawFunction);
+	RawFunction = nullptr;
+	Result = OpenXRGetInstanceProcAddr(XR_NULL_HANDLE, "xrEnumerateInstanceExtensionProperties", &RawFunction);
+	if (XR_FAILED(Result) || !RawFunction)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: extension enumeration unavailable (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+
+	const PFN_xrEnumerateInstanceExtensionProperties EnumerateExtensions =
+		reinterpret_cast<PFN_xrEnumerateInstanceExtensionProperties>(RawFunction);
+	uint32_t ExtensionCount = 0;
+	Result = EnumerateExtensions(nullptr, 0, &ExtensionCount, nullptr);
+	if (XR_FAILED(Result))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: extension count query failed (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+	std::vector<XrExtensionProperties> Extensions(ExtensionCount, { XR_TYPE_EXTENSION_PROPERTIES });
+	Result = EnumerateExtensions(nullptr, ExtensionCount, &ExtensionCount, Extensions.data());
+	if (XR_FAILED(Result))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: extension query failed (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+	bool SupportsD3D12 = false;
+	for (const XrExtensionProperties& Extension : Extensions)
+	{
+		if (strcmp(Extension.extensionName, XR_KHR_D3D12_ENABLE_EXTENSION_NAME) == 0)
+		{
+			SupportsD3D12 = true;
+			break;
+		}
+	}
+	if (!SupportsD3D12)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: runtime does not support %ls; continuing flat-screen D3D12"), appFromAnsi(XR_KHR_D3D12_ENABLE_EXTENSION_NAME));
+		return;
+	}
+
+	const char* EnabledExtensions[] = { XR_KHR_D3D12_ENABLE_EXTENSION_NAME };
 	XrInstanceCreateInfo CreateInfo = { XR_TYPE_INSTANCE_CREATE_INFO };
 	strncpy_s(CreateInfo.applicationInfo.applicationName, "Unreal Revived", _TRUNCATE);
 	CreateInfo.applicationInfo.applicationVersion = 6;
 	strncpy_s(CreateInfo.applicationInfo.engineName, "Unreal Engine 1", _TRUNCATE);
 	CreateInfo.applicationInfo.engineVersion = 227;
 	CreateInfo.applicationInfo.apiVersion = XR_API_VERSION_1_0;
+	CreateInfo.enabledExtensionCount = 1;
+	CreateInfo.enabledExtensionNames = EnabledExtensions;
 	Result = CreateInstance(&CreateInfo, &OpenXRInstance);
 	if (XR_FAILED(Result) || OpenXRInstance == XR_NULL_HANDLE)
 	{
@@ -1002,8 +1044,7 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 
 	XrSystemGetInfo SystemInfo = { XR_TYPE_SYSTEM_GET_INFO };
 	SystemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
-	XrSystemId SystemId = XR_NULL_SYSTEM_ID;
-	Result = reinterpret_cast<PFN_xrGetSystem>(RawFunction)(OpenXRInstance, &SystemInfo, &SystemId);
+	Result = reinterpret_cast<PFN_xrGetSystem>(RawFunction)(OpenXRInstance, &SystemInfo, &OpenXRSystemId);
 	if (Result == XR_ERROR_FORM_FACTOR_UNAVAILABLE)
 	{
 		debugf(TEXT("Unreal Revived OpenXR: headset unavailable; connect and wake the HMD before launching with -vr"));
@@ -1012,7 +1053,7 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 	{
 		debugf(TEXT("Unreal Revived OpenXR: active runtime does not support a head-mounted display"));
 	}
-	else if (XR_FAILED(Result) || SystemId == XR_NULL_SYSTEM_ID)
+	else if (XR_FAILED(Result) || OpenXRSystemId == XR_NULL_SYSTEM_ID)
 	{
 		debugf(TEXT("Unreal Revived OpenXR: headset query failed (result %d)"), Result);
 	}
@@ -1023,7 +1064,7 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		if (XR_SUCCEEDED(Result) && RawFunction)
 		{
 			XrSystemProperties Properties = { XR_TYPE_SYSTEM_PROPERTIES };
-			Result = reinterpret_cast<PFN_xrGetSystemProperties>(RawFunction)(OpenXRInstance, SystemId, &Properties);
+			Result = reinterpret_cast<PFN_xrGetSystemProperties>(RawFunction)(OpenXRInstance, OpenXRSystemId, &Properties);
 			if (XR_SUCCEEDED(Result))
 			{
 				debugf(TEXT("Unreal Revived OpenXR: headset detected=%ls vendor=%u orientationTracking=%s positionTracking=%s"),
@@ -1038,11 +1079,128 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 			debugf(TEXT("Unreal Revived OpenXR: headset detected, but xrGetSystemProperties is unavailable (result %d)"), Result);
 	}
 
-	debugf(TEXT("Unreal Revived OpenXR: detection complete; stereo bridge is not implemented; continuing flat-screen D3D12"));
+	if (OpenXRSystemId == XR_NULL_SYSTEM_ID)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: detection incomplete; continuing flat-screen D3D12"));
+		return;
+	}
+
+	RawFunction = nullptr;
+	Result = OpenXRGetInstanceProcAddr(OpenXRInstance, "xrGetD3D12GraphicsRequirementsKHR", &RawFunction);
+	if (XR_FAILED(Result) || !RawFunction)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: D3D12 graphics requirements unavailable (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+	XrGraphicsRequirementsD3D12KHR GraphicsRequirements = { XR_TYPE_GRAPHICS_REQUIREMENTS_D3D12_KHR };
+	Result = reinterpret_cast<PFN_xrGetD3D12GraphicsRequirementsKHR>(RawFunction)(OpenXRInstance, OpenXRSystemId, &GraphicsRequirements);
+	if (XR_FAILED(Result))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: D3D12 graphics requirements query failed (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+	const LUID DeviceLuid = Device->GetAdapterLuid();
+	if (memcmp(&DeviceLuid, &GraphicsRequirements.adapterLuid, sizeof(LUID)) != 0)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: runtime requires a different graphics adapter; continuing flat-screen D3D12"));
+		return;
+	}
+	const D3D_FEATURE_LEVEL RequestedFeatureLevels[] = {
+#if defined(D3D_FEATURE_LEVEL_12_2)
+		D3D_FEATURE_LEVEL_12_2,
+#endif
+		D3D_FEATURE_LEVEL_12_1, D3D_FEATURE_LEVEL_12_0,
+		D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0
+	};
+	D3D12_FEATURE_DATA_FEATURE_LEVELS SupportedFeatureLevels = {};
+	SupportedFeatureLevels.NumFeatureLevels = sizeof(RequestedFeatureLevels) / sizeof(RequestedFeatureLevels[0]);
+	SupportedFeatureLevels.pFeatureLevelsRequested = RequestedFeatureLevels;
+	SupportedFeatureLevels.MaxSupportedFeatureLevel = D3D_FEATURE_LEVEL_11_0;
+	const HRESULT FeatureResult = Device->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS,
+		&SupportedFeatureLevels, sizeof(SupportedFeatureLevels));
+	if (FAILED(FeatureResult) || GraphicsRequirements.minFeatureLevel > SupportedFeatureLevels.MaxSupportedFeatureLevel)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: runtime requires D3D feature level 0x%x, adapter supports 0x%x; continuing flat-screen D3D12"),
+			(UINT)GraphicsRequirements.minFeatureLevel, (UINT)SupportedFeatureLevels.MaxSupportedFeatureLevel);
+		return;
+	}
+
+	RawFunction = nullptr;
+	Result = OpenXRGetInstanceProcAddr(OpenXRInstance, "xrCreateSession", &RawFunction);
+	if (XR_FAILED(Result) || !RawFunction)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: xrCreateSession unavailable (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+	XrGraphicsBindingD3D12KHR GraphicsBinding = { XR_TYPE_GRAPHICS_BINDING_D3D12_KHR };
+	GraphicsBinding.device = Device.get();
+	GraphicsBinding.queue = GraphicsQueue.get();
+	XrSessionCreateInfo SessionInfo = { XR_TYPE_SESSION_CREATE_INFO };
+	SessionInfo.next = &GraphicsBinding;
+	SessionInfo.systemId = OpenXRSystemId;
+	Result = reinterpret_cast<PFN_xrCreateSession>(RawFunction)(OpenXRInstance, &SessionInfo, &OpenXRSession);
+	if (XR_FAILED(Result) || OpenXRSession == XR_NULL_HANDLE)
+	{
+		OpenXRSession = XR_NULL_HANDLE;
+		debugf(TEXT("Unreal Revived OpenXR: D3D12 session creation failed (result %d); continuing flat-screen D3D12"), Result);
+		return;
+	}
+
+	debugf(TEXT("Unreal Revived OpenXR: D3D12 session created; frame loop and stereo swapchains are not implemented; continuing flat-screen D3D12 monitor rendering"));
+	PollOpenXRSession();
+}
+
+void UD3D12RenderDevice::PollOpenXRSession()
+{
+	if (OpenXRInstance == XR_NULL_HANDLE || OpenXRSession == XR_NULL_HANDLE || !OpenXRGetInstanceProcAddr)
+		return;
+	PFN_xrVoidFunction RawFunction = nullptr;
+	XrResult Result = OpenXRGetInstanceProcAddr(OpenXRInstance, "xrPollEvent", &RawFunction);
+	if (XR_FAILED(Result) || !RawFunction)
+		return;
+	const PFN_xrPollEvent PollEvent = reinterpret_cast<PFN_xrPollEvent>(RawFunction);
+	for (;;)
+	{
+		XrEventDataBuffer Event = { XR_TYPE_EVENT_DATA_BUFFER };
+		Result = PollEvent(OpenXRInstance, &Event);
+		if (Result == XR_EVENT_UNAVAILABLE)
+			break;
+		if (XR_FAILED(Result))
+		{
+			debugf(TEXT("Unreal Revived OpenXR: event polling failed (result %d)"), Result);
+			break;
+		}
+		if (Event.type == XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED)
+		{
+			const XrEventDataSessionStateChanged* StateEvent =
+				reinterpret_cast<const XrEventDataSessionStateChanged*>(&Event);
+			OpenXRSessionState = StateEvent->state;
+			debugf(TEXT("Unreal Revived OpenXR: session state=%d%s"), (INT)OpenXRSessionState,
+				OpenXRSessionState == XR_SESSION_STATE_READY ? TEXT(" (ready; waiting for the future stereo frame loop)") : TEXT(""));
+		}
+		else if (Event.type == XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING)
+			debugf(TEXT("Unreal Revived OpenXR: runtime reported instance loss pending"));
+	}
 }
 
 void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
+	if (OpenXRSession != XR_NULL_HANDLE && OpenXRInstance != XR_NULL_HANDLE && OpenXRGetInstanceProcAddr)
+	{
+		PFN_xrVoidFunction RawFunction = nullptr;
+		const XrResult Result = OpenXRGetInstanceProcAddr(OpenXRInstance, "xrDestroySession", &RawFunction);
+		if (XR_SUCCEEDED(Result) && RawFunction)
+		{
+			const XrResult DestroyResult = reinterpret_cast<PFN_xrDestroySession>(RawFunction)(OpenXRSession);
+			if (XR_FAILED(DestroyResult))
+				debugf(TEXT("Unreal Revived OpenXR: session destruction failed (result %d)"), DestroyResult);
+		}
+		else
+			debugf(TEXT("Unreal Revived OpenXR: xrDestroySession unavailable during shutdown (result %d)"), Result);
+		OpenXRSession = XR_NULL_HANDLE;
+	}
+	OpenXRSessionState = XR_SESSION_STATE_UNKNOWN;
+	OpenXRSystemId = XR_NULL_SYSTEM_ID;
 	if (OpenXRInstance != XR_NULL_HANDLE && OpenXRGetInstanceProcAddr)
 	{
 		PFN_xrVoidFunction RawFunction = nullptr;
@@ -2809,6 +2967,10 @@ PresentPushConstants UD3D12RenderDevice::GetPresentPushConstants()
 void UD3D12RenderDevice::Unlock(UBOOL Blit)
 {
 	guard(UD3D12RenderDevice::Unlock);
+
+#if defined(UNREAL_227)
+	PollOpenXRSession();
+#endif
 
 	if (!IsLocked) // Don't trust the engine.
 		return;

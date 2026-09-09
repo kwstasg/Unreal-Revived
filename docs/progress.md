@@ -6,6 +6,24 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-09
 
+### Added the guarded OpenXR D3D12 session handshake
+
+- Enabled `XR_KHR_D3D12_enable` only for explicit VR launches, queried the
+  runtime's graphics requirements, and reject adapter-LUID or feature-level
+  mismatches without affecting the monitor renderer.
+- Added D3D12 device/direct-queue session creation, lifecycle-event polling,
+  and session-before-instance teardown. The session deliberately remains
+  unbegun until frame timing and stereo swapchains are implemented.
+- A user-driven Quest Link launch reached the Oculus 1.207.0 runtime and
+  detected the HMD as `Oculus Rift CV1`, with orientation and position tracking
+  available. After the session foundation was deployed, a second live launch
+  created the D3D12 session and reached `XR_SESSION_STATE_READY`, then shut down
+  cleanly. All 50 D3D12 cases passed under
+  `local/logs/automated-20260909-031221/`, including runtime-unavailable
+  fallback and strict `-novr` isolation. All 18 supported-renderer cases passed
+  under `local/logs/supported-renderers-20260909-031551/`.
+- No GitHub push or release was created.
+
 ### Prepared 0.6.0 locally with OpenXR runtime and HMD detection
 
 - Increased local installer and rebuild artifact metadata to 0.6.0. The
