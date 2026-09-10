@@ -4,6 +4,21 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-09-10
+
+### Restored the last visible VR menu baseline
+
+- Reverted the unsuccessful VR menu, panel, logo, and preferences experiments
+  to commit `9dc4802`, the last state where useful menu content was visible in
+  the headset, although still too small and partially clipped.
+- Removed the two experimental VR preferences classes, rebuilt and deployed the
+  Release D3D12 renderer and `ModernMenu`, and compiled UnrealScript with zero
+  warnings.
+- Recorded confirmed headset observations, failed and inconclusive experiments,
+  invalid mirror-based diagnostics, and strict isolation rules in
+  [vr-ui-investigation.md](vr-ui-investigation.md).
+- No further headset experiment was performed after restoring the baseline.
+
 ## 2026-09-09
 
 ### Added stable render-only VR weapon following

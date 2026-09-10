@@ -1,5 +1,8 @@
 # Seated PC VR first-milestone plan
 
+The headset-observed UI regressions and experiments that must not be repeated
+are recorded in [vr-ui-investigation.md](vr-ui-investigation.md).
+
 ## Status
 
 This document is the implementation plan for a future supported VR mode. The
