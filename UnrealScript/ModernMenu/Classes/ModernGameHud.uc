@@ -7,9 +7,6 @@ class ModernGameHud extends UnrealHUD;
 simulated function PostRender(Canvas Canvas)
 {
 	local PlayerPawn Player;
-	local float SavedOriginX, SavedOriginY, SavedClipX, SavedClipY;
-	local float MarginX, MarginY;
-	local bool bVRHud;
 
 	// The world is complete when HUD.PostRender begins. Start the shared UI
 	// pass before UnrealHUD draws status icons, messages, or weapon overlays.
@@ -23,8 +20,8 @@ simulated function PostRender(Canvas Canvas)
 	}
 
 	// Keep the weapon and gaze crosshair on the full eye canvas. The remaining
-	// status HUD is drawn inside a centered VR-safe area so edge information is
-	// readable without changing the established weapon or camera projection.
+	// status HUD uses the desktop canvas layout on the VR panel, without an
+	// additional inset or an override of the user's HUD scaling.
 	HUDSetup(Canvas);
 	if (Player.PlayerReplicationInfo == None)
 		return;
@@ -62,17 +59,6 @@ simulated function PostRender(Canvas Canvas)
 	}
 
 	Player.ConsoleCommand("D3D12 BEGINVRUIPASS");
-	SavedOriginX = Canvas.OrgX;
-	SavedOriginY = Canvas.OrgY;
-	SavedClipX = Canvas.ClipX;
-	SavedClipY = Canvas.ClipY;
-	MarginX = SavedClipX * 0.35;
-	MarginY = SavedClipY * 0.30;
-	Canvas.SetOrigin(SavedOriginX + MarginX + SavedClipX * 0.03,
-		SavedOriginY + MarginY);
-	Canvas.SetClip(SavedClipX - 2.0 * MarginX, SavedClipY - 2.0 * MarginY);
-	Canvas.PushCanvasScale(1.0, True);
-	bVRHud = True;
 
 	if (Player.ProgressTimeOut > Level.TimeSeconds)
 		DisplayProgressMessage(Canvas);
@@ -127,12 +113,6 @@ simulated function PostRender(Canvas Canvas)
 			DrawTeamGameSynopsis(Canvas);
 	}
 
-	if (bVRHud)
-	{
-		Canvas.PopCanvasScale();
-		Canvas.SetOrigin(SavedOriginX, SavedOriginY);
-		Canvas.SetClip(SavedClipX, SavedClipY);
-	}
 	Player.ConsoleCommand("D3D12 ENDVRUIPASS");
 }
 

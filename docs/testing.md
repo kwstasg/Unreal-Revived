@@ -1,5 +1,23 @@
 # Testing
 
+## Accepted VR UI regression checks
+
+The shared-panel milestone was accepted by the user in the headset on 2026-09-10.
+Use [its maintenance contract](vr-ui-recovery-design.md) as the source baseline.
+For any projection, layout or pose change, compare at identical game resolution,
+GUI/HUD scale, VR distance and VR scale:
+
+- Flyby and playable map: full menu edges, centered Preferences, dropdowns,
+  HUD corners, intro artwork, messages, translator and FPS statistics.
+- Open/close the menu while moving the head: identical panel bounds and anchor.
+- Adjust distance and scale continuously: no pose recapture; distance changes
+  apparent size, scale resizes about the center, explicit Recenter resets heading.
+- Compare cursor, hover, clicks, dragging and controller focus across the canvas.
+- Check ordinary desktop UI remains unchanged. Include 5:4 and widescreen layouts.
+
+Build/lifecycle automation is necessary but cannot prove these visual checks.
+Do not treat an ordinary desktop mirror as the submitted OpenXR layer.
+
 Runtime smoke automation covers map loading, selected renderer configurations,
 menu state profiles, display profiles, clean D3D12 startup and shutdown, and
 known log failure signatures. Screenshots remain necessary where logs cannot

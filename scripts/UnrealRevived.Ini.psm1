@@ -195,6 +195,8 @@ function Set-UnrealRevivedVideoDefaults {
 
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'UseVSync' 'False'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'EnableVR' 'False'
+    $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'VRHUDDistance' '1.750000'
+    $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'VRHUDScale' '1.000000'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'UsePrecache' 'True'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'AntialiasMode' 'MSAA_4x'
     $result = Set-UnrealRevivedIniValue $result 'D3D12Drv.D3D12RenderDevice' 'MaxAnisotropy' '4'

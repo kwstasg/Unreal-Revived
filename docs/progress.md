@@ -6,6 +6,102 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-10
 
+### Accepted milestone: consistent VR HUD, menus and UI
+
+The user accepted the final shared-panel implementation and requested it be kept,
+cleaned, documented and committed without publishing a release. This acceptance
+supersedes the pending-headset notes in the chronological entries below.
+
+- Complete existing desktop-like UI now fits the VR source canvas. Symmetric
+  canvas projection fixes the original pre-composition shift/clipping; OpenXR
+  alone supplies asymmetric eye projection for the completed panel.
+- HUD/menu/intro share an upright eye-level anchor and identical dimensions.
+  Menu transitions do not recenter or resize. Distance and scale are independent;
+  slider updates retain the anchor and Recenter is explicit.
+- Removed experimental root scaling/input remapping, HUD/intro offsets,
+  per-layout geometry/state and redundant script mode dispatch. Kept working
+  composition, game/UI boundaries, preferences, localization and desktop behavior.
+- Consolidated [best practices](vr-ui-recovery-design.md), archived failed
+  approaches, and corrected obsolete spatial UI/recenter claims in focused docs.
+- Preserved pre-cleanup accepted files/binaries in ignored
+  `local/vr-ui-accepted-milestone-20260910-212645/`. No release, tag, installer or
+  distribution artifact is part of this milestone commit.
+- Final cleanup validation: ModernMenu rebuilt/deployed with zero warnings;
+  desktop flyby/gameplay smoke tests passed in
+  `local/logs/automated-20260910-213012/`. User profiles preserved; repository
+  safety and whitespace checks passed. Final cleanup removes equivalent mode
+  dispatch only, without changing the headset-accepted geometry or projection.
+
+### Shared VR panel geometry and explicit recenter
+
+- User accepted the desktop-like VR layout. Preserved that renderer/menu in
+  `local/vr-ui-before-shared-panel-20260910-211221/` before the follow-up.
+- HUD/menu/intro now use identical dimensions and placement, with no automatic
+  recenter on menu transitions. Removed HUD-specific vertical offset and width.
+- Anchor is upright at eye level, using horizontal heading only. Initial session
+  setup and explicit Recenter establish it; sliders retain it.
+- Decoupled physical size from distance. The default menu size is preserved at
+  1.75m/100%; moving to 3m reduces apparent width from 64 to approximately 40
+  degrees instead of enlarging the panel to compensate.
+- Release build/deployment and flyby/gameplay smoke checks passed
+  (`local/logs/automated-20260910-211332/`). Headset comfort and transition checks
+  remain pending. No changes to the accepted canvas projection or logical layout.
+
+### Match VR source layout to the supplied desktop reference
+
+- Removed the root menu's 70% shrink and partial inverse pointer mapping, intro
+  shrink/offset, and gameplay HUD inset/downward shift/scale override. Existing
+  GUI/HUD layout now spans the full source canvas in VR as on desktop.
+- Kept console messages/statistics inside the matching VR canvas pass and
+  restored desktop HUD scaling for translator/MOTD. Preserved renderer projection,
+  stable anchor controls, physical panel geometry, and eye-space weapon/crosshair.
+- Backed up scripts, menu package, and settings in
+  `local/vr-ui-before-layout-20260910-210020/`. Built/deployed ModernMenu with zero
+  warnings; flyby/gameplay smoke tests passed in
+  `local/logs/automated-20260910-210145/`. User settings retained.
+- Headset comparison and mouse/controller alignment still require visual testing.
+
+### Full menu visibility confirmed; stabilize VR preference sliders
+
+- User confirmed the complete menu is now visible in the headset after the
+  canvas projection correction. Preserved this source and runtime binaries in
+  `local/vr-ui-visible-20260910-205225/` before further changes.
+- Removed implicit recenter from distance/scale commands. Panel position is
+  derived from a saved head reference and current distance; scale changes size
+  around the panel center. Explicit recenter and layout transitions still work.
+- Release build and local deployment passed. Headset slider validation remains
+  pending; retained projection, root scaling, HUD margins, and opacity unchanged.
+- Supplied captures show the remaining 70%-width, left-aligned menu region.
+  Recorded it for the next logical-layout correction, separate from anchor work.
+
+### VR UI source audit and isolated projection correction
+
+- Preserved the existing dirty files and runtime binaries under ignored
+  `local/vr-ui-recovery-20260910-204146/`; no blanket rollback or commit.
+- Found that the working renderer differed from `f767139c`: slider commands
+  invalidated the anchor again and menu width was changed to 64 degrees.
+- Found a separate source-space defect: Canvas vertices derived from symmetric
+  game FOV were projected through asymmetric headset FOV inside the VR UI pass.
+  Selected matching Canvas projection during that pass, with batch flushing
+  and eye projection restoration on exit. All other layout boundaries stay fixed.
+- Release renderer build/deployment and desktop flyby/gameplay smoke checks
+  passed. VR launch checks fell back with OpenXR result -51; actual headset
+  placement is unverified. No claim of full UI recovery or desktop visual acceptance.
+- Recorded retained features, outstanding regressions, coordinate ownership,
+  and ordered acceptance gates in [the recovery design](vr-ui-recovery-design.md).
+
+### Corrected the VR UI recovery baseline
+
+- Testing showed that bare commit `9dc4802` did not reproduce the previously
+  visible menu. The earlier claim that it was the visual baseline was wrong.
+- Recovered the exact uncommitted 11:44 implementation from Git tree
+  `f767139c`. This is the user-validated state where the menu was visible but
+  stretched/clipped, slider changes no longer moved the anchor, distance was
+  weak, and logos were absent.
+- Restored only that snapshot's implementation files while retaining the VR UI
+  failure record. Later raw-mirror, per-eye, depth, tile-count, alpha, dynamic
+  swapchain, and combined layout experiments remain excluded.
+
 ### Restored the last visible VR menu baseline
 
 - Reverted the unsuccessful VR menu, panel, logo, and preferences experiments

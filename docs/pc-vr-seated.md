@@ -1,7 +1,8 @@
 # Seated PC VR first-milestone plan
 
-The headset-observed UI regressions and experiments that must not be repeated
-are recorded in [vr-ui-investigation.md](vr-ui-investigation.md).
+The accepted spatial UI implementation and maintenance rules are documented in
+[the VR UI milestone](vr-ui-recovery-design.md). Failed approaches are historical
+evidence in [vr-ui-investigation.md](vr-ui-investigation.md).
 
 ## Status
 
@@ -19,11 +20,16 @@ first-person weapon now follows headset rotation and seated leaning through a
 render-only path without changing gameplay aim, controls, or scripted cameras.
 Its initial lower, handed placement is accepted while finer comfort tuning is
 deferred. Crosshair gaze alignment, firing along headset gaze, head-oriented
-locomotion, recentering, head-collision fade, spatial HUD and menus, mirror
+locomotion, head-collision fade, mirror
 selection, broader gameplay validation, and SteamVR coverage remain incomplete.
 The eye swapchains use the runtime-recommended resolution; the UE1 scene is
 still rendered at the selected logical game resolution before being scaled
 into those swapchains.
+
+The spatial HUD/menu milestone was accepted in the headset on 2026-09-10:
+desktop-like canvas layout, one upright fixed panel, stable live distance/scale,
+and explicit UI recenter. This supersedes earlier plans for automatic panel
+following or larger menus that recenter on opening. It is not a supported VR release.
 
 ## Implementation alignment checkpoint
 
@@ -124,15 +130,13 @@ Broader comfort and motion-control options are deferred.
 
 - Render the HUD as a floating stereo panel with adjustable depth and scale.
 - Keep it stable during ordinary head movement.
-- Begin horizontal following when the player looks approximately 55 degrees
-  away, then move smoothly until it returns to approximately 35 degrees from
-  the current view.
+- Use one fixed panel anchor for HUD, intro and menus; no automatic following.
 - Do not follow head pitch, roll, or seated leaning.
-- Translate the HUD with gamepad locomotion.
-- Treat right-stick body turning as the new forward reference immediately.
+- Capture horizontal heading and eye height at session initialization or explicit
+  UI recenter; gamepad turning and opening menus do not reset this reference.
 - Keep the crosshair head-gaze aligned independently from the HUD panel.
-- Render menus as larger spatial panels that remain fixed after opening.
-- Place a menu directly ahead when it opens or the player recenters.
+- Preserve identical panel geometry when opening or closing menus.
+- Recenter the shared panel only with the VR Preferences Recenter control.
 - Preserve existing gamepad menu navigation.
 
 ## Architecture and compatibility
@@ -164,7 +168,7 @@ Broader comfort and motion-control options are deferred.
 - Verify head-collision fading without changing the OpenXR pose.
 - Test head-gaze aiming, recoil, spread, projectiles, hitscan weapons, muzzle
   obstruction, and nearby targets.
-- Confirm HUD dead-zone behavior, delayed following, live scale/distance
+- Confirm fixed shared-panel behavior, explicit recenter, live scale/distance
   changes, spatial menus, and mirror selection.
 - Validate Meta OpenXR first and SteamVR second with the same executable.
 - Regression-test ordinary D3D12 plus OpenGL and XOpenGL recovery startup.

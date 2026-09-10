@@ -331,6 +331,8 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | `UseVSync` | `False` | Synchronize presentation to the display. |
 | `UsePrecache` | `True` | Precache renderer resources. |
 | `EnableVR` | `False` | Opt in to the experimental OpenXR D3D12 stereo session and seated head tracking on the next launch; the broader VR milestone remains unsupported. |
+| `VRHUDDistance` | `1.75` | Shared UI panel distance in metres, clamped to 0.50-5.00; live changes retain the captured anchor. |
+| `VRHUDScale` | `1.0` | Shared UI panel physical scale, clamped to 0.50-2.00; independent of distance. |
 | `AntialiasMode` | `MSAA_4x` | `Off`, `MSAA_2x`, `MSAA_4x`, or `MSAA_8x`. |
 | `GammaMode` | `D3D9` | `D3D9` or `XOpenGL` response. |
 | `GammaOffset` | `0.0` | Global gamma offset. |

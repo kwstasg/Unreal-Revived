@@ -331,13 +331,15 @@ event PostRender(Canvas C)
 	HudScale = class'HUD'.Default.HudScaler;
 	bVRUI = Viewport.Actor != None
 		&& Left(Viewport.Actor.ConsoleCommand("D3D12 OPENXRPOSE"), 1) == "1";
+	// Messages and statistics share the same canvas projection and panel as
+	// the HUD, intro and menus.
+	if (bVRUI)
+		Viewport.Actor.ConsoleCommand("D3D12 BEGINVRUIPASS");
 	if ((LocalizedMOTDHud != None && LocalizedMOTDFadeOutTime > 0)
 		|| (SuppressedTranslator != None && bSuppressedTranslatorActive))
 	{
-		if (bVRUI)
-			Viewport.Actor.ConsoleCommand("D3D12 BEGINVRUIPASS");
 		C.SetOrigin(0, 0);
-		if (!bVRUI && HudScale != 1.0)
+		if (HudScale != 1.0)
 			C.PushCanvasScale(HudScale, True);
 		if (LocalizedMOTDHud != None && LocalizedMOTDFadeOutTime > 0)
 		{
@@ -346,10 +348,8 @@ event PostRender(Canvas C)
 		}
 		if (SuppressedTranslator != None && bSuppressedTranslatorActive)
 			class'ModernGameHud'.Static.DrawLocalizedTranslator(C, SuppressedTranslator);
-		if (!bVRUI && HudScale != 1.0)
+		if (HudScale != 1.0)
 			C.PopCanvasScale();
-		if (bVRUI)
-			Viewport.Actor.ConsoleCommand("D3D12 ENDVRUIPASS");
 	}
 	if (SuppressedTranslator != None)
 		SuppressedTranslator.bCurrentlyActivated = bSuppressedTranslatorActive;
@@ -357,6 +357,8 @@ event PostRender(Canvas C)
 	Super.PostRender(C);
 	if (bShowFPSStatistics)
 		DrawFPSStatistics(C);
+	if (bVRUI)
+		Viewport.Actor.ConsoleCommand("D3D12 ENDVRUIPASS");
 }
 
 // Keep one canonical player step height across travel and save loads. If native

@@ -8,6 +8,7 @@ class ModernOptionsClientWindow extends UMenuOptionsClientWindow
 var config string RestartIni;
 var config string RestartUserIni;
 var localized string BindingsTab;
+var localized string VRTab;
 
 function Created()
 {
@@ -18,6 +19,7 @@ function Created()
 	Pages.AddPage(VideoTab, class'ModernVideoScrollClient');
 	Pages.AddPage(AudioTab, class'UMenuAudioScrollClient');
 	Pages.AddPage(HUDTab, class'ModernHUDConfigScrollClient');
+	Pages.AddPage(VRTab, class'ModernVRConfigScrollClient');
 	Pages.AddPage(GamePlayTab, class'ModernGameOptionsScrollClient');
 	Pages.AddPage(InputTab, class'ModernInputOptionsScrollClient');
 	Pages.AddPage(BindingsTab, class'ModernBindingsScrollClient');
@@ -64,4 +66,5 @@ defaultproperties
 	RestartIni="D3D12Test.ini"
 	RestartUserIni="D3D12TestUser.ini"
 	BindingsTab="Bindings"
+	VRTab="VR"
 }

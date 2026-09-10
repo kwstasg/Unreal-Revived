@@ -372,6 +372,8 @@ public:
 	// Configuration.
 	BITFIELD UseVSync;
 	BITFIELD EnableVR;
+	FLOAT VRHUDDistance;
+	FLOAT VRHUDScale;
 	FLOAT GammaOffset;
 	FLOAT GammaOffsetRed;
 	FLOAT GammaOffsetGreen;
@@ -554,6 +556,7 @@ private:
 	OpenXRViewSwapchain OpenXRUISwapchain;
 	ComPtr<ID3D12PipelineState> OpenXRUIPresentPipeline;
 	XrPosef OpenXRUIAnchorPose = { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f } };
+	XrVector3f OpenXRUIAnchorHeadPosition = { 0.0f, 0.0f, 0.0f };
 	UBOOL OpenXRUIAnchorValid = 0;
 	UBOOL OpenXRUILayerReady = 0;
 	XrQuaternionf OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };

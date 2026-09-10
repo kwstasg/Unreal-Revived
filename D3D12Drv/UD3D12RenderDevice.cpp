@@ -180,6 +180,8 @@ void UD3D12RenderDevice::StaticConstructor()
 	PrefersDeferredLoad = 0;
 	UseVSync = 0;
 	EnableVR = 0;
+	VRHUDDistance = 1.75f;
+	VRHUDScale = 1.0f;
 	AntialiasMode = 2;
 	UsePrecache = 1;
 	Coronas = 1;
@@ -239,6 +241,8 @@ void UD3D12RenderDevice::StaticConstructor()
 
 	new(GetClass(), TEXT("UseVSync"), RF_Public) UBoolProperty(CPP_PROPERTY(UseVSync), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("EnableVR"), RF_Public) UBoolProperty(CPP_PROPERTY(EnableVR), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("VRHUDDistance"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDDistance), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("VRHUDScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDScale), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("UsePrecache"), RF_Public) UBoolProperty(CPP_PROPERTY(UsePrecache), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("GammaCorrectScreenshots"), RF_Public) UBoolProperty(CPP_PROPERTY(GammaCorrectScreenshots), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("UseDebugLayer"), RF_Public) UBoolProperty(CPP_PROPERTY(UseDebugLayer), TEXT("Display"), CPF_Config);
@@ -1792,14 +1796,33 @@ UBOOL UD3D12RenderDevice::PresentOpenXRUI()
 
 	if (!OpenXRUIAnchorValid && OpenXRViews.size() == 2)
 	{
-		OpenXRUIAnchorPose.orientation = NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation);
-		const FVector Forward = RotateOpenXRVector(OpenXRUIAnchorPose.orientation, FVector(0.0f, 0.0f, -1.75f));
-		OpenXRUIAnchorPose.position = {
-			(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f + Forward.X,
-			(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f + Forward.Y,
-			(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f + Forward.Z
+		// One upright, eye-level anchor for HUD, menus and intro. Capture it
+		// at initialization or explicit recenter, never on a menu transition.
+		const FVector Forward = RotateOpenXRVector(
+			NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation), FVector(0.0f, 0.0f, -1.0f));
+		const FLOAT HorizontalLengthSquared = Forward.X * Forward.X + Forward.Z * Forward.Z;
+		if (HorizontalLengthSquared > 0.0001f)
+		{
+			const FLOAT HalfYaw = 0.5f * atan2f(-Forward.X, -Forward.Z);
+			OpenXRUIAnchorPose.orientation = { 0.0f, sinf(HalfYaw), 0.0f, cosf(HalfYaw) };
+		}
+		OpenXRUIAnchorHeadPosition = {
+			(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
+			(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
+			(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f
 		};
 		OpenXRUIAnchorValid = 1;
+	}
+	if (OpenXRUIAnchorValid)
+	{
+		const FLOAT UIDistance = Clamp(VRHUDDistance, 0.5f, 5.0f);
+		const FVector Offset = RotateOpenXRVector(OpenXRUIAnchorPose.orientation,
+			FVector(0.0f, 0.0f, -UIDistance));
+		OpenXRUIAnchorPose.position = {
+			OpenXRUIAnchorHeadPosition.x + Offset.X,
+			OpenXRUIAnchorHeadPosition.y + Offset.Y,
+			OpenXRUIAnchorHeadPosition.z + Offset.Z
+		};
 	}
 	OpenXRUILayerReady = OpenXRUIAnchorValid;
 	return 1;
@@ -1858,7 +1881,12 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 	UILayer.subImage.imageRect.offset = { 0, 0 };
 	UILayer.subImage.imageRect.extent = { OpenXRUISwapchain.Width, OpenXRUISwapchain.Height };
 	UILayer.pose = OpenXRUIAnchorPose;
-	const FLOAT UIWidth = 1.60f;
+	const FLOAT UIScale = Clamp(VRHUDScale, 0.5f, 2.0f);
+	// Preserve the accepted menu size at the default 1.75 m distance. Physical
+	// size depends only on scale, so moving farther away visibly reduces size.
+	const FLOAT UIReferenceDistance = 1.75f;
+	const FLOAT UIAngularWidth = 64.0f;
+	const FLOAT UIWidth = 2.0f * UIReferenceDistance * tanf(UIAngularWidth * 3.14159265f / 360.0f) * UIScale;
 	const FLOAT UIHeight = UIWidth * CurrentSizeY / Max<FLOAT>(CurrentSizeX, 1.0f);
 	UILayer.size = { UIWidth, UIHeight };
 	const XrCompositionLayerBaseHeader* Layers[2] = {
@@ -2858,7 +2886,15 @@ void UD3D12RenderDevice::BeginVRUIPass()
 		VRUISeparatedThisFrame = true;
 		UIPassActive = false;
 	}
-	VRUIPassActive = true;
+	if (!VRUIPassActive)
+	{
+		// Canvas vertices use the symmetric game projection. The compositor
+		// projects the finished panel into each eye later; applying an eye
+		// frustum here shifts/scales the UI inside its texture a second time.
+		VRUIPassActive = true;
+		if (CurrentFrame)
+			SetSceneNode(CurrentFrame);
+	}
 }
 
 uint32_t UD3D12RenderDevice::GetUICompositionFlags(DWORD polyFlags) const
@@ -3521,17 +3557,40 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 		}
 		else if (ParseCommand(&Cmd, TEXT("BEGINVRUIPASS")))
 		{
+			// Existing HUD/MENU/INTRO suffixes remain accepted. All UI now
+			// shares one panel pose and physical size.
 			BeginVRUIPass();
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("ENDVRUIPASS")))
 		{
-			VRUIPassActive = false;
+			if (VRUIPassActive)
+			{
+				// SetSceneNode flushes pending UI with its existing projection
+				// before restoring the eye projection for subsequent draws.
+				VRUIPassActive = false;
+				if (CurrentFrame)
+					SetSceneNode(CurrentFrame);
+			}
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("RESETVRUIANCHOR")))
 		{
 			OpenXRUIAnchorValid = 0;
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRHUDDISTANCE")))
+		{
+			VRHUDDistance = Clamp(appAtof(Cmd), 0.5f, 5.0f);
+			SaveConfig();
+			Ar.Logf(TEXT("%.2f"), VRHUDDistance);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRHUDSCALE")))
+		{
+			VRHUDScale = Clamp(appAtof(Cmd), 0.5f, 2.0f);
+			SaveConfig();
+			Ar.Logf(TEXT("%.2f"), VRHUDScale);
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("BLOOM")))
@@ -5049,7 +5108,7 @@ void UD3D12RenderDevice::SetSceneNode(FSceneNode* Frame)
 	SceneViewport.MaxDepth = 1.0f;
 	Commands.Current->Draw->RSSetViewports(1, &SceneViewport);
 
-	if (OpenXRStereoDrawEye >= 0 && OpenXRViewsValid &&
+	if (!VRUIPassActive && OpenXRStereoDrawEye >= 0 && OpenXRViewsValid &&
 		static_cast<uint32_t>(OpenXRStereoDrawEye) < OpenXRViews.size())
 	{
 		const XrFovf& EyeFov = OpenXRViews[OpenXRStereoDrawEye].fov;

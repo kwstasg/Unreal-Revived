@@ -87,7 +87,7 @@ does not alter gameplay state. Live validation retained scripted flybys,
 controls, stereo fusion, and distortion-free tracking; finer weapon placement
 tuning remains a TODO. Gameplay aim and controls remain unchanged; crosshair
 gaze alignment, firing along headset gaze, locomotion semantics, recentering,
-spatial UI, collision fade, mirror options, and broader acceptance testing are
+collision fade, mirror options, and broader acceptance testing are
 not connected yet. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
@@ -237,6 +237,12 @@ ModernMenu root window active.
   from embedding the pinned 227k_15 payload from ignored local inputs.
 
 ## Next priorities
+
+The spatial UI milestone was user-accepted on 2026-09-10: complete desktop-like
+HUD/menu layout on one upright OpenXR panel, explicit UI recenter, and stable,
+independent distance/scale controls. See [the maintenance contract](vr-ui-recovery-design.md).
+This is a source milestone; no release or tag was published for it. Broader VR
+runtime/gameplay coverage remains separate from this headset acceptance.
 
 The ordered major additions are maintained in [`roadmap.md`](roadmap.md):
 

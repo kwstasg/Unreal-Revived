@@ -203,3 +203,15 @@ PlayerOwner.ConsoleCommand("D3D12 BEGINUIPASS");
 Future world-only post-process effects must reuse this boundary, the captured
 world image, and the existing UI composition step. They must not introduce
 effect-specific world/UI detection.
+
+## Shared VR UI panel
+
+| Command | Behavior |
+| --- | --- |
+| `D3D12 VRHUDDISTANCE <metres>` | Save and apply distance, clamped to 0.50-5.00, without recentering or compensating physical size. |
+| `D3D12 VRHUDSCALE <factor>` | Save and apply physical scale, clamped to 0.50-2.00, around the panel center. |
+| `D3D12 RESETVRUIANCHOR` | Explicitly recapture upright heading and eye-level placement for all UI. |
+| `D3D12 BEGINVRUIPASS` / `D3D12 ENDVRUIPASS` | Internal balanced canvas-projection boundary; world/weapon rendering stays outside it. |
+
+These controls are exposed in Preferences > VR. Opening/closing menus does not
+recenter or change panel geometry. See [the maintenance contract](vr-ui-recovery-design.md).

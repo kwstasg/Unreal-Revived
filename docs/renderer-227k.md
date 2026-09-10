@@ -293,9 +293,11 @@ validated Rift CV1, but each eye currently originates at the selected logical
 UE1 game resolution and is scaled to the swapchain. This preserves normalized
 projection and stereo alignment but makes headset sharpness dependent on the
 logical resolution. Direct per-eye rendering at the runtime-recommended size
-remains a quality improvement. VR input, head-gaze aim, recentering, spatial UI,
-collision comfort, and the full acceptance matrix are not implemented, so VR
-must not yet be described as a supported feature.
+remains a quality improvement. Spatial UI and explicit UI recenter were
+user-accepted on 2026-09-10. Canvas rendering uses symmetric game projection;
+OpenXR projects the completed shared panel into the eyes. See the
+[VR UI maintenance contract](vr-ui-recovery-design.md). Collision comfort and the
+full acceptance matrix remain incomplete, so this is not a supported VR release.
 RTX support and a Vulkan driver are also future work; their order and status
 are tracked in
 [`roadmap.md`](roadmap.md).

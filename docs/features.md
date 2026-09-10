@@ -9,6 +9,11 @@ boundary.
 
 ## Rendering and image quality
 
+The source also includes the user-accepted [VR HUD/menu milestone](vr-ui-recovery-design.md):
+complete desktop-like layout on a shared upright panel, stable distance/scale
+controls in VR Preferences, and explicit recenter without menu-transition jumps.
+This milestone is not a new release or a general VR compatibility claim.
+
 | Feature | Description |
 | --- | --- |
 | Native Direct3D 12 renderer | Runs Unreal Gold through `D3D12Drv.D3D12RenderDevice` without using XOpenGL as the primary rendering path. |
