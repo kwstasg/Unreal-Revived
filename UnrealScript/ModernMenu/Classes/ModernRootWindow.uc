@@ -4,6 +4,8 @@
 
 class ModernRootWindow extends UMenuRootWindow;
 
+const VRMenuScale = 0.40;
+
 var ModernBindingsClientWindow ControllerBindings;
 var UMenuNewGameClientWindow FocusedNewGameClient;
 var bool bSuppressFocusIndicator;
@@ -1038,18 +1040,40 @@ function WindowEvent(WinMessage Msg, Canvas C, float X, float Y, int Key)
 	local UWindowWindow HitWindow;
 	local FrameHitTest FrameHit;
 	local float FrameX, FrameY;
+	local float SavedOriginX, SavedOriginY;
+	local bool bVRMenu;
 
+	bVRMenu = Left(GetPlayerOwner().ConsoleCommand("D3D12 OPENXRPOSE"), 1) == "1";
+	if (bVRMenu && Msg != WM_Paint)
+	{
+		X = WinWidth * 0.5 + (X - WinWidth * 0.5) / VRMenuScale;
+		Y = WinHeight * 0.5 + (Y - WinHeight * 0.5) / VRMenuScale;
+	}
 	if (Msg == WM_Paint)
 	{
 		if (GetPlayerOwner().MyHUD == None)
 			Console.bNoDrawWorld = False;
 		else
 			Console.bNoDrawWorld = !class'ModernHUDConfigCW'.Default.bShowGameBehindMenus;
+		if (bVRMenu)
+		{
+			SavedOriginX = C.OrgX;
+			SavedOriginY = C.OrgY;
+			C.PushCanvasScale(VRMenuScale, True);
+			C.OrgX += C.ClipX * (1.0 - VRMenuScale) * 0.5;
+			C.OrgY += C.ClipY * (1.0 - VRMenuScale) * 0.5;
+		}
 		PaintModernBackground(C);
 		if (ModernConsole(Console) != None && ModernConsole(Console).bShowFPSStatistics)
 			ModernConsole(Console).DrawFPSStatistics(C);
 		PaintClients(C, X, Y);
 		DrawFocusIndicator(C);
+		if (bVRMenu)
+		{
+			C.PopCanvasScale();
+			C.OrgX = SavedOriginX;
+			C.OrgY = SavedOriginY;
+		}
 	}
 	else if (Msg == WM_LMouseDown)
 	{

@@ -12,13 +12,19 @@ simulated function PostRender(Canvas Canvas)
 {
 	local float StartX, IconScale;
 	local float MessageWidth, MessageHeight;
+	local bool bVRUI;
 
 	PlayerPawn(Owner).ConsoleCommand("D3D12 BEGINUIPASS");
 	HUDSetup(Canvas);
+	bVRUI = Left(PlayerPawn(Owner).ConsoleCommand("D3D12 OPENXRPOSE"), 1) == "1";
+	if (bVRUI)
+		PlayerPawn(Owner).ConsoleCommand("D3D12 BEGINVRUIPASS");
 
 	if ((PlayerPawn(Owner) != None) && PlayerPawn(Owner).bShowMenu)
 	{
 		DisplayMenu(Canvas);
+		if (bVRUI)
+			PlayerPawn(Owner).ConsoleCommand("D3D12 ENDVRUIPASS");
 		return;
 	}
 	else if (PlayerPawn(Owner).ProgressTimeOut > Level.TimeSeconds)
@@ -70,4 +76,6 @@ simulated function PostRender(Canvas Canvas)
 	Canvas.DrawRect(Texture'NvidiaIntroLogo', IconScale, IconScale);
 
 	Canvas.Style = 1;
+	if (bVRUI)
+		PlayerPawn(Owner).ConsoleCommand("D3D12 ENDVRUIPASS");
 }

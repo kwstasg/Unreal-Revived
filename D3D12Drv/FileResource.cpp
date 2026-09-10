@@ -99,7 +99,7 @@ std::string FileResource::readAllText(const std::string& filename)
 
 			float4 darkClamp(float4 c)
 			{
-				// Make all textures a little darker as some of the textures (i.e coronas) never become completely black as they should have
+					// Make all textures a little darker as some of the textures (i.e coronas) never become completely black as they should have
 				float cutoff = 3.1/255.0;
 				return float4(clamp((c.rgb - cutoff) / (1.0 - cutoff), 0.0, 1.0), c.a);
 			}
@@ -218,6 +218,7 @@ std::string FileResource::readAllText(const std::string& filename)
 				float ScanlineStrength;
 				float FilmGrainSeed;
 				float UseWorldPostProcess;
+				float UseVRUI;
 			}
 
 			SamplerState samplerTex
@@ -238,6 +239,7 @@ std::string FileResource::readAllText(const std::string& filename)
 			Texture2D texDither;
 			Texture2D texWorldScene;
 			Texture2D<float> texUICompositionMask;
+			Texture2D texVRUI;
 
 			float3 dither(float3 c, float4 FragCoord)
 			{
@@ -356,6 +358,11 @@ std::string FileResource::readAllText(const std::string& filename)
 			Output main(Input input)
 			{
 				Output output;
+			#if defined(OPENXR_UI_LAYER)
+				float4 uiLayer = texFinalFrame.Sample(samplerTex, input.texCoord);
+				float3 uiColor = gammaCorrect(colorCorrect(uiLayer.rgb));
+				output.outColor = float4(dither(uiColor, input.fragCoord), uiLayer.a);
+			#else
 				float3 sceneColor;
 				float applyWorldDisplayEffects = 0.0;
 				if (UseWorldPostProcess > 0.0)
@@ -391,6 +398,11 @@ std::string FileResource::readAllText(const std::string& filename)
 				}
 				else
 					sceneColor = texFinalFrame.Sample(samplerTex, input.texCoord).rgb;
+				if (UseVRUI > 0.0)
+				{
+					float4 uiLayer = texVRUI.Sample(samplerTex, input.texCoord);
+					sceneColor = lerp(sceneColor, uiLayer.rgb, uiLayer.a);
+				}
 				float3 color = gammaCorrect(colorCorrect(sceneColor));
 				if (applyWorldDisplayEffects > 0.0 && FilmGrainAmount > 0.0)
 				{
@@ -425,6 +437,7 @@ std::string FileResource::readAllText(const std::string& filename)
 				float3 low = srgb / 12.92;
 				float3 high = pow(max((srgb + 0.055) / 1.055, 0.0), 2.4);
 				output.outColor.rgb = lerp(high, low, step(srgb, 0.04045));
+			#endif
 			#endif
 				return output;
 			}

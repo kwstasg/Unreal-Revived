@@ -54,6 +54,7 @@ struct PresentPushConstants
 	float ScanlineStrength;
 	float FilmGrainSeed;
 	float UseWorldPostProcess;
+	float UseVRUI;
 };
 
 struct BloomPushConstants
@@ -132,6 +133,7 @@ public:
 	void PollOpenXRSession();
 	UBOOL PrepareOpenXRFrame();
 	UBOOL PresentOpenXREye(uint32_t ViewIndex);
+	UBOOL PresentOpenXRUI();
 	void FinishOpenXRFrame();
 	void ReleaseOpenXRFoundation();
 #endif
@@ -247,6 +249,8 @@ public:
 		PPI_FinalFrame = 0,
 		PPI_WorldScene,
 		PPI_Screenshot,
+		PPI_VRUIBase,
+		PPI_VRUI,
 		PPI_Count
 	};
 
@@ -270,6 +274,7 @@ public:
 		DescriptorSet PPImageSRV[PPI_Count];
 
 		DescriptorSet PresentSRVs;
+		DescriptorSet OpenXRUISRVs;
 
 		enum { NumBloomLevels = 4 };
 		PPBlurLevel BlurLevels[NumBloomLevels];
@@ -434,6 +439,8 @@ private:
 	bool AreSceneBuffersReady() const;
 	bool IsWorldPostProcessEnabled() const;
 	void BeginUIPass();
+	void BeginVRUIPass();
+	void CopyPostProcessImage(PostProcessImageIndex source, PostProcessImageIndex destination);
 	uint32_t GetUICompositionFlags(DWORD polyFlags) const;
 	void CopySceneToPostProcess(PostProcessImageIndex imageIndex);
 	void ResolveUICompositionMask();
@@ -544,6 +551,11 @@ private:
 	std::vector<XrViewConfigurationView> OpenXRConfigurationViews;
 	std::vector<XrView> OpenXRViews;
 	std::vector<OpenXRViewSwapchain> OpenXRSwapchains;
+	OpenXRViewSwapchain OpenXRUISwapchain;
+	ComPtr<ID3D12PipelineState> OpenXRUIPresentPipeline;
+	XrPosef OpenXRUIAnchorPose = { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f } };
+	UBOOL OpenXRUIAnchorValid = 0;
+	UBOOL OpenXRUILayerReady = 0;
 	XrQuaternionf OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 	XrQuaternionf OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 	XrVector3f OpenXRBaseHeadPosition = { 0.0f, 0.0f, 0.0f };
@@ -567,6 +579,8 @@ private:
 	FSceneNode* CurrentFrame = nullptr;
 	bool WorldSceneCaptured = false;
 	bool UIPassActive = false;
+	bool VRUIPassActive = false;
+	bool VRUISeparatedThisFrame = false;
 	float Aspect;
 	float RProjZ;
 	float RFX2;

@@ -6,10 +6,134 @@ class ModernGameHud extends UnrealHUD;
 
 simulated function PostRender(Canvas Canvas)
 {
+	local PlayerPawn Player;
+	local float SavedOriginX, SavedOriginY, SavedClipX, SavedClipY;
+	local float MarginX, MarginY;
+	local bool bVRHud;
+
 	// The world is complete when HUD.PostRender begins. Start the shared UI
 	// pass before UnrealHUD draws status icons, messages, or weapon overlays.
 	PlayerPawn(Owner).ConsoleCommand("D3D12 BEGINUIPASS");
-	Super.PostRender(Canvas);
+	Player = PlayerPawn(Owner);
+	if (Player == None
+		|| Left(Player.ConsoleCommand("D3D12 OPENXRPOSE"), 1) != "1")
+	{
+		Super.PostRender(Canvas);
+		return;
+	}
+
+	// Keep the weapon and gaze crosshair on the full eye canvas. The remaining
+	// status HUD is drawn inside a centered VR-safe area so edge information is
+	// readable without changing the established weapon or camera projection.
+	HUDSetup(Canvas);
+	if (Player.PlayerReplicationInfo == None)
+		return;
+	if (Level.bIsDemoPlayback || Level.bIsDemoRecording)
+		DrawDemoInfo(Canvas);
+	if (Player.bShowMenu)
+	{
+		Player.ConsoleCommand("D3D12 BEGINVRUIPASS");
+		DisplayMenu(Canvas);
+		Player.ConsoleCommand("D3D12 ENDVRUIPASS");
+		return;
+	}
+	if (Player.bShowScores)
+	{
+		if (Player.Weapon != None && !Player.Weapon.bOwnsCrossHair)
+			DrawCrossHair(Canvas, 0.5 * Canvas.ClipX - 8,
+				0.5 * Canvas.ClipY - 8);
+		if (Player.Scoring == None && Player.ScoringType != None)
+			Player.Scoring = Spawn(Player.ScoringType, Player);
+		if (Player.Scoring != None)
+		{
+			Player.ConsoleCommand("D3D12 BEGINVRUIPASS");
+			Player.Scoring.ShowScores(Canvas);
+			Player.ConsoleCommand("D3D12 ENDVRUIPASS");
+			return;
+		}
+	}
+	else if (Player.Weapon != None && Level.LevelAction == LEVACT_None)
+	{
+		Canvas.Font = Font'WhiteFont';
+		Player.Weapon.PostRender(Canvas);
+		if (!Player.Weapon.bOwnsCrossHair)
+			DrawCrossHair(Canvas, 0.5 * Canvas.ClipX - 8,
+				0.5 * Canvas.ClipY - 8);
+	}
+
+	Player.ConsoleCommand("D3D12 BEGINVRUIPASS");
+	SavedOriginX = Canvas.OrgX;
+	SavedOriginY = Canvas.OrgY;
+	SavedClipX = Canvas.ClipX;
+	SavedClipY = Canvas.ClipY;
+	MarginX = SavedClipX * 0.35;
+	MarginY = SavedClipY * 0.30;
+	Canvas.SetOrigin(SavedOriginX + MarginX + SavedClipX * 0.03,
+		SavedOriginY + MarginY);
+	Canvas.SetClip(SavedClipX - 2.0 * MarginX, SavedClipY - 2.0 * MarginY);
+	Canvas.PushCanvasScale(1.0, True);
+	bVRHud = True;
+
+	if (Player.ProgressTimeOut > Level.TimeSeconds)
+		DisplayProgressMessage(Canvas);
+	if (HudMode == 5)
+		DrawInventory(Canvas, Canvas.ClipX - 96, 0, False);
+	else
+	{
+		if (HudMode < 2)
+			DrawArmor(Canvas, 0, 0, False);
+		else if (HudMode == 2 || HudMode == 3)
+			DrawArmor(Canvas, 0, Canvas.ClipY - 32, False);
+		else if (HudMode == 4)
+			DrawArmor(Canvas, Canvas.ClipX - 64, Canvas.ClipY - 64, True);
+
+		if (HudMode != 4)
+			DrawAmmo(Canvas, Canvas.ClipX - 48 - 64, Canvas.ClipY - 32);
+		else
+			DrawAmmo(Canvas, Canvas.ClipX - 48, Canvas.ClipY - 32);
+
+		if (HudMode < 2)
+			DrawHealth(Canvas, 0, Canvas.ClipY - 32);
+		else if (HudMode == 2 || HudMode == 3)
+			DrawHealth(Canvas, Canvas.ClipX - 128, Canvas.ClipY - 32);
+		else if (HudMode == 4)
+			DrawHealth(Canvas, Canvas.ClipX - 64, Canvas.ClipY - 32);
+
+		if (HudMode < 2)
+			DrawInventory(Canvas, Canvas.ClipX - 96, 0, False);
+		else if (HudMode == 3)
+			DrawInventory(Canvas, Canvas.ClipX - 96, Canvas.ClipY - 64, False);
+		else if (HudMode == 4)
+			DrawInventory(Canvas, Canvas.ClipX - 64, Canvas.ClipY - 64, True);
+		else if (HudMode == 2)
+			DrawInventory(Canvas, Canvas.ClipX / 2 - 64,
+				Canvas.ClipY - 32, False);
+
+		if (Level.Game == None || Level.Game.bDeathMatch)
+		{
+			if (HudMode < 3)
+				DrawFragCount(Canvas, Canvas.ClipX - 32, Canvas.ClipY - 64);
+			else if (HudMode == 3)
+				DrawFragCount(Canvas, 0, Canvas.ClipY - 64);
+			else if (HudMode == 4)
+				DrawFragCount(Canvas, 0, Canvas.ClipY - 32);
+		}
+
+		DrawIdentifyInfo(Canvas, 0, Canvas.ClipY - 64.0);
+		if (MOTDFadeOutTime != 0.0)
+			DrawMOTD(Canvas);
+		if (Player.GameReplicationInfo != None
+			&& Player.GameReplicationInfo.bTeamGame)
+			DrawTeamGameSynopsis(Canvas);
+	}
+
+	if (bVRHud)
+	{
+		Canvas.PopCanvasScale();
+		Canvas.SetOrigin(SavedOriginX, SavedOriginY);
+		Canvas.SetClip(SavedClipX, SavedClipY);
+	}
+	Player.ConsoleCommand("D3D12 ENDVRUIPASS");
 }
 
 static simulated function Font GetLocalizedMessageFont(Canvas Canvas)
@@ -216,6 +340,7 @@ static simulated function DrawLocalizedTranslator(Canvas Canvas, Translator T)
 	local Font SavedFont, TranslatorFont;
 	local byte SavedStyle;
 	local color SavedColor;
+	local bool bSavedCenter;
 	local string CurrentMessage;
 
 	SavedOrgX = Canvas.OrgX;
@@ -228,6 +353,7 @@ static simulated function DrawLocalizedTranslator(Canvas Canvas, Translator T)
 	SavedFontScale = Canvas.FontScale;
 	SavedStyle = Canvas.Style;
 	SavedColor = Canvas.DrawColor;
+	bSavedCenter = Canvas.bCenter;
 
 	if (T.bShowHint && Len(T.Hint) != 0)
 		CurrentMessage = T.HintString @ T.Hint;
@@ -235,6 +361,7 @@ static simulated function DrawLocalizedTranslator(Canvas Canvas, Translator T)
 		CurrentMessage = T.NewMessage;
 
 	Canvas.bCenter = False;
+	Canvas.FontScale = 1.0;
 	Canvas.DrawColor = MakeColor(255, 255, 255);
 	Canvas.Style = ERenderStyle.STY_Masked;
 	if (T.TranslatorScale <= 1.0)
@@ -242,7 +369,7 @@ static simulated function DrawLocalizedTranslator(Canvas Canvas, Translator T)
 		Canvas.SetPos(Canvas.ClipX / 2 - 128, Canvas.ClipY / 2 - 68);
 		Canvas.DrawIcon(T.LowResHUD, 1.0);
 		Canvas.SetOrigin(Canvas.ClipX / 2 - 110, Canvas.ClipY / 2 - 52);
-		Canvas.SetClip(220, 110);
+		Canvas.SetClip(225, 110);
 		TranslatorFont = Font(DynamicLoadObject("UWindowFonts.Tahoma10", class'Font'));
 	}
 	else
@@ -251,9 +378,9 @@ static simulated function DrawLocalizedTranslator(Canvas Canvas, Translator T)
 			Canvas.ClipY / 2 - 68 * T.TranslatorScale);
 		Canvas.DrawTile(T.HiResHUD, T.TranslatorScale * 256, T.TranslatorScale * 256,
 			0, 0, T.HiResHUD.USize, T.HiResHUD.VSize);
-		Canvas.SetOrigin(Canvas.ClipX / 2 - 110 * T.TranslatorScale,
+		Canvas.SetOrigin(Canvas.ClipX / 2 - 100 * T.TranslatorScale,
 			Canvas.ClipY / 2 - 52 * T.TranslatorScale);
-		Canvas.SetClip(220 * T.TranslatorScale, 110 * T.TranslatorScale);
+		Canvas.SetClip(205 * T.TranslatorScale, 110 * T.TranslatorScale);
 		if (T.TranslatorScale <= 1.7)
 			TranslatorFont = Font(DynamicLoadObject("UWindowFonts.Tahoma14", class'Font'));
 		else if (T.TranslatorScale <= 2.35)
@@ -282,4 +409,5 @@ static simulated function DrawLocalizedTranslator(Canvas Canvas, Translator T)
 	Canvas.FontScale = SavedFontScale;
 	Canvas.Style = SavedStyle;
 	Canvas.DrawColor = SavedColor;
+	Canvas.bCenter = bSavedCenter;
 }

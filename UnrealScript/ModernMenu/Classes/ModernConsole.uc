@@ -108,13 +108,20 @@ function InitializeLocalizedHudFont()
 function PrepareLocalizedHudRendering()
 {
 	local Inventory Inv;
+	local bool bLocalizedHud;
+	local bool bVRUI;
 
-	if (!(class'Locale'.Static.GetLanguage() ~= "elt") || Viewport.Actor == None)
-		return;
-
-	CaptureLocalizedMOTD();
 	SuppressedTranslator = None;
 	bSuppressedTranslatorActive = False;
+	if (Viewport.Actor == None)
+		return;
+	bLocalizedHud = class'Locale'.Static.GetLanguage() ~= "elt";
+	bVRUI = Left(Viewport.Actor.ConsoleCommand("D3D12 OPENXRPOSE"), 1) == "1";
+	if (!bLocalizedHud && !bVRUI)
+		return;
+
+	if (bLocalizedHud)
+		CaptureLocalizedMOTD();
 	foreach Viewport.Actor.AllInventory(class'Inventory', Inv)
 	{
 		if (Translator(Inv) != None)
@@ -288,12 +295,20 @@ function EnsureModernGameHud()
 
 	if (Player.HUDType == class'UnrealHUD')
 		Player.HUDType = class'ModernGameHud';
+	else if (Player.HUDType == class'IntroNullHud')
+		Player.HUDType = class'ModernIntroHud';
 
 	if (Player.MyHUD != None && Player.MyHUD.Class == class'UnrealHUD')
 	{
 		Player.MyHUD.Destroy();
 		Player.MyHUD = None;
 		Player.HUDType = class'ModernGameHud';
+	}
+	else if (Player.MyHUD != None && Player.MyHUD.Class == class'IntroNullHud')
+	{
+		Player.MyHUD.Destroy();
+		Player.MyHUD = None;
+		Player.HUDType = class'ModernIntroHud';
 	}
 }
 
@@ -308,26 +323,33 @@ function UpdateVSyncStatistics()
 event PostRender(Canvas C)
 {
 	local float HudScale;
+	local bool bVRUI;
 
 	if (LocalizedHudMedFont != None)
 		C.MedFont = LocalizedHudMedFont;
 
 	HudScale = class'HUD'.Default.HudScaler;
-	if (LocalizedMOTDHud != None
-		&& (LocalizedMOTDFadeOutTime > 0 || bSuppressedTranslatorActive))
+	bVRUI = Viewport.Actor != None
+		&& Left(Viewport.Actor.ConsoleCommand("D3D12 OPENXRPOSE"), 1) == "1";
+	if ((LocalizedMOTDHud != None && LocalizedMOTDFadeOutTime > 0)
+		|| (SuppressedTranslator != None && bSuppressedTranslatorActive))
 	{
+		if (bVRUI)
+			Viewport.Actor.ConsoleCommand("D3D12 BEGINVRUIPASS");
 		C.SetOrigin(0, 0);
-		if (HudScale != 1.0)
+		if (!bVRUI && HudScale != 1.0)
 			C.PushCanvasScale(HudScale, True);
-		if (LocalizedMOTDFadeOutTime > 0)
+		if (LocalizedMOTDHud != None && LocalizedMOTDFadeOutTime > 0)
 		{
 			class'ModernGameHud'.Static.DrawLocalizedMOTD(C, LocalizedMOTDHud,
 				LocalizedMOTDFadeOutTime);
 		}
 		if (SuppressedTranslator != None && bSuppressedTranslatorActive)
 			class'ModernGameHud'.Static.DrawLocalizedTranslator(C, SuppressedTranslator);
-		if (HudScale != 1.0)
+		if (!bVRUI && HudScale != 1.0)
 			C.PopCanvasScale();
+		if (bVRUI)
+			Viewport.Actor.ConsoleCommand("D3D12 ENDVRUIPASS");
 	}
 	if (SuppressedTranslator != None)
 		SuppressedTranslator.bCurrentlyActivated = bSuppressedTranslatorActive;
@@ -597,6 +619,9 @@ function UpdateControllerDodgeSuppression(EInputKey Key, float Delta)
 
 function LaunchUWindow()
 {
+	if (Viewport.Actor != None
+		&& Left(Viewport.Actor.ConsoleCommand("D3D12 OPENXRPOSE"), 1) == "1")
+		Viewport.Actor.ConsoleCommand("D3D12 RESETVRUIANCHOR");
 	if (bControllerDodgeSuppressed && Viewport.Actor != None)
 	{
 		Viewport.Actor.DodgeClickTime = SavedDodgeClickTime;
@@ -627,9 +652,17 @@ state UWindow
 {
 	event PostRender(Canvas C)
 	{
+		local bool bVRUI;
+
 		if (LocalizedHudMedFont != None)
 			C.MedFont = LocalizedHudMedFont;
+		bVRUI = Viewport.Actor != None
+			&& Left(Viewport.Actor.ConsoleCommand("D3D12 OPENXRPOSE"), 1) == "1";
+		if (bVRUI)
+			Viewport.Actor.ConsoleCommand("D3D12 BEGINVRUIPASS");
 		Super.PostRender(C);
+		if (bVRUI)
+			Viewport.Actor.ConsoleCommand("D3D12 ENDVRUIPASS");
 	}
 
 	function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)

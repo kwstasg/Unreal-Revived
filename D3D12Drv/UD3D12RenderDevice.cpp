@@ -1441,6 +1441,42 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 		}
 	}
 
+	OpenXRUISwapchain.Width = 1024;
+	OpenXRUISwapchain.Height = 1024;
+	XrSwapchainCreateInfo UISwapchainInfo = { XR_TYPE_SWAPCHAIN_CREATE_INFO };
+	UISwapchainInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+	UISwapchainInfo.format = static_cast<int64_t>(SelectedFormat);
+	UISwapchainInfo.sampleCount = 1;
+	UISwapchainInfo.width = OpenXRUISwapchain.Width;
+	UISwapchainInfo.height = OpenXRUISwapchain.Height;
+	UISwapchainInfo.faceCount = 1;
+	UISwapchainInfo.arraySize = 1;
+	UISwapchainInfo.mipCount = 1;
+	Result = OpenXRFunctions.CreateSwapchain(OpenXRSession, &UISwapchainInfo, &OpenXRUISwapchain.Handle);
+	if (XR_FAILED(Result) || OpenXRUISwapchain.Handle == XR_NULL_HANDLE)
+	{
+		debugf(TEXT("Unreal Revived OpenXR: UI swapchain creation failed (result %d)"), Result);
+		return 0;
+	}
+	uint32_t UIImageCount = 0;
+	Result = OpenXRFunctions.EnumerateSwapchainImages(OpenXRUISwapchain.Handle, 0, &UIImageCount, nullptr);
+	if (XR_FAILED(Result) || UIImageCount == 0)
+		return 0;
+	OpenXRUISwapchain.Images.assign(UIImageCount, { XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR });
+	Result = OpenXRFunctions.EnumerateSwapchainImages(OpenXRUISwapchain.Handle, UIImageCount, &UIImageCount,
+		reinterpret_cast<XrSwapchainImageBaseHeader*>(OpenXRUISwapchain.Images.data()));
+	if (XR_FAILED(Result))
+		return 0;
+	OpenXRUISwapchain.RTVs = Heaps.RTV->Alloc(static_cast<INT>(UIImageCount));
+	for (uint32_t ImageIndex = 0; ImageIndex < UIImageCount; ImageIndex++)
+	{
+		D3D12_RENDER_TARGET_VIEW_DESC RTVDesc = {};
+		RTVDesc.Format = SelectedFormat;
+		RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+		Device->CreateRenderTargetView(OpenXRUISwapchain.Images[ImageIndex].texture, &RTVDesc,
+			OpenXRUISwapchain.RTVs.CPUHandle(static_cast<INT>(ImageIndex)));
+	}
+
 	std::vector<D3D12_INPUT_ELEMENT_DESC> Elements =
 	{
 		{ "AttrPos", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
@@ -1480,6 +1516,30 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 		const HRESULT PipelineResult = Device->CreateGraphicsPipelineState(&PipelineDesc,
 			OpenXRPresentPipelines[PipelineIndex].GetIID(), OpenXRPresentPipelines[PipelineIndex].InitPtr());
 		ThrowIfFailed(PipelineResult, "CreateGraphicsPipelineState(OpenXRPresent) failed");
+	}
+	{
+		std::vector<std::string> Defines = { "GAMMA_MODE_D3D9", "OPENXR_UI_LAYER" };
+		if (IsSRGB)
+			Defines.push_back("OPENXR_SRGB_OUTPUT");
+		const auto UIPixelShader = CompileHlsl("shaders/Present.frag", "ps", Defines);
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineDesc = {};
+		PipelineDesc.pRootSignature = PresentPass.RootSignature;
+		PipelineDesc.InputLayout.NumElements = static_cast<UINT>(Elements.size());
+		PipelineDesc.InputLayout.pInputElementDescs = Elements.data();
+		PipelineDesc.VS = { VertexShader.data(), VertexShader.size() };
+		PipelineDesc.PS = { UIPixelShader.data(), UIPixelShader.size() };
+		PipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		PipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+		PipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		PipelineDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+		PipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		PipelineDesc.SampleDesc.Count = 1;
+		PipelineDesc.SampleMask = UINT_MAX;
+		PipelineDesc.NumRenderTargets = 1;
+		PipelineDesc.RTVFormats[0] = SelectedFormat;
+		ThrowIfFailed(Device->CreateGraphicsPipelineState(&PipelineDesc,
+			OpenXRUIPresentPipeline.GetIID(), OpenXRUIPresentPipeline.InitPtr()),
+			"CreateGraphicsPipelineState(OpenXRUI) failed");
 	}
 
 	OpenXRRenderingReady = 1;
@@ -1581,10 +1641,12 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 	}
 	OpenXRFrameBegun = 1;
 	OpenXRSubmitLayer = 0;
+	OpenXRUILayerReady = 0;
 	OpenXRViewsValid = 0;
 	OpenXRPredictedDisplayTime = FrameState.predictedDisplayTime;
 	for (OpenXRViewSwapchain& Swapchain : OpenXRSwapchains)
 		Swapchain.ImageReady = 0;
+	OpenXRUISwapchain.ImageReady = 0;
 	if (!FrameState.shouldRender)
 		return 1;
 
@@ -1686,6 +1748,63 @@ UBOOL UD3D12RenderDevice::PresentOpenXREye(uint32_t ViewIndex)
 	return 1;
 }
 
+UBOOL UD3D12RenderDevice::PresentOpenXRUI()
+{
+	if (!OpenXRFrameBegun || !OpenXRViewsValid || !VRUISeparatedThisFrame ||
+		OpenXRUISwapchain.Handle == XR_NULL_HANDLE || !OpenXRUIPresentPipeline)
+		return 0;
+
+	XrSwapchainImageAcquireInfo AcquireInfo = { XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+	XrResult Result = OpenXRFunctions.AcquireSwapchainImage(OpenXRUISwapchain.Handle, &AcquireInfo,
+		&OpenXRUISwapchain.AcquiredImage);
+	if (XR_FAILED(Result) || OpenXRUISwapchain.AcquiredImage >= OpenXRUISwapchain.Images.size())
+		return 0;
+	XrSwapchainImageWaitInfo WaitInfo = { XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
+	WaitInfo.timeout = XR_INFINITE_DURATION;
+	Result = OpenXRFunctions.WaitSwapchainImage(OpenXRUISwapchain.Handle, &WaitInfo);
+	if (XR_FAILED(Result))
+		return 0;
+	OpenXRUISwapchain.ImageReady = 1;
+
+	const D3D12_CPU_DESCRIPTOR_HANDLE RTV = OpenXRUISwapchain.RTVs.CPUHandle(
+		static_cast<INT>(OpenXRUISwapchain.AcquiredImage));
+	const FLOAT Transparent[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	Commands.Current->Draw->ClearRenderTargetView(RTV, Transparent, 0, nullptr);
+	Commands.Current->Draw->SetGraphicsRootSignature(PresentPass.RootSignature);
+	Commands.Current->Draw->OMSetRenderTargets(1, &RTV, FALSE, nullptr);
+	D3D12_VIEWPORT Viewport = {};
+	Viewport.Width = static_cast<FLOAT>(OpenXRUISwapchain.Width);
+	Viewport.Height = static_cast<FLOAT>(OpenXRUISwapchain.Height);
+	Viewport.MaxDepth = 1.0f;
+	Commands.Current->Draw->RSSetViewports(1, &Viewport);
+	D3D12_RECT Scissor = { 0, 0, OpenXRUISwapchain.Width, OpenXRUISwapchain.Height };
+	Commands.Current->Draw->RSSetScissorRects(1, &Scissor);
+	Commands.Current->Draw->SetPipelineState(OpenXRUIPresentPipeline);
+	Commands.Current->Draw->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	Commands.Current->Draw->IASetVertexBuffers(0, 1, &PresentPass.PPStepVertexBufferView);
+	Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, SceneBuffers.OpenXRUISRVs.GPUHandle());
+	PresentPushConstants PushConstants = GetPresentPushConstants();
+	PushConstants.UseWorldPostProcess = 0.0f;
+	PushConstants.UseVRUI = 0.0f;
+	Commands.Current->Draw->SetGraphicsRoot32BitConstants(1,
+		sizeof(PresentPushConstants) / sizeof(uint32_t), &PushConstants, 0);
+	Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
+
+	if (!OpenXRUIAnchorValid && OpenXRViews.size() == 2)
+	{
+		OpenXRUIAnchorPose.orientation = NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation);
+		const FVector Forward = RotateOpenXRVector(OpenXRUIAnchorPose.orientation, FVector(0.0f, 0.0f, -1.75f));
+		OpenXRUIAnchorPose.position = {
+			(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f + Forward.X,
+			(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f + Forward.Y,
+			(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f + Forward.Z
+		};
+		OpenXRUIAnchorValid = 1;
+	}
+	OpenXRUILayerReady = OpenXRUIAnchorValid;
+	return 1;
+}
+
 void UD3D12RenderDevice::FinishOpenXRFrame()
 {
 	if (!OpenXRFrameBegun)
@@ -1722,13 +1841,34 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 	Layer.space = OpenXRLocalSpace;
 	Layer.viewCount = AllImagesReleased ? static_cast<uint32_t>(LayerViews.size()) : 0;
 	Layer.views = AllImagesReleased ? LayerViews.data() : nullptr;
-	const XrCompositionLayerBaseHeader* Layers[] = {
-		reinterpret_cast<const XrCompositionLayerBaseHeader*>(&Layer)
+
+	UBOOL UIReleased = OpenXRUILayerReady && OpenXRUISwapchain.ImageReady;
+	if (OpenXRUISwapchain.ImageReady)
+	{
+		XrSwapchainImageReleaseInfo ReleaseInfo = { XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
+		if (XR_FAILED(OpenXRFunctions.ReleaseSwapchainImage(OpenXRUISwapchain.Handle, &ReleaseInfo)))
+			UIReleased = 0;
+		OpenXRUISwapchain.ImageReady = 0;
+	}
+	XrCompositionLayerQuad UILayer = { XR_TYPE_COMPOSITION_LAYER_QUAD };
+	UILayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+	UILayer.space = OpenXRLocalSpace;
+	UILayer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+	UILayer.subImage.swapchain = OpenXRUISwapchain.Handle;
+	UILayer.subImage.imageRect.offset = { 0, 0 };
+	UILayer.subImage.imageRect.extent = { OpenXRUISwapchain.Width, OpenXRUISwapchain.Height };
+	UILayer.pose = OpenXRUIAnchorPose;
+	const FLOAT UIWidth = 1.60f;
+	const FLOAT UIHeight = UIWidth * CurrentSizeY / Max<FLOAT>(CurrentSizeX, 1.0f);
+	UILayer.size = { UIWidth, UIHeight };
+	const XrCompositionLayerBaseHeader* Layers[2] = {
+		reinterpret_cast<const XrCompositionLayerBaseHeader*>(&Layer),
+		reinterpret_cast<const XrCompositionLayerBaseHeader*>(&UILayer)
 	};
 	XrFrameEndInfo EndInfo = { XR_TYPE_FRAME_END_INFO };
 	EndInfo.displayTime = OpenXRPredictedDisplayTime;
 	EndInfo.environmentBlendMode = OpenXRBlendMode;
-	EndInfo.layerCount = AllImagesReleased ? 1 : 0;
+	EndInfo.layerCount = AllImagesReleased ? (UIReleased ? 2 : 1) : 0;
 	EndInfo.layers = AllImagesReleased ? Layers : nullptr;
 	const XrResult Result = OpenXRFunctions.EndFrame(OpenXRSession, &EndInfo);
 	if (XR_FAILED(Result))
@@ -1740,6 +1880,7 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 	}
 	OpenXRFrameBegun = 0;
 	OpenXRSubmitLayer = 0;
+	OpenXRUILayerReady = 0;
 }
 
 void UD3D12RenderDevice::ReleaseOpenXRFoundation()
@@ -1765,6 +1906,12 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 			Swapchain.ImageReady = 0;
 		}
 	}
+	if (OpenXRUISwapchain.ImageReady && OpenXRUISwapchain.Handle != XR_NULL_HANDLE && OpenXRFunctions.ReleaseSwapchainImage)
+	{
+		XrSwapchainImageReleaseInfo ReleaseInfo = { XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
+		OpenXRFunctions.ReleaseSwapchainImage(OpenXRUISwapchain.Handle, &ReleaseInfo);
+		OpenXRUISwapchain.ImageReady = 0;
+	}
 	if (OpenXRFrameBegun && OpenXRFunctions.EndFrame)
 	{
 		XrFrameEndInfo EndInfo = { XR_TYPE_FRAME_END_INFO };
@@ -1784,6 +1931,13 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 		Swapchain.Images.clear();
 	}
 	OpenXRSwapchains.clear();
+	OpenXRUISwapchain.RTVs.reset();
+	if (OpenXRUISwapchain.Handle != XR_NULL_HANDLE && OpenXRFunctions.DestroySwapchain)
+		OpenXRFunctions.DestroySwapchain(OpenXRUISwapchain.Handle);
+	OpenXRUISwapchain = {};
+	OpenXRUIPresentPipeline.reset();
+	OpenXRUIAnchorValid = 0;
+	OpenXRUILayerReady = 0;
 	for (ComPtr<ID3D12PipelineState>& Pipeline : OpenXRPresentPipelines)
 		Pipeline.reset();
 	OpenXRViews.clear();
@@ -1985,7 +2139,9 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	{
 		TEXT("SceneBuffers.FinalFrame"),
 		TEXT("SceneBuffers.WorldScene"),
-		TEXT("SceneBuffers.ScreenshotImage")
+		TEXT("SceneBuffers.ScreenshotImage"),
+		TEXT("SceneBuffers.VRUIBase"),
+		TEXT("SceneBuffers.VRUI")
 	};
 	for (int i = 0; i < PPI_Count; i++)
 	{
@@ -2023,11 +2179,19 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 		Device->CreateShaderResourceView(SceneBuffers.PPImage[i], nullptr, SceneBuffers.PPImageSRV[i].CPUHandle());
 	}
 
-	SceneBuffers.PresentSRVs = Heaps.Common->Alloc(4);
+	SceneBuffers.PresentSRVs = Heaps.Common->Alloc(5);
 	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_FinalFrame], nullptr, SceneBuffers.PresentSRVs.CPUHandle(0));
 	Device->CreateShaderResourceView(PresentPass.DitherTexture, nullptr, SceneBuffers.PresentSRVs.CPUHandle(1));
 	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_WorldScene], nullptr, SceneBuffers.PresentSRVs.CPUHandle(2));
 	Device->CreateShaderResourceView(SceneBuffers.ResolvedUICompositionMask, nullptr, SceneBuffers.PresentSRVs.CPUHandle(3));
+	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_VRUI], nullptr, SceneBuffers.PresentSRVs.CPUHandle(4));
+
+	SceneBuffers.OpenXRUISRVs = Heaps.Common->Alloc(5);
+	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_VRUI], nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(0));
+	Device->CreateShaderResourceView(PresentPass.DitherTexture, nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(1));
+	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_WorldScene], nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(2));
+	Device->CreateShaderResourceView(SceneBuffers.ResolvedUICompositionMask, nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(3));
+	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_VRUI], nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(4));
 
 	int bloomWidth = width;
 	int bloomHeight = height;
@@ -2552,6 +2716,7 @@ void UD3D12RenderDevice::ReleasePresentPass()
 void UD3D12RenderDevice::ReleaseSceneBuffers()
 {
 	SceneBuffers.PresentSRVs.reset();
+	SceneBuffers.OpenXRUISRVs.reset();
 	SceneBuffers.SceneRTVs.reset();
 	SceneBuffers.SceneDSV.reset();
 	SceneBuffers.PPHitBufferRTV.reset();
@@ -2667,6 +2832,33 @@ void UD3D12RenderDevice::BeginUIPass()
 		WorldSceneCaptured = true;
 	}
 	UIPassActive = true;
+}
+
+void UD3D12RenderDevice::CopyPostProcessImage(PostProcessImageIndex source, PostProcessImageIndex destination)
+{
+	TransitionResourceBarrier(Commands.Current->Draw,
+		SceneBuffers.PPImage[source], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE,
+		SceneBuffers.PPImage[destination], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST);
+	Commands.Current->Draw->CopyResource(SceneBuffers.PPImage[destination], SceneBuffers.PPImage[source]);
+	TransitionResourceBarrier(Commands.Current->Draw,
+		SceneBuffers.PPImage[source], D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		SceneBuffers.PPImage[destination], D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+}
+
+void UD3D12RenderDevice::BeginVRUIPass()
+{
+	if (!IsLocked || OpenXRStereoDrawEye < 0)
+		return;
+	if (!VRUISeparatedThisFrame)
+	{
+		DrawBatches();
+		CopySceneToPostProcess(PPI_VRUIBase);
+		const FLOAT transparent[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Commands.Current->Draw->ClearRenderTargetView(SceneBuffers.SceneRTVs.CPUHandle(0), transparent, 0, nullptr);
+		VRUISeparatedThisFrame = true;
+		UIPassActive = false;
+	}
+	VRUIPassActive = true;
 }
 
 uint32_t UD3D12RenderDevice::GetUICompositionFlags(DWORD polyFlags) const
@@ -3003,7 +3195,7 @@ void UD3D12RenderDevice::CreatePresentPass()
 	D3D12_DESCRIPTOR_RANGE texRange = {};
 	texRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	texRange.BaseShaderRegister = 0;
-	texRange.NumDescriptors = 4;
+	texRange.NumDescriptors = 5;
 	descriptorTables[0].push_back(texRange);
 
 	D3D12_ROOT_CONSTANTS pushConstants = {};
@@ -3327,6 +3519,21 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			BeginUIPass();
 			return 1;
 		}
+		else if (ParseCommand(&Cmd, TEXT("BEGINVRUIPASS")))
+		{
+			BeginVRUIPass();
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("ENDVRUIPASS")))
+		{
+			VRUIPassActive = false;
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("RESETVRUIANCHOR")))
+		{
+			OpenXRUIAnchorValid = 0;
+			return 1;
+		}
 		else if (ParseCommand(&Cmd, TEXT("BLOOM")))
 		{
 			BloomAmount = Clamp<INT>(appAtoi(Cmd), 0, 255);
@@ -3493,6 +3700,8 @@ void UD3D12RenderDevice::Lock(FPlane InFlashScale, FPlane InFlashFog, FPlane Scr
 		HitSize = InHitSize;
 		WorldSceneCaptured = false;
 		UIPassActive = false;
+		VRUIPassActive = false;
+		VRUISeparatedThisFrame = false;
 
 		FlashScale = InFlashScale;
 		FlashFog = InFlashFog;
@@ -3561,6 +3770,7 @@ PresentPushConstants UD3D12RenderDevice::GetPresentPushConstants()
 		std::floor(grainTime.QuadPart * 24.0 / Performance.Frequency.QuadPart), 4096.0);
 	pushconstants.UseWorldPostProcess =
 		IsWorldPostProcessEnabled() && WorldSceneCaptured ? 1.0f : 0.0f;
+	pushconstants.UseVRUI = 0.0f;
 	if (Viewport->IsOrtho())
 	{
 		pushconstants.GammaCorrection = { 1.0f };
@@ -3632,7 +3842,15 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 
 		if (Blit)
 		{
-			CopySceneToPostProcess(PPI_FinalFrame);
+			if (VRUISeparatedThisFrame && OpenXRStereoDrawEye >= 0)
+			{
+				CopySceneToPostProcess(PPI_VRUI);
+				if (OpenXRStereoDrawEye == 1)
+					PresentOpenXRUI();
+				CopyPostProcessImage(PPI_VRUIBase, PPI_FinalFrame);
+			}
+			else
+				CopySceneToPostProcess(PPI_FinalFrame);
 
 			if (WorldSceneCaptured && Bloom && BloomAmount > 0)
 			{
@@ -3673,6 +3891,7 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 			Commands.Current->Draw->RSSetScissorRects(1, &scissorbox);
 
 			PresentPushConstants pushconstants = GetPresentPushConstants();
+			pushconstants.UseVRUI = VRUISeparatedThisFrame ? 1.0f : 0.0f;
 
 			// Select present shader based on what the user is actually using
 			int presentShader = 0;
@@ -4854,7 +5073,9 @@ void UD3D12RenderDevice::SetSceneNode(FSceneNode* Frame)
 		}
 	}
 	else
+	{
 		SceneConstants.ObjectToProjection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+	}
 	SceneConstants.NearClip = vec4(Frame->NearClip.X, Frame->NearClip.Y, Frame->NearClip.Z, Frame->NearClip.W);
 
 	unguardSlow;
