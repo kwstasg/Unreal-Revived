@@ -4,8 +4,6 @@
 
 # Unreal Revived + VR
 
-## Download the latest release
-
 **[Download the latest Unreal Revived release](https://github.com/kwstasg/Unreal-Revived/releases/latest)**
 
 **Fully playable on a normal desktop or in VR.** One installation
