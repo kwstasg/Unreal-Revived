@@ -19,9 +19,7 @@ or F10. Both bindings are customizable.
 
 Choose **Unreal Revived VR** to play in VR, or **Unreal Revived** for normal
 desktop play. Setup offers independent desktop shortcut checkboxes for each.
-VR requires a configured OpenXR runtime and a connected headset. Version 0.6.0
-is prepared for release; the download link below serves the currently published
-release until the new installer is uploaded.
+VR requires a configured OpenXR runtime and a connected headset.
 
 Unreal Revived adds its own DirectX 12 renderer, ModernMenu interface,
 SDL3-based controller backend, tested defaults, branding, and side-by-side
