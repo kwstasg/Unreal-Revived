@@ -8,9 +8,6 @@
 
 **[Download the latest Unreal Revived release](https://github.com/kwstasg/Unreal-Revived/releases/latest)**
 
-The latest release page includes the Windows installer, release notes, and
-SHA-256 checksum.
-
 **Fully playable on a normal desktop or in seated VR.** One installation
 provides separate **Unreal Revived** desktop and **Unreal Revived VR** shortcuts.
 A headset is optional and is never required for normal desktop play.
