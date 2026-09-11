@@ -15,9 +15,7 @@ Series controllers, DualShock 4, DualSense, and other
 you inside the original world, with gaze-aligned gamepad movement, smooth
 right-stick turning, and the full HUD and menus on a stable spatial panel.
 Adjust panel distance and size, and recenter instantly with right-stick click
-or F10. Both bindings are customizable. These features have been tested and
-accepted on Oculus Rift CV1; other headset/runtime combinations and broader
-gameplay coverage remain ongoing.
+or F10. Both bindings are customizable.
 
 Choose **Unreal Revived VR** to play in VR, or **Unreal Revived** for normal
 desktop play. Setup offers independent desktop shortcut checkboxes for each.
