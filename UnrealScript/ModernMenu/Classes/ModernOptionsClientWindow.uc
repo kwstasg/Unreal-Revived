@@ -36,12 +36,17 @@ function Created()
 function MessageBoxDone(UWindowMessageBox W, MessageBoxResult Result)
 {
 	local string SelectedLanguage, SelectedAudioDevice, SelectedVideoDevice;
+	local string RestartMode;
 
 	if (W == Confirm)
 	{
 		Confirm = None;
 		if (Result == MR_Yes)
 		{
+			// Preserve launch intent even if the headset was unavailable.
+			RestartMode = GetPlayerOwner().ConsoleCommand("D3D12 VRLAUNCHMODE");
+			if (RestartMode != "-vr")
+				RestartMode = "-novr";
 			SelectedAudioDevice = class'UMenuAudioClientWindow'.Default.Driver;
 			if (SelectedAudioDevice != "")
 				GetPlayerOwner().ConsoleCommand("SETAUDIODEVICE" @ SelectedAudioDevice);
@@ -56,7 +61,7 @@ function MessageBoxDone(UWindowMessageBox W, MessageBoxResult Result)
 
 			GetParent(class'UWindowFramedWindow').Close();
 			Root.Console.CloseUWindow();
-			GetPlayerOwner().ConsoleCommand("RELAUNCH Unreal.unr?Game=ModernMenu.ModernIntro ini=" $ RestartIni $ " userini=" $ RestartUserIni);
+			GetPlayerOwner().ConsoleCommand("RELAUNCH Unreal.unr?Game=ModernMenu.ModernIntro ini=" $ RestartIni $ " userini=" $ RestartUserIni @ RestartMode);
 		}
 	}
 }

@@ -772,9 +772,9 @@ RandomText="Τυχαία σειρά χαρτών:"
 RandomHelp="Παίξτε αυτούς τους χάρτες με τυχαία σειρά."
 
 [UMenuOptionsClientWindow]
-GamePlayTab="Παιχνίδι"
-InputTab="Είσοδος"
-ControlsTab="Χειρισμός"
+GamePlayTab="Game"
+InputTab="Input"
+ControlsTab="Controls"
 AudioTab="Ήχος"
 VideoTab="Γραφικά"
 NetworkTab="Δίκτυο"

@@ -279,8 +279,9 @@ artwork tracked under `branding/`. It also installs the tracked seven-frame,
 16-through-256-pixel `UnrealRevived.ico` for shortcuts and uninstall metadata.
 The installed icon filename includes a prefix of its SHA-256 hash so Windows
 Explorer cannot reuse a stale cached image after artwork changes. Setup offers
-the desktop shortcut as a user-selectable task on each installation and offers
-to launch the game from the Completed page.
+independent normal and VR desktop shortcuts as user-selectable tasks. Normal
+launches pass `-novr`; VR launches pass `-vr`. The VR desktop task starts unchecked.
+Start-menu entries include both modes; the Completed-page launch uses `-novr`.
 Setup retains the portrait wordmark artwork on its Welcome and Completed pages,
 shows the standard Setup icon in page headers, adds a current feature list to
 the Welcome page, and keeps a clickable GitHub link beside

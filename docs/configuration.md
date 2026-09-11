@@ -330,7 +330,7 @@ Defaults are registered by `UD3D12RenderDevice::StaticConstructor`.
 | --- | ---: | --- |
 | `UseVSync` | `False` | Synchronize presentation to the display. |
 | `UsePrecache` | `True` | Precache renderer resources. |
-| `EnableVR` | `False` | Opt in to the experimental OpenXR D3D12 stereo session and seated head tracking on the next launch; the broader VR milestone remains unsupported. |
+| `EnableVR` | `False` | Legacy default for direct executable launches. Use normal `-novr` / VR `-vr` shortcuts; explicit switches override this setting. No startup checkbox is exposed in Preferences. |
 | `VRHUDDistance` | `1.75` | Shared UI panel distance in metres, clamped to 0.50-5.00; live changes retain the captured anchor. |
 | `VRHUDScale` | `1.0` | Shared UI panel physical scale, clamped to 0.50-2.00; independent of distance. |
 | `AntialiasMode` | `MSAA_4x` | `Off`, `MSAA_2x`, `MSAA_4x`, or `MSAA_8x`. |
@@ -366,9 +366,11 @@ head-mounted-display system, validate the D3D12 adapter and feature level, and
 attempt to create a session. When compatible, they allocate two eye swapchains,
 begin the session, locate the runtime views, and render independently culled
 eye cameras with runtime pose, IPD, asymmetric FOV, and seated head movement.
-This remains an experimental rendering milestone: head-gaze gameplay aim,
-recenter controls, spatial UI, collision comfort, and full acceptance coverage
-are not implemented.
+Spatial UI and explicit UI recenter are user-accepted. Gaze aim hooks and
+headset-yaw gamepad walking/jumping are implemented with broader live validation
+pending. Seated-view recenter, collision comfort and full compatibility coverage
+remain incomplete; this is not a supported VR release. See the
+[2026-09-11 audit](vr-audit-2026-09-11.md) for isolation limits and startup behavior.
 
 The 227 adapter fixes `MaxTextureSize` at 4096, disables the engine lightmap
 atlas, disables masked-font requirements, and advertises the renderer as

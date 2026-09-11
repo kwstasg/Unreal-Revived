@@ -59,14 +59,17 @@ Source: "{#StageRoot}\payload\*"; DestDir: "{tmp}\UnrealRevived-Payload"; Exclud
 Source: "{#StageRoot}\patch\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
-Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"; Tasks: desktopicon
+Name: "{autoprograms}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "-novr"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
+Name: "{autoprograms}\{#ProductName} VR"; Filename: "{app}\System64\Unreal.exe"; Parameters: "-vr"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
+Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "-novr"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"; Tasks: desktopicon
+Name: "{autodesktop}\{#ProductName} VR"; Filename: "{app}\System64\Unreal.exe"; Parameters: "-vr"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"; Tasks: vrdesktopicon
 
 [Tasks]
-Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional options:"
+Name: "desktopicon"; Description: "Create a &normal game desktop shortcut"; GroupDescription: "Desktop shortcuts:"
+Name: "vrdesktopicon"; Description: "Create a &VR desktop shortcut"; GroupDescription: "Desktop shortcuts:"; Flags: unchecked
 
 [Run]
-Filename: "{app}\System64\Unreal.exe"; WorkingDir: "{app}\System64"; Description: "Launch {#ProductName}"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\System64\Unreal.exe"; Parameters: "-novr"; WorkingDir: "{app}\System64"; Description: "Launch {#ProductName}"; Flags: postinstall nowait skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
@@ -506,6 +509,8 @@ begin
     '- World-only post-processing: bloom, chromatic aberration, vignette, ' +
     'animated film grain, and CRT scanlines' + #13#10 +
     '- 4K, widescreen, borderless, and high-refresh display support' + #13#10 +
+    '- Seated OpenXR VR: stereo tracking, gaze-aligned gamepad movement, ' +
+    'and stable spatial HUD/menus; separate normal and VR shortcuts' + #13#10 +
     '- SDL3 controllers: Xbox, DualShock, DualSense, hot-plugging, and up to ' +
     'three bindings per action' + #13#10 +
     '- Unreal and Return to Na Pali campaigns, multiplayer, OpenAL audio, ' +

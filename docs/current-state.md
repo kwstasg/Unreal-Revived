@@ -85,10 +85,11 @@ weapon now follows headset rotation and seated head-center translation through
 a render-only overlay hook, with a conservative lower, handed placement that
 does not alter gameplay state. Live validation retained scripted flybys,
 controls, stereo fusion, and distortion-free tracking; finer weapon placement
-tuning remains a TODO. Gameplay aim and controls remain unchanged; crosshair
-gaze alignment, firing along headset gaze, locomotion semantics, recentering,
-collision fade, mirror options, and broader acceptance testing are
-not connected yet. The
+tuning remains a TODO. Gaze aim hooks are implemented but broader weapon and
+multiplayer validation is pending. Gamepad headset-yaw walking/jumping and
+horizontal right-stick turning were user-validated on 2026-09-11. Combined view/UI
+recenter is implemented but awaiting headset validation. Swimming/flying movement, collision fade, mirror
+options and broader acceptance testing remain incomplete. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
 filtered build-time-extracted patch tree. The policy removes only validated

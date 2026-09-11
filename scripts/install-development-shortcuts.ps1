@@ -27,11 +27,20 @@ Copy-Item -LiteralPath $brandingIcon -Destination $installedIcon -Force
 $normalPath = Join-Path $runtimeRoot 'Unreal Revived.lnk'
 $normal = $shell.CreateShortcut($normalPath)
 $normal.TargetPath = $unrealExe
-$normal.Arguments = 'Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini userini=D3D12TestUser.ini'
+$normal.Arguments = 'Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini userini=D3D12TestUser.ini -novr'
 $normal.WorkingDirectory = $system64
 $normal.IconLocation = "$installedIcon,0"
 $normal.Description = 'Launch Unreal Revived with the Direct3D 12 renderer'
 $normal.Save()
+
+$vrPath = Join-Path $runtimeRoot 'Unreal Revived VR.lnk'
+$vr = $shell.CreateShortcut($vrPath)
+$vr.TargetPath = $unrealExe
+$vr.Arguments = 'Unreal.unr?Game=ModernMenu.ModernIntro ini=D3D12Test.ini userini=D3D12TestUser.ini -vr'
+$vr.WorkingDirectory = $system64
+$vr.IconLocation = "$installedIcon,0"
+$vr.Description = 'Launch Unreal Revived in OpenXR VR'
+$vr.Save()
 
 $recoveryPath = Join-Path $runtimeRoot 'Unreal Revived Recovery.lnk'
 $recovery = $shell.CreateShortcut($recoveryPath)

@@ -4,6 +4,65 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+## 2026-09-11
+
+### Recenter pitch/roll and UI output encoding correction
+
+- User subsequently headset-validated both corrections: perfect and exactly as
+  requested. This supersedes the pending headset check below and establishes
+  the accepted baseline before recenter bindings and intro logo replacement.
+- User accepted yaw recenter but reported opposite apparent pitch/roll. The
+  panel was intentionally room-upright, so head tilt remained visible relative
+  to it. Explicit view recenter now captures full head orientation once. Initial
+  placement stays upright, and menu transitions still do not move the panel.
+- Found the sRGB output conversion nested inside the world-only shader branch.
+  Moved it outside that branch so VR UI receives the same conversion before
+  writing to an sRGB target. No alpha, opacity or color tuning was introduced.
+- Renderer build and four present-shader variants compiled; desktop flyby and
+  gameplay smoke passed in `local/logs/automated-20260911-115013/`. Previous
+  runtime renderer backed up in `local/vr-recenter-color-20260911-115013/`.
+  Headset confirmation of orientation and colors remains pending.
+- No resolution override was added. A VR-only logical canvas would require
+  coordinated layout, clipping and input work; retain the validated 1280x1024
+  setting meanwhile. The earlier installer predates these two renderer fixes.
+
+### Accepted locomotion and VR polish follow-up
+
+- User accepted forward/back/strafe while looking 90 degrees left/right and
+  right-stick turning while walking. The movement implementation is preserved.
+- Removed the startup checkbox at user request; Preferences Restart preserves
+  the requested shortcut mode. Recenter now also levels software pitch/roll and
+  refreshes the tracking reference while preserving current horizontal gaze.
+- VR-only UI textures now allocate only when OpenXR rendering is ready. Shared
+  panel sizing remains unchanged; geometry tests verify upright orientation and
+  source aspect preservation.
+- Renderer/menu builds, panel unit tests, desktop flyby/gameplay smoke and VR
+  startup/fallback smoke passed. Active headset recenter/allocation, interactive
+  restart and installed shortcut checks remain pending.
+- README and setup welcome advertise current VR support. Fresh local installer:
+  `local/package/vr-preview-20260911/output/UnrealRevived-Setup-0.6.0.exe`.
+  Both desktop icons have independent checkboxes. No release was published.
+
+### VR audit, first gamepad locomotion step, and explicit mode shortcuts
+
+- Added headset-yaw left-stick movement after input shaping, preserving magnitude
+  and axis speeds. Kept raw menu axes and desktop input unchanged. Right-stick
+  pitch is suppressed for the first-person VR walking/falling path; yaw remains
+  smooth body turning. Swimming/flying and custom aliases remain native.
+- Found and removed a missed script-side recenter in `LaunchUWindow`. The existing
+  shared-panel renderer and layout are unchanged.
+- Added normal/VR installer shortcuts with independent desktop checkboxes and
+  explicit `-novr`/`-vr`; updated development shortcuts and startup checkbox help.
+- Corrected plan/configuration/roadmap contradictions. Recorded the remaining
+  non-VR texture-allocation overhead, restart-mode behavior, and incomplete
+  comfort/movement/runtime coverage in [the audit](vr-audit-2026-09-11.md).
+- Release input/menu builds and portable direction/magnitude tests passed.
+  Input smoke evidence: `local/logs/automated-20260911-021246/`; desktop flyby/
+  gameplay: `local/logs/automated-20260911-021251/`. Installer source compiled
+  with Inno Setup using the existing staged payload into ignored validation
+  output; no installer was installed or published. Actual checkbox interaction
+  and headset/gamepad acceptance remain pending.
+
 ## 2026-09-10
 
 ### Accepted milestone: consistent VR HUD, menus and UI

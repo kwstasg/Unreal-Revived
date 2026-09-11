@@ -211,7 +211,10 @@ effect-specific world/UI detection.
 | `D3D12 VRHUDDISTANCE <metres>` | Save and apply distance, clamped to 0.50-5.00, without recentering or compensating physical size. |
 | `D3D12 VRHUDSCALE <factor>` | Save and apply physical scale, clamped to 0.50-2.00, around the panel center. |
 | `D3D12 RESETVRUIANCHOR` | Explicitly recapture upright heading and eye-level placement for all UI. |
+| `D3D12 RECENTERVR` | Queue combined view/UI recenter for the next valid tracking frame; level software pitch/roll and retain current horizontal gaze as forward. |
+| `D3D12 VRLAUNCHMODE` | Return `-vr` or `-novr` for mode-preserving restart, including unavailable-headset fallback. |
 | `D3D12 BEGINVRUIPASS` / `D3D12 ENDVRUIPASS` | Internal balanced canvas-projection boundary; world/weapon rendering stays outside it. |
 
-These controls are exposed in Preferences > VR. Opening/closing menus does not
+Preferences > VR exposes distance, scale and the combined `RECENTERVR` action.
+The startup checkbox has been removed; use the normal/VR shortcuts. Opening/closing menus does not
 recenter or change panel geometry. See [the maintenance contract](vr-ui-recovery-design.md).

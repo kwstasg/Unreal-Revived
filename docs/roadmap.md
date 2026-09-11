@@ -15,7 +15,8 @@ video driver.
 The first milestone is defined in the
 [seated PC VR plan](pc-vr-seated.md). Its intended scope includes true stereo,
 seated 6DoF head tracking, head-gaze aiming, gamepad locomotion, smooth turning,
-a delayed-following spatial HUD, spatial menus, and fade-based head collision.
+the accepted fixed shared HUD/menu panel with explicit recenter, and fade-based
+head collision. Automatic HUD following has been superseded by user preference.
 Flat-screen mode must remain isolated from OpenXR initialization and VR runtime
 costs.
 
@@ -32,4 +33,3 @@ A native Vulkan driver is the third major addition, after RTX support. Its
 architecture, supported platforms, feature-parity target, packaging, recovery
 behavior, and test matrix must be planned before implementation begins. The
 existing Direct3D 12 renderer remains the supported primary renderer today.
-

@@ -23,9 +23,11 @@ restore the older visible-but-clipped `f767139c` experiment.
   Keep the world weapon and gaze crosshair on the eye canvas.
 - HUD, menu and intro use the same panel dimensions and pose. Opening or closing
   menus must not change position, size or orientation.
-- The anchor is upright at eye height, using captured horizontal heading only.
-  It initializes with the session and changes on explicit Recenter, not menu
-  transitions or slider changes. Near vertical gaze retains the previous heading.
+- The initial anchor is upright at eye height, using horizontal heading only.
+  Explicit Recenter VR View captures full gaze orientation (yaw, pitch and roll)
+  so the panel faces the user even when looking up or tilting their head. It then
+  stays fixed; menu transitions and sliders do not recapture it. The low-level
+  UI-only reset still uses an upright anchor and retains heading near vertical gaze.
 
 ## Projection ownership: the decisive fix
 
@@ -49,7 +51,8 @@ at that specific boundary.
 
 ## Settings and physical geometry
 
-Preferences > VR controls next-launch VR enablement, distance, scale and Recenter.
+Preferences > VR controls distance, scale and Recenter VR View. Startup uses
+normal/VR shortcuts; the redundant next-launch checkbox was removed on 2026-09-11.
 Settings persist in `[D3D12Drv.D3D12RenderDevice]`.
 
 | Setting | Default | Range | Meaning |
@@ -65,7 +68,12 @@ User preference and headset checks determine comfort; defaults are a starting po
 
 `D3D12 VRHUDDISTANCE <metres>` and `D3D12 VRHUDSCALE <factor>` update and save
 settings without invalidating the anchor. `D3D12 RESETVRUIANCHOR` explicitly
-recenters. Script callers use plain `BEGINVRUIPASS`/`ENDVRUIPASS`; old suffixes
+recenters the UI only. The Preferences button now uses `D3D12 RECENTERVR` to level
+software view tilt, adopt horizontal gaze as forward and refresh both view/UI
+references between frames. User testing accepted yaw but found that the upright
+panel appeared oppositely pitched/rolled. Explicit view recenter now captures
+full head orientation; this correction awaits headset validation. Script
+callers use plain `BEGINVRUIPASS`/`ENDVRUIPASS`; old suffixes
 are harmless compatibility input and no longer select a separate layout.
 
 ## Rules for future changes

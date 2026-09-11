@@ -5,7 +5,6 @@
 class ModernVRConfigCW extends UWindowDialogClientWindow;
 
 var UMenuLabelControl VRHeading;
-var UWindowCheckbox EnableVRCheck;
 var UWindowHSliderControl HUDDistanceSlider;
 var UWindowHSliderControl HUDScaleSlider;
 var ModernResetButton HUDDistanceResetButton;
@@ -15,8 +14,6 @@ var UMenuLabelControl StatusLabel;
 var bool bInitialized;
 
 var localized string VRHeadingText;
-var localized string EnableVRText;
-var localized string EnableVRHelp;
 var localized string HUDDistanceText;
 var localized string HUDDistanceHelp;
 var localized string HUDScaleText;
@@ -25,7 +22,6 @@ var localized string RecenterText;
 var localized string RecenterHelp;
 var localized string ActiveStatusText;
 var localized string InactiveStatusText;
-var localized string RestartStatusText;
 var localized string D3D12RequiredText;
 var localized string ResetVRSettingHelp;
 
@@ -37,13 +33,7 @@ function Created()
 	VRHeading.SetText(VRHeadingText);
 	VRHeading.SetFont(F_Bold);
 
-	EnableVRCheck = UWindowCheckbox(CreateControl(class'UWindowCheckbox', 20, 45, 300, 1));
-	EnableVRCheck.SetText(EnableVRText);
-	EnableVRCheck.SetHelpText(EnableVRHelp);
-	EnableVRCheck.SetFont(F_Normal);
-	EnableVRCheck.Align = TA_Left;
-
-	HUDDistanceSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 75, 300, 1));
+	HUDDistanceSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 45, 300, 1));
 	HUDDistanceSlider.SetRange(50, 500, 5);
 	HUDDistanceSlider.SetHelpText(HUDDistanceHelp);
 	HUDDistanceSlider.SetFont(F_Normal);
@@ -51,7 +41,7 @@ function Created()
 	HUDDistanceSlider.TrackWidth = 8;
 	HUDDistanceSlider.bNoSlidingNotify = False;
 
-	HUDScaleSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 105, 300, 1));
+	HUDScaleSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 75, 300, 1));
 	HUDScaleSlider.SetRange(50, 200, 5);
 	HUDScaleSlider.SetHelpText(HUDScaleHelp);
 	HUDScaleSlider.SetFont(F_Normal);
@@ -62,12 +52,12 @@ function Created()
 	HUDDistanceResetButton = CreateSliderResetButton(HUDDistanceSlider);
 	HUDScaleResetButton = CreateSliderResetButton(HUDScaleSlider);
 
-	RecenterButton = UWindowSmallButton(CreateControl(class'UWindowSmallButton', 20, 140, 100, 16));
+	RecenterButton = UWindowSmallButton(CreateControl(class'UWindowSmallButton', 20, 110, 100, 16));
 	RecenterButton.SetText(RecenterText);
 	RecenterButton.SetHelpText(RecenterHelp);
 	RecenterButton.SetFont(F_Normal);
 
-	StatusLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 175, 340, 1));
+	StatusLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 145, 340, 1));
 	StatusLabel.SetFont(F_Normal);
 
 	RemoveFromTabOrder(VRHeading);
@@ -76,7 +66,7 @@ function Created()
 	RemoveFromTabOrder(HUDScaleResetButton);
 	LoadSettings();
 	bInitialized = True;
-	DesiredHeight = 210;
+	DesiredHeight = 180;
 }
 
 function ModernResetButton CreateSliderResetButton(UWindowHSliderControl Slider)
@@ -148,8 +138,6 @@ function LoadSettings()
 	local float Distance;
 	local float Scale;
 
-	EnableVRCheck.bChecked = bool(GetPlayerOwner().ConsoleCommand(
-		"get ini:Engine.Engine.GameRenderDevice EnableVR"));
 	Distance = float(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRHUDDistance"));
 	Scale = float(GetPlayerOwner().ConsoleCommand(
@@ -186,7 +174,6 @@ function BeforePaint(Canvas C, float X, float Y)
 	bVR = bD3D12 && IsVRActive();
 	ControlWidth = FMax(220, WinWidth - 40);
 	VRHeading.SetSize(ControlWidth, 1);
-	EnableVRCheck.SetSize(ControlWidth, 1);
 	HUDDistanceSlider.SetSize(ControlWidth - 16, 1);
 	HUDScaleSlider.SetSize(ControlWidth - 16, 1);
 	HUDDistanceResetButton.WinLeft = HUDDistanceSlider.WinLeft
@@ -196,7 +183,6 @@ function BeforePaint(Canvas C, float X, float Y)
 	RecenterButton.AutoWidth(C);
 	StatusLabel.SetSize(ControlWidth, 1);
 
-	EnableVRCheck.bDisabled = !bD3D12;
 	HUDDistanceSlider.bDisabled = !bD3D12;
 	HUDScaleSlider.bDisabled = !bD3D12;
 	HUDDistanceResetButton.bDisabled = !bD3D12;
@@ -206,8 +192,6 @@ function BeforePaint(Canvas C, float X, float Y)
 		StatusLabel.SetText(D3D12RequiredText);
 	else if (bVR)
 		StatusLabel.SetText(ActiveStatusText);
-	else if (EnableVRCheck.bChecked)
-		StatusLabel.SetText(RestartStatusText);
 	else
 		StatusLabel.SetText(InactiveStatusText);
 }
@@ -235,10 +219,7 @@ function Notify(UWindowDialogControl C, byte E)
 	if (!bInitialized)
 		return;
 
-	if (E == DE_Change && C == EnableVRCheck)
-		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.GameRenderDevice EnableVR"
-			@ EnableVRCheck.bChecked);
-	else if (E == DE_Change && C == HUDDistanceSlider)
+	if (E == DE_Change && C == HUDDistanceSlider)
 	{
 		ApplyDistance();
 		UpdateSliderText();
@@ -261,23 +242,20 @@ function Notify(UWindowDialogControl C, byte E)
 		UpdateSliderText();
 	}
 	else if (E == DE_Click && C == RecenterButton)
-		GetPlayerOwner().ConsoleCommand("D3D12 RESETVRUIANCHOR");
+		GetPlayerOwner().ConsoleCommand("D3D12 RECENTERVR");
 }
 
 defaultproperties
 {
 	VRHeadingText="Virtual Reality"
-	EnableVRText="Enable VR on Next Launch"
-	EnableVRHelp="Start OpenXR the next time Unreal Revived launches. Requires Direct3D 12 and a restart."
 	HUDDistanceText="HUD Distance"
 	HUDDistanceHelp="Set the distance of spatial HUD and menu panels from 0.50 to 5.00 meters."
 	HUDScaleText="HUD Scale"
 	HUDScaleHelp="Set the apparent size of spatial HUD and menu panels from 50% to 200%."
-	RecenterText="Recenter HUD"
-	RecenterHelp="Place the current spatial HUD or menu panel directly ahead."
+	RecenterText="Recenter VR View"
+	RecenterHelp="Level software view tilt, make your current horizontal gaze forward, and recenter the shared HUD/menu panel."
 	ActiveStatusText="OpenXR is active. Changes apply immediately."
-	InactiveStatusText="VR is disabled. Enable it here and restart Unreal Revived."
-	RestartStatusText="VR will be enabled after Unreal Revived restarts."
+	InactiveStatusText="Launch with the Unreal Revived VR shortcut to use VR."
 	D3D12RequiredText="VR requires the Direct3D 12 video driver."
 	ResetVRSettingHelp="Reset this VR setting to the Unreal Revived default."
 }

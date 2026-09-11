@@ -439,6 +439,7 @@ private:
 	void ReleaseSceneBuffers();
 
 	bool AreSceneBuffersReady() const;
+	bool NeedsVRUIBuffers() const;
 	bool IsWorldPostProcessEnabled() const;
 	void BeginUIPass();
 	void BeginVRUIPass();
@@ -569,6 +570,7 @@ private:
 	UBOOL OpenXRRenderingReady = 0;
 	UBOOL OpenXRHeadPoseValid = 0;
 	UBOOL OpenXRBaseOrientationValid = 0;
+	UBOOL OpenXRViewRecenterRequested = 0;
 	UBOOL OpenXRViewsValid = 0;
 	UBOOL OpenXRFrameBegun = 0;
 	UBOOL OpenXRSubmitLayer = 0;

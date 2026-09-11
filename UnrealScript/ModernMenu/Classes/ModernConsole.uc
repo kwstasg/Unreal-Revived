@@ -621,9 +621,6 @@ function UpdateControllerDodgeSuppression(EInputKey Key, float Delta)
 
 function LaunchUWindow()
 {
-	if (Viewport.Actor != None
-		&& Left(Viewport.Actor.ConsoleCommand("D3D12 OPENXRPOSE"), 1) == "1")
-		Viewport.Actor.ConsoleCommand("D3D12 RESETVRUIANCHOR");
 	if (bControllerDodgeSuppressed && Viewport.Actor != None)
 	{
 		Viewport.Actor.DodgeClickTime = SavedDodgeClickTime;

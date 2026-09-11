@@ -429,6 +429,7 @@ std::string FileResource::readAllText(const std::string& filename)
 			#else
 				output.outColor = float4(dither(color, input.fragCoord), 1.0f);
 			#endif
+			#endif // OPENXR_UI_LAYER: both world and UI need the same output encoding.
 			#if defined(OPENXR_SRGB_OUTPUT)
 				// The desktop swapchain stores display-encoded values directly in an
 				// UNORM target. Convert those values back to linear before an sRGB
@@ -437,7 +438,6 @@ std::string FileResource::readAllText(const std::string& filename)
 				float3 low = srgb / 12.92;
 				float3 high = pow(max((srgb + 0.055) / 1.055, 0.0), 2.4);
 				output.outColor.rgb = lerp(high, low, step(srgb, 0.04045));
-			#endif
 			#endif
 				return output;
 			}

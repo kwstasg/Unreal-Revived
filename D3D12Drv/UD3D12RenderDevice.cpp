@@ -9,6 +9,7 @@
 #include "UTF16.h"
 #include "FileResource.h"
 #include "halffloat.h"
+#include "VRPanelGeometry.h"
 
 IMPLEMENT_CLASS(UD3D12RenderDevice);
 
@@ -1671,6 +1672,33 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 	{
 		OpenXRHeadOrientation = NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation);
 		OpenXRHeadPoseValid = 1;
+		if (OpenXRViewRecenterRequested &&
+			(ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) != 0)
+		{
+			// Apply between frames, before either eye is rendered. Preserve the
+			// horizontal direction the user is facing while leveling software tilt.
+			if (Viewport && Viewport->Actor)
+			{
+				FRotator ViewRotation = Viewport->Actor->ViewRotation;
+				if (OpenXRBaseOrientationValid)
+					ViewRotation.Yaw = static_cast<INT>((static_cast<DWORD>(ViewRotation.Yaw) +
+						static_cast<DWORD>(RelativeOpenXRRotation(OpenXRBaseOrientation, OpenXRHeadOrientation).Yaw)) & 65535);
+				ViewRotation.Pitch = ViewRotation.Roll = 0;
+				Viewport->Actor->ViewRotation = ViewRotation;
+			}
+			OpenXRBaseOrientationValid = 0;
+			// Explicit recenter faces the current gaze in all three axes. A
+			// yaw-only anchor appears oppositely pitched/rolled in headset space.
+			// Capture once; later head movement and menu transitions do not follow.
+			OpenXRUIAnchorPose.orientation = OpenXRHeadOrientation;
+			OpenXRUIAnchorHeadPosition = {
+				(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
+				(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
+				(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f
+			};
+			OpenXRUIAnchorValid = 1;
+			OpenXRViewRecenterRequested = 0;
+		}
 		if (!OpenXRBaseOrientationValid &&
 			(ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) != 0)
 		{
@@ -1796,16 +1824,14 @@ UBOOL UD3D12RenderDevice::PresentOpenXRUI()
 
 	if (!OpenXRUIAnchorValid && OpenXRViews.size() == 2)
 	{
-		// One upright, eye-level anchor for HUD, menus and intro. Capture it
-		// at initialization or explicit recenter, never on a menu transition.
+		// Start with an upright, eye-level anchor for HUD, menus and intro.
+		// Explicit view recenter captures full gaze above; neither follows menus.
 		const FVector Forward = RotateOpenXRVector(
 			NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation), FVector(0.0f, 0.0f, -1.0f));
-		const FLOAT HorizontalLengthSquared = Forward.X * Forward.X + Forward.Z * Forward.Z;
-		if (HorizontalLengthSquared > 0.0001f)
-		{
-			const FLOAT HalfYaw = 0.5f * atan2f(-Forward.X, -Forward.Z);
-			OpenXRUIAnchorPose.orientation = { 0.0f, sinf(HalfYaw), 0.0f, cosf(HalfYaw) };
-		}
+		const auto& Previous = OpenXRUIAnchorPose.orientation;
+		const auto Upright = VRPanelGeometry::Upright(Forward.X, Forward.Z,
+			{ Previous.x, Previous.y, Previous.z, Previous.w });
+		OpenXRUIAnchorPose.orientation = { Upright.x, Upright.y, Upright.z, Upright.w };
 		OpenXRUIAnchorHeadPosition = {
 			(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
 			(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
@@ -1884,10 +1910,8 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 	const FLOAT UIScale = Clamp(VRHUDScale, 0.5f, 2.0f);
 	// Preserve the accepted menu size at the default 1.75 m distance. Physical
 	// size depends only on scale, so moving farther away visibly reduces size.
-	const FLOAT UIReferenceDistance = 1.75f;
-	const FLOAT UIAngularWidth = 64.0f;
-	const FLOAT UIWidth = 2.0f * UIReferenceDistance * tanf(UIAngularWidth * 3.14159265f / 360.0f) * UIScale;
-	const FLOAT UIHeight = UIWidth * CurrentSizeY / Max<FLOAT>(CurrentSizeX, 1.0f);
+	const FLOAT UIWidth = VRPanelGeometry::Width(UIScale);
+	const FLOAT UIHeight = VRPanelGeometry::Height(UIWidth, CurrentSizeX, CurrentSizeY);
 	UILayer.size = { UIWidth, UIHeight };
 	const XrCompositionLayerBaseHeader* Layers[2] = {
 		reinterpret_cast<const XrCompositionLayerBaseHeader*>(&Layer),
@@ -1915,6 +1939,7 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
 	OpenXRSessionRunning = 0;
 	OpenXRRenderingReady = 0;
+	OpenXRViewRecenterRequested = 0;
 	OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 	OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 	OpenXRBaseHeadPosition = { 0.0f, 0.0f, 0.0f };
@@ -2171,7 +2196,9 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 		TEXT("SceneBuffers.VRUIBase"),
 		TEXT("SceneBuffers.VRUI")
 	};
-	for (int i = 0; i < PPI_Count; i++)
+	const int PostProcessImageCount = NeedsVRUIBuffers() ? PPI_Count : PPI_VRUIBase;
+	debugf(TEXT("D3D12Drv: VR UI buffers %s at %dx%d"), NeedsVRUIBuffers() ? TEXT("enabled") : TEXT("disabled"), width, height);
+	for (int i = 0; i < PostProcessImageCount; i++)
 	{
 		result = Device->CreateCommittedResource(
 			&defaultHeapProps,
@@ -2199,7 +2226,7 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	SceneBuffers.PPHitBufferRTV = Heaps.RTV->Alloc(1);
 	Device->CreateRenderTargetView(SceneBuffers.PPHitBuffer, nullptr, SceneBuffers.PPHitBufferRTV.CPUHandle());
 
-	for (int i = 0; i < PPI_Count; i++)
+	for (int i = 0; i < PostProcessImageCount; i++)
 	{
 		SceneBuffers.PPImageRTV[i] = Heaps.RTV->Alloc(1);
 		SceneBuffers.PPImageSRV[i] = Heaps.Common->Alloc(1);
@@ -2212,14 +2239,19 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	Device->CreateShaderResourceView(PresentPass.DitherTexture, nullptr, SceneBuffers.PresentSRVs.CPUHandle(1));
 	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_WorldScene], nullptr, SceneBuffers.PresentSRVs.CPUHandle(2));
 	Device->CreateShaderResourceView(SceneBuffers.ResolvedUICompositionMask, nullptr, SceneBuffers.PresentSRVs.CPUHandle(3));
-	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_VRUI], nullptr, SceneBuffers.PresentSRVs.CPUHandle(4));
+	// Keep the root signature valid in desktop mode without allocating VR
+	// textures. UseVRUI is zero there, so this fallback descriptor is not sampled.
+	Device->CreateShaderResourceView(SceneBuffers.PPImage[NeedsVRUIBuffers() ? PPI_VRUI : PPI_FinalFrame], nullptr, SceneBuffers.PresentSRVs.CPUHandle(4));
 
-	SceneBuffers.OpenXRUISRVs = Heaps.Common->Alloc(5);
-	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_VRUI], nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(0));
-	Device->CreateShaderResourceView(PresentPass.DitherTexture, nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(1));
-	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_WorldScene], nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(2));
-	Device->CreateShaderResourceView(SceneBuffers.ResolvedUICompositionMask, nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(3));
-	Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_VRUI], nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(4));
+	if (NeedsVRUIBuffers())
+	{
+		SceneBuffers.OpenXRUISRVs = Heaps.Common->Alloc(5);
+		Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_VRUI], nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(0));
+		Device->CreateShaderResourceView(PresentPass.DitherTexture, nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(1));
+		Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_WorldScene], nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(2));
+		Device->CreateShaderResourceView(SceneBuffers.ResolvedUICompositionMask, nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(3));
+		Device->CreateShaderResourceView(SceneBuffers.PPImage[PPI_VRUI], nullptr, SceneBuffers.OpenXRUISRVs.CPUHandle(4));
+	}
 
 	int bloomWidth = width;
 	int bloomHeight = height;
@@ -2297,6 +2329,15 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	SceneBuffers.StagingHitBuffer->SetName(TEXT("SceneBuffers.StagingHitBuffer"));
 }
 
+bool UD3D12RenderDevice::NeedsVRUIBuffers() const
+{
+#if defined(UNREAL_227)
+	return OpenXRRenderingReady != 0;
+#else
+	return false;
+#endif
+}
+
 bool UD3D12RenderDevice::AreSceneBuffersReady() const
 {
 	if (!SceneBuffers.ColorBuffer || !SceneBuffers.HitBuffer || !SceneBuffers.UICompositionMaskBuffer ||
@@ -2304,7 +2345,12 @@ bool UD3D12RenderDevice::AreSceneBuffersReady() const
 		!SceneBuffers.StagingHitBuffer)
 		return false;
 
-	for (int i = 0; i < PPI_Count; i++)
+	// Foundation setup follows initial SetRes. Rebuild once if VR becomes ready
+	// afterwards (or is torn down), even when resolution/MSAA did not change.
+	if (!!SceneBuffers.PPImage[PPI_VRUI] != NeedsVRUIBuffers())
+		return false;
+	const int PostProcessImageCount = NeedsVRUIBuffers() ? PPI_Count : PPI_VRUIBase;
+	for (int i = 0; i < PostProcessImageCount; i++)
 	{
 		if (!SceneBuffers.PPImage[i])
 			return false;
@@ -3577,6 +3623,19 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 		else if (ParseCommand(&Cmd, TEXT("RESETVRUIANCHOR")))
 		{
 			OpenXRUIAnchorValid = 0;
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("RECENTERVR")))
+		{
+			if (OpenXRSessionRunning)
+				OpenXRViewRecenterRequested = 1;
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRLAUNCHMODE")))
+		{
+			const bool Requested = !ParseParam(appCmdLine(), TEXT("novr")) &&
+				(ParseParam(appCmdLine(), TEXT("vr")) || EnableVR);
+			Ar.Log(Requested ? TEXT("-vr") : TEXT("-novr"));
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("VRHUDDISTANCE")))

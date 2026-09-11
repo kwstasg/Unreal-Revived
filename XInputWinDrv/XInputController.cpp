@@ -9,9 +9,46 @@
 #include <SDL3/SDL_version.h>
 
 #include <cmath>
+#include "VRGamepadAxes.h"
 
 namespace
 {
+	// Only transform plain movement-axis bindings. Preserve custom aliases and
+	// compound commands instead of silently changing their semantics.
+	bool ReadAxisSpeed(const TCHAR* Binding, const TCHAR* Axis, FLOAT& Speed)
+	{
+		if (appStrchr(Binding, '|') || !ParseCommand(&Binding, TEXT("Axis")) || !ParseCommand(&Binding, Axis))
+			return false;
+		Speed = 1.0f;
+		Parse(Binding, TEXT("Speed="), Speed);
+		return std::isfinite(Speed) && std::fabs(Speed) > 0.0001f;
+	}
+
+	bool ReadMovementYaw(UWindowsViewport* Viewport, FLOAT& YawRadians)
+	{
+		APlayerPawn* Player = Viewport->Actor;
+		if (!Player || !Viewport->RenDev || !Viewport->Input || Player->Health <= 0 ||
+			Player->bBehindView || Player->ViewTarget || Player->bShowMenu || Player->bFreeLook ||
+			(Player->Physics != PHYS_Walking && Player->Physics != PHYS_Falling))
+			return false;
+		// Query cached renderer state only; this does not initialize OpenXR or
+		// load its DLL. Flat/recovery renderers return no active pose.
+		FStringOutputDevice Pose;
+		if (!Viewport->RenDev->Exec(TEXT("D3D12 OPENXRPOSE"), Pose))
+			return false;
+		const TCHAR* Cursor = *Pose;
+		FString Token;
+		if (!ParseToken(Cursor, Token, 0) || Token != TEXT("1") ||
+			!ParseToken(Cursor, Token, 0) || !ParseToken(Cursor, Token, 0))
+			return false;
+		// Walking constructs acceleration from body Rotation, while the camera
+		// composes headset orientation onto ViewRotation. Account for both bases.
+		const DWORD Yaw = static_cast<DWORD>(appAtoi(*Token)) +
+			static_cast<DWORD>(Player->ViewRotation.Yaw) - static_cast<DWORD>(Player->Rotation.Yaw);
+		YawRadians = static_cast<FLOAT>(Yaw & 65535) * (6.28318530718f / 65536.0f);
+		return true;
+	}
+
 	constexpr DWORD XINPUT_LEFT_TRIGGER_BUTTON = 0x00010000;
 	constexpr DWORD XINPUT_RIGHT_TRIGGER_BUTTON = 0x00020000;
 	constexpr BYTE XINPUT_TRIGGER_RELEASE_THRESHOLD = 24;
@@ -357,8 +394,26 @@ UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client
 	NormalizeStick(State.RightX, State.RightY,
 		Client->DeadZoneRUV ? RightDeadZone : 0, RightX, RightY);
 
-	Viewport->CauseInputEvent(IK_JoyX, IST_Axis, Client->ScaleXYZ * LeftX * std::fabs(LeftX) * StickFrameScale);
-	Viewport->CauseInputEvent(IK_JoyY, IST_Axis, Client->ScaleXYZ * LeftY * std::fabs(LeftY) * StickFrameScale);
+	FLOAT MoveX = Client->ScaleXYZ * LeftX * std::fabs(LeftX) * StickFrameScale;
+	FLOAT MoveY = Client->ScaleXYZ * LeftY * std::fabs(LeftY) * StickFrameScale;
+	FLOAT YawRadians, StrafeSpeed, ForwardSpeed, LookSpeed;
+	if (ReadMovementYaw(Viewport, YawRadians))
+	{
+		if (ReadAxisSpeed(*Viewport->Input->Bindings[IK_JoyX], TEXT("aStrafe"), StrafeSpeed) &&
+			ReadAxisSpeed(*Viewport->Input->Bindings[IK_JoyY], TEXT("aBaseY"), ForwardSpeed))
+		{
+			MoveX *= StrafeSpeed;
+			MoveY *= ForwardSpeed;
+			VRGamepadAxes::Rotate(MoveX, MoveY, YawRadians);
+			MoveX /= StrafeSpeed;
+			MoveY /= ForwardSpeed;
+		}
+		// Head pitch supplies vertical view; the right stick turns the body.
+		if (ReadAxisSpeed(*Viewport->Input->Bindings[IK_JoyV], TEXT("aLookUp"), LookSpeed))
+			RightY = 0.0f;
+	}
+	Viewport->CauseInputEvent(IK_JoyX, IST_Axis, MoveX);
+	Viewport->CauseInputEvent(IK_JoyY, IST_Axis, MoveY);
 	Viewport->CauseInputEvent(IK_JoyZ, IST_Axis, Client->ScaleXYZ * LeftX);
 	Viewport->CauseInputEvent(IK_JoyR, IST_Axis, Client->ScaleXYZ * LeftY);
 	Viewport->CauseInputEvent(IK_JoyU, IST_Axis, Client->ScaleRUV * RightX * std::fabs(RightX) * StickFrameScale);

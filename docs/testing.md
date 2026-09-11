@@ -1,5 +1,26 @@
 # Testing
 
+## VR gamepad locomotion checks
+
+Build/run the portable direction tests with:
+
+```powershell
+cmake -S XInputWinDrv/tests -B local/build-vr-gamepad-tests -A x64
+cmake --build local/build-vr-gamepad-tests --config Release
+ctest --test-dir local/build-vr-gamepad-tests -C Release --output-on-failure
+```
+
+In a playable VR map, look left/right/back and check forward, backward, strafe
+and diagonals. Looking up/down or rolling the head must not introduce vertical
+movement or change speed. Turn with right-stick X while walking; right-stick Y
+must not add camera pitch. Check jump/crouch, release to rest, reconnect, and
+menu navigation. Desktop controls must retain both right-stick axes. The initial
+VR remap covers first-person walking/falling and plain movement-axis bindings;
+swimming/flying and custom aliases retain native behavior pending later work.
+
+Verify normal/VR shortcuts pass `-novr`/`-vr` despite the saved startup checkbox.
+Installer tasks must independently select neither, either or both desktop icons.
+
 ## Accepted VR UI regression checks
 
 The shared-panel milestone was accepted by the user in the headset on 2026-09-10.
@@ -618,6 +639,21 @@ target maintains those copies for the disposable runtime.
 - Confirm an explicit `/VERYSILENT` uninstall retains saves without prompting.
 
 ## Reporting results
+
+VR follow-up checks:
+
+- Run `cmake -S D3D12Drv/tests -B local/build-vr-panel-tests -A x64`, build
+  Release, then `ctest --test-dir local/build-vr-panel-tests -C Release` for
+  upright orientation, vertical-look fallback and source aspect preservation.
+- In the headset, introduce software pitch/roll, then use Recenter VR View.
+  Confirm level view, retained horizontal gaze and a centered upright panel;
+  opening/closing menus must still leave the anchor unchanged.
+- Start through each shortcut and use Preferences Restart. Confirm the same
+  requested normal/VR mode, including VR-runtime-unavailable fallback.
+- Confirm desktop logs report VR UI buffers disabled, then a successful VR
+  startup rebuilds them enabled without missing HUD/menu elements.
+- Run the fresh local installer and independently select each desktop icon.
+  Check normal uses `-novr` and VR uses `-vr`.
 
 A useful test record includes:
 

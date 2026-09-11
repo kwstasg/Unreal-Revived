@@ -64,6 +64,12 @@ supported audio path.
 
 ## Game features and improvements
 
+Current source builds offer separate **Unreal Revived** and **Unreal Revived VR**
+shortcuts, with independent desktop-icon choices during Setup. Choose the normal
+shortcut for flat-screen play or the VR shortcut for a connected OpenXR headset.
+VR Preferences contains panel distance, scale and Recenter VR View. This feature
+is in current source/local builds; no new GitHub release has been published yet.
+
 This table describes the current repository source. The attached release may
 lag source changes as noted under [availability](#availability-and-requirements).
 
@@ -75,6 +81,7 @@ lag source changes as noted under [availability](#availability-and-requirements)
 | Image quality | Off, 2x, 4x, and 8x MSAA modes with capability-based fallback, plus in-menu brightness, contrast, saturation, and detail controls. |
 | Refreshed interface | Branded menus, focused Video, Input, Bindings, and HUD controls, an optional live game view behind menus, and persistent F11-toggled FPS statistics. |
 | Gamepad support | SDL3 support for Xbox, DualShock, DualSense, and other mapped controllers, with adjustable dead zones, sensitivity, and fallback input paths; Xbox reconnect handling is validated. |
+| Seated OpenXR VR | Stereo head tracking, gaze-aligned gamepad walking/strafing, smooth right-stick turning, and the existing HUD/menus on a stable shared panel. Separate normal and VR shortcuts, live panel distance/scale, and recenter controls. Validated on Oculus Rift CV1; broader runtime and gameplay coverage is ongoing. |
 | Flexible controls | Up to three keyboard, mouse, or controller assignments per action, visible bindings, practical defaults, and reset controls. |
 | Greek localization | Selectable Greek interface and in-game text for both Unreal and Return to Na Pali, including menus, HUD messages, level information, and translator logs. See the [localization guide](docs/localization.md). |
 | Complete game content | Both Unreal and Return to Na Pali campaigns, multiplayer and dedicated-server support, all bundled languages, saves, and recovery renderers. |
@@ -265,7 +272,8 @@ output that could otherwise enter source control.
 | `docs/` | Architecture, configuration, build, testing, and progress detail |
 | `local/` | Ignored machine-local inputs and generated output |
 
-Seated OpenXR VR, RTX support, and a Vulkan driver remain roadmap components.
+Seated OpenXR VR is implemented in current source builds. RTX support and a
+Vulkan driver remain roadmap components.
 The renderer now has strict opt-in OpenXR mode selection, a bundled pinned
 Khronos loader, diagnostics for the active runtime and HMD, and a guarded
 Direct3D 12 stereo session. The frame loop now presents the completed UE1 game
@@ -273,11 +281,11 @@ through independently culled eye cameras using runtime IPD, asymmetric FOV,
 recommended eye swapchains, and seated head pose. Orientation is composed onto
 UE1's authoritative calculated camera before culling, preserving scripted
 camera direction. Live Oculus Rift CV1 validation confirms fused depth,
-correct yaw/pitch/roll, and distortion-free rotation. Gameplay aim still uses
-the original non-VR view direction; head-gaze aiming, spatial UI, collision
-fade, recentering, and broader acceptance testing remain incomplete.
-The detailed scope is documented in the
-[seated PC VR plan](docs/pc-vr-seated.md); VR remains unsupported.
+correct yaw/pitch/roll, distortion-free rotation, stable spatial UI, and
+gaze-aligned gamepad walking/strafing with right-stick turning. Gaze aim hooks
+are present; broader weapon/runtime compatibility, swimming/flying controls and
+head-collision fading remain ongoing work. See the
+[seated PC VR plan](docs/pc-vr-seated.md) for validated scope and remaining work.
 
 ### Documentation
 

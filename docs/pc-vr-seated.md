@@ -19,9 +19,12 @@ This is a validated rendering milestone, not a supported VR release. The
 first-person weapon now follows headset rotation and seated leaning through a
 render-only path without changing gameplay aim, controls, or scripted cameras.
 Its initial lower, handed placement is accepted while finer comfort tuning is
-deferred. Crosshair gaze alignment, firing along headset gaze, head-oriented
-locomotion, head-collision fade, mirror
-selection, broader gameplay validation, and SteamVR coverage remain incomplete.
+deferred. Gaze aim hooks exist but require broader weapon/multiplayer validation.
+Head-oriented gamepad walking/strafing and horizontal right-stick turning were
+user-validated on 2026-09-11, including movement while looking 90 degrees left/right.
+Jumping/crouching and broader movement states need further coverage. Swimming,
+flying, head-collision fade, mirror selection, broader gameplay validation, and
+SteamVR coverage remain incomplete.
 The eye swapchains use the runtime-recommended resolution; the UE1 scene is
 still rendered at the selected logical game resolution before being scaled
 into those swapchains.
@@ -42,10 +45,16 @@ following or larger menus that recenter on opening. It is not a supported VR rel
 - Implemented but needing focused live validation: representative stereo
   rendering across geometry, skyboxes, particles, transparency, mirrors,
   portals, and additional scripted cameras and weapons.
-- Still to implement: recentering, headset-yaw locomotion, right-stick body
-  semantics, crosshair gaze alignment, firing along headset gaze, fine weapon
-  placement tuning, collision fade, spatial HUD and menus, desktop-mirror
-  selection, VR preferences, and incompatible-overlay handling.
+- Complete and user-accepted: spatial HUD/menu layout and VR preferences,
+  shared upright panel, independent distance/scale and explicit UI recenter.
+- User-validated: gamepad headset-yaw walking/strafing and horizontal right-stick
+  turning. Gaze aim hooks still need broader weapon checks. The script-side menu-open
+  recenter left behind by the earlier cleanup was removed on 2026-09-11.
+- Implemented, awaiting headset checks: combined view/UI recenter, which levels
+  software pitch/roll and adopts current horizontal gaze as forward between frames.
+- Still to implement: swimming/
+  flying movement semantics, collision fade, desktop-mirror selection, and
+  incompatible-overlay handling; finer weapon placement remains optional tuning.
 - Still to validate before support: saves and multiplayer behavior in VR,
   recovery/failure cases with a live runtime, Meta and SteamVR parity, extended
   comfort testing, and packaged-install behavior.
@@ -57,43 +66,50 @@ flat-screen experience. Both modes will use
 `D3D12Drv.D3D12RenderDevice`; players will not need to change video drivers.
 
 The milestone includes true stereo, seated 6DoF tracking, head-gaze aiming,
-gamepad locomotion, smooth right-stick turning, a Skyrim-style delayed-following
-HUD, spatial menus, and fade-based head collision.
+gamepad locomotion, smooth right-stick turning, the accepted fixed shared HUD/menu
+panel with explicit recenter, and fade-based head collision.
 
 ## Mode selection and non-VR isolation
 
 - Flat-screen play is free of all VR behavior by default.
 - `-vr` requests the OpenXR runtime, HMD detection, and guarded D3D12 session
   handshake; `-novr` disables it and wins if both switches are present.
-- The persistent `EnableVR` renderer setting is available for development and
-  takes effect on launch. Its future menu checkbox is not implemented yet.
+- Mode is selected with normal/VR shortcuts (`-novr`/`-vr`). The redundant startup
+  checkbox was removed at user request. `EnableVR` remains a low-level legacy
+  config fallback for direct launches; Preferences Restart preserves launch mode
+  with an explicit switch, even after headset-unavailable fallback.
 - Command-line arguments override the stored preference.
-- Do not initialize OpenXR, activate headset software, allocate stereo targets,
-  query tracking, or run VR logic during non-VR play.
+- Do not initialize OpenXR, activate headset software, allocate stereo eye targets,
+  or query runtime tracking during non-VR play. Shared code probes cached pose
+  availability, but VR UI postprocess textures/descriptors are now allocated only
+  when OpenXR rendering is ready. Buffer readiness handles the transition after
+  initial desktop-sized allocation. Active-VR transition validation remains pending.
 - Keep the existing single-view D3D12 path unchanged behind a strict runtime
   branch.
 - Missing loaders or runtimes, unavailable HMDs, and incompatible graphics
   adapters are diagnosed and continue safely in flat-screen D3D12. A compatible
-  session presents the same completed game image to both eyes while the monitor
-  path stays active.
+  session renders independently culled views for both eyes while the monitor path
+  stays active.
 - Keep OpenGL and XOpenGL as non-VR recovery renderers.
 - Require a restart when entering or leaving VR; do not transition the renderer
   live.
 
 ## VR options
 
-Add a dedicated VR preferences page containing:
+Implemented in the dedicated VR preferences page:
 
-- Enable VR on next launch.
-- Recenter seated view.
+- Recenter VR View: level software tilt, make current horizontal gaze forward,
+  refresh the seated tracking reference, and recenter the shared panel.
 - HUD distance and scale.
-- Delayed HUD following.
-- Desktop mirror selection: left eye, right eye, or disabled.
-- Active OpenXR runtime, detected headset, and session status.
+- Basic active/inactive status.
 - Clear restart-required messaging when VR mode changes.
 
-Recenter and safe HUD or mirror adjustments may update immediately in VR.
+UI recenter and HUD adjustments update immediately in VR.
 Broader comfort and motion-control options are deferred.
+
+Pending: headset validation of combined recenter, selectable left/right/off desktop mirror, and more
+detailed runtime/headset status. Automatic/delayed HUD following was superseded
+by the user-accepted fixed panel and must not be reintroduced by assumption.
 
 ## Stereo camera and head collision
 
@@ -126,14 +142,23 @@ Broader comfort and motion-control options are deferred.
 - Retain the existing SDL gamepad, keyboard, and mouse paths.
 - Use the existing crouch action; physical crouching is not required.
 
+Current implementation scope: SDL/XInput first-person walking/falling with a
+valid cached OpenXR pose. Rotate shaped movement axes into horizontal gaze space,
+accounting for body/view yaw and axis speed. Raw JoyZ/JoyR menu input is unchanged.
+Plain JoyX aStrafe / JoyY aBaseY bindings are supported; custom aliases and compound
+commands are preserved without remapping. Keyboard/mouse, third-person cameras,
+flybys, swimming/flying and unavailable tracking retain their existing paths.
+
 ## HUD and menus
 
 - Render the HUD as a floating stereo panel with adjustable depth and scale.
 - Keep it stable during ordinary head movement.
 - Use one fixed panel anchor for HUD, intro and menus; no automatic following.
-- Do not follow head pitch, roll, or seated leaning.
-- Capture horizontal heading and eye height at session initialization or explicit
-  UI recenter; gamepad turning and opening menus do not reset this reference.
+- Do not continuously follow head pitch, roll, or seated leaning. Explicit
+  Recenter VR View captures full gaze orientation once, including pitch/roll.
+- Capture horizontal heading and eye height at session initialization or low-level
+  UI-only reset. Explicit view recenter captures all three orientation axes;
+  gamepad turning and opening menus do not reset this reference.
 - Keep the crosshair head-gaze aligned independently from the HUD panel.
 - Preserve identical panel geometry when opening or closing menus.
 - Recenter the shared panel only with the VR Preferences Recenter control.

@@ -48,5 +48,6 @@ New-Item -Path $runningMarker -ItemType File -Force | Out-Null
 Start-Process -FilePath $unrealExe -WorkingDirectory $system64 -ArgumentList @(
     'Unreal.unr',
     "ini=$recoveryIniName",
-    'userini=D3D12TestUser.ini'
+    'userini=D3D12TestUser.ini',
+    '-novr'
 )
