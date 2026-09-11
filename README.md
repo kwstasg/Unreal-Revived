@@ -2,7 +2,7 @@
   <img src="branding/UnrealRevivedLogo.png" alt="Unreal Revived" width="800">
 </p>
 
-# Unreal Revived
+# Unreal Revived + VR
 
 Unreal Revived is a modernization package for playing the original **Unreal
 Gold** on current Windows PCs. It preserves the original game content and gameplay 
@@ -11,7 +11,7 @@ menus, improved controls, and broad gamepad support for devices such as Xbox
 Series controllers, DualShock 4, DualSense, and other
 [SDL-mapped controllers](docs/controllers.md).
 
-**Play Unreal Gold in seated VR.** OpenXR stereo rendering and head tracking put
+**Play Unreal Revived in VR.** OpenXR stereo rendering and head tracking put
 you inside the original world, with gaze-aligned gamepad movement, smooth
 right-stick turning, and the full HUD and menus on a stable spatial panel.
 Adjust panel distance and size, and recenter instantly with right-stick click
