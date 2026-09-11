@@ -6,9 +6,10 @@
 
 ## Download the latest release
 
-**[Download Unreal Revived 0.6.0 for Windows](https://github.com/kwstasg/Unreal-Revived/releases/latest/download/UnrealRevived-Setup-0.6.0.exe)**
+**[Download the latest Unreal Revived release](https://github.com/kwstasg/Unreal-Revived/releases/latest)**
 
-[View release notes and the SHA-256 checksum](https://github.com/kwstasg/Unreal-Revived/releases/latest).
+The latest release page includes the Windows installer, release notes, and
+SHA-256 checksum.
 
 Unreal Revived is a modernization package for playing the original **Unreal
 Gold** on current Windows PCs. It preserves the original game content and gameplay 
