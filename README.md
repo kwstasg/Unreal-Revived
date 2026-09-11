@@ -11,6 +11,10 @@
 The latest release page includes the Windows installer, release notes, and
 SHA-256 checksum.
 
+**Fully playable on a normal desktop or in seated VR.** One installation
+provides separate **Unreal Revived** desktop and **Unreal Revived VR** shortcuts.
+A headset is optional and is never required for normal desktop play.
+
 Unreal Revived is a modernization package for playing the original **Unreal
 Gold** on current Windows PCs. It preserves the original game content and gameplay 
 while adding native DirectX 12 rendering, modern display handling, refreshed
