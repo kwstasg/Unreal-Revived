@@ -580,8 +580,28 @@ function DrawTextLine(Canvas C, string Label, string Value, float LabelWidth, fl
 	C.SetPos(X, Y + LineHeight);
 }
 
+exec function RecenterVR()
+{
+	if (Viewport.Actor != None)
+		Viewport.Actor.ConsoleCommand("D3D12 RECENTERVR");
+}
+
+function bool HandleVRRecenterKey(EInputKey Key, EInputAction Action)
+{
+	local string KeyName;
+	if (Action != IST_Press || Viewport.Actor == None)
+		return False;
+	KeyName = Viewport.Actor.ConsoleCommand("KEYNAME" @ int(Key));
+	if (!(Viewport.Actor.ConsoleCommand("KEYBINDING" @ KeyName) ~= "RecenterVR"))
+		return False;
+	RecenterVR();
+	return True;
+}
+
 function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta)
 {
+	if (HandleVRRecenterKey(Key, Action))
+		return True;
 	if (Action == IST_Axis && (Key == IK_JoyX || Key == IK_JoyY))
 		UpdateControllerDodgeSuppression(Key, Delta);
 	if (Key == IK_Joy8 && Action == IST_Press)
@@ -701,6 +721,8 @@ state UWindow
 				return True;
 			return Super.KeyEvent(Key, Action, Delta);
 		}
+		if (HandleVRRecenterKey(Key, Action))
+			return True;
 		if (Action == IST_Press && ModernRoot != None
 			&& (Key == IK_MouseWheelUp || Key == IK_MouseWheelDown))
 		{

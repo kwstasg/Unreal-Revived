@@ -11,6 +11,20 @@ menus, improved controls, and broad gamepad support for devices such as Xbox
 Series controllers, DualShock 4, DualSense, and other
 [SDL-mapped controllers](docs/controllers.md).
 
+**Play Unreal Gold in seated VR.** OpenXR stereo rendering and head tracking put
+you inside the original world, with gaze-aligned gamepad movement, smooth
+right-stick turning, and the full HUD and menus on a stable spatial panel.
+Adjust panel distance and size, and recenter instantly with right-stick click
+or F10. Both bindings are customizable. These features have been tested and
+accepted on Oculus Rift CV1; other headset/runtime combinations and broader
+gameplay coverage remain ongoing.
+
+Choose **Unreal Revived VR** to play in VR, or **Unreal Revived** for normal
+desktop play. Setup offers independent desktop shortcut checkboxes for each.
+VR requires a configured OpenXR runtime and a connected headset. Version 0.6.0
+is prepared for release; the download link below serves the currently published
+release until the new installer is uploaded.
+
 Unreal Revived adds its own DirectX 12 renderer, ModernMenu interface,
 SDL3-based controller backend, tested defaults, branding, and side-by-side
 installation workflow on top of that foundation.

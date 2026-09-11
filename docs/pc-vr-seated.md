@@ -6,7 +6,7 @@ evidence in [vr-ui-investigation.md](vr-ui-investigation.md).
 
 ## Status
 
-This document is the implementation plan for a future supported VR mode. The
+This document records the implemented seated VR mode and its remaining roadmap. The
 mode-selection, loader, runtime/HMD detection, D3D12 compatibility, session
 lifecycle, frame timing, independent eye rendering, runtime IPD, asymmetric
 projection, and seated head-pose bridge are implemented locally. Live Oculus
@@ -15,7 +15,7 @@ camera direction, natural yaw/pitch/roll, no visibility gaps, and no rotational
 stretching or swimming. The vertical optical-center mapping accounts for UE1's
 positive-down camera Y and the renderer's final vertical presentation flip.
 
-This is a validated rendering milestone, not a supported VR release. The
+The validated feature set is frozen for the 0.6.0 release candidate. The
 first-person weapon now follows headset rotation and seated leaning through a
 render-only path without changing gameplay aim, controls, or scripted cameras.
 Its initial lower, handed placement is accepted while finer comfort tuning is
@@ -32,7 +32,9 @@ into those swapchains.
 The spatial HUD/menu milestone was accepted in the headset on 2026-09-10:
 desktop-like canvas layout, one upright fixed panel, stable live distance/scale,
 and explicit UI recenter. This supersedes earlier plans for automatic panel
-following or larger menus that recenter on opening. It is not a supported VR release.
+following or larger menus that recenter on opening. Explicit Recenter VR View
+now captures full gaze orientation once; its pitch/roll behavior, quick bindings
+and UI color correction were subsequently accepted by the user.
 
 ## Implementation alignment checkpoint
 
@@ -50,8 +52,8 @@ following or larger menus that recenter on opening. It is not a supported VR rel
 - User-validated: gamepad headset-yaw walking/strafing and horizontal right-stick
   turning. Gaze aim hooks still need broader weapon checks. The script-side menu-open
   recenter left behind by the earlier cleanup was removed on 2026-09-11.
-- Implemented, awaiting headset checks: combined view/UI recenter, which levels
-  software pitch/roll and adopts current horizontal gaze as forward between frames.
+- User-validated: combined view/UI recenter, including full gaze panel placement,
+  software tilt reset, right-stick click/F10 bindings and corrected UI colors.
 - Still to implement: swimming/
   flying movement semantics, collision fade, desktop-mirror selection, and
   incompatible-overlay handling; finer weapon placement remains optional tuning.
@@ -83,7 +85,8 @@ panel with explicit recenter, and fade-based head collision.
   or query runtime tracking during non-VR play. Shared code probes cached pose
   availability, but VR UI postprocess textures/descriptors are now allocated only
   when OpenXR rendering is ready. Buffer readiness handles the transition after
-  initial desktop-sized allocation. Active-VR transition validation remains pending.
+  initial desktop-sized allocation. The user accepted the resulting active VR
+  behavior; desktop/fallback allocation checks are also recorded in the audit.
 - Keep the existing single-view D3D12 path unchanged behind a strict runtime
   branch.
 - Missing loaders or runtimes, unavailable HMDs, and incompatible graphics
@@ -102,12 +105,12 @@ Implemented in the dedicated VR preferences page:
   refresh the seated tracking reference, and recenter the shared panel.
 - HUD distance and scale.
 - Basic active/inactive status.
-- Clear restart-required messaging when VR mode changes.
+- Explicit normal/VR shortcuts select the mode; Preferences Restart preserves it.
 
 UI recenter and HUD adjustments update immediately in VR.
 Broader comfort and motion-control options are deferred.
 
-Pending: headset validation of combined recenter, selectable left/right/off desktop mirror, and more
+Pending: selectable left/right/off desktop mirror and more
 detailed runtime/headset status. Automatic/delayed HUD following was superseded
 by the user-accepted fixed panel and must not be reintroduced by assumption.
 

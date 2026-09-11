@@ -6,6 +6,44 @@ technical guides; use this file for the chronological record.
 
 ## 2026-09-11
 
+### Freeze the accepted 0.6.0 feature set for release
+
+- User accepted all current behavior, including recenter bindings and the final
+  proportionally drawn logo, and requested release preparation with new features
+  deferred. This supersedes pending user checks in earlier entries.
+- Reviewed implementation and provisioning changes without altering accepted
+  runtime behavior. Retained useful diagnostics and historical investigation
+  notes; corrected stale current-state and contributor instructions.
+- Promoted seated OpenXR VR in the end-user README and prepared release notes
+  describing the validated Rift CV1 scope and remaining compatibility work.
+- Native Release build, both focused VR CTest suites and all 50 runtime regression
+  cases passed (`local/logs/automated-20260911-123854/`). Source checks and changed
+  PowerShell syntax checks passed. Fresh offline installer packaging follows
+  this frozen source commit; publication remains a manual action by the owner.
+
+### Quick recenter bindings and flyby branding
+
+- Follow-up: user found the logo squeezed. The intro now uses
+  `branding/UnrealRevivedLogo.png` directly as its build source, packed into an
+  import-compatible texture. Drawing restores the original 2168:725 aspect at
+  256 canvas units wide, bottom-centered and fully within the canvas. This
+  supersedes the original 256x64 replacement rectangle described below.
+- Preserved the headset-accepted baseline in commit `791d54f` before this work.
+- Added `RecenterVR`, calling the same renderer command as Preferences. Defaults
+  are right-stick click (Joy10) and F10; Preferences > Bindings has a VR group
+  for changing them. Menu input handles binding capture before recenter, so
+  assigning a key does not recenter. Outside VR the action has no view effect.
+- New runtime/installer defaults and Restore Defaults include both keys. Local
+  profiles were updated; ordinary menu rebuilds do not reapply these bindings.
+- Replaced the flyby flame layer and old logo with the existing transparent
+  Unreal Revived campaign artwork in the old 256x64 rectangle at
+  `(ClipX/2-128, ClipY-52)`, shared by desktop and VR.
+- ModernMenu compiled with zero warnings. Desktop flyby/gameplay smoke passed
+  in `local/logs/automated-20260911-120942/`; changed provisioning scripts parse.
+  Screenshot capture could not obtain window bounds. Visual logo acceptance,
+  headset/button and rebinding checks remain manual. The earlier local installer
+  does not include these additions.
+
 ### Recenter pitch/roll and UI output encoding correction
 
 - User subsequently headset-validated both corrections: perfect and exactly as

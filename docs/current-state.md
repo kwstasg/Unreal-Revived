@@ -38,7 +38,7 @@ history.
   [latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest).
   The attached 0.5.0 build points to tag `UnrealRevived-Setup-0.5.0` at `b1979f8`;
   the current source is locally prepared as 0.6.0 and includes installer
-  branding, existing-install flow changes, and OpenXR mode-selection groundwork
+  branding, existing-install flow changes, and the accepted seated OpenXR feature set
   that are not in that binary.
 - Packaging authorization: redistribution, mirroring, and offline bundling of
   the pinned OldUnreal 227k_15 Windows patch is confirmed in
@@ -88,7 +88,7 @@ controls, stereo fusion, and distortion-free tracking; finer weapon placement
 tuning remains a TODO. Gaze aim hooks are implemented but broader weapon and
 multiplayer validation is pending. Gamepad headset-yaw walking/jumping and
 horizontal right-stick turning were user-validated on 2026-09-11. Combined view/UI
-recenter is implemented but awaiting headset validation. Swimming/flying movement, collision fade, mirror
+recenter, quick bindings and UI colors are user-validated. Swimming/flying movement, collision fade, mirror
 options and broader acceptance testing remain incomplete. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
@@ -251,7 +251,8 @@ The ordered major additions are maintained in [`roadmap.md`](roadmap.md):
 2. RTX support.
 3. A native Vulkan driver.
 
-These remain planning items only. Continue flat-screen validation, automated
+VR's validated feature set is frozen for 0.6.0; its remaining compatibility work,
+RTX and Vulkan belong to later releases. Continue flat-screen validation, automated
 regression coverage, installer UX, and release automation alongside them.
 
 ## Updating the handoff

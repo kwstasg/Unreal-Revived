@@ -72,7 +72,8 @@ recenters the UI only. The Preferences button now uses `D3D12 RECENTERVR` to lev
 software view tilt, adopt horizontal gaze as forward and refresh both view/UI
 references between frames. User testing accepted yaw but found that the upright
 panel appeared oppositely pitched/rolled. Explicit view recenter now captures
-full head orientation; this correction awaits headset validation. Script
+full head orientation; the user accepted this correction, its quick bindings,
+and the corrected UI colors on 2026-09-11. Script
 callers use plain `BEGINVRUIPASS`/`ENDVRUIPASS`; old suffixes
 are harmless compatibility input and no longer select a separate layout.
 

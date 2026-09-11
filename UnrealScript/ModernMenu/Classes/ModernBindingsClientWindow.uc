@@ -10,6 +10,7 @@ var bool bBindingLayoutValid;
 var bool bBindingVisibilityValid;
 var float BindingLayoutWidth;
 var float LastBindingScrollTop;
+var localized string VRRecenterText;
 
 function Created()
 {
@@ -17,6 +18,7 @@ function Created()
 	local int KeyIndex;
 
 	Super.Created();
+	AddVRRecenterBinding();
 	bJoystick = False;
 	JoystickHeading.HideWindow();
 	JoyXCombo.HideWindow();
@@ -29,6 +31,33 @@ function Created()
 	ModernRootWindow(Root).ControllerBindings = Self;
 	ApplyXboxKeyNames();
 	CacheLocalizedKeyNames();
+}
+
+function AddVRRecenterBinding()
+{
+	local int G, ButtonTop;
+	if (KeyIsThere("RecenterVR"))
+		return;
+	G = NumGroups++;
+	KeyGroups[G].GroupName = "VR";
+	KeyGroups[G].LabelText = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 0, 0, 100, 1));
+	KeyGroups[G].LabelText.SetText("VR");
+	KeyGroups[G].LabelText.SetFont(F_Bold);
+	KeyGroups[G].NumKeys = 1;
+	KeyGroups[G].Keys[0].AliasString = "RecenterVR";
+	KeyGroups[G].Keys[0].KeyName = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 0, 0, 100, 1));
+	KeyGroups[G].Keys[0].KeyName.SetText(VRRecenterText);
+	KeyGroups[G].Keys[0].KeyName.SetFont(F_Normal);
+	KeyGroups[G].Keys[0].KeyName.SetHelpText(CustomizeHelp);
+	KeyGroups[G].Keys[0].KeyName.bNotifyMouseClicks = True;
+	KeyGroups[G].Keys[0].KeyButton = UMenuRaisedButton(CreateControl(class'UMenuRaisedButton', 0, 0, EditAreaWidth, 1));
+	KeyGroups[G].Keys[0].KeyButton.SetHelpText(CustomizeHelp);
+	KeyGroups[G].Keys[0].KeyButton.bIgnoreLDoubleClick = True;
+	KeyGroups[G].Keys[0].KeyButton.bIgnoreMDoubleClick = True;
+	KeyGroups[G].Keys[0].KeyButton.bIgnoreRDoubleClick = True;
+	ButtonTop = 25;
+	SetButtonsHeight(ButtonTop);
+	NoJoyDesiredHeight = ButtonTop + 10;
 }
 
 function ConfigureBindingTabOrder()
@@ -209,7 +238,8 @@ function RestoreDefaultControllerBindings()
 	GetPlayerOwner().ConsoleCommand("SET Input Joy7 InventoryPrevious");
 	GetPlayerOwner().ConsoleCommand("SET Input Joy8");
 	GetPlayerOwner().ConsoleCommand("SET Input Joy9 Duck");
-	GetPlayerOwner().ConsoleCommand("SET Input Joy10");
+	GetPlayerOwner().ConsoleCommand("SET Input Joy10 RecenterVR");
+	GetPlayerOwner().ConsoleCommand("SET Input F10 RecenterVR");
 	GetPlayerOwner().ConsoleCommand("SET Input Joy11 Fire");
 	GetPlayerOwner().ConsoleCommand("SET Input Joy12 AltFire");
 	GetPlayerOwner().ConsoleCommand("SET Input Joy13 InventoryNext");
@@ -519,5 +549,6 @@ function Close(optional bool bByParent)
 
 defaultproperties
 {
+	VRRecenterText="Recenter VR View"
 	CustomizeHelp="Add up to three bindings, replace, or clear. Canceling leaves the current bindings unchanged."
 }

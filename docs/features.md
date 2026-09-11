@@ -10,9 +10,11 @@ boundary.
 ## Rendering and image quality
 
 The source also includes the user-accepted [VR HUD/menu milestone](vr-ui-recovery-design.md):
-complete desktop-like layout on a shared upright panel, stable distance/scale
+complete desktop-like layout on a shared fixed panel, stable distance/scale
 controls in VR Preferences, and explicit recenter without menu-transition jumps.
-This milestone is not a new release or a general VR compatibility claim.
+The 0.6.0 release candidate also includes accepted head tracking, gaze-aligned
+gamepad movement, quick recenter bindings and corrected VR UI colors. Rift CV1
+is the validated headset; broader runtime/gameplay compatibility remains ongoing.
 
 | Feature | Description |
 | --- | --- |

@@ -22,6 +22,7 @@ $sourceDirectory = Join-Path $sourcePackageDirectory 'Classes'
 $brandingDirectory = Join-Path $repositoryRoot 'branding'
 $menuTextureDirectory = Join-Path $repositoryRoot 'branding\MenuTiles'
 $introNvidiaTexture = Join-Path $brandingDirectory 'NvidiaIntroLogoRuntime.png'
+$introRevivedTexture = Join-Path $brandingDirectory 'UnrealRevivedLogo.png'
 $campaignLogoTexture = Join-Path $brandingDirectory 'UnrealRevivedCampaignLogoRuntime.png'
 $aboutLogoTexture = Join-Path $brandingDirectory 'UnrealRevivedAboutLogoRuntime.png'
 $brandingLogo = Join-Path $brandingDirectory 'Logo.bmp'
@@ -36,7 +37,7 @@ $editorIniPath = Join-Path $system64Directory 'Unreal.ini'
 $runtimePackageDirectory = Join-Path $GameRoot 'ModernMenu'
 $outputPackage = Join-Path $system64Directory 'ModernMenu.u'
 
-foreach ($requiredPath in @($sourcePackageDirectory, $sourceDirectory, $menuTextureDirectory, $introNvidiaTexture, $campaignLogoTexture, $aboutLogoTexture, $brandingLogo, $brandingSetupLogo, $systemDirectory, $system64Directory, $helpDirectory, $ucc, $iniPath)) {
+foreach ($requiredPath in @($sourcePackageDirectory, $sourceDirectory, $menuTextureDirectory, $introNvidiaTexture, $introRevivedTexture, $campaignLogoTexture, $aboutLogoTexture, $brandingLogo, $brandingSetupLogo, $systemDirectory, $system64Directory, $helpDirectory, $ucc, $iniPath)) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
         throw "Missing ModernMenu build input: $requiredPath"
     }
@@ -80,6 +81,24 @@ Remove-Item -LiteralPath $runtimePackageDirectory -Recurse -Force -ErrorAction S
 Copy-Item -LiteralPath $sourcePackageDirectory -Destination $runtimePackageDirectory -Recurse
 Copy-Item -LiteralPath $menuTextureDirectory -Destination (Join-Path $runtimePackageDirectory 'Textures') -Recurse
 Copy-Item -LiteralPath $introNvidiaTexture -Destination (Join-Path $runtimePackageDirectory 'Textures\NvidiaIntroLogoRuntime.png') -Force
+# Unreal requires power-of-two imports. Pack the complete source into the
+# texture; ModernIntroHud restores its original 2168:725 aspect when drawing.
+Add-Type -AssemblyName System.Drawing
+$introSource = [Drawing.Image]::FromFile($introRevivedTexture)
+$introTexture = New-Object Drawing.Bitmap(1024, 512, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+$introGraphics = [Drawing.Graphics]::FromImage($introTexture)
+try {
+    $introGraphics.CompositingMode = [Drawing.Drawing2D.CompositingMode]::SourceCopy
+    $introGraphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    $introGraphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+    $introGraphics.DrawImage($introSource, 0, 0, 1024, 512)
+    $introTexture.Save((Join-Path $runtimePackageDirectory 'Textures\UnrealRevivedLogo.png'), [Drawing.Imaging.ImageFormat]::Png)
+}
+finally {
+    $introGraphics.Dispose()
+    $introTexture.Dispose()
+    $introSource.Dispose()
+}
 Copy-Item -LiteralPath $campaignLogoTexture -Destination (Join-Path $runtimePackageDirectory 'Textures\UnrealRevivedCampaignLogoRuntime.png') -Force
 Copy-Item -LiteralPath $aboutLogoTexture -Destination (Join-Path $runtimePackageDirectory 'Textures\UnrealRevivedAboutLogoRuntime.png') -Force
 

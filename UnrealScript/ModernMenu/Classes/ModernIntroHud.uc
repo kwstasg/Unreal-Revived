@@ -5,6 +5,7 @@
 class ModernIntroHud extends IntroNullHud;
 
 #exec TEXTURE IMPORT NAME=NvidiaIntroLogo FILE=Textures\NvidiaIntroLogoRuntime.png GROUP="Logo" MIPS=OFF FLAGS=2
+#exec TEXTURE IMPORT NAME=UnrealRevivedIntroLogo FILE=Textures\UnrealRevivedLogo.png GROUP="Logo" MIPS=OFF FLAGS=2
 
 var Font IntroFont;
 
@@ -12,6 +13,7 @@ simulated function PostRender(Canvas Canvas)
 {
 	local float StartX, IconScale;
 	local float MessageWidth, MessageHeight;
+	local float LogoHeight;
 	local bool bVRUI;
 
 	PlayerPawn(Owner).ConsoleCommand("D3D12 BEGINUIPASS");
@@ -42,12 +44,13 @@ simulated function PostRender(Canvas Canvas)
 	Canvas.DrawColor = MakeColor(255, 255, 255);
 
 	StartX = 0.5 * Canvas.ClipX - 128;
-	Canvas.SetPos(StartX, Canvas.ClipY - 58);
-	Canvas.Style = ERenderStyle.STY_Translucent;
-	Canvas.DrawTile(Texture'MenuBarrier', 256, 64, 0, 0, 256, 64);
 	Canvas.Style = 2;
-	Canvas.SetPos(StartX, Canvas.ClipY - 52);
-	Canvas.DrawIcon(Texture'Logo2', 1.0);
+	// Keep the original width and bottom-center anchor. Use the source PNG's
+	// aspect, independently of any power-of-two texture import conversion.
+	LogoHeight = 256.0 * 725.0 / 2168.0;
+	Canvas.SetPos(StartX, Canvas.ClipY - LogoHeight);
+	Canvas.DrawTile(Texture'UnrealRevivedIntroLogo', 256, LogoHeight, 0, 0,
+		Texture'UnrealRevivedIntroLogo'.USize, Texture'UnrealRevivedIntroLogo'.VSize);
 
 	if (Canvas.ClipX > 790)
 	{

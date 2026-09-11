@@ -28,8 +28,9 @@ unavailable.
 - The supported current host is OldUnreal 227k_15 on Windows x64.
 - Keep host-specific renderer compatibility behind `UNREAL_227` where
   practical. Preserve recognizable upstream UT99VulkanDrv structure.
-- Treat OpenXR, the portable launcher, hooks, and VR bridge as roadmap work
-  until tracked implementations exist.
+- Preserve the user-validated seated OpenXR implementation and shared VR UI
+  behavior; consult `docs/vr-ui-recovery-design.md` before changing them.
+  Broader VR compatibility and the portable launcher remain separate roadmap work.
 
 ## Provenance and documentation
 

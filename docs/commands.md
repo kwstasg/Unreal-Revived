@@ -1,5 +1,10 @@
 # Command reference
 
+In the game console, `RecenterVR` performs the same action as Preferences > VR >
+Recenter VR View. Default bindings are F10 and right-stick click (Joy10). Change
+or clear them under Preferences > Bindings > VR. The action also works while
+menus are open and has no view effect outside a running VR session.
+
 Run these commands from the Unreal Revived repository root in PowerShell.
 Generated runtimes, builds, logs, downloads, and packages stay under the
 ignored `local/` directory.
