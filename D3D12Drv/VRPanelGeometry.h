@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 // Shared, engine-independent geometry for the upright VR UI panel.
 #pragma once
 #include <cmath>

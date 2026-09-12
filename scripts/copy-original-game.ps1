@@ -10,10 +10,40 @@ param(
     [string] $OriginalGameRoot,
 
     [Parameter(Mandatory = $true)]
-    [string] $ContentManifest
+    [string] $ContentManifest,
+
+    [string] $ErrorLog
 )
 
 $ErrorActionPreference = 'Stop'
+
+trap {
+    if ($ErrorLog) {
+        Set-Content -LiteralPath $ErrorLog -Value $_.Exception.Message -Encoding UTF8
+    }
+    Write-Error $_ -ErrorAction Continue
+    exit 1
+}
+
+function Test-RetainedBrandingDirectory {
+    param([IO.DirectoryInfo] $Directory)
+
+    if ($Directory.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        return $false
+    }
+    foreach ($item in Get-ChildItem -LiteralPath $Directory.FullName -Force) {
+        if ($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+            $item.Name -notmatch '^UnrealRevived-Icon-([0-9a-f]{12})\.ico$') {
+            return $false
+        }
+        $expectedPrefix = $Matches[1]
+        if (-not (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash.StartsWith(
+            $expectedPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            return $false
+        }
+    }
+    return $true
+}
 
 $sourceRoot = [IO.Path]::GetFullPath($OriginalGameRoot).TrimEnd('\')
 $destinationRoot = [IO.Path]::GetFullPath($InstallRoot).TrimEnd('\')
@@ -35,7 +65,15 @@ if ($sourceRoot -eq $destinationRoot -or $destinationRoot.StartsWith("$sourceRoo
 $installMarker = Join-Path $destinationRoot '.unreal-revived.json'
 if (Test-Path -LiteralPath $destinationRoot) {
     $existingFiles = @(Get-ChildItem -LiteralPath $destinationRoot -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -notmatch '^unins\d+\.(exe|dat)$' })
-    $unexpectedFiles = @($existingFiles | Where-Object { $_.Name -ne 'Save' -or -not $_.PSIsContainer })
+    $unexpectedFiles = @($existingFiles | Where-Object {
+        if ($_.Name -eq 'Save' -and $_.PSIsContainer) { return $false }
+        # Windows can retain a shortcut icon after uninstall. Accept only our
+        # content-addressed icons, verifying their hashes before reusing the folder.
+        if ($_.Name -eq 'UnrealRevived' -and $_.PSIsContainer) {
+            return -not (Test-RetainedBrandingDirectory $_)
+        }
+        return $true
+    })
     if ($unexpectedFiles.Count -gt 0 -and -not (Test-Path -LiteralPath $installMarker -PathType Leaf)) {
         throw "The destination is not empty and is not an existing Unreal Revived installation: $destinationRoot"
     }

@@ -78,4 +78,6 @@ endforeach()
 
 add_subdirectory(D3D12Drv)
 add_subdirectory(XInputWinDrv)
+enable_testing()
+add_subdirectory(Launch)
 include(cmake/UnrealRevivedTargets.cmake)

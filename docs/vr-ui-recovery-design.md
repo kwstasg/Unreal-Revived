@@ -2,13 +2,16 @@
 
 ## Accepted milestone - 2026-09-10
 
+Historical dated log directories referenced below are retained in
+`local/archive/2026-09-12/historical-test-logs.zip` after housekeeping.
+
 The user validated and accepted the complete VR menu, desktop-like UI/HUD
 placement, shared panel geometry, stable slider adjustment, meaningful distance,
 and explicit recenter behavior on the existing Oculus Rift CV1 setup. This is a
 source milestone, not a GitHub release or a claim of universal headset support.
 
 The accepted implementation and binaries were preserved before cleanup in
-`local/vr-ui-accepted-milestone-20260910-212645/`. Local backups and binaries stay
+`local/backups/vr-ui-accepted-milestone-20260910-212645/`. Local backups and binaries stay
 ignored. The committed implementation is the baseline for future work; do not
 restore the older visible-but-clipped `f767139c` experiment.
 

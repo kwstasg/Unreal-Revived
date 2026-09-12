@@ -11,7 +11,7 @@ Git tree `f767139c` contained a visible but stretched/clipped menu and stable
 slider anchors. Later working files diverged again: slider commands recentered
 and menu/HUD geometry differed. Neither old snapshot is the final baseline.
 The accepted source/binaries were preserved at
-`local/vr-ui-accepted-milestone-20260910-212645/` before final cleanup.
+`local/backups/vr-ui-accepted-milestone-20260910-212645/` before final cleanup.
 
 ## Failed approaches and lessons
 

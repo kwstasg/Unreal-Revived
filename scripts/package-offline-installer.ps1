@@ -22,6 +22,11 @@ param(
 
     [string] $StageRoot,
 
+    [Parameter(Mandatory = $true)]
+    [string] $LauncherBinaryRoot,
+
+    [string] $SdkRoot,
+
     [switch] $BuildInstaller
 )
 
@@ -252,7 +257,11 @@ foreach ($defaultUserProfile in @('System\DefUser.ini', 'System64\DefUser.ini'))
     Set-Content -LiteralPath $defaultUserProfilePath -Value $defaultUserProfileLines -Encoding ASCII
 }
 
+& (Join-Path $PSScriptRoot 'stage-branded-launchers.ps1') -RuntimeRoot $patchRoot -BinaryRoot $LauncherBinaryRoot -SdkRoot $SdkRoot
+
 $payloadSources = [ordered]@{
+    'UnrealRevived.exe' = Join-Path $LauncherBinaryRoot 'UnrealRevived.exe'
+    'UnrealRevivedVR.exe' = Join-Path $LauncherBinaryRoot 'UnrealRevivedVR.exe'
     'D3D12Drv.dll' = $RendererDll
     'D3D12Drv.int' = $rendererInt
     'openxr_loader.dll' = $LoaderDll

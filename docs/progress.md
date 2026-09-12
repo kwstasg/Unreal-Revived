@@ -4,6 +4,23 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
+Historical paths below record where evidence was originally produced. The
+September 12 cleanup compacted available dated test-log directories into
+`local/archive/2026-09-12/historical-test-logs.zip`; see `compact-verified.json`
+beside it for the directories included. Current release-validation logs remain
+under `local/logs/`.
+
+## 2026-09-12
+
+- The owner installed the branded-executable candidate and confirmed desktop
+  and VR work as expected. Preserved that exact installer and payload under
+  `local/backups/release-0.6.0-user-tested-20260912/` for rollback.
+- Reviewed the native hosts, separate profiles, installer copy recovery and
+  unchanged maintenance flow for release. Release preparation captures these
+  changes in Git, rebuilds from committed source, and records artifact identity
+  and validation in the canonical installer output directory. Publishing is
+  a separate action; clean-PC coverage remains outside the local evidence.
+
 ## 2026-09-11
 
 ### Freeze the accepted 0.6.0 feature set for release
@@ -121,7 +138,7 @@ supersedes the pending-headset notes in the chronological entries below.
 - Consolidated [best practices](vr-ui-recovery-design.md), archived failed
   approaches, and corrected obsolete spatial UI/recenter claims in focused docs.
 - Preserved pre-cleanup accepted files/binaries in ignored
-  `local/vr-ui-accepted-milestone-20260910-212645/`. No release, tag, installer or
+  `local/backups/vr-ui-accepted-milestone-20260910-212645/`. No release, tag, installer or
   distribution artifact is part of this milestone commit.
 - Final cleanup validation: ModernMenu rebuilt/deployed with zero warnings;
   desktop flyby/gameplay smoke tests passed in
@@ -132,7 +149,7 @@ supersedes the pending-headset notes in the chronological entries below.
 ### Shared VR panel geometry and explicit recenter
 
 - User accepted the desktop-like VR layout. Preserved that renderer/menu in
-  `local/vr-ui-before-shared-panel-20260910-211221/` before the follow-up.
+  `local/backups/vr-ui-before-shared-panel-20260910-211221/` before the follow-up.
 - HUD/menu/intro now use identical dimensions and placement, with no automatic
   recenter on menu transitions. Removed HUD-specific vertical offset and width.
 - Anchor is upright at eye level, using horizontal heading only. Initial session
@@ -153,7 +170,7 @@ supersedes the pending-headset notes in the chronological entries below.
   restored desktop HUD scaling for translator/MOTD. Preserved renderer projection,
   stable anchor controls, physical panel geometry, and eye-space weapon/crosshair.
 - Backed up scripts, menu package, and settings in
-  `local/vr-ui-before-layout-20260910-210020/`. Built/deployed ModernMenu with zero
+  `local/backups/vr-ui-before-layout-20260910-210020/`. Built/deployed ModernMenu with zero
   warnings; flyby/gameplay smoke tests passed in
   `local/logs/automated-20260910-210145/`. User settings retained.
 - Headset comparison and mouse/controller alignment still require visual testing.
@@ -162,7 +179,7 @@ supersedes the pending-headset notes in the chronological entries below.
 
 - User confirmed the complete menu is now visible in the headset after the
   canvas projection correction. Preserved this source and runtime binaries in
-  `local/vr-ui-visible-20260910-205225/` before further changes.
+  `local/backups/vr-ui-visible-20260910-205225/` before further changes.
 - Removed implicit recenter from distance/scale commands. Panel position is
   derived from a saved head reference and current distance; scale changes size
   around the panel center. Explicit recenter and layout transitions still work.
@@ -174,7 +191,7 @@ supersedes the pending-headset notes in the chronological entries below.
 ### VR UI source audit and isolated projection correction
 
 - Preserved the existing dirty files and runtime binaries under ignored
-  `local/vr-ui-recovery-20260910-204146/`; no blanket rollback or commit.
+  `local/backups/vr-ui-recovery-20260910-204146/`; no blanket rollback or commit.
 - Found that the working renderer differed from `f767139c`: slider commands
   invalidated the anchor again and menu width was changed to 64 degrees.
 - Found a separate source-space defect: Canvas vertices derived from symmetric

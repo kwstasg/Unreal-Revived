@@ -10,7 +10,13 @@
   #define OutputDir AddBackslash(StageRoot) + "output"
 #endif
 
-#define ProductName "Unreal Revived"
+#ifdef ValidationBuild
+  #define ProductName "Unreal Revived Validation"
+  #define ProductGuid "2ECFF5AD-A39A-469F-906C-6D842DF3D310"
+#else
+  #define ProductName "Unreal Revived"
+  #define ProductGuid "8D6614ED-8854-4D0E-9666-A891EC92713B"
+#endif
 #define ProductVersion "0.6.0"
 #define ProductFileVersion "0.6.0.0"
 #define ProductAuthor "Kwstasg - Kostas Giannakakis"
@@ -20,7 +26,7 @@
 #endif
 
 [Setup]
-AppId={{8D6614ED-8854-4D0E-9666-A891EC92713B}
+AppId={{{#ProductGuid}}
 AppName={#ProductName}
 AppVersion={#ProductVersion}
 AppVerName={#ProductName} {#ProductVersion}
@@ -59,24 +65,24 @@ Source: "{#StageRoot}\payload\*"; DestDir: "{tmp}\UnrealRevived-Payload"; Exclud
 Source: "{#StageRoot}\patch\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "-novr"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
-Name: "{autoprograms}\{#ProductName} VR"; Filename: "{app}\System64\Unreal.exe"; Parameters: "-vr"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
-Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\Unreal.exe"; Parameters: "-novr"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"; Tasks: desktopicon
-Name: "{autodesktop}\{#ProductName} VR"; Filename: "{app}\System64\Unreal.exe"; Parameters: "-vr"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"; Tasks: vrdesktopicon
+Name: "{autoprograms}\{#ProductName}"; Filename: "{app}\System64\UnrealRevived.exe"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
+Name: "{autoprograms}\{#ProductName} VR"; Filename: "{app}\System64\UnrealRevivedVR.exe"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"
+Name: "{autodesktop}\{#ProductName}"; Filename: "{app}\System64\UnrealRevived.exe"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"; Tasks: desktopicon
+Name: "{autodesktop}\{#ProductName} VR"; Filename: "{app}\System64\UnrealRevivedVR.exe"; WorkingDir: "{app}\System64"; IconFilename: "{app}\UnrealRevived\{#ProductIconName}"; Tasks: vrdesktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &normal game desktop shortcut"; GroupDescription: "Desktop shortcuts:"
 Name: "vrdesktopicon"; Description: "Create a &VR desktop shortcut"; GroupDescription: "Desktop shortcuts:"; Flags: unchecked
 
 [Run]
-Filename: "{app}\System64\Unreal.exe"; Parameters: "-novr"; WorkingDir: "{app}\System64"; Description: "Launch {#ProductName}"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\System64\UnrealRevived.exe"; WorkingDir: "{app}\System64"; Description: "Launch {#ProductName}"; Flags: postinstall nowait skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
 
 [Code]
 const
-  UninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{8D6614ED-8854-4D0E-9666-A891EC92713B}_is1';
+  UninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{{#ProductGuid}}_is1';
   OldUnrealInstallerUrl = 'https://www.oldunreal.com/downloads/unreal/full-game-installers/';
 
 var
@@ -610,17 +616,22 @@ end;
     ResultCode: Integer;
     PowerShell: String;
     Arguments: String;
+    CopyErrorPath: String;
+    CopyError: AnsiString;
   begin
     Result := '';
     ExtractTemporaryFile('copy-original-game.ps1');
     ExtractTemporaryFile('unreal-revived-install-content-v1.json');
     PowerShell := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
+    CopyErrorPath := ExpandConstant('{tmp}\original-game-copy-error.txt');
+    DeleteFile(CopyErrorPath);
     Arguments := '-NoProfile -ExecutionPolicy Bypass -File "' +
       ExpandConstant('{tmp}\copy-original-game.ps1') +
       '" -InstallRoot "' + ExpandConstant('{app}') +
       '" -OriginalGameRoot "' + SourcePage.Values[0] +
       '" -ContentManifest "' +
-      ExpandConstant('{tmp}\unreal-revived-install-content-v1.json') + '"';
+      ExpandConstant('{tmp}\unreal-revived-install-content-v1.json') +
+      '" -ErrorLog "' + CopyErrorPath + '"';
 
     WizardForm.StatusLabel.Caption :=
       'Copying your original game files. This may take a few minutes...';
@@ -633,7 +644,12 @@ end;
         Exit;
       end;
       if ResultCode <> 0 then
+      begin
         Result := Format('Copying the original game failed with exit code %d.', [ResultCode]);
+        if LoadStringFromFile(CopyErrorPath, CopyError) then
+          Result := Result + #13#10 + Trim(UTF8Decode(CopyError));
+        Log(Result);
+      end;
     finally
       WizardForm.ProgressGauge.Style := npbstNormal;
     end;

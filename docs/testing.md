@@ -588,7 +588,7 @@ target maintains those copies for the disposable runtime.
 - In an installer-created runtime, use **Restart** and confirm the relaunched
   process retains `Unreal.ini` and `User.ini`, does not open First-Time
   Configuration, and keeps the ModernMenu root and saved settings.
-- Close the installed runtime, launch `System64\Unreal.exe` with no arguments,
+- Close the installed runtime, launch `System64\UnrealRevived.exe` with no arguments,
   and confirm it opens the same ModernIntro shell without stock intro frames.
 - Confirm the installed Start Menu shortcut and, when selected during Setup,
   the desktop shortcut have no arguments and launch the same canonical profile.
@@ -653,7 +653,21 @@ VR follow-up checks:
 - Confirm desktop logs report VR UI buffers disabled, then a successful VR
   startup rebuilds them enabled without missing HUD/menu elements.
 - Run the fresh local installer and independently select each desktop icon.
-  Check normal uses `-novr` and VR uses `-vr`.
+  Check normal targets `UnrealRevived.exe` and VR targets `UnrealRevivedVR.exe`,
+  both without shortcut arguments. Launch each executable without arguments:
+  the log must select its mode/profile and browse the local startup map
+  with no pending connection to `ini=UnrealVR.ini` or host resolution failure.
+  Confirm installed VR starts in a 1280x1024 window, desktop retains its own
+  display settings, and Preferences Restart keeps the selected profile/mode.
+  Change the VR window size and rerun profile installation over existing files;
+  confirm display preferences survive. The intentional Setup rerun opens the
+  uninstall dialog; uninstall backs up settings to Documents and optionally
+  retains saves. User-data backup must include `UnrealVR.ini`.
+- Reinstall into a folder containing retained `Save` data and only genuine
+  `UnrealRevived/UnrealRevived-Icon-<hash>.ico` branding files without an install
+  marker. Confirm the copy proceeds and retains destination saves. Unknown
+  files and icons whose contents do not match their filename hash must still
+  be rejected. Copy failures must show the underlying error in Setup and its log.
 
 A useful test record includes:
 

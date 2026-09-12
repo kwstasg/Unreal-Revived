@@ -68,6 +68,12 @@ Copy-Item -LiteralPath $rendererInt -Destination (Join-Path $system64Directory '
 Copy-Item -LiteralPath $openXRLoader -Destination (Join-Path $system64Directory 'openxr_loader.dll') -Force
 Copy-Item -LiteralPath $inputDll -Destination (Join-Path $system64Directory 'XInputWinDrv.dll') -Force
 Copy-Item -LiteralPath $modernMenu -Destination (Join-Path $system64Directory 'ModernMenu.u') -Force
+foreach ($launcher in @('UnrealRevived.exe', 'UnrealRevivedVR.exe')) {
+    if (-not ($payloadManifest.files | Where-Object { $_.path -eq $launcher })) {
+        throw "Installer manifest does not identify $launcher"
+    }
+    Copy-Item -LiteralPath (Join-Path $PayloadRoot $launcher) -Destination (Join-Path $system64Directory $launcher) -Force
+}
 
 $localizedDirectory = Join-Path $destinationRoot 'SystemLocalized\int'
 foreach ($name in @('UnrealShare.int', 'UPak.int')) {
@@ -195,6 +201,26 @@ else {
     $iniLines = $defaultIniLines
 }
 Set-Content -LiteralPath $canonicalIni -Value $iniLines -Encoding ASCII
+
+# VR has its own display/renderer profile, but shares controls and saves.
+# Seed it only once so upgrades retain the user's subsequent VR preferences.
+$vrIni = Join-Path $system64Directory 'UnrealVR.ini'
+if (Test-Path -LiteralPath $vrIni -PathType Leaf) {
+    $vrIniLines = Get-Content -LiteralPath $vrIni
+}
+else {
+    $vrIniLines = $iniLines
+    foreach ($clientSection in @('WinDrv.WindowsClient', 'XInputWinDrv.WindowsClient')) {
+        $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'WindowedViewportX' '1280'
+        $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'WindowedViewportY' '1024'
+        $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'StartupFullscreen' 'False'
+        $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'StartupBorderless' 'False'
+    }
+}
+$vrIniLines = Set-UnrealRevivedIniValue $vrIniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'UnrealVR.ini'
+$vrIniLines = Set-UnrealRevivedIniValue $vrIniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
+Set-Content -LiteralPath $vrIni -Value $vrIniLines -Encoding ASCII
+
 $userIniLines = Get-Content -LiteralPath $defaultUserIni
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F11' 'ToggleFPSStatistics'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'MiddleMouse' ''

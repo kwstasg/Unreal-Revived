@@ -204,10 +204,19 @@ The leading `Unreal.unr` token is required. A command beginning with bare
 select the intended profile during testing.
 
 The explicit command above applies only to the disposable development runtime.
-The installed product uses canonical `Unreal.ini` and `User.ini` profiles and
-starts from bare `System64\Unreal.exe`. A clean isolated install validated that
-argument-free path with `ModernMenu.ModernIntro`, D3D12, XInput, and the
-ModernMenu root window active.
+The installed product starts from `System64\UnrealRevived.exe` for desktop
+or `System64\UnrealRevivedVR.exe` for VR, without shortcut arguments. Each host
+selects its own engine profile (`Unreal.ini` or `UnrealVR.ini`); controls and saves
+remain shared. Native launch, restart, profile isolation, and installer lifecycle
+checks are recorded in [`branded-launchers.md`](branded-launchers.md).
+
+The validated 0.6.0 installer remains at
+`local/package/offline-installer/output/UnrealRevived-Setup-0.6.0.exe`.
+It is a locally tested release candidate. Release preparation commits the final
+source and records its revision with the rebuilt installer in the output
+directory's `release-manifest.json`. A clean-PC installation check remains
+before public release sign-off. The current binary is unsigned. See
+[`release-0.6.0.md`](release-0.6.0.md).
 
 ## Non-obvious invariants
 

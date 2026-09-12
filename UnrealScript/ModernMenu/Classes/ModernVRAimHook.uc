@@ -1,4 +1,7 @@
 // Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 // VR-only hooks for the original PlayerPawn aim functions. This preserves the
 // serialized pawn class used by existing saves and leaves flat play untouched.
 

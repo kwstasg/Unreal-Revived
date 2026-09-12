@@ -1,3 +1,7 @@
+# Unreal Revived
+# Author: Kwstasg - Kostas Giannakakis
+# Project: https://github.com/kwstasg/Unreal-Revived
+
 cmake_minimum_required(VERSION 3.20)
 project(VRPanelTests LANGUAGES CXX)
 enable_testing()

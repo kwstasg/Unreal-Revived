@@ -1,3 +1,7 @@
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 #include "../VRGamepadAxes.h"
 #include <cstdlib>
 #include <iostream>

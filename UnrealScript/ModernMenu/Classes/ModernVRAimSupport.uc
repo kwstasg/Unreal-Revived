@@ -1,4 +1,7 @@
 // Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 // Shared, temporary gaze composition for stock player-pawn aim overrides.
 
 class ModernVRAimSupport extends Object abstract;

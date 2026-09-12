@@ -1,4 +1,8 @@
-// Unreal Revived - horizontal, magnitude-preserving gamepad movement basis.
+// Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
+// Horizontal, magnitude-preserving gamepad movement basis.
 #pragma once
 #include <cmath>
 

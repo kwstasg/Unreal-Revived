@@ -1,5 +1,8 @@
 # Building
 
+The [branded executables](branded-launchers.md) are built by the standard CMake
+project and included in the installer. They also support standalone validation.
+
 ## Supported target
 
 The current target is OldUnreal 227k_15 on Windows x64. CMake is the canonical
@@ -280,8 +283,27 @@ artwork tracked under `branding/`. It also installs the tracked seven-frame,
 The installed icon filename includes a prefix of its SHA-256 hash so Windows
 Explorer cannot reuse a stale cached image after artwork changes. Setup offers
 independent normal and VR desktop shortcuts as user-selectable tasks. Normal
-launches pass `-novr`; VR launches pass `-vr`. The VR desktop task starts unchecked.
-Start-menu entries include both modes; the Completed-page launch uses `-novr`.
+shortcuts target `System64/UnrealRevived.exe`; VR shortcuts target
+`System64/UnrealRevivedVR.exe`, both with no shortcut arguments.
+The VR desktop task starts unchecked. Start-menu entries include both modes;
+the Completed-page launch uses `UnrealRevived.exe`.
+The VR executable supplies
+`Unreal.unr?Game=ModernMenu.ModernIntro ini=UnrealVR.ini userini=User.ini -vr`.
+The map must come first: the engine treats a leading `ini=...` argument as a
+server address and attempts a network connection. Setup seeds
+this separate profile from the desktop profile on first install, with a
+1280x1024 window and fullscreen/borderless disabled in both Windows client
+sections. Later installs preserve existing VR display preferences. Controls and
+saves remain shared; renderer and other engine-profile settings can differ.
+Preferences Restart retains the VR profile, and user-data backups include it.
+
+Meta Horizon Link can discover the actual `UnrealRevivedVR.exe` engine process,
+which embeds the project icon, title and author. Empty launch options are valid:
+the executable selects VR and its profile itself. Existing library entries
+pointing to the original `Unreal.exe` still refer to that original executable.
+Setup does not modify Meta's private library database. The original pinned
+`Unreal.exe` remains installed alongside the branded hosts.
+
 Setup retains the portrait wordmark artwork on its Welcome and Completed pages,
 shows the standard Setup icon in page headers, adds a current feature list to
 the Welcome page, and keeps a clickable GitHub link beside
@@ -341,9 +363,10 @@ The selected original game is copied by a hidden helper before Inno's file
 phase. Inno then installs the already extracted patch tree directly with its
 native progress UI; there is no runtime ZIP extraction. Final hash verification
 and profile generation also run hidden, so no console window opens. The
-installer never writes into the original source. It launches with canonical
-`Unreal.ini` and `User.ini` profiles, allowing its `System64\Unreal.exe`
-and installed shortcuts to start with no arguments. Uninstall backs up saves
+installer never writes into the original source. The installed
+`System64\UnrealRevived.exe` selects `Unreal.ini` and `User.ini`;
+`System64\UnrealRevivedVR.exe` selects `UnrealVR.ini` and `User.ini`.
+Both installed shortcuts start with no arguments. Uninstall backs up saves
 and canonical profiles to a timestamped `Unreal Revived Backup` directory
 under Documents before removing the side-by-side installation. Windows
 Installed Apps and a direct launch of the uninstaller both reach one branded

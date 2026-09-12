@@ -1,4 +1,7 @@
 // Unreal Revived
+// Author: Kwstasg - Kostas Giannakakis
+// Project: https://github.com/kwstasg/Unreal-Revived
+
 // Applies OpenXR orientation to UE1's authoritative calculated camera before
 // the scene is culled. Gameplay aim and the underlying scripted camera remain
 // unchanged.
