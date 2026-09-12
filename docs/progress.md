@@ -12,6 +12,12 @@ under `local/logs/`.
 
 ## 2026-09-12
 
+- After confirming the replacement release works, the owner explicitly rejected
+  retaining rollback copies. Removed all project backup snapshots, obsolete
+  installer archives and the temporary local rollback Git reference. Preserved
+  the current published installer, active runtimes and normal Git history;
+  updated `AGENTS.md` so future cleanup follows this retention policy.
+
 - The owner installed the branded-executable candidate and confirmed desktop
   and VR work as expected. Preserved that exact installer and payload under
   `local/backups/release-0.6.0-user-tested-20260912/` for rollback.

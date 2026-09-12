@@ -10,12 +10,11 @@ local/
   package/offline-installer/output/  Current validated installer and SHA-256
   package/developer-bundle/          Generated developer bundle
   reference/        Reference repository clones and research material
-  backups/          Local configuration and save backups
   logs/             Collected runtime and diagnostic logs
   build/            Local build and staging output
   build-*/          Standalone native test/launcher build trees
   tests/            New disposable test runs, grouped by task
-  archive/          Historical experiments and older installer outputs
+  archive/          Historical test evidence
   branded-launch-preview/  Accepted working preview (stable launch path)
 ```
 
@@ -44,15 +43,19 @@ Never force-add files from this directory. Run
 `scripts/check-repository.ps1` before commits and release packaging.
 
 Keep new test runtimes and one-off helpers under `tests/<task>/`, rather than
-creating more folders directly here. Store diagnostic logs under `logs/` and
-recovery snapshots under `backups/`. Do not move existing build trees casually:
+creating more folders directly here. Store diagnostic logs under `logs/`.
+Do not create project rollback snapshots; the owner relies on committed Git
+history and explicitly requested removal of accepted-baseline, user-tested and
+old public installer backups. Keep the current release and active runtimes.
+Do not move existing build trees casually:
 CMake caches contain absolute paths. The working preview also has launchers
 pointing to its current location.
 
-The September 12 cleanup preserved historical snapshots and old installer
-outputs, removed redundant generated patch/payload staging, and restored the
-current installer to the standard `package/offline-installer/output/` path.
-The complete relocation record is `archive/2026-09-12/cleanup-manifest.json`.
+The current installer uses `package/offline-installer/output/`. On September 12,
+the owner explicitly requested deletion of all project rollback snapshots and
+obsolete installer copies. `backups/` and `archive/2026-09-12/packages/` were
+removed. Earlier relocation records describe historical locations, not retained
+backups. The deletion record is `logs/rollback-cleanup-20260912.json`.
 
 Historical test runtimes and older test-log directories are compacted into
 `archive/2026-09-12/experiments.zip` and `historical-test-logs.zip`.

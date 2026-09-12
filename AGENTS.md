@@ -23,14 +23,20 @@ unmodified third-party, vendored or SDK source as project-authored code.
 
 Use `local/package/offline-installer/output/` for the current installer. Keep
 temporary validation installers under `local/tests/`, with a separate AppId.
-Use `local/tests/<task>/` for disposable experiments, `local/logs/` for logs,
-and `local/backups/` for named recovery snapshots. Do not scatter dated test
-folders or one-off scripts directly under `local/` or the repository root.
+Use `local/tests/<task>/` for disposable experiments and `local/logs/` for logs.
+Do not scatter dated test folders or one-off scripts directly under `local/`
+or the repository root.
 
-Keep reusable tests in the existing test scripts/directories. Preserve working
-previews and accepted baselines during cleanup. Keep older results under
-`local/archive/`; remove redundant generated staging only after preserving the
-installer, its hash and manifests. Update documentation when moving paths.
+Keep reusable tests in the existing test scripts/directories. Preserve the
+current release, active working runtimes, build inputs and normal Git history.
+The owner explicitly does not want project rollback snapshots retained: remove
+all snapshots under `local/backups/`, including accepted-baseline and user-tested
+installer backups, and obsolete installer copies under
+`local/archive/2026-09-12/packages/`. Do not recreate these backups automatically;
+use committed Git history for source history. Historical test evidence may stay
+under `local/archive/`, but do not retain old runtime/installer copies for rollback.
+This policy concerns project backups, not players' saves or the installer's
+user-data backup feature. Update documentation when deleting or moving paths.
 Installer maintenance/uninstall behavior is intentional; cleanup must not
 change that behavior.
 

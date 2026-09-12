@@ -53,9 +53,10 @@ startup, and the same RELAUNCH command used by Preferences Restart.
 
 ## September 11, 2026 validation
 
-The accepted installer and installed runtime are backed up under
+The accepted installer and installed runtime were originally backed up under
 `local/backups/branded-launch-baseline-20260911-151105/`, with the working-tree patch
-and base revision. Accepted installer SHA-256:
+and base revision. These rollback copies were later deleted at the owner's
+explicit request; the locations below are historical. Accepted installer SHA-256:
 `A552D7C28925D9788AAB519D0A333EF805E0A38AA16C3D150ED4DA0E2B4059F2`.
 
 Argument tests passed. Both preview hosts loaded the intro with correct titles.
@@ -83,8 +84,7 @@ in addition to the automated startup and restart checks above.
 The standard CMake installer targets now build and package both executables,
 localized names and SDK notices. Installed shortcuts and post-install launch
 target the branded executables without arguments. The prior accepted installer
-is preserved in `local/backups/branded-launch-baseline-20260911-151105/`; the working
-preview remains unchanged.
+backup was deleted at the owner's request; the working preview remains unchanged.
 
 Setup's existing behavior is intentional: rerunning it on an installed copy
 opens the branded uninstall dialog. Uninstall backs up all three profiles to

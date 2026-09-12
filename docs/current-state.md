@@ -212,10 +212,10 @@ checks are recorded in [`branded-launchers.md`](branded-launchers.md).
 
 The validated 0.6.0 installer remains at
 `local/package/offline-installer/output/UnrealRevived-Setup-0.6.0.exe`.
-It is a locally tested release candidate. Release preparation commits the final
-source and records its revision with the rebuilt installer in the output
-directory's `release-manifest.json`. A clean-PC installation check remains
-before public release sign-off. The current binary is unsigned. See
+It is the published 0.6.0 installer, built from commit `7575df1`, with identity
+and validation recorded in `release-manifest.json`. The owner confirmed the
+clean-PC check and authorized replacing the release; the public download and
+matching tag were verified. The current binary is unsigned. See
 [`release-0.6.0.md`](release-0.6.0.md).
 
 ## Non-obvious invariants

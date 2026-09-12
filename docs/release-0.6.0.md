@@ -39,22 +39,24 @@ replace headset acceptance or interactive install/uninstall validation.
 
 ## Publishing
 
-The current installer is a **tested release candidate**, available under
+The current installer is **published as 0.6.0**, available under
 `local/package/offline-installer/output/` with its SHA-256 sidecar. Local native
 startup/restart and isolated fresh install/uninstall/reinstall checks passed.
 Uninstall behavior is unchanged: settings are backed up to Documents and saves
 can be retained. Detailed evidence is in [`branded-launchers.md`](branded-launchers.md).
 
 Release builds must come from committed source, with the same revision in the
-payload manifest and release record. The earlier September 11 candidate is
-retained under `local/backups/release-0.6.0-user-tested-20260912/`; the owner
-confirmed that its installed game works in desktop and VR on September 12.
-Before public release sign-off, validate installation on a clean supported PC.
-The installer is unsigned; signing is a separate distribution decision.
-No clean-PC or signing success is implied by the local tests.
+payload manifest and release record. The earlier September 11 candidate was
+originally backed up under `local/backups/release-0.6.0-user-tested-20260912/`;
+the owner confirmed desktop and VR on September 12, then explicitly requested
+deletion of all rollback copies after the replacement release worked correctly.
+The owner confirmed clean-PC installation before authorizing publication.
+That confirmation is distinct from the automated local tests. The installer
+is unsigned; signing has not been performed.
 
-Prepared for manual upload by the project owner. No release is published by the
-preparation task. Upload the generated setup executable and its SHA-256 sidecar;
-the package manifest records the source commit and hashes of bundled components.
+The existing GitHub 0.6.0 release was replaced at the owner's request. The
+published installer and SHA-256 sidecar were downloaded and verified, and the
+release tag points to source commit `7575df1`. Original release notes were
+preserved and expanded with the launcher changes and validation results.
 The output directory's `release-manifest.json` records the final installer hash,
 source revision, validation evidence and remaining validation limits.
