@@ -283,11 +283,13 @@ function EnsureVRInteraction()
 }
 
 // Normal campaign travel and old save games can restore the stock UnrealHUD
-// without passing through the New Game dialog. Replace only that exact HUD;
+// without passing through the New Game dialog. Replace only known stock HUDs;
 // custom game-mode HUD subclasses keep their own rendering and behavior.
 function EnsureModernGameHud()
 {
 	local PlayerPawn Player;
+	local ModernUPakHud ExpansionHud;
+	local UPakHUD PreviousExpansionHud;
 
 	Player = Viewport.Actor;
 	if (Player == None)
@@ -297,6 +299,21 @@ function EnsureModernGameHud()
 		Player.HUDType = class'ModernGameHud';
 	else if (Player.HUDType == class'IntroNullHud')
 		Player.HUDType = class'ModernIntroHud';
+	else if (Player.HUDType == class'UPakHUD')
+		Player.HUDType = class'ModernUPakHud';
+
+	if (Player.MyHUD != None && Player.MyHUD.Class == class'UPakHUD')
+	{
+		PreviousExpansionHud = UPakHUD(Player.MyHUD);
+		ExpansionHud = Player.Spawn(class'ModernUPakHud', Player);
+		if (ExpansionHud != None)
+		{
+			ExpansionHud.CopyExpansionState(PreviousExpansionHud);
+			Player.MyHUD = ExpansionHud;
+			Player.HUDType = class'ModernUPakHud';
+			PreviousExpansionHud.Destroy();
+		}
+	}
 
 	if (Player.MyHUD != None && Player.MyHUD.Class == class'UnrealHUD')
 	{

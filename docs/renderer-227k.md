@@ -189,7 +189,7 @@ viewport mouse state are not valid substitutes and must not be used to infer
 that boundary.
 
 The renderer instead has one explicit, effect-independent contract. At the
-start of `HUD.PostRender`, ModernGameHud and ModernIntroHud send `D3D12
+start of `HUD.PostRender`, ModernGameHud, ModernUPakHud and ModernIntroHud send `D3D12
 BEGINUIPASS`. `BeginUIPass` flushes pending world batches, captures the
 completed 3D scene in `PPI_WorldScene`, sets `WorldSceneCaptured`, and marks
 later tiles, 2D lines, and 2D points while `UIPassActive`. Those draws

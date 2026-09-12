@@ -197,13 +197,20 @@ come directly from the untouched completed frame, while unmarked pixels come
 from the processed world image. This keeps opaque and translucent UI free of
 bloom, chromatic aberration, and reconstruction artifacts.
 
-ModernGameHud and ModernIntroHud issue the command at the start of
+ModernGameHud, ModernUPakHud and ModernIntroHud issue the command at the start of
 `PostRender`. A custom HUD that draws through another path must issue it exactly
 once, after its last world draw and before its first HUD or UI draw:
 
 ```unrealscript
 PlayerOwner.ConsoleCommand("D3D12 BEGINUIPASS");
 ```
+
+Return to Na Pali's stock `UPakHUD` is adapted by `ModernUPakHud`, including
+after campaign travel and loading saves. Its health, armor, ammo, inventory,
+and weapon hints use the shared VR UI panel; weapon overlays and the crosshair
+retain the eye projection. The adapter inherits the expansion's cinematic
+flags and uses stock rendering when the headset pose is inactive. Custom
+UPak HUD subclasses are left intact.
 
 Future world-only post-process effects must reuse this boundary, the captured
 world image, and the existing UI composition step. They must not introduce
