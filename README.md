@@ -80,6 +80,8 @@ supported audio path.
 
 ## Game features and improvements
 
+<a href="branding/infographic.png"><img src="branding/infographic.png" alt="Unreal Revived features infographic" width="300"></a>
+
 Current source builds offer separate **Unreal Revived** and **Unreal Revived VR**
 shortcuts, with independent desktop-icon choices during Setup. Choose the normal
 shortcut for flat-screen play or the VR shortcut for a connected OpenXR headset.
