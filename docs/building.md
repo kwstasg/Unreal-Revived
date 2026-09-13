@@ -387,7 +387,7 @@ For deterministic silent validation, pass the source explicitly in addition to
 the destination:
 
 ```powershell
-.\UnrealRevived-Setup-0.6.0.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART `
+.\UnrealRevived-Setup-0.6.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART `
   /DIR="C:\Games\Unreal Revived" /OriginalGameRoot="C:\Unreal"
 ```
 

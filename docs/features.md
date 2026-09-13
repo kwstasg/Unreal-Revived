@@ -12,9 +12,10 @@ boundary.
 The source also includes the user-accepted [VR HUD/menu milestone](vr-ui-recovery-design.md):
 complete desktop-like layout on a shared fixed panel, stable distance/scale
 controls in VR Preferences, and explicit recenter without menu-transition jumps.
-The 0.6.0 release candidate also includes accepted head tracking, gaze-aligned
-gamepad movement, quick recenter bindings and corrected VR UI colors. Rift CV1
-is the validated headset; broader runtime/gameplay compatibility remains ongoing.
+The 0.6.1 release also includes accepted head tracking, gaze-aligned gamepad
+movement, quick recenter bindings, corrected VR UI colors, and a spatial VR HUD
+for Return to Na Pali. Rift CV1 is the validated headset; broader
+runtime/gameplay compatibility remains ongoing.
 
 | Feature | Description |
 | --- | --- |

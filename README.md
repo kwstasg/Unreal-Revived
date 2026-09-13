@@ -31,6 +31,11 @@ Unreal Revived adds its own DirectX 12 renderer, ModernMenu interface,
 SDL3-based controller backend, tested defaults, branding, and side-by-side
 installation workflow on top of that foundation.
 
+## Project team
+
+- Project creator, owner, and publisher: Kwstasg - Kostas Giannakakis
+- Developers: Kostas Giannakakis and Nikos Giannakakis
+
 **Unreal Revived does not provide any original Unreal Gold game files.** It
 does not include the original maps, textures, music, sounds, or other game
 assets, and it cannot be used as a standalone game. Setup can use an existing
@@ -85,8 +90,8 @@ supported audio path.
 Current source builds offer separate **Unreal Revived** and **Unreal Revived VR**
 shortcuts, with independent desktop-icon choices during Setup. Choose the normal
 shortcut for flat-screen play or the VR shortcut for a connected OpenXR headset.
-VR Preferences contains panel distance, scale and Recenter VR View. This feature
-is in current source/local builds; no new GitHub release has been published yet.
+VR Preferences contains panel distance, scale and Recenter VR View. These
+features are included in the current release.
 
 This table describes the current repository source. The attached release may
 lag source changes as noted under [availability](#availability-and-requirements).

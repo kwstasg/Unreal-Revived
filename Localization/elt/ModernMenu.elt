@@ -21,8 +21,8 @@ ResetVRSettingHelp="Επαναφορά αυτής της ρύθμισης VR σ�
 
 [ModernCreditsCW]
 ProjectText="Unreal Revived"
-ProjectRoleText="Δημιουργός έργου"
-ProjectDeveloperText="Kwstasg - Kostas Giannakakis"
+ProjectRoleText="Δημιουργός έργου: Kwstasg - Kostas Giannakakis"
+ProjectDeveloperText="Προγραμματιστές: Kostas & Nikos Giannakakis"
 ProjectWebsiteText="github.com/kwstasg/Unreal-Revived"
 
 [ModernHelpMenu]

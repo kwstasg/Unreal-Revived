@@ -87,7 +87,7 @@ function Paint(Canvas C, float X, float Y)
 defaultproperties
 {
 	ProjectText="Unreal Revived"
-	ProjectRoleText="Project Creator"
-	ProjectDeveloperText="Kwstasg - Kostas Giannakakis"
+	ProjectRoleText="Project Creator: Kwstasg - Kostas Giannakakis"
+	ProjectDeveloperText="Developers: Kostas & Nikos Giannakakis"
 	ProjectWebsiteText="github.com/kwstasg/Unreal-Revived"
 }

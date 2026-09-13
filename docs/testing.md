@@ -250,8 +250,9 @@ consecutive separators.
 
 Open **About Unreal** and confirm every original and OldUnreal credit remains
 visible. Beneath the lowest existing entry, confirm one empty row separates a
-left-aligned **Unreal Revived** section identifying **Project Creator**,
-**Kwstasg - Kostas Giannakakis**, and `github.com/kwstasg/Unreal-Revived`.
+left-aligned **Unreal Revived** section identifying **Project Creator: Kwstasg -
+Kostas Giannakakis**, **Developers: Kostas & Nikos Giannakakis**, and
+`github.com/kwstasg/Unreal-Revived`.
 Hover the repository text and confirm its color and cursor change, then click it
 and confirm the project page opens.
 Confirm the dark-backed Unreal Revived banner appears proportionally above the

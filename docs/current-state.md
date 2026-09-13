@@ -36,10 +36,8 @@ history.
   without restarting Setup.
 - Prebuilt build: the installer is attached to the project's
   [latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest).
-  The attached 0.5.0 build points to tag `UnrealRevived-Setup-0.5.0` at `b1979f8`;
-  the current source is locally prepared as 0.6.0 and includes installer
-  branding, existing-install flow changes, and the accepted seated OpenXR feature set
-  that are not in that binary.
+  The current source is prepared as 0.6.1 and includes the 0.6.0 seated OpenXR
+  feature set plus the Return to Na Pali VR HUD hotfix.
 - Packaging authorization: redistribution, mirroring, and offline bundling of
   the pinned OldUnreal 227k_15 Windows patch is confirmed in
   [`../PERMISSIONS.md`](../PERMISSIONS.md) and must not be reopened as a blocker.
@@ -210,12 +208,11 @@ selects its own engine profile (`Unreal.ini` or `UnrealVR.ini`); controls and sa
 remain shared. Native launch, restart, profile isolation, and installer lifecycle
 checks are recorded in [`branded-launchers.md`](branded-launchers.md).
 
-The validated 0.6.0 installer remains at
-`local/package/offline-installer/output/UnrealRevived-Setup-0.6.0.exe`.
-It is the published 0.6.0 installer, built from commit `7575df1`, with identity
-and validation recorded in `release-manifest.json`. The owner confirmed the
-clean-PC check and authorized replacing the release; the public download and
-matching tag were verified. The current binary is unsigned. See
+The current hotfix installer is built as
+`local/package/offline-installer/output/UnrealRevived-Setup-0.6.1.exe`, with
+its committed source identity recorded in the staged `payload-manifest.json`.
+The binary is unsigned. See [`release-0.6.1.md`](release-0.6.1.md). The
+preserved 0.6.0 publication and validation record remains in
 [`release-0.6.0.md`](release-0.6.0.md).
 
 ## Non-obvious invariants
@@ -260,9 +257,10 @@ The ordered major additions are maintained in [`roadmap.md`](roadmap.md):
 2. RTX support.
 3. A native Vulkan driver.
 
-VR's validated feature set is frozen for 0.6.0; its remaining compatibility work,
-RTX and Vulkan belong to later releases. Continue flat-screen validation, automated
-regression coverage, installer UX, and release automation alongside them.
+VR's validated base feature set was frozen for 0.6.0; 0.6.1 adds the Return to
+Na Pali VR HUD hotfix. Remaining compatibility work, RTX and Vulkan belong to
+later releases. Continue flat-screen validation, automated regression coverage,
+installer UX, and release automation alongside them.
 
 ## Updating the handoff
 
