@@ -219,6 +219,7 @@ std::string FileResource::readAllText(const std::string& filename)
 				float FilmGrainSeed;
 				float UseWorldPostProcess;
 				float UseVRUI;
+				float VRHeadCollisionFade;
 			}
 
 			SamplerState samplerTex
@@ -439,6 +440,8 @@ std::string FileResource::readAllText(const std::string& filename)
 				float3 high = pow(max((srgb + 0.055) / 1.055, 0.0), 2.4);
 				output.outColor.rgb = lerp(high, low, step(srgb, 0.04045));
 			#endif
+				// Fade after display effects/encoding so full obstruction is black.
+				output.outColor.rgb *= 1.0 - saturate(VRHeadCollisionFade);
 				return output;
 			}
 		)";

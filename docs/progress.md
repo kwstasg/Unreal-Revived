@@ -10,6 +10,18 @@ September 12 cleanup compacted available dated test-log directories into
 beside it for the directories included. Current release-validation logs remain
 under `local/logs/`.
 
+## 2026-09-15
+
+- The owner validated VR head-collision fade: leaning into walls, corners and
+  low ceilings fades normally to black and retreat restores the view. A door,
+  world-size adjustments, swimming in water and an elevator also behaved
+  normally. Record acceptance for these scenarios; this does not establish
+  exhaustive custom-map/trigger coverage or complete swimming-control support.
+- The owner accepted the signed height-slider fix after the installed UWindow
+  rounding implementation trapped analog-stick adjustments at the minimum.
+  The regression commandlet passed traversal in both directions across the
+  full range, clamping, negative rounding and reset to zero.
+
 ## 2026-09-12
 
 - After confirming the replacement release works, the owner explicitly rejected
@@ -1998,6 +2010,24 @@ supersedes the pending-headset notes in the chronological entries below.
 - Parsed all changed PowerShell scripts and inspected both generated shortcuts
   through `WScript.Shell`; targets, profile arguments, working directories,
   icons, and current-clone paths matched the intended runtime.
+
+## 2026-09-15
+
+### 0.6.2 installer production and lifecycle validation
+
+- Built the 0.6.2 installer and branded launchers, bundled Old Weapons, and
+  serialized the two UCC package builds that share a runtime directory.
+- Removed the Realtime Ultra pawn-shadow option; the user verified its absence.
+  The experimental mip workaround was fully reverted after display comparison
+  isolated the motion artifact to the Dell monitor.
+- Validated fresh install, payload/host hashes, both campaigns' startup,
+  Old Weapons activation, desktop/VR launch and restart, profile migration,
+  save retention, profile backups, reinstall, and final cleanup using an
+  isolated validation installer identity. Evidence: `local/validation-062-20260915/`.
+- Preserved development INIs byte-for-byte and retained the prior 0.6.1
+  installer under `local/logs/release-062-20260915-151128/previous-installer/`.
+- Production artifact, checksum, and limits are recorded in `release-0.6.2.md`.
+  Source changes remain uncommitted; no GitHub publication was performed.
 
 ## Entry template
 

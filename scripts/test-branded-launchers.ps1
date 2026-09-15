@@ -33,7 +33,7 @@ function Invoke-LaunchCheck {
         if (-not $game.WaitForExit(5000)) { throw "$Name did not shut down normally" }
     } finally { if (-not $game.HasExited) { $game.Kill(); $game.WaitForExit() } }
     $log = Get-Content -LiteralPath (Join-Path $system $LogName) -Raw
-    if ($log -notmatch 'Game engine initialized' -or $log -notmatch 'Browse: (Unreal|NyLeve)\.unr') { throw "$Name did not initialize the map" }
+    if ($log -notmatch 'Game engine initialized' -or $log -notmatch 'Browse: (Unreal|NyLeve|ExtremeBeg|DmDeck16)\.unr') { throw "$Name did not initialize the map" }
     if ($log -match 'Connection attempt failed|Pending connect to|Critical:|No localization: UnrealRevived') { throw "$Name reported a startup failure" }
     $expected = if ($VR) { 'requested by command-line -vr' } else { 'disabled; loader not queried \(command-line -novr\)' }
     if ($log -notmatch $expected) { throw "$Name did not select its mode" }
@@ -42,6 +42,11 @@ function Invoke-LaunchCheck {
     Write-Host "PASS: $Name $LogName"
 }
 Invoke-LaunchCheck 'UnrealRevived' '' 'UnrealRevived.log' $false
+Invoke-LaunchCheck 'UnrealRevived' 'ExtremeBeg.unr log=ExpansionSmoke.log' 'ExpansionSmoke.log' $false
+Invoke-LaunchCheck 'UnrealRevived' 'DmDeck16.unr?Game=UnrealShare.DeathMatchGame?Mutator=OldWeapons.OldMutator log=OldWeaponsReleaseSmoke.log' 'OldWeaponsReleaseSmoke.log' $false
+if ((Get-Content (Join-Path $system 'OldWeaponsReleaseSmoke.log') -Raw) -notmatch 'Add mutator OldWeapons.OldMutator') {
+    throw 'Old Weapons mutator did not activate.'
+}
 Invoke-LaunchCheck 'UnrealRevivedVR' '' 'UnrealRevivedVR.log' $true
 Invoke-LaunchCheck 'UnrealRevivedVR' 'NyLeve.unr -novr ini=Wrong.ini userini=WrongUser.ini log="VR launch with spaces.log"' 'VR launch with spaces.log' $true
 foreach ($name in @('UnrealRevived', 'UnrealRevivedVR')) {

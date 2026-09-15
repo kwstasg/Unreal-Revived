@@ -184,6 +184,24 @@ function Created()
 	ConfigureTabOrder();
 }
 
+function LoadPawnShadowSettings()
+{
+	local int UltraIndex;
+
+	// Retire the expensive 1024 pawn-shadow preset, including saved selections.
+	if (class'PawnShadow'.default.ShadowDetailRes > 512)
+	{
+		class'PawnShadow'.default.ShadowDetailRes = 512;
+		class'PawnShadow'.static.StaticSaveConfig();
+		class'ObjectShadow'.static.UpdateAllShadows(GetLevel(), True);
+	}
+
+	Super.LoadPawnShadowSettings();
+	UltraIndex = PawnShadowCombo.FindItemIndex2("5");
+	if (UltraIndex >= 0)
+		PawnShadowCombo.RemoveItem(UltraIndex);
+}
+
 function RemoveFromTabOrder(UWindowDialogControl Control)
 {
 	if (Control == None || Control.TabNext == Control)

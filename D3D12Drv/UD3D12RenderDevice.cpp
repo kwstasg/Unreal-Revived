@@ -143,6 +143,8 @@ void UD3D12RenderDevice::DrawViewportWithOpenXR(FViewportCallback* Original, UBO
 			const FLOAT CullingTangent = Max(HorizontalTangent, VerticalTangent / Max(SourceAspect, 0.01f));
 			Player->FovAngle = Clamp(degrees(2.0f * appAtan(CullingTangent)), 5.0f, 170.0f);
 			OpenXRStereoDrawEye = static_cast<INT>(ViewIndex);
+			// The camera hook supplies fresh collision state for this draw.
+			VRHeadCollisionFade = 0.0f;
 			Original->Draw(Blit);
 		}
 	}
@@ -183,6 +185,8 @@ void UD3D12RenderDevice::StaticConstructor()
 	EnableVR = 0;
 	VRHUDDistance = 1.75f;
 	VRHUDScale = 1.0f;
+	VRPlayerHeightOffset = 0.0f;
+	VRWorldScale = 1.0f;
 	AntialiasMode = 2;
 	UsePrecache = 1;
 	Coronas = 1;
@@ -244,6 +248,8 @@ void UD3D12RenderDevice::StaticConstructor()
 	new(GetClass(), TEXT("EnableVR"), RF_Public) UBoolProperty(CPP_PROPERTY(EnableVR), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRHUDDistance"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDDistance), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRHUDScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDScale), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("VRPlayerHeightOffset"), RF_Public) UFloatProperty(CPP_PROPERTY(VRPlayerHeightOffset), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("VRWorldScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRWorldScale), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("UsePrecache"), RF_Public) UBoolProperty(CPP_PROPERTY(UsePrecache), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("GammaCorrectScreenshots"), RF_Public) UBoolProperty(CPP_PROPERTY(GammaCorrectScreenshots), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("UseDebugLayer"), RF_Public) UBoolProperty(CPP_PROPERTY(UseDebugLayer), TEXT("Display"), CPF_Config);
@@ -1731,7 +1737,8 @@ UBOOL UD3D12RenderDevice::PresentOpenXREye(uint32_t ViewIndex)
 		return 0;
 
 	const FLOAT BackgroundColor[4] = { 0.005f, 0.012f, 0.025f, 1.0f };
-	const PresentPushConstants PushConstants = GetPresentPushConstants();
+	PresentPushConstants PushConstants = GetPresentPushConstants();
+	PushConstants.VRHeadCollisionFade = Clamp(VRHeadCollisionFade, 0.0f, 1.0f);
 	INT PresentPipeline = GammaMode == 1 ? 1 : 0;
 	if (PushConstants.Brightness != 0.0f || PushConstants.Contrast != 1.0f || PushConstants.Saturation != 1.0f)
 		PresentPipeline |= (Clamp(GrayFormula, 0, 2) + 1) << 1;
@@ -3562,6 +3569,8 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 				FRotator EyeRotation = OpenXRRelativeHeadRotation;
 				FVector EyeOffset(0.0f, 0.0f, 0.0f);
 				FVector HeadOffset(0.0f, 0.0f, 0.0f);
+				// Larger perceived worlds require fewer game units per tracked meter.
+				const FLOAT UnitsPerMeter = 50.0f / Clamp(VRWorldScale, 0.4f, 2.5f);
 				if (OpenXRStereoDrawEye >= 0 && OpenXRViewsValid && OpenXRViews.size() == 2)
 				{
 					EyeRotation = RelativeOpenXRRotation(OpenXRBaseOrientation,
@@ -3575,7 +3584,7 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 						FVector(Position.x - OpenXRBaseHeadPosition.x,
 							Position.y - OpenXRBaseHeadPosition.y,
 							Position.z - OpenXRBaseHeadPosition.z));
-					EyeOffset = OpenXRVectorToUnreal(LocalDelta) * 50.0f;
+					EyeOffset = OpenXRVectorToUnreal(LocalDelta) * UnitsPerMeter;
 					const FVector CurrentHeadPosition(
 						(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
 						(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
@@ -3583,12 +3592,14 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 					const FVector LocalHeadDelta = RotateOpenXRVector(BaseInverse,
 						CurrentHeadPosition - FVector(OpenXRBaseHeadPosition.x,
 							OpenXRBaseHeadPosition.y, OpenXRBaseHeadPosition.z));
-					HeadOffset = OpenXRVectorToUnreal(LocalHeadDelta) * 50.0f;
+					HeadOffset = OpenXRVectorToUnreal(LocalHeadDelta) * UnitsPerMeter;
 				}
-				Ar.Logf(TEXT("1 %d %d %d %.6f %.6f %.6f %.6f %.6f %.6f"), EyeRotation.Pitch,
+				Ar.Logf(TEXT("1 %d %d %d %.6f %.6f %.6f %.6f %.6f %.6f %.6f %.6f"), EyeRotation.Pitch,
 					EyeRotation.Yaw, EyeRotation.Roll,
 					EyeOffset.X, EyeOffset.Y, EyeOffset.Z,
-					HeadOffset.X, HeadOffset.Y, HeadOffset.Z);
+					HeadOffset.X, HeadOffset.Y, HeadOffset.Z,
+					Clamp(VRPlayerHeightOffset, -0.75f, 1.5f) * UnitsPerMeter,
+					UnitsPerMeter / 50.0f);
 			}
 			else
 				Ar.Logf(TEXT("0"));
@@ -3636,6 +3647,25 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			const bool Requested = !ParseParam(appCmdLine(), TEXT("novr")) &&
 				(ParseParam(appCmdLine(), TEXT("vr")) || EnableVR);
 			Ar.Log(Requested ? TEXT("-vr") : TEXT("-novr"));
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRHEADCOLLISION")))
+		{
+			VRHeadCollisionFade = Clamp(appAtof(Cmd), 0.0f, 1.0f);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRPLAYERHEIGHT")))
+		{
+			VRPlayerHeightOffset = Clamp(appAtof(Cmd), -0.75f, 1.5f);
+			SaveConfig();
+			Ar.Logf(TEXT("%.2f"), VRPlayerHeightOffset);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRWORLDSCALE")))
+		{
+			VRWorldScale = Clamp(appAtof(Cmd), 0.4f, 2.5f);
+			SaveConfig();
+			Ar.Logf(TEXT("%.2f"), VRWorldScale);
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("VRHUDDISTANCE")))
@@ -3889,6 +3919,8 @@ PresentPushConstants UD3D12RenderDevice::GetPresentPushConstants()
 	pushconstants.UseWorldPostProcess =
 		IsWorldPostProcessEnabled() && WorldSceneCaptured ? 1.0f : 0.0f;
 	pushconstants.UseVRUI = 0.0f;
+	// Only the headset world-eye pass fades; the recovery menu stays visible.
+	pushconstants.VRHeadCollisionFade = 0.0f;
 	if (Viewport->IsOrtho())
 	{
 		pushconstants.GammaCorrection = { 1.0f };

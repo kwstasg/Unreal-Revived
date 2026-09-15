@@ -73,6 +73,7 @@ Compile and deploy individual components to `local/game`:
 cmake --build local/build --target deploy-d3d12drv --config Release
 cmake --build local/build --target deploy-xinputwindrv --config Release
 cmake --build local/build --target deploy-modern-menu --config Release
+cmake --build local/build --target deploy-old-weapons --config Release
 ```
 
 These targets are created when the configured game root already contains
@@ -80,6 +81,8 @@ These targets are created when the configured game root already contains
 The ModernMenu target compiles `ModernMenu.u`, updates the development INIs,
 and refreshes the normal and recovery shortcuts. Deploy targets require the
 development marker created by bootstrap.
+The Old Weapons target compiles `OldWeapons.u` from the pinned SDK and mirrors
+its `.int` registration into `System/` for New Game discovery.
 
 ## Launch the development game
 
@@ -222,11 +225,32 @@ effect-specific world/UI detection.
 | --- | --- |
 | `D3D12 VRHUDDISTANCE <metres>` | Save and apply distance, clamped to 0.50-5.00, without recentering or compensating physical size. |
 | `D3D12 VRHUDSCALE <factor>` | Save and apply physical scale, clamped to 0.50-2.00, around the panel center. |
+| `D3D12 VRPLAYERHEIGHT <meters>` | Save and apply a vertical VR viewpoint offset from -0.75 to 1.50 m; default 0.00 preserves the original camera height. Also available as Height Offset in Preferences > VR. |
+| `D3D12 VRWORLDSCALE <factor>` | Save and apply perceived world size from 0.40 to 2.50; default 1.00 is 100%. Larger values make the world appear larger. Also available as World Size in Preferences > VR. |
 | `D3D12 RESETVRUIANCHOR` | Explicitly recapture upright heading and eye-level placement for all UI. |
 | `D3D12 RECENTERVR` | Queue combined view/UI recenter for the next valid tracking frame; level software pitch/roll and retain current horizontal gaze as forward. |
 | `D3D12 VRLAUNCHMODE` | Return `-vr` or `-novr` for mode-preserving restart, including unavailable-headset fallback. |
 | `D3D12 BEGINVRUIPASS` / `D3D12 ENDVRUIPASS` | Internal balanced canvas-projection boundary; world/weapon rendering stays outside it. |
 
-Preferences > VR exposes distance, scale and the combined `RECENTERVR` action.
+Preferences > VR exposes HUD distance and scale, player height offset, world size,
+and the combined `RECENTERVR` action. Height defaults to a zero offset from the
+game's existing camera; world size defaults to 100%. Both settings apply live,
+persist in the renderer configuration, and have reset buttons.
+
+World size scales stereo eye separation, tracked movement, first-person camera
+height above the pawn's feet, and the displayed weapon together. Above 100% makes
+the player feel smaller in the map; below 100% makes the player feel bigger.
+Height Offset remains an additional adjustment. Pawn collision, movement speed,
+and gameplay weapon state are unchanged; view-target and third-person cameras
+keep their authored base height.
+
+The VR camera hook now fades the headset world image near blocking geometry,
+including when height/scale adjustments place the camera inside a ceiling or
+floor. It traces from the pawn (or the authored camera for alternate views) to
+the shared head center and uses a scaled 12 cm comfort volume for progressive
+fade. Blocking BSP, movers and decorations participate; pawns, triggers and
+water volumes do not. Tracking is never clamped. The separate HUD/menu panel
+stays visible for recovery. `D3D12 VRHEADCOLLISION <0-1>` is a transient internal
+camera-to-renderer command, reset for each eye draw, not a saved preference.
 The startup checkbox has been removed; use the normal/VR shortcuts. Opening/closing menus does not
 recenter or change panel geometry. See [the maintenance contract](vr-ui-recovery-design.md).

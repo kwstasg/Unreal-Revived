@@ -23,11 +23,12 @@ $openXRLoader = Join-Path $PayloadRoot 'openxr_loader.dll'
 $openXRNotice = Join-Path $PayloadRoot 'OPENXR-COPYING.adoc'
 $inputDll = Join-Path $PayloadRoot 'XInputWinDrv.dll'
 $modernMenu = Join-Path $PayloadRoot 'ModernMenu.u'
+$oldWeapons = Join-Path $PayloadRoot 'OldWeapons.u'
 $hostManifestPath = Join-Path $PayloadRoot 'unreal-gold-227k_15-win64.json'
 $backupScript = Join-Path $PayloadRoot 'backup-unreal-revived-user-data.ps1'
 $permissions = Join-Path $PayloadRoot 'PERMISSIONS.md'
 
-foreach ($requiredPath in @($payloadManifestPath, $rendererDll, $rendererInt, $openXRLoader, $openXRNotice, $inputDll, $modernMenu, $hostManifestPath, $backupScript, $permissions)) {
+foreach ($requiredPath in @($payloadManifestPath, $rendererDll, $rendererInt, $openXRLoader, $openXRNotice, $inputDll, $modernMenu, $oldWeapons, $hostManifestPath, $backupScript, $permissions)) {
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Installer payload is incomplete: $requiredPath"
     }
@@ -68,6 +69,7 @@ Copy-Item -LiteralPath $rendererInt -Destination (Join-Path $system64Directory '
 Copy-Item -LiteralPath $openXRLoader -Destination (Join-Path $system64Directory 'openxr_loader.dll') -Force
 Copy-Item -LiteralPath $inputDll -Destination (Join-Path $system64Directory 'XInputWinDrv.dll') -Force
 Copy-Item -LiteralPath $modernMenu -Destination (Join-Path $system64Directory 'ModernMenu.u') -Force
+Copy-Item -LiteralPath $oldWeapons -Destination (Join-Path $system64Directory 'OldWeapons.u') -Force
 foreach ($launcher in @('UnrealRevived.exe', 'UnrealRevivedVR.exe')) {
     if (-not ($payloadManifest.files | Where-Object { $_.path -eq $launcher })) {
         throw "Installer manifest does not identify $launcher"
@@ -76,7 +78,7 @@ foreach ($launcher in @('UnrealRevived.exe', 'UnrealRevivedVR.exe')) {
 }
 
 $localizedDirectory = Join-Path $destinationRoot 'SystemLocalized\int'
-foreach ($name in @('UnrealShare.int', 'UPak.int')) {
+foreach ($name in @('UnrealShare.int', 'UPak.int', 'OldWeapons.int')) {
     $source = Join-Path $localizedDirectory $name
     if (Test-Path -LiteralPath $source -PathType Leaf) {
         Copy-Item -LiteralPath $source -Destination (Join-Path $systemDirectory $name) -Force
@@ -84,7 +86,7 @@ foreach ($name in @('UnrealShare.int', 'UPak.int')) {
 }
 $projectLocalizedRoot = Join-Path $destinationRoot 'SystemLocalized'
 foreach ($languageDirectory in Get-ChildItem -LiteralPath $projectLocalizedRoot -Directory -ErrorAction SilentlyContinue) {
-    foreach ($metadataName in @('UnrealShare', 'UPak')) {
+    foreach ($metadataName in @('UnrealShare', 'UPak', 'OldWeapons')) {
         $localizedMetadata = Join-Path $languageDirectory.FullName "$metadataName.$($languageDirectory.Name)"
         if (Test-Path -LiteralPath $localizedMetadata -PathType Leaf) {
             Copy-Item -LiteralPath $localizedMetadata -Destination (Join-Path $systemDirectory "$metadataName.$($languageDirectory.Name)") -Force

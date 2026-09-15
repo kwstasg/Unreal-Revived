@@ -23,8 +23,11 @@ deferred. Gaze aim hooks exist but require broader weapon/multiplayer validation
 Head-oriented gamepad walking/strafing and horizontal right-stick turning were
 user-validated on 2026-09-11, including movement while looking 90 degrees left/right.
 Jumping/crouching and broader movement states need further coverage. Swimming,
-flying, head-collision fade, mirror selection, broader gameplay validation, and
+flying, mirror selection, broader gameplay validation, and
 SteamVR coverage remain incomplete.
+Head-collision fade was user-validated on 2026-09-15: walls, corners and low
+ceilings fade to black and recover on retreat; a door, world-size adjustments,
+swimming in water and an elevator behaved normally.
 The eye swapchains use the runtime-recommended resolution; the UE1 scene is
 still rendered at the selected logical game resolution before being scaled
 into those swapchains.
@@ -54,8 +57,12 @@ and UI color correction were subsequently accepted by the user.
   recenter left behind by the earlier cleanup was removed on 2026-09-11.
 - User-validated: combined view/UI recenter, including full gaze panel placement,
   software tilt reset, right-stick click/F10 bindings and corrected UI colors.
+- User-validated on 2026-09-15: progressive head-collision fade and recovery at
+  walls, corners and low ceilings, plus a door, world-size adjustments, swimming
+  in water and an elevator. This covers the reported scenarios, not every custom
+  map or trigger. Swimming movement semantics remain a separate roadmap item.
 - Still to implement: swimming/
-  flying movement semantics, collision fade, desktop-mirror selection, and
+  flying movement semantics, desktop-mirror selection, and
   incompatible-overlay handling; finer weapon placement remains optional tuning.
 - Still to validate before support: saves and multiplayer behavior in VR,
   recovery/failure cases with a live runtime, Meta and SteamVR parity, extended

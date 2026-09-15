@@ -45,6 +45,7 @@ if (-not $StageRoot) {
 
 $rendererInt = Join-Path $repositoryRoot 'D3D12Drv\D3D12Drv.int'
 $modernMenu = Join-Path $GameRoot 'System64\ModernMenu.u'
+$oldWeapons = Join-Path $GameRoot 'System64\OldWeapons.u'
 $installScript = Join-Path $repositoryRoot 'scripts\install-unreal-revived.ps1'
 $copyScript = Join-Path $repositoryRoot 'scripts\copy-original-game.ps1'
 $backupScript = Join-Path $repositoryRoot 'scripts\backup-unreal-revived-user-data.ps1'
@@ -57,7 +58,7 @@ $iniModule = Join-Path $repositoryRoot 'scripts\UnrealRevived.Ini.psm1'
 $permissions = Join-Path $repositoryRoot 'PERMISSIONS.md'
 $installerDefinition = Join-Path $repositoryRoot 'packaging\UnrealRevived.iss'
 
-foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $LoaderDll, $OpenXRNotice, $InputDll, $rendererInt, $modernMenu, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $installerWizardImage, $brandingIcon, $iniModule, $permissions)) {
+foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $LoaderDll, $OpenXRNotice, $InputDll, $rendererInt, $modernMenu, $oldWeapons, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $installerWizardImage, $brandingIcon, $iniModule, $permissions)) {
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Missing offline package input: $requiredPath"
     }
@@ -268,6 +269,7 @@ $payloadSources = [ordered]@{
     'OPENXR-COPYING.adoc' = $OpenXRNotice
     'XInputWinDrv.dll' = $InputDll
     'ModernMenu.u' = $modernMenu
+    'OldWeapons.u' = $oldWeapons
     'install-unreal-revived.ps1' = $installScript
     'backup-unreal-revived-user-data.ps1' = $backupScript
     'UnrealRevived.Ini.psm1' = $iniModule
@@ -298,6 +300,7 @@ $payloadManifest = [ordered]@{
     schema = 1
     product = 'Unreal Revived'
     sourceRevision = $gitRevision
+    sourceDirty = [bool](& git -C $repositoryRoot status --porcelain)
     brandingIconName = $installedBrandingIconName
     patch = $hostManifest.release
     extractedPatchFiles = @(Get-ChildItem -LiteralPath $patchRoot -File -Recurse).Count

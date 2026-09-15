@@ -103,7 +103,7 @@ try {
         '--build', 'local/build', '--config', 'Release', '--parallel'
     )
 
-    foreach ($target in @('deploy-d3d12drv', 'deploy-xinputwindrv', 'deploy-modern-menu')) {
+    foreach ($target in @('deploy-d3d12drv', 'deploy-xinputwindrv', 'deploy-modern-menu', 'deploy-old-weapons')) {
         Invoke-LoggedCommand -Label "Deploy $target" -FilePath 'cmake' -Arguments @(
             '--build', 'local/build', '--target', $target, '--config', 'Release'
         )
@@ -121,7 +121,7 @@ try {
         'local/game/System64/openxr_loader.dll'
         'local/build/XInputWinDrv/Release/XInputWinDrv.dll'
         'local/game/System64/ModernMenu.u'
-        'local/package/offline-installer/output/UnrealRevived-Setup-0.6.1.exe'
+        'local/package/offline-installer/output/UnrealRevived-Setup-0.6.2.exe'
         'local/package/developer-bundle/UnrealRevived-DeveloperBundle-227k_15-v1.zip'
     )
 

@@ -47,6 +47,15 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
             -GameRoot "${UE1_GAME_ROOT}"
         COMMENT "Building and deploying the ModernMenu UnrealScript package"
     )
+    add_custom_target(deploy-old-weapons
+        COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/build-old-weapons.ps1"
+            -GameRoot "${UE1_GAME_ROOT}"
+            -SdkRoot "${UE1_227K_SDK_ROOT}"
+        COMMENT "Building and deploying the bundled Old Weapons mutator"
+    )
+    # Both UCC builds use the same runtime package directory; serialize them.
+    add_dependencies(deploy-old-weapons deploy-modern-menu)
     add_custom_target(stage-offline-package
         COMMAND powershell -NoProfile -ExecutionPolicy Bypass
             -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/package-offline-installer.ps1"
@@ -58,7 +67,7 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
             -PatchArchive "${OLDUNREAL_227K15_PATCH_ARCHIVE}"
             -LauncherBinaryRoot "$<TARGET_FILE_DIR:UnrealRevived>"
             -SdkRoot "${UE1_227K_SDK_ROOT}"
-        DEPENDS deploy-d3d12drv deploy-xinputwindrv deploy-modern-menu UnrealRevived UnrealRevivedVR
+        DEPENDS deploy-d3d12drv deploy-xinputwindrv deploy-modern-menu deploy-old-weapons UnrealRevived UnrealRevivedVR
         COMMENT "Staging the hash-verified offline installer payload"
     )
     add_custom_target(package-offline-installer
@@ -73,7 +82,7 @@ if(EXISTS "${UE1_GAME_ROOT}/System64/Unreal.exe")
             -LauncherBinaryRoot "$<TARGET_FILE_DIR:UnrealRevived>"
             -SdkRoot "${UE1_227K_SDK_ROOT}"
             -BuildInstaller
-        DEPENDS deploy-d3d12drv deploy-xinputwindrv deploy-modern-menu UnrealRevived UnrealRevivedVR
+        DEPENDS deploy-d3d12drv deploy-xinputwindrv deploy-modern-menu deploy-old-weapons UnrealRevived UnrealRevivedVR
         COMMENT "Building the fully offline Unreal Revived installer"
     )
 else()

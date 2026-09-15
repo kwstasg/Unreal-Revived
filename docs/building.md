@@ -166,6 +166,7 @@ targets:
 cmake --build local/build --target deploy-d3d12drv --config Release
 cmake --build local/build --target deploy-xinputwindrv --config Release
 cmake --build local/build --target deploy-modern-menu --config Release
+cmake --build local/build --target deploy-old-weapons --config Release
 ```
 
 The targets perform these operations in the disposable game installation:
@@ -182,6 +183,9 @@ The targets perform these operations in the disposable game installation:
 5. Compiles `ModernMenu.u`, overlays project localization, installs runtime
    branding, updates the development profiles, and recreates the development
    shortcuts.
+6. Compiles the pinned 227k Old Weapons sources into `System64/OldWeapons.u`
+   and mirrors `SystemLocalized/int/OldWeapons.int` into `System/` so the New
+   Game mutator picker can discover it.
 
 The second operation is required because 227's `IntDescIterator` discovers the
 single-player campaign registrations beside the game packages in `System/`.
@@ -209,6 +213,12 @@ with the disposable runtime's x64 `UCC.exe`. It deploys the package to
 package. It also refreshes the tracked setup logos under `Help/` and recreates
 the development shortcuts with a hash-derived copy of the tracked icon. It
 does not rebuild or replace OldUnreal's network-sensitive core packages.
+
+The `deploy-old-weapons` target builds only in the disposable game tree. It
+uses the Old Weapons sources from the pinned SDK and the sound, texture, and
+localization inputs from the disposable runtime. A failed compile restores the
+previous local package. Offline staging depends on this target, but no
+installer is produced unless the separate installer target is explicitly run.
 
 ## Build the developer bundle
 
@@ -387,7 +397,7 @@ For deterministic silent validation, pass the source explicitly in addition to
 the destination:
 
 ```powershell
-.\UnrealRevived-Setup-0.6.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART `
+.\UnrealRevived-Setup-0.6.2.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART `
   /DIR="C:\Games\Unreal Revived" /OriginalGameRoot="C:\Unreal"
 ```
 

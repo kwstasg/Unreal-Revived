@@ -7,6 +7,10 @@ class ModernVRConfigCW extends UWindowDialogClientWindow;
 var UMenuLabelControl VRHeading;
 var UWindowHSliderControl HUDDistanceSlider;
 var UWindowHSliderControl HUDScaleSlider;
+var UWindowHSliderControl PlayerHeightSlider;
+var UWindowHSliderControl WorldSizeSlider;
+var ModernResetButton PlayerHeightResetButton;
+var ModernResetButton WorldSizeResetButton;
 var ModernResetButton HUDDistanceResetButton;
 var ModernResetButton HUDScaleResetButton;
 var UWindowSmallButton RecenterButton;
@@ -18,6 +22,10 @@ var localized string HUDDistanceText;
 var localized string HUDDistanceHelp;
 var localized string HUDScaleText;
 var localized string HUDScaleHelp;
+var localized string PlayerHeightText;
+var localized string PlayerHeightHelp;
+var localized string WorldSizeText;
+var localized string WorldSizeHelp;
 var localized string RecenterText;
 var localized string RecenterHelp;
 var localized string ActiveStatusText;
@@ -49,24 +57,44 @@ function Created()
 	HUDScaleSlider.TrackWidth = 8;
 	HUDScaleSlider.bNoSlidingNotify = False;
 
+	PlayerHeightSlider = UWindowHSliderControl(CreateControl(class'ModernSignedSliderControl', 20, 105, 300, 1));
+	PlayerHeightSlider.SetRange(-75, 150, 5);
+	PlayerHeightSlider.SetHelpText(PlayerHeightHelp);
+	PlayerHeightSlider.SetFont(F_Normal);
+	PlayerHeightSlider.SliderWidth = 110;
+	PlayerHeightSlider.TrackWidth = 8;
+	PlayerHeightSlider.bNoSlidingNotify = False;
+
+	WorldSizeSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 135, 300, 1));
+	WorldSizeSlider.SetRange(40, 250, 5);
+	WorldSizeSlider.SetHelpText(WorldSizeHelp);
+	WorldSizeSlider.SetFont(F_Normal);
+	WorldSizeSlider.SliderWidth = 110;
+	WorldSizeSlider.TrackWidth = 8;
+	WorldSizeSlider.bNoSlidingNotify = False;
+
 	HUDDistanceResetButton = CreateSliderResetButton(HUDDistanceSlider);
 	HUDScaleResetButton = CreateSliderResetButton(HUDScaleSlider);
+	PlayerHeightResetButton = CreateSliderResetButton(PlayerHeightSlider);
+	WorldSizeResetButton = CreateSliderResetButton(WorldSizeSlider);
 
-	RecenterButton = UWindowSmallButton(CreateControl(class'UWindowSmallButton', 20, 110, 100, 16));
+	RecenterButton = UWindowSmallButton(CreateControl(class'UWindowSmallButton', 20, 170, 100, 16));
 	RecenterButton.SetText(RecenterText);
 	RecenterButton.SetHelpText(RecenterHelp);
 	RecenterButton.SetFont(F_Normal);
 
-	StatusLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 145, 340, 1));
+	StatusLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 205, 340, 1));
 	StatusLabel.SetFont(F_Normal);
 
 	RemoveFromTabOrder(VRHeading);
 	RemoveFromTabOrder(StatusLabel);
 	RemoveFromTabOrder(HUDDistanceResetButton);
 	RemoveFromTabOrder(HUDScaleResetButton);
+	RemoveFromTabOrder(PlayerHeightResetButton);
+	RemoveFromTabOrder(WorldSizeResetButton);
 	LoadSettings();
 	bInitialized = True;
-	DesiredHeight = 180;
+	DesiredHeight = 240;
 }
 
 function ModernResetButton CreateSliderResetButton(UWindowHSliderControl Slider)
@@ -131,12 +159,17 @@ function UpdateSliderText()
 	HUDDistanceSlider.SetText(HUDDistanceText $ " ("
 		$ FormatDistance(HUDDistanceSlider.Value / 100.0) $ " m)");
 	HUDScaleSlider.SetText(HUDScaleText $ " (" $ int(HUDScaleSlider.Value) $ "%)");
+	PlayerHeightSlider.SetText(PlayerHeightText $ " ("
+		$ FormatDistance(PlayerHeightSlider.Value / 100.0) $ " m)");
+	WorldSizeSlider.SetText(WorldSizeText $ " (" $ int(WorldSizeSlider.Value) $ "%)");
 }
 
 function LoadSettings()
 {
 	local float Distance;
 	local float Scale;
+	local float HeightOffset;
+	local float WorldScale;
 
 	Distance = float(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRHUDDistance"));
@@ -148,6 +181,14 @@ function LoadSettings()
 		Scale = 1.0;
 	HUDDistanceSlider.SetValue(Clamp(Distance * 100.0, 50, 500), True);
 	HUDScaleSlider.SetValue(Clamp(Scale * 100.0, 50, 200), True);
+	HeightOffset = float(GetPlayerOwner().ConsoleCommand(
+		"get ini:Engine.Engine.GameRenderDevice VRPlayerHeightOffset"));
+	WorldScale = float(GetPlayerOwner().ConsoleCommand(
+		"get ini:Engine.Engine.GameRenderDevice VRWorldScale"));
+	if (WorldScale <= 0)
+		WorldScale = 1.0;
+	PlayerHeightSlider.SetValue(Clamp(HeightOffset * 100.0, -75, 150), True);
+	WorldSizeSlider.SetValue(Clamp(WorldScale * 100.0, 40, 250), True);
 	UpdateSliderText();
 }
 
@@ -163,6 +204,18 @@ function ApplyScale()
 		@ (HUDScaleSlider.Value / 100.0));
 }
 
+function ApplyPlayerHeight()
+{
+	GetPlayerOwner().ConsoleCommand("D3D12 VRPLAYERHEIGHT"
+		@ (PlayerHeightSlider.Value / 100.0));
+}
+
+function ApplyWorldSize()
+{
+	GetPlayerOwner().ConsoleCommand("D3D12 VRWORLDSCALE"
+		@ (WorldSizeSlider.Value / 100.0));
+}
+
 function BeforePaint(Canvas C, float X, float Y)
 {
 	local bool bD3D12;
@@ -176,6 +229,12 @@ function BeforePaint(Canvas C, float X, float Y)
 	VRHeading.SetSize(ControlWidth, 1);
 	HUDDistanceSlider.SetSize(ControlWidth - 16, 1);
 	HUDScaleSlider.SetSize(ControlWidth - 16, 1);
+	PlayerHeightSlider.SetSize(ControlWidth - 16, 1);
+	WorldSizeSlider.SetSize(ControlWidth - 16, 1);
+	PlayerHeightResetButton.WinLeft = PlayerHeightSlider.WinLeft
+		+ PlayerHeightSlider.WinWidth + 2;
+	WorldSizeResetButton.WinLeft = WorldSizeSlider.WinLeft
+		+ WorldSizeSlider.WinWidth + 2;
 	HUDDistanceResetButton.WinLeft = HUDDistanceSlider.WinLeft
 		+ HUDDistanceSlider.WinWidth + 2;
 	HUDScaleResetButton.WinLeft = HUDScaleSlider.WinLeft
@@ -187,6 +246,10 @@ function BeforePaint(Canvas C, float X, float Y)
 	HUDScaleSlider.bDisabled = !bD3D12;
 	HUDDistanceResetButton.bDisabled = !bD3D12;
 	HUDScaleResetButton.bDisabled = !bD3D12;
+	PlayerHeightSlider.bDisabled = !bD3D12;
+	WorldSizeSlider.bDisabled = !bD3D12;
+	PlayerHeightResetButton.bDisabled = !bD3D12;
+	WorldSizeResetButton.bDisabled = !bD3D12;
 	RecenterButton.bDisabled = !bVR;
 	if (!bD3D12)
 		StatusLabel.SetText(D3D12RequiredText);
@@ -208,6 +271,10 @@ function bool ResetControllerSlider(UWindowHSliderControl Slider)
 		Notify(HUDDistanceResetButton, DE_Click);
 	else if (Slider == HUDScaleSlider)
 		Notify(HUDScaleResetButton, DE_Click);
+	else if (Slider == PlayerHeightSlider)
+		Notify(PlayerHeightResetButton, DE_Click);
+	else if (Slider == WorldSizeSlider)
+		Notify(WorldSizeResetButton, DE_Click);
 	else
 		return False;
 	return True;
@@ -241,6 +308,28 @@ function Notify(UWindowDialogControl C, byte E)
 		ApplyScale();
 		UpdateSliderText();
 	}
+	else if (E == DE_Change && C == PlayerHeightSlider)
+	{
+		ApplyPlayerHeight();
+		UpdateSliderText();
+	}
+	else if (E == DE_Change && C == WorldSizeSlider)
+	{
+		ApplyWorldSize();
+		UpdateSliderText();
+	}
+	else if (E == DE_Click && C == PlayerHeightResetButton)
+	{
+		PlayerHeightSlider.SetValue(0, True);
+		ApplyPlayerHeight();
+		UpdateSliderText();
+	}
+	else if (E == DE_Click && C == WorldSizeResetButton)
+	{
+		WorldSizeSlider.SetValue(100, True);
+		ApplyWorldSize();
+		UpdateSliderText();
+	}
 	else if (E == DE_Click && C == RecenterButton)
 		GetPlayerOwner().ConsoleCommand("D3D12 RECENTERVR");
 }
@@ -252,6 +341,10 @@ defaultproperties
 	HUDDistanceHelp="Set the distance of spatial HUD and menu panels from 0.50 to 5.00 meters."
 	HUDScaleText="HUD Scale"
 	HUDScaleHelp="Set the apparent size of spatial HUD and menu panels from 50% to 200%."
+	PlayerHeightText="Height Offset"
+	PlayerHeightHelp="Raise or lower your VR viewpoint from -0.75 to 1.50 meters. 0.00 keeps the original player height."
+	WorldSizeText="World Size"
+	WorldSizeHelp="100% is normal size. Above 100% makes you feel smaller in a larger world; below 100% makes you feel bigger in a smaller world. Scales viewpoint height, stereo depth and your displayed weapon together."
 	RecenterText="Recenter VR View"
 	RecenterHelp="Level software view tilt, make your current horizontal gaze forward, and recenter the shared HUD/menu panel."
 	ActiveStatusText="OpenXR is active. Changes apply immediately."

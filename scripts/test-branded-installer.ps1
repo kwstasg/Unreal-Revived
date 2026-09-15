@@ -39,7 +39,7 @@ function Run-Installer {
     $registration = Get-ItemProperty $testKey
     if ($registration.InstallLocation.TrimEnd('\') -ne $installed) { throw 'Validation registration points outside the test installation.' }
     $manifest = Get-Content -LiteralPath (Join-Path $StageRoot 'payload/payload-manifest.json') -Raw | ConvertFrom-Json
-    foreach ($name in @('UnrealRevived.exe','UnrealRevivedVR.exe','D3D12Drv.dll','XInputWinDrv.dll','openxr_loader.dll','ModernMenu.u')) {
+    foreach ($name in @('UnrealRevived.exe','UnrealRevivedVR.exe','D3D12Drv.dll','XInputWinDrv.dll','openxr_loader.dll','ModernMenu.u','OldWeapons.u')) {
         $expected = ($manifest.files | Where-Object path -eq $name).sha256
         if ((Get-FileHash -LiteralPath (Join-Path $system $name)).Hash -ne $expected) { throw "Installed hash mismatch: $name" }
     }

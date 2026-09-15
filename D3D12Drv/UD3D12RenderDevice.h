@@ -55,6 +55,7 @@ struct PresentPushConstants
 	float FilmGrainSeed;
 	float UseWorldPostProcess;
 	float UseVRUI;
+	float VRHeadCollisionFade;
 };
 
 struct BloomPushConstants
@@ -374,6 +375,8 @@ public:
 	BITFIELD EnableVR;
 	FLOAT VRHUDDistance;
 	FLOAT VRHUDScale;
+	FLOAT VRPlayerHeightOffset;
+	FLOAT VRWorldScale;
 	FLOAT GammaOffset;
 	FLOAT GammaOffsetRed;
 	FLOAT GammaOffsetGreen;
@@ -585,6 +588,7 @@ private:
 	bool WorldSceneCaptured = false;
 	bool UIPassActive = false;
 	bool VRUIPassActive = false;
+	FLOAT VRHeadCollisionFade = 0.0f;
 	bool VRUISeparatedThisFrame = false;
 	float Aspect;
 	float RProjZ;

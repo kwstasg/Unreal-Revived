@@ -36,8 +36,9 @@ history.
   without restarting Setup.
 - Prebuilt build: the installer is attached to the project's
   [latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest).
-  The current source is prepared as 0.6.1 and includes the 0.6.0 seated OpenXR
-  feature set plus the Return to Na Pali VR HUD hotfix.
+  The current source is prepared as 0.6.2 and retains the seated OpenXR and
+  Return to Na Pali VR HUD fixes, with bundled Old Weapons and removal of the
+  Realtime Ultra pawn-shadow menu option.
 - Packaging authorization: redistribution, mirroring, and offline bundling of
   the pinned OldUnreal 227k_15 Windows patch is confirmed in
   [`../PERMISSIONS.md`](../PERMISSIONS.md) and must not be reopened as a blocker.
@@ -86,7 +87,10 @@ controls, stereo fusion, and distortion-free tracking; finer weapon placement
 tuning remains a TODO. Gaze aim hooks are implemented but broader weapon and
 multiplayer validation is pending. Gamepad headset-yaw walking/jumping and
 horizontal right-stick turning were user-validated on 2026-09-11. Combined view/UI
-recenter, quick bindings and UI colors are user-validated. Swimming/flying movement, collision fade, mirror
+recenter, quick bindings and UI colors are user-validated. Head-collision fade
+and recovery were user-validated at walls, corners and low ceilings, with a door,
+world-size adjustments, swimming in water and an elevator also passing on
+2026-09-15. Swimming/flying movement semantics, mirror
 options and broader acceptance testing remain incomplete. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
@@ -167,6 +171,10 @@ the Load order; these flows were manually confirmed. Advanced and Mutator
 dialogs have initial combo, list, and cross-window tab handling compiled, but
 their complete controller workflows remain pending and are not a supported
 claim yet.
+The disposable runtime also builds the pinned Old Weapons mutator and mirrors
+its registration into `System/`. It is discoverable from New Game and was
+confirmed to join the runtime mutator chain; normal games remain unchanged
+when Use Mutators is disabled.
 The three-assignment binding workflow and persistence across restart were
 manually validated. Broader controller lifecycle coverage beyond the documented
 Xbox reconnect cases remains unvalidated.
@@ -185,6 +193,7 @@ cmake --build local/build --config Release
 cmake --build local/build --target deploy-d3d12drv --config Release
 cmake --build local/build --target deploy-xinputwindrv --config Release
 cmake --build local/build --target deploy-modern-menu --config Release
+cmake --build local/build --target deploy-old-weapons --config Release
 cmake --build local/build --target package-offline-installer --config Release
 powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite All
 powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite Content -ScreenshotMode Compare
@@ -208,10 +217,10 @@ selects its own engine profile (`Unreal.ini` or `UnrealVR.ini`); controls and sa
 remain shared. Native launch, restart, profile isolation, and installer lifecycle
 checks are recorded in [`branded-launchers.md`](branded-launchers.md).
 
-The current hotfix installer is built as
-`local/package/offline-installer/output/UnrealRevived-Setup-0.6.1.exe`, with
-its committed source identity recorded in the staged `payload-manifest.json`.
-The binary is unsigned. See [`release-0.6.1.md`](release-0.6.1.md). The
+The current maintenance installer is built as
+`local/package/offline-installer/output/UnrealRevived-Setup-0.6.2.exe`, with
+its base source revision and working-tree dirty flag in `payload-manifest.json`.
+The binary is unsigned. See [`release-0.6.2.md`](release-0.6.2.md). The
 preserved 0.6.0 publication and validation record remains in
 [`release-0.6.0.md`](release-0.6.0.md).
 
