@@ -6,8 +6,6 @@
 
 **[Download the latest Unreal Revived release](https://github.com/kwstasg/Unreal-Revived/releases/latest)**
 
-[Changelog](CHANGELOG.md) · [0.7.0 release notes](docs/release-0.7.0.md)
-
 **Fully playable on a normal desktop or in VR.** One installation
 provides separate **Unreal Revived** desktop and **Unreal Revived VR** shortcuts.
 A headset is optional and is never required for normal desktop play.
