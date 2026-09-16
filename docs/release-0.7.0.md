@@ -3,8 +3,8 @@
 ## A better fit for seated VR
 
 Version 0.7.0 gives you more control over your height and your sense of scale
-inside Unreal, adds protection when you lean into solid scenery, and includes
-classic weapon sounds through the Old Weapons mutator.
+inside Unreal, adds protection when you lean into solid scenery, and fixes the
+build and installation path for bundled mutators.
 
 ### Adjust your height without leaving your chair
 
@@ -32,17 +32,20 @@ scenery, then returns when you move clear. Head tracking continues, and the
 HUD/menu remains visible so you can recover or change your settings.
 Water and non-solid areas that activate game events do not trigger the fade.
 
-### Choose classic weapon sounds
+### Bundled mutators now install and activate correctly
 
-The included **Old Weapons** mutator replaces newer Unreal weapon sounds with
-those from **Unreal version 200**. Select it in the mutator list when you want
-that classic sound.
+Bundled mutators are now built, installed and registered so they appear in the
+**New Game** mutator list and can join the game when selected. **Old Weapons**
+is included as the first bundled mutator and was used to verify the full path
+from installation to activation. Games started with **Use Mutators** disabled
+continue to use the normal game rules.
 
 ### Reduce the cost of character shadows
 
-The expensive **Realtime Ultra Res** pawn-shadow setting has been removed.
-Opening Video preferences changes an existing Ultra selection to **Realtime
-High Res**, retaining detailed character shadows at a lower shadow resolution.
+The **Realtime Ultra Res** pawn-shadow setting has been removed because it
+caused frame drops and frame-time spikes. Opening Video preferences changes an
+existing Ultra selection to **Realtime High Res**, retaining detailed character
+shadows without the unstable Ultra setting.
 
 ## Installation
 

@@ -3,8 +3,8 @@
 ## 0.7.0 - 2026-09-16
 
 This update gives you more control over how Unreal feels in seated VR, adds
-protection when you lean into walls, and brings back an option for classic
-weapon sounds.
+protection when you lean into walls, and fixes how bundled mutators are built,
+installed and made available in the game.
 
 ### Find a comfortable height while seated
 
@@ -41,18 +41,20 @@ Head tracking continues throughout, and the HUD and menus remain visible so
 you can adjust your settings if needed. Water and invisible areas that activate
 game events do not count as solid obstacles.
 
-### Bring back classic Unreal weapon sounds
+### Bundled mutators now work correctly
 
-The **Old Weapons** mutator is now included with the installation. Enable it
-in the mutator selection to replace newer weapon sounds with those from
-**Unreal version 200**, for a more nostalgic sound to your game.
+Bundled mutators are now built, installed and registered correctly, so they can
+appear in the **New Game** mutator list and join the game when selected.
+**Old Weapons** is included as the first bundled mutator and was used to verify
+the complete path from installation to activation. Normal games remain
+unchanged when **Use Mutators** is disabled.
 
 ### A lighter pawn-shadow option
 
-Removed **Realtime Ultra Res** from the pawn-shadow choices to avoid its high
-rendering cost. If you previously selected it, opening Video preferences moves
-you to **Realtime High Res**. This keeps detailed shadows while reducing the
-shadow resolution used for characters and creatures.
+Removed **Realtime Ultra Res** from the pawn-shadow choices because it caused
+frame drops and frame-time spikes. If you previously selected it, opening Video
+preferences moves you to **Realtime High Res**. This keeps detailed character
+and creature shadows while avoiding the unstable Ultra setting.
 
 [Installation and compatibility notes](docs/release-0.7.0.md)
 
