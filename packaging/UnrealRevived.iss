@@ -17,8 +17,8 @@
   #define ProductName "Unreal Revived"
   #define ProductGuid "8D6614ED-8854-4D0E-9666-A891EC92713B"
 #endif
-#define ProductVersion "0.6.2"
-#define ProductFileVersion "0.6.2.0"
+#define ProductVersion "0.7.0"
+#define ProductFileVersion "0.7.0.0"
 #define ProductAuthor "Kwstasg - Kostas Giannakakis"
 #define ProjectUrl "https://github.com/kwstasg/Unreal-Revived"
 #ifndef ProductIconName

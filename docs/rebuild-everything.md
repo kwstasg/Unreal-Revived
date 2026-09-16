@@ -119,8 +119,8 @@ Outputs:
 
 ```text
 local/package/offline-installer/payload/
-local/package/offline-installer/output/UnrealRevived-Setup-0.6.2.exe
-local/package/offline-installer/output/UnrealRevived-Setup-0.6.2.exe.sha256
+local/package/offline-installer/output/UnrealRevived-Setup-0.7.0.exe
+local/package/offline-installer/output/UnrealRevived-Setup-0.7.0.exe.sha256
 ```
 
 ## 6. Build the developer bundle
@@ -144,7 +144,7 @@ $artifacts = @(
     'local/build/D3D12Drv/Release/D3D12Drv.dll'
     'local/build/XInputWinDrv/Release/XInputWinDrv.dll'
     'local/game/System64/ModernMenu.u'
-    'local/package/offline-installer/output/UnrealRevived-Setup-0.6.2.exe'
+    'local/package/offline-installer/output/UnrealRevived-Setup-0.7.0.exe'
     'local/package/developer-bundle/UnrealRevived-DeveloperBundle-227k_15-v1.zip'
 )
 

@@ -10,6 +10,16 @@ September 12 cleanup compacted available dated test-log directories into
 beside it for the directories included. Current release-validation logs remain
 under `local/logs/`.
 
+## 2026-09-16
+
+- Renamed the unpublished 0.6.2 candidate to 0.7.0 at the owner's request.
+  Updated launcher/installer versions, build artifact references and release
+  links. Retained the earlier tag and validation record as historical evidence.
+- Rewrote the changelog and release notes for players: explain seated height,
+  world-size direction and examples, collision-fade recovery, classic weapon
+  sounds and the purpose of the pawn-shadow change. Keep internal build and
+  regression details in engineering records.
+
 ## 2026-09-15
 
 - The owner validated VR head-collision fade: leaning into walls, corners and

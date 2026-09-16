@@ -36,7 +36,7 @@ history.
   without restarting Setup.
 - Prebuilt build: the installer is attached to the project's
   [latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest).
-  The current source is prepared as 0.6.2 and retains the seated OpenXR and
+  The current source is prepared as 0.7.0 and retains the seated OpenXR and
   Return to Na Pali VR HUD fixes, with bundled Old Weapons and removal of the
   Realtime Ultra pawn-shadow menu option.
 - Packaging authorization: redistribution, mirroring, and offline bundling of
@@ -218,9 +218,9 @@ remain shared. Native launch, restart, profile isolation, and installer lifecycl
 checks are recorded in [`branded-launchers.md`](branded-launchers.md).
 
 The current maintenance installer is built as
-`local/package/offline-installer/output/UnrealRevived-Setup-0.6.2.exe`, with
+`local/package/offline-installer/output/UnrealRevived-Setup-0.7.0.exe`, with
 its base source revision and working-tree dirty flag in `payload-manifest.json`.
-The binary is unsigned. See [`release-0.6.2.md`](release-0.6.2.md). The
+The binary is unsigned. See [`release-0.7.0.md`](release-0.7.0.md). The
 preserved 0.6.0 publication and validation record remains in
 [`release-0.6.0.md`](release-0.6.0.md).
 
