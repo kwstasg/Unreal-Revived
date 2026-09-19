@@ -76,7 +76,8 @@ active capture without changing the action. Each action accepts at most three
 bindings across keyboard, mouse, and controller; attempting to add a fourth
 leaves the existing three unchanged. The page's Reset button restores Unreal
 Revived's shipped defaults, including crouch on `Ctrl`, `C`, and left-stick
-click.
+click. See the [key binding guide](key-bindings.md) for step-by-step instructions
+and special cases.
 PlayStation Cross/Circle/Square/Triangle map to the same physical positions as
 A/B/X/Y.
 
