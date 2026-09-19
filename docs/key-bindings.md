@@ -27,11 +27,12 @@ To remove every Jump input, select Jump and press Delete.
 
 ## Limits and special cases
 
-- An action can have **up to three** keyboard, mouse, or controller inputs in
-  total. If it already has three, trying to add a fourth leaves them unchanged.
-  Use **replace** to start over, or **clear** and then add the inputs you want.
-- **Replace** removes the action's old inputs only when you supply a valid new
-  input. Canceling capture leaves the old inputs in place.
+- A normal gameplay action can have **up to three** keyboard, mouse, or
+  controller inputs in total. If it already has three, trying to add a fourth
+  leaves them unchanged. Use **replace** to start over, or **clear** and then add
+  the inputs you want.
+- During **replace**, press Escape or controller B if you want to keep the old
+  inputs. Clicking outside the row also cancels capture without clearing them.
 - Assigning an input already assigned to another action moves that input to the
   selected action. Assigning an input already on the selected action leaves it
   as it is.
@@ -46,6 +47,10 @@ To remove every Jump input, select Jump and press Delete.
 - The **Reset** button restores Unreal Revived's shipped bindings. This
   replaces your custom assignments, so use it only when you want the defaults
   back.
+- The **Console Key** and **Console Character** rows are special engine
+  settings, each with one assignment. The Console Key cannot use the left or
+  right mouse button. Console Character requires typing a character on a
+  keyboard. The three-input limit above describes gameplay actions.
 
 Controller button names on the page use Xbox labels. On PlayStation controllers,
 Cross = A, Circle = B, Square = X, and Triangle = Y. See

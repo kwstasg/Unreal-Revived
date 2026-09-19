@@ -116,6 +116,18 @@ clicks, triggers, and each D-pad direction. Verify B cancels capture, Menu close
 without becoming a binding, and keyboard/mouse input still works. Restart and
 confirm changed bindings persist.
 
+For a full Bindings regression, use a disposable user profile. On one gameplay
+action, add a keyboard key with Enter, left-click the row and press a mouse
+button to add it, then add a controller button with A. Confirm a fourth add
+leaves all three unchanged. Use Space, right-click, and X in turn to replace
+the action with a new input. Begin replacement again and cancel with Escape,
+B, and a click outside the row; each must preserve the current input. Clear
+with Delete, middle-click, and Y in turn, assigning an input before each clear
+and checking that the row becomes empty immediately.
+Assign an input already used by a different action and confirm it moves to the
+selected action. Reset and confirm the shipped bindings return, then restart
+and check that the final assignments persist.
+
 Manual Xbox controller validation confirmed that Escape and Menu open the menu
 shell, A or D-pad opens a closed pull-down, all four D-pad and left-stick
 directions navigate pull-downs, B closes the pull-down, and Menu exits and

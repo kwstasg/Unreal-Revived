@@ -161,7 +161,9 @@ function bool ClearFocusedBinding()
 {
 	if (!BeginFocusedBindingCapture(True))
 		return False;
-	CancelKeySelection();
+	UnbindSelectedItem();
+	CancelKeySelection(True);
+	LoadExistingKeys();
 	RefreshThirdBindings();
 	return True;
 }
@@ -470,7 +472,9 @@ function BeforePaint(Canvas C, float X, float Y)
 
 function CancelKeySelection(optional bool bEscape)
 {
-	Super.CancelKeySelection(bEscape);
+	// The stock menu clears replacement bindings on ordinary cancellation.
+	// Only ClearFocusedBinding and a completed replacement should remove them.
+	Super.CancelKeySelection(True);
 	RefreshBindingButtonTexts();
 }
 
@@ -523,6 +527,24 @@ function ProcessMenuKey(int KeyNo, string KeyName)
 
 function Notify(UWindowDialogControl C, byte E)
 {
+	if (bPolling && C == SelectedButton)
+	{
+		if (E == DE_Click)
+		{
+			ProcessMenuKey(1, RealKeyName[1]);
+			return;
+		}
+		if (E == DE_RClick)
+		{
+			ProcessMenuKey(2, RealKeyName[2]);
+			return;
+		}
+		if (E == DE_MClick)
+		{
+			ProcessMenuKey(4, RealKeyName[4]);
+			return;
+		}
+	}
 	if (E == DE_MClick && UMenuRaisedButton(C) != None)
 	{
 		C.ActivateWindow(0, False);
