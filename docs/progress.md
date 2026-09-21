@@ -12,6 +12,18 @@ under `local/logs/`.
 
 ## 2026-09-21
 
+- Published [Unreal Revived 0.8.0](https://github.com/kwstasg/Unreal-Revived/releases/tag/UnrealRevived-Setup-0.8.0)
+  as GitHub's latest stable release after explicit owner approval. Committed
+  release source/docs as `9b8ce3a` and atomically pushed main, annotated release
+  tag `UnrealRevived-Setup-0.8.0`, and the existing accepted weapon-milestone tag.
+  Uploaded the exact tested installer (89,756,358 bytes) and SHA-256 sidecar to a
+  draft, verified both server-reported asset digests against local files, then
+  published and confirmed `/releases/latest` resolves to 0.8.0. Installer SHA-256:
+  `5A00521B1F84CA25A423DD3109153C21D3BF3218A3DB02BC659764933CAEBD58`.
+  No rebuild or game/runtime edits occurred during publication. The embedded
+  original build record remains intact. Repository and whitespace gates passed;
+  focus-loss stutter stays documented as deferred.
+
 - The owner explicitly authorized committing, pushing and publishing 0.8.0
   after accepting the installer. Verified the exact accepted installer hash
   `5A00521B1F84CA25A423DD3109153C21D3BF3218A3DB02BC659764933CAEBD58`

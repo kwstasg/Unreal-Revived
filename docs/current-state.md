@@ -55,10 +55,14 @@ Release cleanup status:
   identity and evidence are recorded in [the progress log](progress.md).
 - The four agreed release-cleanup tasks are complete. Focus-loss stutter remains
   deferred. The owner tested, accepted and explicitly authorized publication of
-  0.8.0 on September 21, 2026. Publish the accepted installer without rebuilding:
+  0.8.0 on September 21, 2026. The accepted installer was published without rebuilding:
   SHA-256 `5A00521B1F84CA25A423DD3109153C21D3BF3218A3DB02BC659764933CAEBD58`.
   Its embedded payload records base revision `988eb80` and `sourceDirty=true`
-  at build time; retain that record rather than modifying the accepted artifact.
+  at build time; that original record is retained in the accepted artifact.
+- [Unreal Revived 0.8.0](https://github.com/kwstasg/Unreal-Revived/releases/tag/UnrealRevived-Setup-0.8.0)
+  is published as the latest stable release. Source commit `9b8ce3a`, release
+  tag `UnrealRevived-Setup-0.8.0` and weapon-milestone tag are pushed to GitHub.
+  GitHub's SHA-256 digests verify both the installer and checksum sidecar.
 - The 0.8.0 installer and launcher metadata, payload hashes, optional calibration
   inclusion and fixture exclusion passed. All 30 runtime profile/save hashes
   stayed unchanged. The earlier lifecycle result applies to the preceding cleanup
