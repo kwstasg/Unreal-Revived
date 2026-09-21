@@ -11,6 +11,17 @@ class ModernVRInteraction extends PlayerInteraction;
 // Updated by each eye's calculated view and shared with its weapon overlay.
 var float BodyHeightOffset;
 
+// Calculated before eye separation. Owned by this player's interaction, never
+// by a class default that could retain a destroyed pawn across map travel.
+var bool bHasCrosshairRay;
+var vector CrosshairStart;
+var rotator CrosshairAim;
+
+event NotifyLevelChange()
+{
+	bHasCrosshairRay = False;
+}
+
 function bool PopPoseValue(out string Pose, out string Value)
 {
 	local int Separator;
@@ -23,12 +34,15 @@ function bool PopPoseValue(out string Pose, out string Value)
 	return True;
 }
 
-function bool ReadHeadPose(out rotator HeadRotation, out vector EyeOffset, out vector HeadOffset, out float HeightOffset, out float BodyScale)
+function bool ReadHeadPose(out rotator HeadRotation, out vector EyeOffset, out vector HeadOffset, out float HeightOffset, out float BodyScale, optional bool bHeadCenter)
 {
 	local string Pose;
 	local string Value;
 
-	Pose = PlayerOwner.ConsoleCommand("D3D12 OPENXRPOSE");
+	if (bHeadCenter)
+		Pose = PlayerOwner.ConsoleCommand("D3D12 OPENXRPOSE CENTER");
+	else
+		Pose = PlayerOwner.ConsoleCommand("D3D12 OPENXRPOSE");
 	if (Left(Pose, 1) != "1")
 		return False;
 
@@ -90,17 +104,94 @@ function rotator ComposeRotation(rotator BaseRotation, rotator HeadRotation)
 	return OrthoRotation(NewX, NewY, NewZ);
 }
 
+function vector GetGazeViewOffset(Weapon W, rotator BaseRotation, rotator AimRotation,
+	vector HeadOffset, float HeightOffset, float BodyScale)
+{
+	local vector WorldHeadOffset, WeaponOffset, UserOffset, ViewOffset, Muzzle, ModelOffset, RightMuzzle;
+	local float UserScale, BaseScale;
+	local rotator ModelRotation;
+	WorldHeadOffset = HeadOffset >> BaseRotation;
+	WorldHeadOffset.Z += HeightOffset + BodyHeightOffset;
+	WeaponOffset.X = 2.7;
+	WeaponOffset.Y = -PlayerOwner.Handedness * 2.2;
+	WeaponOffset.Z = -1.7;
+	class'ModernVRWeaponTuning'.static.GetSettings().GetAdjustment(W.Class, False, UserScale, UserOffset);
+	if (PlayerOwner.Handedness == 0)
+		UserOffset.Y = 0;
+	else if (PlayerOwner.Handedness == 1)
+		UserOffset.Y = -UserOffset.Y;
+	ViewOffset = W.PlayerViewOffset;
+	if (((RocketLauncher(W) != None && W.PlayerViewMesh == class'RocketLauncher'.default.PlayerViewMesh)
+		|| (Eightball(W) != None && W.PlayerViewMesh == class'Eightball'.default.PlayerViewMesh))
+		&& (PlayerOwner.Handedness == 0 || PlayerOwner.Handedness == 1))
+	{
+		if (class'ModernVRMotionSupport'.default.Geometry == None)
+			class'ModernVRMotionSupport'.default.Geometry = new class'ModernVRWeaponGeometry';
+		class'ModernVRMotionSupport'.default.Geometry.GetGeometry(W, BaseScale, Muzzle, ModelOffset);
+		Muzzle = (Muzzle - ModelOffset - vect(1,0,0)) * UserScale;
+		ModelRotation.Roll = -W.Default.Rotation.Roll;
+		RightMuzzle = Muzzle >> ModelRotation;
+		if (PlayerOwner.Handedness == 0) ModelRotation.Roll = -2 * W.Default.Rotation.Roll;
+		else ModelRotation.Roll = W.Default.Rotation.Roll;
+		Muzzle = Muzzle >> ModelRotation;
+		ViewOffset.Y = -PlayerOwner.Handedness * (-W.Default.PlayerViewOffset.Y * 100 + RightMuzzle.Y * 100)
+			- Muzzle.Y * 100;
+	}
+	return ViewOffset * BodyScale
+		+ ((WorldHeadOffset << AimRotation) + (WeaponOffset + UserOffset) * BodyScale) * 100.0;
+}
+
+function bool GetGazeMuzzle(out vector Start, out rotator Aim, out int Blocked)
+{
+	local Weapon W;
+	local rotator HeadRotation, SavedRotation, ModelRotation;
+	local vector EyeOffset, HeadOffset, SavedOffset, ModelOrigin;
+	local vector Muzzle, ModelOffset, HitLocation, HitNormal, Anchor, Target;
+	local float HeightOffset, BodyScale, BaseScale, GazeScale;
+	if (PlayerOwner == None || PlayerOwner.Weapon == None || PlayerOwner.bBehindView || PlayerOwner.ViewTarget != None)
+		return False;
+	if (!ReadHeadPose(HeadRotation, EyeOffset, HeadOffset, HeightOffset, BodyScale, True)) return False;
+	W = PlayerOwner.Weapon;
+	SavedRotation = PlayerOwner.ViewRotation;
+	Aim = ComposeRotation(SavedRotation, HeadRotation);
+	SavedOffset = W.PlayerViewOffset;
+	W.PlayerViewOffset = GetGazeViewOffset(W, SavedRotation, Aim, HeadOffset, HeightOffset, BodyScale);
+	PlayerOwner.ViewRotation = Aim;
+	ModelOrigin = PlayerOwner.Location + W.CalcDrawOffset();
+	W.PlayerViewOffset = SavedOffset;
+	PlayerOwner.ViewRotation = SavedRotation;
+	if (class'ModernVRMotionSupport'.default.Geometry == None)
+		class'ModernVRMotionSupport'.default.Geometry = new class'ModernVRWeaponGeometry';
+	class'ModernVRMotionSupport'.default.Geometry.GetGeometry(W, BaseScale, Muzzle, ModelOffset);
+	GazeScale = class'ModernVRMotionSupport'.static.GetGazeDrawScale(W);
+	ModelRotation = Aim;
+	if (PlayerOwner.Handedness == 0)
+		ModelRotation.Roll = -2 * W.Default.Rotation.Roll;
+	else
+		ModelRotation.Roll = W.Default.Rotation.Roll * PlayerOwner.Handedness;
+	Muzzle = (Muzzle - ModelOffset - vect(1,0,0)) * (GazeScale / FMax(BaseScale, 0.001)) + vect(1,0,0);
+	Start = ModelOrigin + ((Muzzle * BodyScale) >> ModelRotation);
+	Anchor = PlayerOwner.Location;
+	Anchor.Z += PlayerOwner.EyeHeight;
+	Blocked = int(PlayerOwner.Trace(HitLocation, HitNormal, Start, Anchor,
+		True, vect(0,0,0), True, 0, 86) != None);
+	if (Blocked != 0) return True;
+	Anchor += HeadOffset >> SavedRotation;
+	Anchor.Z += HeightOffset + BodyHeightOffset;
+	Target = Anchor + vector(Aim) * 10000;
+	if (PlayerOwner.Trace(HitLocation, HitNormal, Target, Anchor, True) != None)
+		Target = HitLocation;
+	Aim = rotator(Target - Start);
+	return True;
+}
+
 event bool RenderOverlays(Canvas Canvas)
 {
 	local rotator HeadRotation;
 	local rotator AimRotation;
 	local rotator SavedViewRotation;
-	local vector BaseX, BaseY, BaseZ;
 	local vector EyeOffset;
 	local vector HeadOffset;
-	local vector WorldHeadOffset;
-	local vector LocalHeadOffset;
-	local vector VRWeaponOffset;
 	local vector SavedWeaponViewOffset;
 	local float SavedWeaponDrawScale;
 	local float HeightOffset;
@@ -109,6 +200,15 @@ event bool RenderOverlays(Canvas Canvas)
 
 	if (PlayerOwner == None || !ReadHeadPose(HeadRotation, EyeOffset, HeadOffset, HeightOffset, BodyScale))
 		return False;
+	if (class'ModernVRMotionSupport'.static.IsSelected(PlayerOwner))
+	{
+		PlayerOwner.ConsoleCommand("D3D12 BEGINVRWEAPONPASS");
+		RenderControllerWeapon(Canvas);
+		PlayerOwner.ConsoleCommand("D3D12 ENDVRWEAPONPASS");
+		if (PlayerOwner.myHUD != None)
+			PlayerOwner.myHUD.RenderOverlays(Canvas);
+		return True;
+	}
 
 	// Weapon.RenderOverlays derives its model rotation and draw offset from the
 	// player's ViewRotation. Expose headset-composed aim only for this rendering
@@ -123,26 +223,18 @@ event bool RenderOverlays(Canvas Canvas)
 	RenderWeapon = PlayerOwner.Weapon;
 	if (RenderWeapon != None)
 	{
-		GetAxes(SavedViewRotation, BaseX, BaseY, BaseZ);
-		WorldHeadOffset = BaseX * HeadOffset.X + BaseY * HeadOffset.Y + BaseZ * HeadOffset.Z;
-		WorldHeadOffset.Z += HeightOffset + BodyHeightOffset;
-		LocalHeadOffset = WorldHeadOffset << AimRotation;
-		// Preserve each weapon's authored offset, but place the complete model a
-		// little farther forward, lower, and toward the selected hand in VR. This
-		// keeps more of the view clear without changing gameplay or muzzle origin.
-		VRWeaponOffset.X = 2.7;
-		VRWeaponOffset.Y = -PlayerOwner.Handedness * 2.2;
-		VRWeaponOffset.Z = -1.7;
 		SavedWeaponViewOffset = RenderWeapon.PlayerViewOffset;
 		SavedWeaponDrawScale = RenderWeapon.DrawScale;
-		RenderWeapon.PlayerViewOffset = RenderWeapon.PlayerViewOffset * BodyScale
-			+ (LocalHeadOffset + VRWeaponOffset * BodyScale) * 100.0;
+		RenderWeapon.PlayerViewOffset = GetGazeViewOffset(RenderWeapon, SavedViewRotation, AimRotation,
+			HeadOffset, HeightOffset, BodyScale);
 		// First-person models authored for a flat display feel undersized at
 		// headset depth. Scale only the temporary VR overlay render.
-		RenderWeapon.DrawScale *= 1.15 * BodyScale;
+		RenderWeapon.DrawScale = class'ModernVRMotionSupport'.static.GetGazeDrawScale(RenderWeapon) * BodyScale;
 	}
 	bRenderOverlays = False;
+	PlayerOwner.ConsoleCommand("D3D12 BEGINVRWEAPONPASS");
 	PlayerOwner.RenderOverlays(Canvas);
+	PlayerOwner.ConsoleCommand("D3D12 ENDVRWEAPONPASS");
 	bRenderOverlays = True;
 	if (RenderWeapon != None)
 	{
@@ -150,6 +242,55 @@ event bool RenderOverlays(Canvas Canvas)
 		RenderWeapon.DrawScale = SavedWeaponDrawScale;
 	}
 	PlayerOwner.ViewRotation = SavedViewRotation;
+	return True;
+}
+
+function bool RenderControllerWeapon(Canvas C)
+{
+	local Weapon W;
+	local rotator Aim, SavedRotation;
+	local vector Hand, SavedLocation, Muzzle, Screen;
+	local float Scale, SavedScale, FlashScale, MeshScale;
+	local vector LocalMuzzle, ModelOffset;
+	W = PlayerOwner.Weapon;
+	if (W == None || PlayerOwner.Handedness == 2 || W.bHideWeapon)
+		return True;
+	if (!class'ModernVRMotionSupport'.static.ReadFrame(PlayerOwner, Aim, Hand, Scale))
+		return True;
+	SavedScale = W.DrawScale;
+	SavedLocation = W.Location;
+	SavedRotation = W.Rotation;
+	class'ModernVRMotionSupport'.static.GetWeaponGeometry(W, MeshScale, LocalMuzzle, ModelOffset);
+	W.DrawScale = MeshScale * Scale;
+	W.SetLocation(Hand + ((ModelOffset * Scale) >> Aim), Aim);
+	C.DrawActor(W, False);
+	W.SetLocation(SavedLocation, SavedRotation);
+	W.DrawScale = SavedScale;
+	// Stock screen-space flashes must follow the tracked barrel, not eye center.
+	if (W.bMuzzleFlash > 0 && W.bDrawMuzzleFlash && W.MFTexture != None)
+	{
+		if (!W.bSetFlashTime)
+		{
+			W.bSetFlashTime = True;
+			W.FlashTime = PlayerOwner.Level.TimeSeconds + W.FlashLength;
+		}
+		if (W.FlashTime < PlayerOwner.Level.TimeSeconds)
+			W.bMuzzleFlash = 0;
+		else
+		{
+			Muzzle = Hand + ((LocalMuzzle * Scale) >> Aim);
+			Screen = C.WorldToScreen(Muzzle);
+			if (Screen.Z > 0)
+			{
+				FlashScale = W.Default.MuzzleScale * C.ClipX / 640.0;
+				C.SetPos(Screen.X - FlashScale * W.FlashS, Screen.Y - FlashScale * W.FlashS);
+				C.Style = 3;
+				C.DrawIcon(W.MFTexture, FlashScale);
+				C.Style = 1;
+			}
+		}
+	}
+	else W.bSetFlashTime = False;
 	return True;
 }
 
@@ -192,6 +333,7 @@ event bool PlayerCalcView(out actor ViewActor, out vector CameraLocation, out ro
 	local vector EyeOffset;
 	local vector HeadOffset;
 	local vector CollisionAnchor, HeadCenter;
+	local rotator CenterRotation;
 
 	BodyHeightOffset = 0;
 	if (PlayerOwner == None || !ReadHeadPose(HeadRotation, EyeOffset, HeadOffset, HeightOffset, BodyScale))
@@ -209,6 +351,10 @@ event bool PlayerCalcView(out actor ViewActor, out vector CameraLocation, out ro
 	if (ViewActor == PlayerOwner && !PlayerOwner.bBehindView
 		&& PlayerOwner.ViewTarget == None)
 	{
+		// The camera and tracked hands must share a bob-free anchor. Retain
+		// EyeHeight for crouching/stair smoothing and preserve gaze mode's view.
+		if (class'ModernVRMotionSupport'.static.IsSelected(PlayerOwner))
+			CameraLocation -= PlayerOwner.WalkBob;
 		CollisionAnchor = PlayerOwner.Location;
 		FeetZ = PlayerOwner.Location.Z - PlayerOwner.CollisionHeight;
 		BodyHeightOffset = (CameraLocation.Z - FeetZ) * (BodyScale - 1.0);
@@ -220,6 +366,10 @@ event bool PlayerCalcView(out actor ViewActor, out vector CameraLocation, out ro
 	HeadCenter = CameraLocation + BaseX * HeadOffset.X
 		+ BaseY * HeadOffset.Y + BaseZ * HeadOffset.Z;
 	HeadCenter.Z += HeightOffset;
+	// Both eyes project a head-center ray, so the reticle converges on the hit.
+	if (class'ModernVRAimSupport'.static.ReadHeadRotation(PlayerOwner, CenterRotation, True))
+		class'ModernVRAimSupport'.static.SetCrosshairRay(PlayerOwner, HeadCenter,
+			ComposeRotation(CameraRotation, CenterRotation));
 	UpdateHeadCollision(CollisionAnchor, HeadCenter, BodyScale);
 	GetAxes(HeadRotation, HeadX, HeadY, HeadZ);
 	NewX = BaseX * HeadX.X + BaseY * HeadX.Y + BaseZ * HeadX.Z;

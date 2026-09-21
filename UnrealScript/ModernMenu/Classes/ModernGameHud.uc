@@ -4,6 +4,24 @@
 
 class ModernGameHud extends UnrealHUD;
 
+simulated function DrawCrossHair(Canvas C, int StartX, int StartY)
+{
+	local float X, Y;
+	if (class'ModernVRMotionSupport'.static.IsSelected(PlayerPawn(Owner)))
+	{
+		if (class'ModernVRMotionSupport'.static.CrosshairPosition(PlayerPawn(Owner), C, X, Y))
+			Super.DrawCrossHair(C, int(X), int(Y));
+		return;
+	}
+	if (Left(PlayerPawn(Owner).ConsoleCommand("D3D12 OPENXRPOSE"), 1) == "1")
+	{
+		if (class'ModernVRAimSupport'.static.CrosshairPosition(PlayerPawn(Owner), C, X, Y))
+			Super.DrawCrossHair(C, int(X), int(Y));
+		return;
+	}
+	Super.DrawCrossHair(C, StartX, StartY);
+}
+
 simulated function PostRender(Canvas Canvas)
 {
 	local PlayerPawn Player;

@@ -318,7 +318,7 @@ head-collision fading remain ongoing work. See the
   improvements organized by category.
 - [Supported controllers](docs/controllers.md): validated devices, SDL-mapped
   compatibility, controls, transports, and fallback paths.
-- [Key bindings](docs/key-bindings.md): how to add, replace, clear, and reset
+- [Key bindings](docs/key-bindings.md): how to add, clear, and reset
   keyboard, mouse, and controller assignments.
 - [Building](docs/building.md): prerequisites, paths, source recovery,
   deployment, and packaging.

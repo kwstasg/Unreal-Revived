@@ -69,6 +69,11 @@ Copy-Item -LiteralPath $rendererInt -Destination (Join-Path $system64Directory '
 Copy-Item -LiteralPath $openXRLoader -Destination (Join-Path $system64Directory 'openxr_loader.dll') -Force
 Copy-Item -LiteralPath $inputDll -Destination (Join-Path $system64Directory 'XInputWinDrv.dll') -Force
 Copy-Item -LiteralPath $modernMenu -Destination (Join-Path $system64Directory 'ModernMenu.u') -Force
+$weaponTuningSource = Join-Path $PayloadRoot 'ModernVRWeapons.ini'
+$weaponTuningDestination = Join-Path $system64Directory 'ModernVRWeapons.ini'
+if ((Test-Path -LiteralPath $weaponTuningSource) -and -not (Test-Path -LiteralPath $weaponTuningDestination)) {
+    Copy-Item -LiteralPath $weaponTuningSource -Destination $weaponTuningDestination
+}
 Copy-Item -LiteralPath $oldWeapons -Destination (Join-Path $system64Directory 'OldWeapons.u') -Force
 foreach ($launcher in @('UnrealRevived.exe', 'UnrealRevivedVR.exe')) {
     if (-not ($payloadManifest.files | Where-Object { $_.path -eq $launcher })) {
@@ -225,6 +230,13 @@ Set-Content -LiteralPath $vrIni -Value $vrIniLines -Encoding ASCII
 
 $userIniLines = Get-Content -LiteralPath $defaultUserIni
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F11' 'ToggleFPSStatistics'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Tab' ''
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'R' ''
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Home' 'Type'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'PageUp' 'TeamTalk'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Q' 'InventoryPrevious'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'E' 'InventoryNext'
+$userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F' 'InventoryActivate'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'MiddleMouse' ''
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'NumPadPeriod' ''
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'GreyPlus' ''

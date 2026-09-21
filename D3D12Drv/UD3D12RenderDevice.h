@@ -13,6 +13,7 @@
 #include "D3D12MemAlloc/D3D12MemAlloc.h"
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
+#include "OpenXRControllers.h"
 #include <functional>
 
 struct SceneVertex
@@ -30,7 +31,9 @@ enum SceneVertexFlags : uint32_t
 {
 	SVF_UIComposition = 1u << 7,
 	SVF_UICompositionTranslucent = 1u << 8,
-	SVF_UICompositionModulated = 1u << 9
+	SVF_UICompositionModulated = 1u << 9,
+	SVF_VRWeapon = 1u << 10,
+	SVF_VRWeaponOpaque = 1u << 11
 };
 
 struct ScenePushConstants
@@ -56,6 +59,10 @@ struct PresentPushConstants
 	float UseWorldPostProcess;
 	float UseVRUI;
 	float VRHeadCollisionFade;
+	vec4 VRPanelOrigin;
+	vec4 VRPanelRight;
+	vec4 VRPanelUp;
+	vec4 VREyeTangents;
 };
 
 struct BloomPushConstants
@@ -134,7 +141,8 @@ public:
 	void PollOpenXRSession();
 	UBOOL PrepareOpenXRFrame();
 	UBOOL PresentOpenXREye(uint32_t ViewIndex);
-	UBOOL PresentOpenXRUI();
+	UBOOL PresentOpenXRUI(uint32_t ViewIndex);
+	void UpdateOpenXRUIAnchor();
 	void FinishOpenXRFrame();
 	void ReleaseOpenXRFoundation();
 #endif
@@ -377,6 +385,7 @@ public:
 	FLOAT VRHUDScale;
 	FLOAT VRPlayerHeightOffset;
 	FLOAT VRWorldScale;
+	INT VRAimMode;
 	FLOAT GammaOffset;
 	FLOAT GammaOffsetRed;
 	FLOAT GammaOffsetGreen;
@@ -517,6 +526,8 @@ private:
 
 	UBOOL UsePrecache;
 	HMODULE OpenXRLoader = nullptr;
+	OpenXRControllers MotionControllers;
+	FTime MotionSampleTime;
 	XrInstance OpenXRInstance = XR_NULL_HANDLE;
 	XrSystemId OpenXRSystemId = XR_NULL_SYSTEM_ID;
 	XrSession OpenXRSession = XR_NULL_HANDLE;
@@ -563,6 +574,7 @@ private:
 	XrVector3f OpenXRUIAnchorHeadPosition = { 0.0f, 0.0f, 0.0f };
 	UBOOL OpenXRUIAnchorValid = 0;
 	UBOOL OpenXRUILayerReady = 0;
+	uint32_t OpenXRUIEyeMask = 0;
 	XrQuaternionf OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 	XrQuaternionf OpenXRBaseOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 	XrVector3f OpenXRBaseHeadPosition = { 0.0f, 0.0f, 0.0f };
@@ -588,6 +600,7 @@ private:
 	bool WorldSceneCaptured = false;
 	bool UIPassActive = false;
 	bool VRUIPassActive = false;
+	bool VRWeaponPassActive = false;
 	FLOAT VRHeadCollisionFade = 0.0f;
 	bool VRUISeparatedThisFrame = false;
 	float Aspect;

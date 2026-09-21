@@ -226,6 +226,13 @@ foreach ($defaultProfile in @('System\Default.ini', 'System64\Default.ini')) {
 foreach ($defaultUserProfile in @('System\DefUser.ini', 'System64\DefUser.ini')) {
     $defaultUserProfilePath = Join-Path $patchRoot $defaultUserProfile
     $defaultUserProfileLines = Get-Content -LiteralPath $defaultUserProfilePath
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Tab' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'R' ''
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Home' 'Type'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'PageUp' 'TeamTalk'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'Q' 'InventoryPrevious'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'E' 'InventoryNext'
+    $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'F' 'InventoryActivate'
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'MiddleMouse' ''
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'NumPadPeriod' ''
     $defaultUserProfileLines = Set-UnrealRevivedIniValue $defaultUserProfileLines 'Engine.Input' 'GreyPlus' ''
@@ -269,6 +276,7 @@ $payloadSources = [ordered]@{
     'OPENXR-COPYING.adoc' = $OpenXRNotice
     'XInputWinDrv.dll' = $InputDll
     'ModernMenu.u' = $modernMenu
+    'ModernVRWeapons.ini' = Join-Path $repositoryRoot 'UnrealScript\ModernMenu\Config\ModernVRWeapons.ini'
     'OldWeapons.u' = $oldWeapons
     'install-unreal-revived.ps1' = $installScript
     'backup-unreal-revived-user-data.ps1' = $backupScript

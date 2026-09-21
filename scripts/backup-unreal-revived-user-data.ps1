@@ -18,7 +18,8 @@ $items = @(
     @{ Source = 'Save'; Destination = 'Save' },
     @{ Source = 'System64\Unreal.ini'; Destination = 'System64\Unreal.ini' },
     @{ Source = 'System64\UnrealVR.ini'; Destination = 'System64\UnrealVR.ini' },
-    @{ Source = 'System64\User.ini'; Destination = 'System64\User.ini' }
+    @{ Source = 'System64\User.ini'; Destination = 'System64\User.ini' },
+    @{ Source = 'System64\ModernVRWeapons.ini'; Destination = 'System64\ModernVRWeapons.ini' }
 )
 
 foreach ($item in $items) {

@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include "VRGamepadAxes.h"
+#include "VRControllerInput.h"
 
 namespace
 {
@@ -165,6 +166,8 @@ void FXInputController::Shutdown()
 void FXInputController::ResetState()
 {
 	PreviousButtons = 0;
+	MotionActive = MotionNeutral = MotionFireReady = FALSE;
+	MotionAimMode = -1;
 	LastPollTime = FTime();
 }
 
@@ -352,6 +355,30 @@ void FXInputController::NormalizeStick(SHORT X, SHORT Y, SHORT DeadZone, FLOAT& 
 	OutY = NormalizedY * Scale;
 }
 
+UBOOL FXInputController::ReadMotionState(UWindowsViewport* Viewport, FControllerState& State, UBOOL& CanAim, INT& AimMode)
+{
+	if (!Viewport->RenDev) return FALSE;
+	FStringOutputDevice Output;
+	if (!Viewport->RenDev->Exec(TEXT("D3D12 OPENXRINPUT"), Output)) return FALSE;
+	const TCHAR* Cursor = *Output;
+	FString Token;
+	if (!ParseToken(Cursor, Token, 0) || Token != TEXT("1")) return FALSE;
+	INT Values[9] = {};
+	for (INT i = 0; i < 9; ++i)
+		if (ParseToken(Cursor, Token, 0)) Values[i] = appAtoi(*Token);
+		else { State = {}; CanAim = FALSE; return TRUE; }
+	CanAim = Values[0] != 0;
+	State.Buttons = Values[1];
+	State.LeftX = static_cast<SHORT>(Values[2]);
+	State.LeftY = static_cast<SHORT>(Values[3]);
+	State.RightX = static_cast<SHORT>(Values[4]);
+	State.RightY = static_cast<SHORT>(Values[5]);
+	State.LeftTrigger = static_cast<BYTE>(Values[6]);
+	State.RightTrigger = static_cast<BYTE>(Values[7]);
+	AimMode = Values[8];
+	return TRUE;
+}
+
 UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client, BYTE* Processed)
 {
 	const FTime CurrentPollTime = appSeconds();
@@ -360,8 +387,34 @@ UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client
 		: 1.0f;
 	LastPollTime = CurrentPollTime;
 
-	FControllerState State;
-	if (!ReadState(Client->XInputControllerIndex, State))
+	FControllerState State = {};
+	UBOOL CanAim = FALSE;
+	INT AimMode = -1;
+	const UBOOL UseMotion = ReadMotionState(Viewport, State, CanAim, AimMode);
+	if (UseMotion != MotionActive || AimMode != MotionAimMode)
+	{
+		MotionActive = UseMotion;
+		MotionAimMode = AimMode;
+		MotionNeutral = MotionFireReady = FALSE;
+	}
+	if (UseMotion)
+	{
+		// Never carry a held trigger into controller mode or across tracking loss.
+		if (!CanAim) MotionFireReady = FALSE;
+		if (CanAim && State.LeftTrigger < XINPUT_TRIGGER_RELEASE_THRESHOLD &&
+			State.RightTrigger < XINPUT_TRIGGER_RELEASE_THRESHOLD) MotionFireReady = TRUE;
+		if (!MotionNeutral && !State.Buttons && State.LeftTrigger < XINPUT_TRIGGER_RELEASE_THRESHOLD &&
+			State.RightTrigger < XINPUT_TRIGGER_RELEASE_THRESHOLD &&
+			abs(State.LeftX) < 6500 && abs(State.LeftY) < 6500 && abs(State.RightX) < 6500 && abs(State.RightY) < 6500)
+			MotionNeutral = TRUE;
+		if (!MotionNeutral) State = {};
+		if (!MotionFireReady) State.LeftTrigger = State.RightTrigger = 0;
+	}
+	FControllerState Gamepad = {};
+	const UBOOL HasGamepad = ReadState(Client->XInputControllerIndex, Gamepad);
+	if (UseMotion) LastPollTime = CurrentPollTime;
+	if (HasGamepad) VRControllerInput::Merge(State, Gamepad);
+	if (!UseMotion && !HasGamepad)
 	{
 		EmitButtons(Viewport, 0, Processed);
 		Viewport->CauseInputEvent(IK_JoyX, IST_Axis, 0.0f);

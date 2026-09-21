@@ -71,7 +71,7 @@ runtime/gameplay compatibility remains ongoing.
 | Independent look inversion | Applies controller look inversion to the right stick without reversing left-stick movement or menu navigation. |
 | Frame-rate-independent axes | Separates raw menu axes from elapsed-time-normalized gameplay axes for consistent control at about 240 FPS and above 1000 FPS. |
 | Preserved keyboard dodge | Prevents analog movement from entering Unreal's double-tap detector while retaining keyboard double-tap dodge. |
-| Three assignments per action | Allows up to three visible keyboard, mouse, or controller bindings for each action, with additive, replacement, clear, cancel, and reset flows. |
+| Three assignments per action | Allows up to three visible keyboard, mouse, or controller bindings for each action, with automatic replacement of the oldest input when full, plus clear, cancel, and reset. |
 | Responsive Bindings page | Keeps the binding list responsive by updating changed rows and drawing only the visible portion of the list. |
 
 ## Game content and compatibility

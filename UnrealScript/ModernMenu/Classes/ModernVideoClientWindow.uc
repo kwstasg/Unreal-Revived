@@ -98,8 +98,6 @@ function Created()
 	BrightnessSlider.bNoSlidingNotify = False;
 	GUIScalingSlider.bNoSlidingNotify = False;
 	LightLODSlider.bNoSlidingNotify = False;
-	BrightnessSlider.SetRange(50, 200, 1);
-	LoadBrightnessSetting();
 
 	ContrastTop = BrightnessSlider.WinTop + 25;
 	SaturationTop = ContrastTop + 25;
@@ -414,10 +412,41 @@ function LoadBrightnessSetting()
 	UpdateBrightnessText();
 }
 
+function LoadAvailableSettings()
+{
+	Super.LoadAvailableSettings();
+	// The parent loads brightness in legacy 1-10 units on creation and on
+	// resolution/display changes. Restore percent units after every refresh,
+	// without notifying the slider or writing the loaded value back.
+	BrightnessSlider.SetRange(50, 200, 1);
+	LoadBrightnessSetting();
+}
+
 function BrightnessChanged()
 {
 	if (bInitialized)
 		GetPlayerOwner().ConsoleCommand("set ini:Engine.Engine.ViewportManager Brightness" @ (BrightnessSlider.Value / 200.0));
+}
+
+function bool HotKeyDown(int Key, float X, float Y)
+{
+	// Controller navigation uses the same key events. Keep mouse precision
+	// and saved percentages intact while making arrow adjustments useful.
+	if (bWindowVisible && BrightnessSlider != None && Root.CheckKeyFocusWindow() == BrightnessSlider
+		&& !BrightnessSlider.bDisabled && !BrightnessSlider.bIndeterminate)
+	{
+		if (Key == GetPlayerOwner().EInputKey.IK_Left)
+		{
+			BrightnessSlider.SetValue(BrightnessSlider.Value - 5);
+			return True;
+		}
+		if (Key == GetPlayerOwner().EInputKey.IK_Right)
+		{
+			BrightnessSlider.SetValue(BrightnessSlider.Value + 5);
+			return True;
+		}
+	}
+	return Super.HotKeyDown(Key, X, Y);
 }
 
 function BeforePaint(Canvas C, float X, float Y)
@@ -477,7 +506,6 @@ function WindowShown()
 	Super.WindowShown();
 	SyncDisplayMode();
 	ShowFPSCheck.bChecked = bShowFPS;
-	LoadBrightnessSetting();
 	LoadColorSettings();
 	LoadBloomSetting();
 	LoadChromaticAberrationSetting();
@@ -834,6 +862,7 @@ function Notify(UWindowDialogControl C, byte E)
 
 defaultproperties
 {
+	bAcceptsHotKeys=True
 	ShowFPSText="Show FPS Statistics"
 	ShowFPSHelp="Display live frame-rate statistics while playing."
 	DisplayModeText="Display Mode"

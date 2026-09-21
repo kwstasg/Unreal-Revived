@@ -9,6 +9,57 @@ This document records the compatibility work required for the OldUnreal
 227k_15 Windows x64 host. Keep host-specific behavior behind `UNREAL_227` where
 practical so upstream renderer structure remains recognizable.
 
+## VR weapon and HUD composition
+
+Gaze and motion weapon draws are bracketed by `BEGINVRWEAPONPASS` and
+`ENDVRWEAPONPASS`. Coverage is written to the green channel of the RG8
+composition mask; red retains its existing world-postprocess UI meaning.
+Opaque weapon coverage ignores unused texture/vertex alpha, matching the opaque
+color pass. Surviving alpha-tested texels also fully cover the HUD; discarded
+texels remain holes. Translucent, modulated, highlighted and alpha-blended
+weapon/flash materials retain their existing fractional coverage. This corrects
+a mask/color mismatch that can expose HUD pixels through otherwise opaque skins,
+without forcing genuine transparent effects opaque or modifying textures.
+The mask is cleared for each eye, resolved before presentation, and sampled
+using that eye's pose and asymmetric FOV, accounting for the scene's vertical
+flip. Invisible polygons do not mark weapon coverage.
+
+The shared UI panel keeps its accepted canvas, dimensions and anchor. Its
+swapchain has two array slices, submitted as left-only and right-only quads
+at the same pose. Weapon coverage removes both premultiplied RGB and alpha;
+collision fade disables this cutout so recovery UI stays visible. Desktop
+composition is unchanged. Present-shader texture/sampler registers are explicit
+because UI-only compilation otherwise removes unused inputs and shifts bindings.
+
+Production-shader pixel tests and runtime initialization pass. In-headset
+alignment, menu transitions and comfort are not yet validated for this change.
+
+## VR session and firing adapters
+
+OpenXR session events are polled at the viewport frame boundary, before
+`PrepareOpenXRFrame`, rather than again during each eye's `Unlock`. A STOPPING
+event must not end the session between eye draws and leave `FinishOpenXRFrame`
+submitting to an ended session. Initialization retains its initial event poll.
+This fixes a lifecycle race; it does not establish that removing/replacing the
+headset caused or now resolves the reported recurring stutter after F8.
+
+`D3D12 OPENXRPOSE CENTER` exposes valid head-center translation between stereo
+draws as well as during rendering, so gameplay firing can use the same pose as
+the gaze overlay. Ordinary per-eye queries retain their drawing-time behavior.
+
+`D3D12 VRWEAPONFUNCTION <class> <state> <function>` walks SDK state/function
+fields and returns the exact object's index for ScriptHook binding. Pinned-host
+runtime probes returned global or incorrect objects through the script state/name
+lookup APIs. The native adapter preserves state ownership and inheritance;
+the runtime regression asserts the exact DispersionPistol ShootLoad.BeginState
+and Stinger AltFiring.ProjectileFire targets. This avoids missing charged-shot
+hooks and re-entering the Stinger burst from its nested global projectile call.
+Most stock firing callbacks remain original; the explicit script spawn adapters
+and their coverage are listed in [weapon tuning](vr-weapon-tuning.md).
+Resolved class/state/function identities (including misses) are cached by the
+script hook and discarded when hooks are rebound after map travel. This avoids
+repeated console parsing/native field walks on the firing path.
+
 ## Development model and source limitations
 
 This project does not have the complete native Unreal Engine 1 or OldUnreal

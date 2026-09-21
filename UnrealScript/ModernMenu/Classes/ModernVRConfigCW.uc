@@ -5,6 +5,7 @@
 class ModernVRConfigCW extends UWindowDialogClientWindow;
 
 var UMenuLabelControl VRHeading;
+var UWindowComboControl AimMethodCombo;
 var UWindowHSliderControl HUDDistanceSlider;
 var UWindowHSliderControl HUDScaleSlider;
 var UWindowHSliderControl PlayerHeightSlider;
@@ -18,6 +19,12 @@ var UMenuLabelControl StatusLabel;
 var bool bInitialized;
 
 var localized string VRHeadingText;
+var localized string AimMethodText;
+var localized string AimMethodHelp;
+var localized string GazeAimText;
+var localized string MotionAimText;
+var localized string MotionReadyText;
+var localized string MotionUnavailableText;
 var localized string HUDDistanceText;
 var localized string HUDDistanceHelp;
 var localized string HUDScaleText;
@@ -40,6 +47,15 @@ function Created()
 	VRHeading = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 15, 300, 1));
 	VRHeading.SetText(VRHeadingText);
 	VRHeading.SetFont(F_Bold);
+
+	AimMethodCombo = UWindowComboControl(CreateControl(class'UWindowComboControl', 20, 45, 300, 1));
+	AimMethodCombo.SetText(AimMethodText);
+	AimMethodCombo.SetHelpText(AimMethodHelp);
+	AimMethodCombo.SetFont(F_Normal);
+	AimMethodCombo.SetEditable(False);
+	AimMethodCombo.AddItem(GazeAimText);
+	AimMethodCombo.AddItem(MotionAimText);
+	AimMethodCombo.EditBoxWidth = 150;
 
 	HUDDistanceSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 45, 300, 1));
 	HUDDistanceSlider.SetRange(50, 500, 5);
@@ -85,6 +101,16 @@ function Created()
 
 	StatusLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 205, 340, 1));
 	StatusLabel.SetFont(F_Normal);
+	HUDDistanceSlider.WinTop += 30;
+	HUDScaleSlider.WinTop += 30;
+	PlayerHeightSlider.WinTop += 30;
+	WorldSizeSlider.WinTop += 30;
+	HUDDistanceResetButton.WinTop += 30;
+	HUDScaleResetButton.WinTop += 30;
+	PlayerHeightResetButton.WinTop += 30;
+	WorldSizeResetButton.WinTop += 30;
+	RecenterButton.WinTop += 30;
+	StatusLabel.WinTop += 30;
 
 	RemoveFromTabOrder(VRHeading);
 	RemoveFromTabOrder(StatusLabel);
@@ -94,7 +120,7 @@ function Created()
 	RemoveFromTabOrder(WorldSizeResetButton);
 	LoadSettings();
 	bInitialized = True;
-	DesiredHeight = 240;
+	DesiredHeight = 270;
 }
 
 function ModernResetButton CreateSliderResetButton(UWindowHSliderControl Slider)
@@ -170,6 +196,12 @@ function LoadSettings()
 	local float Scale;
 	local float HeightOffset;
 	local float WorldScale;
+	local bool bWasInitialized;
+
+	bWasInitialized = bInitialized;
+	bInitialized = False;
+	AimMethodCombo.SetSelectedIndex(Clamp(int(GetPlayerOwner().ConsoleCommand(
+		"get ini:Engine.Engine.GameRenderDevice VRAimMode")), 0, 1));
 
 	Distance = float(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRHUDDistance"));
@@ -190,6 +222,7 @@ function LoadSettings()
 	PlayerHeightSlider.SetValue(Clamp(HeightOffset * 100.0, -75, 150), True);
 	WorldSizeSlider.SetValue(Clamp(WorldScale * 100.0, 40, 250), True);
 	UpdateSliderText();
+	bInitialized = bWasInitialized;
 }
 
 function ApplyDistance()
@@ -227,6 +260,7 @@ function BeforePaint(Canvas C, float X, float Y)
 	bVR = bD3D12 && IsVRActive();
 	ControlWidth = FMax(220, WinWidth - 40);
 	VRHeading.SetSize(ControlWidth, 1);
+	AimMethodCombo.SetSize(ControlWidth, 1);
 	HUDDistanceSlider.SetSize(ControlWidth - 16, 1);
 	HUDScaleSlider.SetSize(ControlWidth - 16, 1);
 	PlayerHeightSlider.SetSize(ControlWidth - 16, 1);
@@ -243,6 +277,7 @@ function BeforePaint(Canvas C, float X, float Y)
 	StatusLabel.SetSize(ControlWidth, 1);
 
 	HUDDistanceSlider.bDisabled = !bD3D12;
+	AimMethodCombo.bDisabled = !bD3D12;
 	HUDScaleSlider.bDisabled = !bD3D12;
 	HUDDistanceResetButton.bDisabled = !bD3D12;
 	HUDScaleResetButton.bDisabled = !bD3D12;
@@ -253,6 +288,13 @@ function BeforePaint(Canvas C, float X, float Y)
 	RecenterButton.bDisabled = !bVR;
 	if (!bD3D12)
 		StatusLabel.SetText(D3D12RequiredText);
+	else if (bVR && AimMethodCombo.GetSelectedIndex() == 1)
+	{
+		if (Left(GetPlayerOwner().ConsoleCommand("D3D12 OPENXRCONTROLLER"), 3) == "1 1")
+			StatusLabel.SetText(MotionReadyText);
+		else
+			StatusLabel.SetText(MotionUnavailableText);
+	}
 	else if (bVR)
 		StatusLabel.SetText(ActiveStatusText);
 	else
@@ -286,7 +328,9 @@ function Notify(UWindowDialogControl C, byte E)
 	if (!bInitialized)
 		return;
 
-	if (E == DE_Change && C == HUDDistanceSlider)
+	if (E == DE_Change && C == AimMethodCombo)
+		GetPlayerOwner().ConsoleCommand("D3D12 VRAIMMODE" @ AimMethodCombo.GetSelectedIndex());
+	else if (E == DE_Change && C == HUDDistanceSlider)
 	{
 		ApplyDistance();
 		UpdateSliderText();
@@ -337,6 +381,12 @@ function Notify(UWindowDialogControl C, byte E)
 defaultproperties
 {
 	VRHeadingText="Virtual Reality"
+	AimMethodText="Aiming Method"
+	AimMethodHelp="Touch buttons and sticks work in both aiming modes. Motion aiming uses your weapon hand preference; Center and Hidden use the right hand. Release controls after switching."
+	GazeAimText="Head gaze"
+	MotionAimText="Motion controllers"
+	MotionReadyText="Motion controller tracked. Xbox-style controls and menus."
+	MotionUnavailableText="Aiming controller unavailable. Connect/wake controllers or choose Head gaze."
 	HUDDistanceText="HUD Distance"
 	HUDDistanceHelp="Set the distance of spatial HUD and menu panels from 0.50 to 5.00 meters."
 	HUDScaleText="HUD Scale"

@@ -23,6 +23,22 @@ Installer tasks must independently select neither, either or both desktop icons.
 
 ## Accepted VR UI regression checks
 
+Build and run the focused renderer tests:
+
+```powershell
+cmake -S D3D12Drv/tests -B local/build-vr-panel-tests -A x64
+cmake --build local/build-vr-panel-tests --config Release
+ctest --test-dir local/build-vr-panel-tests -C Release --output-on-failure
+```
+
+On Windows, `vr-ui-occlusion` executes the production UI shader through WARP
+and checks weapon cutouts, UI-mask channel isolation, asymmetric-eye lookup,
+out-of-view rejection and partial premultiplied-alpha coverage. This does not
+replace headset checks: overlap the weapon with status HUD pixels in both
+gaze and motion aiming, inspect each eye, fire, hide/switch weapons, recenter,
+open/close menus and test collision fade. Confirm the panel has not moved and
+no stale silhouette remains. Include MSAA off and the normal MSAA setting.
+
 The shared-panel milestone was accepted by the user in the headset on 2026-09-10.
 Use [its maintenance contract](vr-ui-recovery-design.md) as the source baseline.
 For any projection, layout or pose change, compare at identical game resolution,
@@ -116,17 +132,39 @@ clicks, triggers, and each D-pad direction. Verify B cancels capture, Menu close
 without becoming a binding, and keyboard/mouse input still works. Restart and
 confirm changed bindings persist.
 
-For a full Bindings regression, use a disposable user profile. On one gameplay
-action, add a keyboard key with Enter, left-click the row and press a mouse
-button to add it, then add a controller button with A. Confirm a fourth add
-leaves all three unchanged. Use Space, right-click, and X in turn to replace
-the action with a new input. Begin replacement again and cancel with Escape,
-B, and a click outside the row; each must preserve the current input. Clear
-with Delete, middle-click, and Y in turn, assigning an input before each clear
-and checking that the row becomes empty immediately.
-Assign an input already used by a different action and confirm it moves to the
-selected action. Reset and confirm the shipped bindings return, then restart
-and check that the final assignments persist.
+Run the binding handler regression after building ModernMenu:
+
+```powershell
+Push-Location local/game/System64
+.\UCC.exe ModernMenu.ModernBindingsTestCommandlet -silent ini=D3D12Test.ini
+Pop-Location
+```
+
+This executes the production binding handlers with an isolated input store. It
+covers a full Crouch row, successive oldest-input replacement, duplicate input,
+cancellation, clear, mouse capture, and moving an input from another action.
+It does not simulate the operating system's keyboard or physical controllers.
+
+To verify saved binding order across separate engine processes, use a disposable
+user profile:
+
+```powershell
+Push-Location local/game/System64
+Copy-Item DefUser.ini BindingHistoryTestUser.ini -Force
+.\UCC.exe ModernMenu.ModernBindingsTestCommandlet history-write -silent ini=D3D12Test.ini userini=BindingHistoryTestUser.ini
+.\UCC.exe ModernMenu.ModernBindingsTestCommandlet history-read -silent ini=D3D12Test.ini userini=BindingHistoryTestUser.ini
+Pop-Location
+```
+
+For interactive validation, use a disposable user profile. Left-click Crouch
+with three bindings and confirm the capture prompt remains after releasing the
+mouse. Assign F, then G; each must replace the oldest displayed input. Cancel
+another capture with Escape and B and confirm no assignments change. Check
+right-click, Delete, and controller X clear without starting capture. Check
+Enter, Space, and A start capture, and that X and middle mouse can be assigned
+once capture is active. Idle middle-click must not clear the row. Restart and
+confirm both assignments and their oldest-to-newest order persist. Finally,
+Reset should restore the shipped bindings.
 
 Manual Xbox controller validation confirmed that Escape and Menu open the menu
 shell, A or D-pad opens a closed pull-down, all four D-pad and left-stick
@@ -434,6 +472,73 @@ swapchains, and a begun session must submit at least one completed headset
 frame. The harness accepts both the earlier monoscopic diagnostic and
 the current independent stereo-frame diagnostic because ordinary automation
 may run without a connected OpenXR runtime.
+
+Weapon regression checks:
+
+```powershell
+powershell -NoProfile -File scripts/test-vr-motion-regressions.ps1
+powershell -NoProfile -File scripts/test-vr-motion-regressions.ps1 -ListenServer
+powershell -NoProfile -File scripts/test-vr-weapon-reload.ps1
+powershell -NoProfile -File scripts/test-vr-map-travel.ps1
+```
+
+The motion regression verifies real DispersionPistol primary/charged projectiles,
+all five Stinger burst projectiles, and ASMD alternate balls and primary beam
+origins against the calculated muzzle, including stock spread and restoration of
+weapon offsets/player view. It reconstructs ASMD beam starts from the original
+effect and confirms stock desktop beam offsets are unchanged. Stock Stinger/ASMD
+landmark checks compare resting-mesh measurements and preserve live animation.
+DispersionPistol landmark checks cover all five power levels and a return to
+level zero, verifying muzzle-cache updates without changing scale and restoring
+the live mesh, rotation and animation state.
+It exercises a forced
+motion pose and the production gaze calculation with synthetic head rotation,
+translation and world scale. It also verifies exact state-function bindings and
+one shared neutral size baseline and equal configured scales in both modes for
+all 14 stock/UPak profile classes, two Old Weapons subclasses and a custom fixture
+with a replaced first-person mesh/view scale. These checks do not establish
+controller tracking accuracy, visual barrel alignment, arbitrary mutator
+compatibility or complete Return to Na Pali gameplay support.
+
+The remaining-weapon matrix checks AutoMag, Rifle, Minigun, QuadShot and CARifle
+hitscan starts/directions, CARifle alternate rounds, Flak fragments/shells,
+RazorJack primary/alternate blades, charged bio shots, both UPak rocket modes,
+six-rocket/six-grenade Eightball volleys and both GrenadeLauncher modes. It covers
+forced off-axis motion origins and production gaze eligibility/calculation using
+only a synthetic interaction lookup, with both neutral and saved runtime gaze
+tuning. Mesh checks cover every remaining stock landmark and both AutoMag/QuadShot
+handed meshes. AutoMag/Minigun alternate-state traces and all four loaded QuadShot
+patterns are checked explicitly. Rifle zoom and QuadShot reload remain available
+with a blocked muzzle in both aiming modes. State-function cache reuse and native
+resolver equivalence are asserted; a 10,000-lookup microbenchmark logs timing
+without a machine-dependent pass/fail performance threshold.
+
+`-ListenServer` runs the same matrix on a loopback listen host and asserts the
+engine's actual listen-server mode. It does not launch a remote client or validate
+remote pose replication. Both configurations use disposable engine/user profiles
+and leave the saved weapon-tuning file untouched. These are focused firing-entry-
+point checks, not complete campaign, animated-socket, remote-detonation gameplay,
+rocket-guidance flight or remote multiplayer validation. See the explicit
+[multiplayer boundary](vr-motion-controllers.md#multiplayer-boundary).
+
+Weapon/HUD material coverage checks:
+
+```powershell
+cmake --build local/build-vr-panel-tests --target vr-ui-occlusion --config Release
+ctest --test-dir local/build-vr-panel-tests -C Release -R '^vr-ui-occlusion$' --output-on-failure
+```
+
+The WARP test executes the production scene and presentation shaders. Opaque
+zero-alpha skin pixels and surviving masked pixels must fully occlude the HUD;
+discarded mask texels, alpha-blended, translucent and modulated effects retain
+their transparency. Ordinary UI alpha remains unchanged. Inspect the reported
+UPak weapons in both eyes and aiming modes to confirm the actual content issue;
+shader pixel checks and an IDLE OpenXR startup are not that visual acceptance.
+
+For the F8/on-off report, manually alternate tuning reloads and removing/replacing
+the HMD during a sustained session. Check frame pacing after each return, both
+eyes, and the log for session transitions or `xrEndFrame` failures. Automated
+startup while the session remains IDLE cannot validate this lifecycle sequence.
 
 For live orientation validation, begin with the headset facing comfortably
 forward and compare the intro flyby's initial direction with a flat launch.

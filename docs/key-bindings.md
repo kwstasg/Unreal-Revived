@@ -1,58 +1,67 @@
 # Key bindings
 
-Open **Options > Preferences > Bindings** in the game. Each row names an action and
-shows the keys, mouse buttons, or controller buttons currently assigned to it.
-Find the row for the action you want to change. With a mouse, click that row as
-shown below. With a keyboard or controller, move focus to the row first. Changes
-are saved in your game profile and remain after a restart.
+Open **Options > Preferences > Bindings**. Each action can have up to three
+keyboard, mouse, or controller inputs. The row shows them from oldest to newest.
 
-## Choose what to do
+## Default inventory controls
 
-| Goal | Mouse | Keyboard, with the row focused | Controller, with the row focused |
+| Action | Keyboard | Xbox / PlayStation controller |
+| --- | --- | --- |
+| Previous item | Q or [ | View / Share |
+| Next item | E or ] | Y / Triangle |
+| Activate selected item | F or Enter | X / Square |
+
+Q, E, and F supplement the older inventory controls. F now activates the
+selected item instead of Feign Death. These are gameplay controls; Enter and
+controller X keep their editing functions while the Bindings page is open.
+
+## Add or change a binding
+
+1. **Left-click** the action's binding box.
+2. When it says **Press a key...**, press the key or button you want.
+3. The new input is added. If there are already three inputs, the **oldest one
+   is removed automatically**. The other two stay assigned.
+
+For example, if Crouch shows `Ctrl`, `C`, and `LS`, adding `F` leaves `C`, `LS`,
+and `F`. Adding `G` next leaves `LS`, `F`, and `G`.
+
+There is no separate replace mode. To start over with just one input, clear the
+row, then left-click it and assign the input you want.
+
+## Controls
+
+| Action | Mouse | Keyboard, with the row focused | Controller, with the row focused |
 | --- | --- | --- | --- |
-| Add another input | Left-click the row | Press Enter | Press A (Cross on PlayStation) |
-| Replace all inputs for the action | Right-click the row | Press Space | Press X (Square on PlayStation) |
-| Clear all inputs for the action | Middle-click the row | Press Delete | Press Y (Triangle on PlayStation) |
-| Cancel while waiting for an input | Press Escape | Press Escape | Press B (Circle on PlayStation) |
+| Add an input; replace the oldest when full | Left-click | Enter or Space | A / PlayStation Cross |
+| Clear all inputs for this action | Right-click | Delete | X / PlayStation Square |
+| Cancel while waiting for an input | Use Escape | Escape | B / PlayStation Circle |
 
-**Add** and **replace** put the row into capture mode. After choosing either one,
-press the **new** keyboard key, mouse button, or controller button you want to
-assign. The input that opened capture is not automatically assigned; press it
-again if that is the input you want. **Clear** takes effect immediately and does
-not wait for another input.
+Middle-click has no editing action. While the page is waiting for an input,
+mouse buttons (including middle-click) and controller buttons are inputs to
+assign. For example, to assign controller X, start capture with A, then press X.
+To assign left mouse, left-click once to start capture, then click again.
 
-For example, to add `F` to Jump, select the Jump row, press Enter, then press
-`F`. To make `F` the only Jump input, select Jump, press Space, then press `F`.
-To remove every Jump input, select Jump and press Delete.
+## Useful details
 
-## Limits and special cases
+- During gameplay, **Home** opens the command line and **Page Up** opens team
+  chat. Tab and R are unassigned by default so they do not accidentally switch
+  gameplay controls into text entry. Press Escape to leave text entry.
+  Tab still moves focus in menus. Existing installations retain their saved
+  assignments until you change them or use Reset.
+- Pressing an input already assigned to the selected action leaves it unchanged.
+- An input assigned to another gameplay action moves to the selected action.
+- Escape and controller B cancel without changing the current assignments.
+  Controller Menu/Options closes the menu. These inputs cannot be assigned here.
+- Tab moves keyboard focus to the next row. The D-pad or left stick moves
+  controller focus; LB/RB switches Preferences tabs. During capture, D-pad
+  directions and LB/RB can themselves be assigned.
+- **Reset** restores the shipped bindings for all actions.
+- Binding order is saved with your user profile. Older profiles have no
+  assignment history, so their initial order uses the engine's key order,
+  shown on the row. Newly assigned inputs go to the end.
+- **Console Key** and **Console Character** are special settings with one
+  assignment each. Console Key cannot use the left or right mouse button;
+  Console Character requires typing a keyboard character.
 
-- A normal gameplay action can have **up to three** keyboard, mouse, or
-  controller inputs in total. If it already has three, trying to add a fourth
-  leaves them unchanged. Use **replace** to start over, or **clear** and then add
-  the inputs you want.
-- During **replace**, press Escape or controller B if you want to keep the old
-  inputs. Clicking outside the row also cancels capture without clearing them.
-- Assigning an input already assigned to another action moves that input to the
-  selected action. Assigning an input already on the selected action leaves it
-  as it is.
-- **Escape** cancels capture, so it cannot be assigned through this page.
-  Controller **B** also cancels capture. The controller **Menu/Options** button
-  closes the menu and cannot be assigned here.
-- On the Bindings page, **Tab** moves keyboard focus to the next row. The
-  controller D-pad or left stick moves focus; **LB/RB** switches Preferences
-  tabs. Once capture starts, supported controller buttons and D-pad directions
-  can be assigned, including A, X, Y, LB/RB, View/Share, stick clicks, and
-  triggers. B and Menu/Options keep their cancel and menu functions.
-- The **Reset** button restores Unreal Revived's shipped bindings. This
-  replaces your custom assignments, so use it only when you want the defaults
-  back.
-- The **Console Key** and **Console Character** rows are special engine
-  settings, each with one assignment. The Console Key cannot use the left or
-  right mouse button. Console Character requires typing a character on a
-  keyboard. The three-input limit above describes gameplay actions.
-
-Controller button names on the page use Xbox labels. On PlayStation controllers,
-Cross = A, Circle = B, Square = X, and Triangle = Y. See
-[Supported controllers](controllers.md) for controller support and default
-controls.
+Changes remain after restarting the game with the same profile. See
+[Supported controllers](controllers.md) for supported devices and button names.

@@ -135,6 +135,11 @@ if (-not (Test-Path -LiteralPath $outputPackage)) {
 }
 
 Copy-Item -LiteralPath $brandingLogo -Destination (Join-Path $helpDirectory 'Logo.bmp') -Force
+# Seed optional weapon tuning once; never overwrite the user's calibration.
+$weaponTuningPath = Join-Path $system64Directory 'ModernVRWeapons.ini'
+if (-not (Test-Path -LiteralPath $weaponTuningPath)) {
+    Copy-Item -LiteralPath (Join-Path $sourcePackageDirectory 'Config\ModernVRWeapons.ini') -Destination $weaponTuningPath
+}
 Copy-Item -LiteralPath $brandingSetupLogo -Destination (Join-Path $helpDirectory 'SetupLogo.bmp') -Force
 & (Join-Path $PSScriptRoot 'install-project-localization.ps1') -GameRoot $GameRoot
 & (Join-Path $PSScriptRoot 'install-development-shortcuts.ps1') -GameRoot $GameRoot

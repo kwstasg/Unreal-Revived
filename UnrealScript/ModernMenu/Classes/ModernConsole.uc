@@ -40,6 +40,7 @@ var float SeamAssistBlockedTime;
 var bool bSeamAssistRadiusReduced;
 var PlayerPawn VRInteractionPlayer;
 var ModernVRAimHook VRAimHook;
+var ModernVRMotionHook VRMotionHook;
 
 const PlayerMaxStepHeight = 32.0;
 const SeamAssistRadiusReduction = 8.0;
@@ -257,9 +258,12 @@ function EnsureVRAimHook()
 	if (Left(Pose, 1) != "1")
 		return;
 	if (VRAimHook == None)
-		VRAimHook = new(Self) class'ModernVRAimHook';
+		VRAimHook = new class'ModernVRAimHook';
 	if (!VRAimHook.bHasHooks)
 		VRAimHook.InstallHooks();
+	if (VRMotionHook == None)
+		VRMotionHook = new class'ModernVRMotionHook';
+	VRMotionHook.EnsureHooks(Player);
 }
 
 // Install the camera hook only after the active renderer reports a valid
@@ -603,12 +607,26 @@ exec function RecenterVR()
 		Viewport.Actor.ConsoleCommand("D3D12 RECENTERVR");
 }
 
+exec function ReloadVRWeapons()
+{
+	if (Viewport.Actor == None) return;
+	if (class'ModernVRWeaponTuning'.static.Reload(Viewport.Actor))
+		Viewport.Actor.ClientMessage("VR weapon settings reloaded.");
+	else
+		Viewport.Actor.ClientMessage("Could not reload ModernVRWeapons.ini; current settings retained.");
+}
+
 function bool HandleVRRecenterKey(EInputKey Key, EInputAction Action)
 {
 	local string KeyName;
 	if (Action != IST_Press || Viewport.Actor == None)
 		return False;
 	KeyName = Viewport.Actor.ConsoleCommand("KEYNAME" @ int(Key));
+	if (Viewport.Actor.ConsoleCommand("KEYBINDING" @ KeyName) ~= "ReloadVRWeapons")
+	{
+		ReloadVRWeapons();
+		return True;
+	}
 	if (!(Viewport.Actor.ConsoleCommand("KEYBINDING" @ KeyName) ~= "RecenterVR"))
 		return False;
 	RecenterVR();
@@ -759,19 +777,19 @@ state UWindow
 			return True;
 		}
 		if (Action == IST_Press && Bindings != None
-			&& (Key == IK_Delete || Key == IK_Joy4)
+			&& (Key == IK_Delete || Key == IK_Joy3)
 			&& Bindings.ClearFocusedBinding())
 			return True;
 		if (Action == IST_Press && Bindings != None
 			&& (Key == IK_Enter || Key == IK_Space)
-			&& Bindings.BeginFocusedBindingCapture(Key == IK_Space))
+			&& Bindings.BeginFocusedBindingCapture())
 		{
 			BindingActivationKey = int(Key);
 			return True;
 		}
 		if (Action == IST_Press && Bindings != None
-			&& (Key == IK_Joy1 || Key == IK_Joy3)
-			&& Bindings.BeginFocusedBindingCapture(Key == IK_Joy3))
+			&& Key == IK_Joy1
+			&& Bindings.BeginFocusedBindingCapture())
 		{
 			BindingActivationKey = int(Key);
 			return True;

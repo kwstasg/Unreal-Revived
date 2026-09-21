@@ -475,8 +475,9 @@ try {
         }
         elseif ($case.OpenXRExpectation -eq 'Requested') {
             if ($logText -notmatch 'Unreal Revived OpenXR: requested by (command-line -vr|stored EnableVR); probing loader' -or
-                -not $logText.Contains('continuing flat-screen D3D12')) {
-                throw "$($case.Name) did not probe OpenXR and fall back safely to flat-screen D3D12."
+                ($logText -notmatch 'Unreal Revived OpenXR: D3D12 session and (monoscopic|stereo) game presentation initialized' -and
+                    -not $logText.Contains('continuing flat-screen D3D12'))) {
+                throw "$($case.Name) did not probe OpenXR and either initialize headset presentation or fall back safely."
             }
             if ($openXRLoaderLoaded -and
                 $logText -notmatch 'Unreal Revived OpenXR: (runtime=|active runtime unavailable|active runtime does not support|instance creation failed)') {

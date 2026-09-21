@@ -2,7 +2,7 @@
 // Author: Kwstasg - Kostas Giannakakis
 // Project: https://github.com/kwstasg/Unreal-Revived
 
-class ModernBindingsClientWindow extends UMenuCustomizeClientWindow;
+class ModernBindingsClientWindow extends UMenuCustomizeClientWindow config(User);
 
 var array<int> ThirdBoundKeys;
 var string BaseLocalizedKeyName[255];
@@ -11,6 +11,11 @@ var bool bBindingVisibilityValid;
 var float BindingLayoutWidth;
 var float LastBindingScrollTop;
 var localized string VRRecenterText;
+var localized string CaptureText;
+var config int BindingAge[255];
+var config int NextBindingAge;
+var array<int> OrderedBindings;
+var string CachedAliases[255];
 
 function Created()
 {
@@ -133,39 +138,71 @@ function FocusFirstBindingControl()
 	}
 }
 
-function bool BeginFocusedBindingCapture(bool bFromScratch)
+function bool SelectBindingControl(UWindowDialogControl Control)
 {
-	local int GroupIndex;
-	local int KeyIndex;
-	local UWindowDialogControl Control;
-
-	Control = UWindowDialogControl(Root.KeyFocusWindow);
-	for (GroupIndex = 0; GroupIndex < NumGroups; GroupIndex++)
-	{
-		for (KeyIndex = 0; KeyIndex < KeyGroups[GroupIndex].NumKeys; KeyIndex++)
-		{
-			if (Control == KeyGroups[GroupIndex].Keys[KeyIndex].KeyButton)
+	local int G, K;
+	for (G = 0; G < NumGroups; G++)
+		for (K = 0; K < KeyGroups[G].NumKeys; K++)
+			if (Control == KeyGroups[G].Keys[K].KeyButton || Control == KeyGroups[G].Keys[K].KeyName)
 			{
-				if (bFromScratch)
-					Notify(Control, DE_RClick);
-				else
-					Notify(Control, DE_Click);
+				CancelKeySelection(True);
+				Selection[0] = G;
+				Selection[1] = K;
+				SelectedButton = KeyGroups[G].Keys[K].KeyButton;
 				return True;
 			}
-		}
-	}
 	return False;
+}
+
+function StartBindingCapture()
+{
+	bPolling = True;
+	bErasing = False;
+	SelectedButton.bDisabled = True;
+	Root.bAllowConsole = False;
+	RefreshBindingButtonTexts();
+}
+
+function bool BeginFocusedBindingCapture()
+{
+	if (!SelectBindingControl(UWindowDialogControl(Root.KeyFocusWindow)))
+		return False;
+	StartBindingCapture();
+	return True;
+}
+
+function ClearSelectedBinding()
+{
+	local int I;
+	if (IsConsoleBinding())
+		UnbindSelectedItem();
+	else
+	{
+		LoadOrderedBindings(KeyGroups[Selection[0]].Keys[Selection[1]].AliasString);
+		for (I = 0; I < OrderedBindings.Size(); I++)
+			WriteBinding(OrderedBindings[I], "");
+	}
+	CancelKeySelection(True);
+	ReloadBindingDisplay();
 }
 
 function bool ClearFocusedBinding()
 {
-	if (!BeginFocusedBindingCapture(True))
+	if (!SelectBindingControl(UWindowDialogControl(Root.KeyFocusWindow)))
 		return False;
-	UnbindSelectedItem();
-	CancelKeySelection(True);
-	LoadExistingKeys();
-	RefreshThirdBindings();
+	ClearSelectedBinding();
 	return True;
+}
+
+function bool IsConsoleBinding()
+{
+	return Selection[0] == ConsoleButtonGroupIdx && Selection[1] == ConsoleButtonKeyIdx
+		|| Selection[0] == ConsoleCharacterGroupIdx && Selection[1] == ConsoleCharacterKeyIdx;
+}
+
+// Keep capture active when the initiating mouse button or keyboard key is released.
+function KeyUp(int Key, float X, float Y)
+{
 }
 
 function WindowShown()
@@ -225,6 +262,13 @@ function string NormalizeBindingAlias(string Alias)
 
 function RestoreDefaultControllerBindings()
 {
+	GetPlayerOwner().ConsoleCommand("SET Input Tab");
+	GetPlayerOwner().ConsoleCommand("SET Input R");
+	GetPlayerOwner().ConsoleCommand("SET Input Home Type");
+	GetPlayerOwner().ConsoleCommand("SET Input PageUp TeamTalk");
+	GetPlayerOwner().ConsoleCommand("SET Input Q InventoryPrevious");
+	GetPlayerOwner().ConsoleCommand("SET Input E InventoryNext");
+	GetPlayerOwner().ConsoleCommand("SET Input F InventoryActivate");
 	GetPlayerOwner().ConsoleCommand("SET Input MiddleMouse");
 	GetPlayerOwner().ConsoleCommand("SET Input NumPadPeriod");
 	GetPlayerOwner().ConsoleCommand("SET Input GreyPlus");
@@ -254,23 +298,57 @@ function RestoreDefaultControllerBindings()
 	GetPlayerOwner().ConsoleCommand("SET Input JoyPovDown SwitchWeapon 5");
 }
 
-function int CountSelectedBindings()
+function string ReadBinding(int KeyNo)
 {
-	local int BindingCount;
-	local int KeyNo;
-	local string Alias;
 	local string KeyName;
+	KeyName = GetPlayerOwner().ConsoleCommand("KEYNAME" @ KeyNo);
+	if (KeyName == "")
+		return "";
+	return NormalizeBindingAlias(GetPlayerOwner().ConsoleCommand("KEYBINDING" @ KeyName));
+}
 
+function WriteBinding(int KeyNo, string Alias)
+{
+	GetPlayerOwner().ConsoleCommand("SET Input" @ GetPlayerOwner().ConsoleCommand("KEYNAME" @ KeyNo) @ Alias);
+}
+
+function SaveBindingHistory()
+{
+	SaveConfig();
+}
+
+function RememberBinding(int KeyNo)
+{
+	BindingAge[KeyNo] = ++NextBindingAge;
+	SaveBindingHistory();
+}
+
+function int GetBindingAge(int KeyNo)
+{
+	return BindingAge[KeyNo];
+}
+
+function ReloadBindingDisplay()
+{
+	LoadExistingKeys();
+	RefreshThirdBindings();
+}
+
+function LoadOrderedBindings(string Alias, optional bool bCached)
+{
+	local int KeyNo, I, J, Swap;
+	OrderedBindings.SetSize(0);
 	for (KeyNo = 1; KeyNo < 255; KeyNo++)
-	{
-		KeyName = GetPlayerOwner().ConsoleCommand("KEYNAME" @ KeyNo);
-		if (KeyName == "")
-			continue;
-		Alias = NormalizeBindingAlias(GetPlayerOwner().ConsoleCommand("KEYBINDING" @ KeyName));
-		if (KeyGroups[Selection[0]].Keys[Selection[1]].AliasString ~= Alias)
-			BindingCount++;
-	}
-	return BindingCount;
+		if ((bCached && CachedAliases[KeyNo] ~= Alias) || (!bCached && ReadBinding(KeyNo) ~= Alias))
+			OrderedBindings[OrderedBindings.Size()] = KeyNo;
+	// Profiles predating history use key order for their initial oldest-first order.
+	for (I = 1; I < OrderedBindings.Size(); I++)
+		for (J = I; J > 0 && BindingAge[OrderedBindings[J]] < BindingAge[OrderedBindings[J - 1]]; J--)
+		{
+			Swap = OrderedBindings[J];
+			OrderedBindings[J] = OrderedBindings[J - 1];
+			OrderedBindings[J - 1] = Swap;
+		}
 }
 
 function int GetFlatBindingIndex(int GroupIndex, int KeyIndex)
@@ -285,57 +363,35 @@ function int GetFlatBindingIndex(int GroupIndex, int KeyIndex)
 
 function RefreshThirdBindings()
 {
-	local string DisplayName;
-	local int FlatIndex;
-	local int GroupIndex;
-	local int KeyIndex;
-	local int KeyNo;
-	local string Alias;
-	local string KeyName;
-
+	local int G, K, I, FlatIndex, KeyNo;
 	ThirdBoundKeys.SetSize(0);
-	for (KeyNo = 0; KeyNo < 255; KeyNo++)
-		LocalizedKeyName[KeyNo] = BaseLocalizedKeyName[KeyNo];
-	for (GroupIndex = 0; GroupIndex < NumGroups; GroupIndex++)
-		for (KeyIndex = 0; KeyIndex < KeyGroups[GroupIndex].NumKeys; KeyIndex++)
-			ThirdBoundKeys[GetFlatBindingIndex(GroupIndex, KeyIndex)] = 0;
-
-	for (KeyNo = 1; KeyNo < 255; KeyNo++)
+	for (I = 0; I < 255; I++)
 	{
-		KeyName = GetPlayerOwner().ConsoleCommand("KEYNAME" @ KeyNo);
-		if (KeyName == "")
-			continue;
-		Alias = NormalizeBindingAlias(GetPlayerOwner().ConsoleCommand("KEYBINDING" @ KeyName));
-		if (Alias == "")
-			continue;
-		for (GroupIndex = 0; GroupIndex < NumGroups; GroupIndex++)
+		LocalizedKeyName[I] = BaseLocalizedKeyName[I];
+		CachedAliases[I] = ReadBinding(I);
+	}
+	for (G = 0; G < NumGroups; G++)
+		for (K = 0; K < KeyGroups[G].NumKeys; K++)
 		{
-			for (KeyIndex = 0; KeyIndex < KeyGroups[GroupIndex].NumKeys; KeyIndex++)
+			FlatIndex = GetFlatBindingIndex(G, K);
+			ThirdBoundKeys[FlatIndex] = 0;
+			if (G == ConsoleButtonGroupIdx && K == ConsoleButtonKeyIdx
+				|| G == ConsoleCharacterGroupIdx && K == ConsoleCharacterKeyIdx)
+				continue;
+			LoadOrderedBindings(KeyGroups[G].Keys[K].AliasString, True);
+			KeyGroups[G].Keys[K].BoundKey1 = 0;
+			KeyGroups[G].Keys[K].BoundKey2 = 0;
+			if (OrderedBindings.Size() > 0)
+				KeyGroups[G].Keys[K].BoundKey1 = OrderedBindings[0];
+			if (OrderedBindings.Size() > 1)
+				KeyGroups[G].Keys[K].BoundKey2 = OrderedBindings[1];
+			if (OrderedBindings.Size() > 2)
 			{
-				if (!(KeyGroups[GroupIndex].Keys[KeyIndex].AliasString ~= Alias)
-					|| KeyGroups[GroupIndex].Keys[KeyIndex].BoundKey1 == KeyNo
-					|| KeyGroups[GroupIndex].Keys[KeyIndex].BoundKey2 == KeyNo)
-					continue;
-				FlatIndex = GetFlatBindingIndex(GroupIndex, KeyIndex);
-				if (ThirdBoundKeys[FlatIndex] == 0)
-					ThirdBoundKeys[FlatIndex] = KeyNo;
+				ThirdBoundKeys[FlatIndex] = OrderedBindings[2];
+				KeyNo = OrderedBindings[1];
+				LocalizedKeyName[KeyNo] = BaseLocalizedKeyName[KeyNo] $ OrString $ BaseLocalizedKeyName[OrderedBindings[2]];
 			}
 		}
-	}
-	for (GroupIndex = 0; GroupIndex < NumGroups; GroupIndex++)
-	{
-		for (KeyIndex = 0; KeyIndex < KeyGroups[GroupIndex].NumKeys; KeyIndex++)
-		{
-			KeyNo = ThirdBoundKeys[GetFlatBindingIndex(GroupIndex, KeyIndex)];
-			if (KeyNo == 0 || KeyGroups[GroupIndex].Keys[KeyIndex].BoundKey2 <= 0)
-				continue;
-			DisplayName = BaseLocalizedKeyName[KeyNo];
-			if (DisplayName == "")
-				DisplayName = RealKeyName[KeyNo];
-			KeyNo = KeyGroups[GroupIndex].Keys[KeyIndex].BoundKey2;
-			LocalizedKeyName[KeyNo] = BaseLocalizedKeyName[KeyNo] $ OrString $ DisplayName;
-		}
-	}
 	RefreshBindingButtonTexts();
 }
 
@@ -344,8 +400,8 @@ function string GetBindingButtonText(int GroupIndex, int KeyIndex)
 	local string KeyText;
 	local int KeyNo;
 
-	if (bPolling && bErasing && Selection[0] == GroupIndex && Selection[1] == KeyIndex)
-		return "";
+	if (bPolling && Selection[0] == GroupIndex && Selection[1] == KeyIndex)
+		return CaptureText;
 	KeyNo = KeyGroups[GroupIndex].Keys[KeyIndex].BoundKey1;
 	if (KeyNo > 0)
 		KeyText = LocalizedKeyName[KeyNo];
@@ -473,7 +529,7 @@ function BeforePaint(Canvas C, float X, float Y)
 function CancelKeySelection(optional bool bEscape)
 {
 	// The stock menu clears replacement bindings on ordinary cancellation.
-	// Only ClearFocusedBinding and a completed replacement should remove them.
+	// Clearing is explicit; canceling never changes the assignments.
 	Super.CancelKeySelection(True);
 	RefreshBindingButtonTexts();
 }
@@ -492,6 +548,7 @@ function bool CaptureKeyboardBinding(int KeyNo)
 	KeyName = GetPlayerOwner().ConsoleCommand("KEYNAME" @ KeyNo);
 	if (KeyName == "")
 		return False;
+	LastKeyDown = KeyNo;
 	ProcessMenuKey(KeyNo, KeyName);
 	return True;
 }
@@ -499,66 +556,76 @@ function bool CaptureKeyboardBinding(int KeyNo)
 function ProcessMenuKey(int KeyNo, string KeyName)
 {
 	local string Alias;
-
-	if (Selection[0] == ConsoleButtonGroupIdx && Selection[1] == ConsoleButtonKeyIdx
-		|| Selection[0] == ConsoleCharacterGroupIdx && Selection[1] == ConsoleCharacterKeyIdx)
+	local int I;
+	if (!bPolling || KeyNo <= 0 || KeyNo >= 255 || KeyName == "")
+		return;
+	if (KeyNo == IK_Escape)
+	{
+		CancelKeySelection(True);
+		return;
+	}
+	if (IsConsoleBinding())
 	{
 		Super.ProcessMenuKey(KeyNo, KeyName);
 		return;
 	}
-	Alias = NormalizeBindingAlias(GetPlayerOwner().ConsoleCommand("KEYBINDING" @ KeyName));
-	if (KeyGroups[Selection[0]].Keys[Selection[1]].AliasString ~= Alias)
+	Alias = KeyGroups[Selection[0]].Keys[Selection[1]].AliasString;
+	if (ReadBinding(KeyNo) ~= Alias)
 	{
 		CancelKeySelection(True);
 		return;
 	}
-	if (!bErasing && CountSelectedBindings() >= 3)
-	{
-		CancelKeySelection(True);
-		return;
-	}
-	if (bErasing)
-		UnbindSelectedItem();
-	GetPlayerOwner().ConsoleCommand("SET Input" @ KeyName @ KeyGroups[Selection[0]].Keys[Selection[1]].AliasString);
-	LoadExistingKeys();
-	RefreshThirdBindings();
+	LoadOrderedBindings(Alias);
+	// Make room, including profiles with more than three old assignments.
+	for (I = 0; I < OrderedBindings.Size() - 2; I++)
+		WriteBinding(OrderedBindings[I], "");
+	WriteBinding(KeyNo, Alias);
+	RememberBinding(KeyNo);
 	CancelKeySelection(True);
+	ReloadBindingDisplay();
+}
+
+function FocusSelectedBinding()
+{
+	SelectedButton.ActivateWindow(0, False);
 }
 
 function Notify(UWindowDialogControl C, byte E)
 {
+	local int I;
 	if (bPolling && C == SelectedButton)
 	{
 		if (E == DE_Click)
-		{
 			ProcessMenuKey(1, RealKeyName[1]);
-			return;
-		}
-		if (E == DE_RClick)
-		{
+		else if (E == DE_RClick)
 			ProcessMenuKey(2, RealKeyName[2]);
-			return;
-		}
-		if (E == DE_MClick)
-		{
+		else if (E == DE_MClick)
 			ProcessMenuKey(4, RealKeyName[4]);
+		return;
+	}
+	if ((E == DE_Click || E == DE_RClick || E == DE_MClick) && C != DefaultsButton)
+	{
+		if (E == DE_MClick)
+			return;
+		if (SelectBindingControl(C))
+		{
+			FocusSelectedBinding();
+			if (E == DE_Click)
+				StartBindingCapture();
+			else
+				ClearSelectedBinding();
 			return;
 		}
-	}
-	if (E == DE_MClick && UMenuRaisedButton(C) != None)
-	{
-		C.ActivateWindow(0, False);
-		if (ClearFocusedBinding())
-			return;
 	}
 	Super.Notify(C, E);
-	if (UMenuRaisedButton(C) != None && (E == DE_Click || E == DE_RClick))
-		RefreshBindingButtonTexts();
 	if (C == DefaultsButton && E == DE_Click)
 	{
+		for (I = 0; I < 255; I++)
+			BindingAge[I] = 0;
+		NextBindingAge = 0;
+		SaveBindingHistory();
 		RestoreDefaultControllerBindings();
-		LoadExistingKeys();
-		RefreshThirdBindings();
+		ReloadBindingDisplay();
 	}
 }
 
@@ -572,5 +639,6 @@ function Close(optional bool bByParent)
 defaultproperties
 {
 	VRRecenterText="Recenter VR View"
-	CustomizeHelp="Add up to three bindings, replace, or clear. Canceling leaves the current bindings unchanged."
+	CaptureText="Press a key..."
+	CustomizeHelp="Left-click / Enter / A: add (replaces oldest when full). Right-click / Delete / X: clear. Escape / B: cancel."
 }

@@ -6,6 +6,36 @@
 
 class ModernVRAimSupport extends Object abstract;
 
+static function SetCrosshairRay(PlayerPawn Player, vector Start, rotator Aim)
+{
+	local ModernVRInteraction Interaction;
+	if (Player == None) return;
+	Interaction = ModernVRInteraction(Player.FindInteraction(class'ModernVRInteraction'));
+	if (Interaction == None) return;
+	Interaction.CrosshairStart = Start;
+	Interaction.CrosshairAim = Aim;
+	Interaction.bHasCrosshairRay = True;
+}
+
+static function bool CrosshairPosition(PlayerPawn Player, Canvas C, out float X, out float Y)
+{
+	local vector End, HitLocation, HitNormal, Screen;
+	local ModernVRInteraction Interaction;
+	if (Player == None || Player.bBehindView || Player.ViewTarget != None)
+		return False;
+	Interaction = ModernVRInteraction(Player.FindInteraction(class'ModernVRInteraction'));
+	if (Interaction == None || !Interaction.bHasCrosshairRay) return False;
+	End = Interaction.CrosshairStart + vector(Interaction.CrosshairAim) * 10000;
+	if (Player.Trace(HitLocation, HitNormal, End, Interaction.CrosshairStart, True) != None)
+		End = HitLocation;
+	Screen = C.WorldToScreen(End);
+	if (Screen.Z <= 0 || Screen.X < 0 || Screen.Y < 0 || Screen.X > C.ClipX || Screen.Y > C.ClipY)
+		return False;
+	X = Screen.X - 8;
+	Y = Screen.Y - 8;
+	return True;
+}
+
 static function bool PopPoseValue(out string Pose, out string Value)
 {
 	local int Separator;
@@ -18,12 +48,15 @@ static function bool PopPoseValue(out string Pose, out string Value)
 	return True;
 }
 
-static function bool ReadHeadRotation(PlayerPawn Player, out rotator HeadRotation)
+static function bool ReadHeadRotation(PlayerPawn Player, out rotator HeadRotation, optional bool bHeadCenter)
 {
 	local string Pose;
 	local string Value;
 
-	Pose = Player.ConsoleCommand("D3D12 OPENXRPOSE");
+	if (bHeadCenter)
+		Pose = Player.ConsoleCommand("D3D12 OPENXRPOSE CENTER");
+	else
+		Pose = Player.ConsoleCommand("D3D12 OPENXRPOSE");
 	if (!PopPoseValue(Pose, Value) || Value != "1")
 		return False;
 	if (!PopPoseValue(Pose, Value))

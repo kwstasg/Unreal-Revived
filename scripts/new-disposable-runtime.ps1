@@ -231,6 +231,13 @@ try {
     Set-Content -LiteralPath (Join-Path $destinationRoot 'System64\D3D12Test.ini') -Value $iniLines -Encoding ASCII
     $userIniLines = Get-Content -LiteralPath $defaultUserIni
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F11' 'ToggleFPSStatistics'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Tab' ''
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'R' ''
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Home' 'Type'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'PageUp' 'TeamTalk'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'Q' 'InventoryPrevious'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'E' 'InventoryNext'
+    $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F' 'InventoryActivate'
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'MiddleMouse' ''
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'NumPadPeriod' ''
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'GreyPlus' ''

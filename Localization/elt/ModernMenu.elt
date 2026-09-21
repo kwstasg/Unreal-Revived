@@ -7,6 +7,12 @@ BindingsTab="Πλήκτρα"
 VRTab="VR"
 
 [ModernVRConfigCW]
+AimMethodText="Μέθοδος στόχευσης"
+AimMethodHelp="Τα πλήκτρα και οι μοχλοί Touch λειτουργούν και στις δύο μεθόδους στόχευσης. Η στόχευση κίνησης χρησιμοποιεί το επιλεγμένο χέρι του όπλου. Κέντρο και Κρυφό χρησιμοποιούν το δεξί χέρι. Αφήστε τα πλήκτρα μετά την αλλαγή."
+GazeAimText="Με το βλέμμα"
+MotionAimText="Χειριστήρια κίνησης"
+MotionReadyText="Το χειριστήριο εντοπίστηκε. Έλεγχος και μενού όπως στο Xbox."
+MotionUnavailableText="Το χειριστήριο στόχευσης δεν είναι διαθέσιμο. Συνδέστε το ή επιλέξτε στόχευση με το βλέμμα."
 VRHeadingText="Εικονική πραγματικότητα"
 HUDDistanceText="Απόσταση HUD"
 HUDDistanceHelp="Ρυθμίστε την απόσταση των χωρικών πινάκων HUD και μενού από 0,50 έως 5,00 μέτρα."
@@ -86,3 +92,7 @@ ShowGameBehindMenusText="Απόκρυψη φόντου μενού"
 ShowGameBehindMenusHelp="Εμφανίζει τον σταματημένο κόσμο πίσω από τα μενού για ζωντανή προεπισκόπηση."
 ResetHUDSettingHelp="Επαναφορά αυτής της ρύθμισης HUD στην προεπιλογή του Unreal Revived."
 ResetScaleHelp="Επαναφορά της κλίμακας στην προεπιλογή 1.5 του Unreal Revived."
+
+[ModernBindingsClientWindow]
+CaptureText="Πατήστε ένα πλήκτρο..."
+CustomizeHelp="Αριστερό κλικ / Enter / A: προσθήκη (αντικαθιστά το παλαιότερο όταν γεμίσει). Δεξί κλικ / Delete / X: εκκαθάριση. Escape / B: ακύρωση."

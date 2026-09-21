@@ -47,8 +47,13 @@ private:
 	DWORD LastScanTime;
 	DWORD PreviousButtons;
 	FTime LastPollTime;
+	UBOOL MotionActive = FALSE;
+	UBOOL MotionNeutral = FALSE;
+	UBOOL MotionFireReady = FALSE;
+	INT MotionAimMode = -1;
 
 	UBOOL ReadState(INT ConfiguredIndex, FControllerState& State);
+	UBOOL ReadMotionState(UWindowsViewport* Viewport, FControllerState& State, UBOOL& CanAim, INT& AimMode);
 	UBOOL ReadSDLState(INT ConfiguredIndex, FControllerState& State);
 	UBOOL ReadXInputState(INT ConfiguredIndex, FControllerState& State);
 	void CloseSDLGamepad();

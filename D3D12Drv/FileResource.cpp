@@ -3,8 +3,8 @@
 // Project: https://github.com/kwstasg/Unreal-Revived
 
 
-#include "Precomp.h"
 #include "FileResource.h"
+#include <stdexcept>
 
 // Embedded shader sources keep renderer deployment self-contained.
 
@@ -80,12 +80,14 @@ std::string FileResource::readAllText(const std::string& filename)
 			{
 				float4 outColor : SV_Target0;
 				uint outHitIndex : SV_Target1;
-				float outUIMask : SV_Target2;
+				float2 outUIMask : SV_Target2;
 			};
 
 			static const uint SCENE_VERTEX_UI_COMPOSITION = 1u << 7;
 			static const uint SCENE_VERTEX_UI_COMPOSITION_TRANSLUCENT = 1u << 8;
 			static const uint SCENE_VERTEX_UI_COMPOSITION_MODULATED = 1u << 9;
+			static const uint SCENE_VERTEX_VR_WEAPON = 1u << 10;
+			static const uint SCENE_VERTEX_VR_WEAPON_OPAQUE = 1u << 11;
 
 			SamplerState samplerTex;
 			SamplerState samplerTexLightmap;
@@ -155,14 +157,17 @@ std::string FileResource::readAllText(const std::string& filename)
 
 				output.outHitIndex = input.hitIndex;
 				output.outUIMask = 0.0;
-				if ((input.flags & SCENE_VERTEX_UI_COMPOSITION) != 0)
+				if ((input.flags & (SCENE_VERTEX_UI_COMPOSITION | SCENE_VERTEX_VR_WEAPON)) != 0)
 				{
 					float uiCoverage = output.outColor.a;
 					if ((input.flags & SCENE_VERTEX_UI_COMPOSITION_TRANSLUCENT) != 0)
 						uiCoverage = max(max(output.outColor.r, output.outColor.g), output.outColor.b);
 					else if ((input.flags & SCENE_VERTEX_UI_COMPOSITION_MODULATED) != 0)
 						uiCoverage = max(max(abs(output.outColor.r - 0.5), abs(output.outColor.g - 0.5)), abs(output.outColor.b - 0.5)) * 2.0;
-					output.outUIMask = saturate(uiCoverage);
+					output.outUIMask.r = (input.flags & SCENE_VERTEX_UI_COMPOSITION) != 0 ? saturate(uiCoverage) : 0.0;
+					output.outUIMask.g = (input.flags & SCENE_VERTEX_VR_WEAPON) != 0 ? saturate(uiCoverage) : 0.0;
+					if ((input.flags & SCENE_VERTEX_VR_WEAPON_OPAQUE) != 0)
+						output.outUIMask.g = 1.0;
 				}
 				return output;
 			}
@@ -220,27 +225,31 @@ std::string FileResource::readAllText(const std::string& filename)
 				float UseWorldPostProcess;
 				float UseVRUI;
 				float VRHeadCollisionFade;
+				float4 VRPanelOrigin;
+				float4 VRPanelRight;
+				float4 VRPanelUp;
+				float4 VREyeTangents;
 			}
 
-			SamplerState samplerTex
+			SamplerState samplerTex : register(s0)
 			{
 				Filter = MIN_MAG_MIP_LINEAR;
 				AddressU = Clamp;
 				AddressV = Clamp;
 			};
 
-			SamplerState samplerDither
+			SamplerState samplerDither : register(s1)
 			{
 				Filter = MIN_MAG_MIP_POINT;
 				AddressU = Wrap;
 				AddressV = Wrap;
 			};
 
-			Texture2D texFinalFrame;
-			Texture2D texDither;
-			Texture2D texWorldScene;
-			Texture2D<float> texUICompositionMask;
-			Texture2D texVRUI;
+			Texture2D texFinalFrame : register(t0);
+			Texture2D texDither : register(t1);
+			Texture2D texWorldScene : register(t2);
+			Texture2D<float2> texUICompositionMask : register(t3);
+			Texture2D texVRUI : register(t4);
 
 			float3 dither(float3 c, float4 FragCoord)
 			{
@@ -361,6 +370,16 @@ std::string FileResource::readAllText(const std::string& filename)
 				Output output;
 			#if defined(OPENXR_UI_LAYER)
 				float4 uiLayer = texFinalFrame.Sample(samplerTex, input.texCoord);
+				float weaponVisibility = 1.0;
+				float3 panelPoint = VRPanelOrigin.xyz + (input.texCoord.x - 0.5) * VRPanelRight.xyz
+					+ (input.texCoord.y - 0.5) * VRPanelUp.xyz;
+				if (VRPanelOrigin.w > 0.0 && panelPoint.z < -0.001)
+				{
+					float2 tangent = panelPoint.xy / -panelPoint.z;
+					float2 eyeUV = (tangent - VREyeTangents.xz) / (VREyeTangents.yw - VREyeTangents.xz);
+					if (all(eyeUV >= 0.0) && all(eyeUV <= 1.0))
+						weaponVisibility = 1.0 - texUICompositionMask.Sample(samplerTex, eyeUV).g;
+				}
 				float3 uiColor = gammaCorrect(colorCorrect(uiLayer.rgb));
 				output.outColor = float4(dither(uiColor, input.fragCoord), uiLayer.a);
 			#else
@@ -390,7 +409,7 @@ std::string FileResource::readAllText(const std::string& filename)
 					float3 finalColor = texFinalFrame.Sample(samplerTex, input.texCoord).rgb;
 					uint maskWidth, maskHeight;
 					texUICompositionMask.GetDimensions(maskWidth, maskHeight);
-					float uiMaskValue = texUICompositionMask.Load(int3(min(uint2(input.texCoord * float2(maskWidth, maskHeight)), uint2(maskWidth - 1, maskHeight - 1)), 0));
+					float uiMaskValue = texUICompositionMask.Load(int3(min(uint2(input.texCoord * float2(maskWidth, maskHeight)), uint2(maskWidth - 1, maskHeight - 1)), 0)).r;
 					// Never reconstruct translucent UI by subtracting scene colors.
 					// A marked UI pixel comes directly from the completed frame; an
 					// unmarked pixel comes from the processed world-only image.
@@ -439,6 +458,9 @@ std::string FileResource::readAllText(const std::string& filename)
 				float3 low = srgb / 12.92;
 				float3 high = pow(max((srgb + 0.055) / 1.055, 0.0), 2.4);
 				output.outColor.rgb = lerp(high, low, step(srgb, 0.04045));
+			#endif
+			#if defined(OPENXR_UI_LAYER)
+				output.outColor *= weaponVisibility;
 			#endif
 				// Fade after display effects/encoding so full obstruction is black.
 				output.outColor.rgb *= 1.0 - saturate(VRHeadCollisionFade);

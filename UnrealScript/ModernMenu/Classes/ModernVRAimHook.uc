@@ -24,6 +24,16 @@ function bool InstallHooks()
 function bool GetVRAimRotation(PlayerPawn Player, out rotator AimRotation)
 {
 	local rotator HeadRotation;
+	local vector Hand;
+	local float Scale;
+
+	if (Player != None && class'ModernVRMotionSupport'.default.FiringPlayer == Player)
+	{
+		AimRotation = Player.ViewRotation;
+		return True;
+	}
+	if (class'ModernVRMotionSupport'.static.IsSelected(Player))
+		return class'ModernVRMotionSupport'.static.ReadFrame(Player, AimRotation, Hand, Scale);
 
 	if (Player == None
 		|| !class'ModernVRAimSupport'.static.ReadHeadRotation(Player, HeadRotation))
@@ -65,7 +75,8 @@ function bool HookAdjustAim(Object Context, out rotator Result,
 	if (bWarnTarget && Pawn(BestTarget) != None)
 		Pawn(BestTarget).WarnTarget(Player, ProjectileSpeed, FireDirection);
 
-	if (Player.Level.NetMode != NM_Standalone
+	if (class'ModernVRMotionSupport'.default.FiringPlayer == Player
+		|| Player.Level.NetMode != NM_Standalone
 		|| Player.Level.Game.Difficulty > 2
 		|| Player.bAlwaysMouseLook
 		|| (BestTarget != None && BestAim < Player.MyAutoAim)

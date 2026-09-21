@@ -52,6 +52,13 @@ stretching: source aspect is restored on the physical quad. Preserve the working
 sampling, shaders, alpha and composition unless new evidence identifies a defect
 at that specific boundary.
 
+The 2026-09-21 weapon-over-HUD change addresses composition order, not panel
+placement: the same panel is submitted using eye-specific array slices and
+left/right visibility. Each slice cuts out the corresponding eye's weapon
+coverage, keeping pose, physical size, source layout and input coordinates
+unchanged. Collision fade leaves recovery UI unobscured. Pixel tests cover the
+new composition math; in-headset validation of this addition remains pending.
+
 ## Settings and physical geometry
 
 Preferences > VR controls distance, scale and Recenter VR View. Startup uses

@@ -6,6 +6,10 @@ evidence in [vr-ui-investigation.md](vr-ui-investigation.md).
 
 ## Status
 
+An opt-in [motion-controller aiming development build](vr-motion-controllers.md)
+now adds a second aiming method. Its physical-controller acceptance is pending;
+the seated gaze baseline and remaining validations below still apply.
+
 This document records the implemented seated VR mode and its remaining roadmap. The
 mode-selection, loader, runtime/HMD detection, D3D12 compatibility, session
 lifecycle, frame timing, independent eye rendering, runtime IPD, asymmetric

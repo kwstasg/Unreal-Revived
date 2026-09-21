@@ -69,15 +69,14 @@ hidden. The Controller section appears before Mouse, and visible checkbox
 controls share the same right-edge alignment as the Video page. **Bindings**
 retains the engine's existing binding persistence while displaying all assigned
 controller buttons alongside the stock keyboard and mouse slots. Left-click,
-Enter, and controller A add a binding; right-click, Space, and controller X
-replace the action's bindings with the next input; middle-click, Delete, and
-controller Y clear the action immediately. Escape and controller B cancel an
-active capture without changing the action. Each action accepts at most three
-bindings across keyboard, mouse, and controller; attempting to add a fourth
-leaves the existing three unchanged. The page's Reset button restores Unreal
-Revived's shipped defaults, including crouch on `Ctrl`, `C`, and left-stick
-click. See the [key binding guide](key-bindings.md) for step-by-step instructions
-and special cases.
+Enter, Space, and controller A add a binding. When three are already assigned,
+the new input replaces the oldest; the row displays oldest to newest.
+Right-click, Delete, and controller X clear the action immediately. There is
+no separate replacement mode, and middle-click has no editing action.
+Escape and controller B cancel capture without changing the action. The page's
+Reset button restores Unreal Revived's shipped defaults, including crouch on
+`Ctrl`, `C`, and left-stick click. See the [key binding guide](key-bindings.md)
+for steps and special cases.
 PlayStation Cross/Circle/Square/Triangle map to the same physical positions as
 A/B/X/Y.
 

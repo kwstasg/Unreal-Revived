@@ -15,6 +15,20 @@ history.
 5. Read [`testing.md`](testing.md) before declaring a behavior complete.
 6. Follow the repository and renderer rules under `.github/`.
 
+## Accepted VR weapon baseline
+
+On 2026-09-21 the owner confirmed the completed weapon work was visually correct
+in the headset after the final Eightball adjustment. The local annotated tag
+`vr-weapons-validated-2026-09-21` preserves this known-good baseline: shared
+weapon sizing, gaze right/left/center placement, tracked placement, muzzle/aim
+alignment, RazorJack alternate animation and weapon/HUD composition.
+The 14 accepted calibration profiles are now the shipped seed defaults,
+including Eightball gaze Y=20; existing user calibration is never overwritten.
+See [the milestone and recovery record](vr-weapon-tuning.md#accepted-milestone)
+before changing these paths. This supersedes older pending visual-acceptance
+notes for these weapon changes, not the separate remote-client multiplayer,
+recurring-stutter or broader VR compatibility limitations.
+
 ## Supported boundary
 
 - Host: OldUnreal 227k_15, Windows x64.

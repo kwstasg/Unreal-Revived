@@ -10,6 +10,238 @@ September 12 cleanup compacted available dated test-log directories into
 beside it for the directories included. Current release-validation logs remain
 under `local/logs/`.
 
+## 2026-09-21
+
+### Accepted milestone: VR weapon baseline
+
+The owner confirmed "Everything seems perfect now" after the final Eightball
+correction and requested a preserved working milestone. This establishes headset
+acceptance for weapon sizing, gaze handed placement, tracked placement,
+projectile/aim alignment, RazorJack alternate rotation and weapon/HUD composition.
+It supersedes earlier pending visual checks for that scope; it does not close
+remote-client multiplayer limitations or the recurring-stutter investigation.
+
+Promoted the owner's latest 14 runtime profiles to the shipped seed template,
+including Eightball gaze Y=20. Exact profile parity passed; existing runtime
+calibration remains untouched and build/install remain seed-only. Preserved the
+working source and full local runtime under the annotated milestone
+`vr-weapons-validated-2026-09-21`, with the private snapshot/checksum and recovery
+details in [the weapon guide](vr-weapon-tuning.md#accepted-milestone).
+The source snapshot also retains existing controller, bindings and video work;
+the milestone does not expand its visual acceptance claim to untested behavior.
+The preceding zero-warning ModernMenu build and firing regression passed at
+`local/game/System64/VRMotionRegression-20260921-145525.log`.
+The final accepted calibration also passed at
+`local/game/System64/VRMotionRegression-20260921-152645.log`. The complete private
+runtime snapshot contains 3,819 files, each verified against its source with
+SHA-256; its renderer and input DLLs match the existing Release build outputs.
+Repository safety and source whitespace checks passed. No installer was built
+and nothing was published as part of this local milestone.
+
+- Extended the stock-mesh gaze handed-barrel correction to Eightball after the
+  owner reported a smaller version of RocketLauncher's left/center offset.
+  Right-hand calibration, motion placement and runtime INI values are unchanged.
+  Reused the launcher symmetry checks for both weapons, each at its configured
+  scale and a larger scale. ModernMenu rebuilt/deployed with zero warnings;
+  handedness and existing firing regressions passed at
+  `local/game/System64/VRMotionRegression-20260921-145525.log`. Eightball visual
+  acceptance remains pending.
+- Corrected stock UPak RocketLauncher gaze left/center placement for its authored
+  off-center barrel while preserving right-hand calibration and motion placement.
+  RazorJack now samples its live alternate-animation muzzle in both aiming modes,
+  retaining the idle cache, model scale and intentional alternate-projectile roll.
+  No runtime INI values changed. ModernMenu rebuilt/deployed with zero warnings.
+  Launcher handed symmetry at two scales, independent RazorJack animated vertex
+  measurements, actor-state restoration and existing firing checks passed at
+  `local/game/System64/VRMotionRegression-20260921-144434.log`. The initial launcher
+  fixture needed explicit geometry initialization before its right-hand baseline.
+  The owner accepted other weapons' handed placement; these two changes still
+  require headset visual confirmation.
+- Made only the gaze calibration's Y component follow handedness: right uses the
+  saved value, left negates it, and center adds zero Y. The shared drawing/muzzle
+  helper applies the adjustment; stock center placement/roll, gaze X/Z, scale and
+  motion-controller behavior remain unchanged. Preserved all runtime profile
+  values and updated only the INI comments. ModernMenu rebuilt/deployed with zero
+  warnings. Right/left/center offset assertions, unchanged motion calibration and
+  existing firing regressions passed at
+  `local/game/System64/VRMotionRegression-20260921-143605.log`. Center is a
+  conservative placement trial, not forced mesh centering; headset acceptance
+  remains pending. The owner reported excellent projectile/aiming alignment,
+  especially in motion mode, before this gaze-only adjustment.
+- Audited the expanded firing paths and removed repeated native state-function
+  resolution from steady-state firing with a map-scoped class/state/function
+  cache, including negative results. Added an authority guard without modifying
+  RPCs, replicated fields or stock server firing. Added explicit AutoMag/Minigun
+  alternate-state, QuadShot four-pattern and gaze/motion blocked zoom/reload checks,
+  plus a loopback listen-host variant of the existing regression. ModernMenu built
+  and deployed with zero warnings (15520 lines, 1659 statements). Standalone
+  coverage passed at `VRMotionRegression-20260921-141623.log`; listen-host coverage
+  passed at `VRMotionRegression-20260921-141809.log`, under `local/game/System64/`.
+  The latter measured 10,000 function lookups at 15.625 ms cached versus 35.156 ms
+  native; this is a microbenchmark, not an FPS claim. Map travel/shutdown passed at
+  `local/game/System64/VRTravel-20260921-141929.log`.
+  Remote clients remain an explicit limitation: stock movement packets contain no
+  tracked/calibrated muzzle position, so equivalent remote VR firing cannot be
+  claimed under the unchanged-network constraint.
+- Corrected a weapon/HUD mask bug relevant to the reported UPak skin holes:
+  opaque color ignores texture alpha but the previous coverage mask used it.
+  Added an opaque-weapon coverage flag so surviving opaque/masked pixels fully
+  occlude HUD without changing genuine blended effects, invisible polygons or
+  texture assets. Renderer built/deployed; the production-shader WARP pixel test
+  passed opaque-zero-alpha, masked discard/survival, blended-effect and unchanged
+  UI-alpha checks. VRFoundation startup passed under
+  `local/logs/automated-20260921-141833/`; the headset session stayed IDLE, so actual
+  UPak visual confirmation remains pending. The owner's calibration INI was not
+  modified during this audit.
+- Extended gaze shot routing and guarded resting-mesh muzzle references to all
+  14 stock/UPak profile families, preserving the owner's newly calibrated scales
+  and offsets. Added exact stock spawn adapters for Eightball volleys, both UPak
+  GrenadeLauncher states, RazorJack primary and UPak RocketLauncher; standard
+  hitscan/projectile paths keep their original code. Active VR shots follow the
+  computed aim ray instead of legacy auto-aim deflection. Reload, zoom and existing
+  remote-grenade detonation bypass muzzle blocking. Multi-barrel weapons use a
+  shared muzzle reference; Eightball retains angular spread/counts but no longer
+  uses its body-relative randomized spawn ring. Stock replacement-mesh fallback,
+  physical sizing and AutoMag grip placement remain intact. QuadShot handed meshes
+  required front-face measurement because their vertex ordering differs.
+  ModernMenu rebuilt/deployed with zero warnings (15394 lines, 1653 statements).
+  Full focused regression, including actual saved gaze tuning, mirrored meshes,
+  shot origins/directions, charged/alternate shots, volleys and hitscan traces,
+  passed at `local/game/System64/VRMotionRegression-20260921-140546.log`.
+  Reload/removal passed at `local/game/System64/VRReload-20260921-140619.log`;
+  map travel/shutdown passed at `local/game/System64/VRTravel-20260921-140630.log`.
+  No headset visual acceptance, animated sockets, complete campaign or multiplayer
+  validation is claimed. Only the runtime INI's outdated coverage comment changed.
+- Replaced profile `GazeScale`/`MotionScale` with one per-weapon `Scale` at the
+  owner's request. Both modes read the same multiplier; offsets remain separate.
+  Converted all 14 source/default and current disposable runtime profiles,
+  preserving the owner's sizes (1.0, 1.1, 1.25, 0.85 for the first four) and every
+  offset. Older external profiles need explicit field conversion; no legacy
+  scale aliases or automatic averaging remain. Updated fixture profiles and
+  assertions for shared sizes with independent offsets. ModernMenu compiled and
+  deployed with zero warnings. Weapon regression passed at
+  `local/game/System64/VRMotionRegression-20260921-103659.log`; live shared-scale
+  reload/profile removal passed at `local/game/System64/VRReload-20260921-103714.log`.
+- Performed a behavior-preserving cleanup of the recent VR weapon work: renamed
+  the stock barrel regression helper to describe its assertions, corrected the
+  shared-sizing module comment, removed stale personal tuning values from the
+  current guide and tidied documentation wrapping. No gameplay statements,
+  calibration constants, profiles or compatibility paths changed. ModernMenu
+  compiled/deployed with zero warnings (14607 lines, 1603 statements, unchanged
+  counts). No runtime tests were run for this naming/documentation-only cleanup.
+- Addressed the reported low DispersionPistol projectile origin with measured
+  stock barrel landmarks in both VR modes. Sampled all five idle forms: the
+  first two use front-opening vertices 2/13/10/11 and later forms use the extended
+  barrel pair 29/156, guarded by mesh identity and the 195-vertex layout. Power
+  upgrades refresh only the cached muzzle, preserving existing size and offsets;
+  sampling restores live mesh, rotation and animation. User INI values were not
+  changed. ModernMenu compiled/deployed with zero warnings. Runtime regression
+  passed at `local/game/System64/VRMotionRegression-20260921-021026.log`, covering
+  all power-level landmarks, cache updates and state restoration, plus existing
+  primary/charged origins in forced motion and synthetic gaze (errors under
+  0.001 game units). Headset barrel alignment still requires user confirmation.
+- Corrected the reported low Stinger shots and ASMD beam/ball misalignment in
+  both aiming modes. Stock Stinger/ASMD muzzle geometry now uses measured barrel
+  landmarks from the pinned resting meshes instead of whole-mesh centre/bounds;
+  identity and vertex-count checks preserve fallback behavior for custom meshes.
+  The original size, grip and user offsets are untouched, and animation state is
+  restored after measuring. Extended the gaze firing scope to ASMD and compensated
+  its stock ProcessTraceHit visual offset multipliers (Y 3.3, Z 3) only inside VR
+  firing, forwarding to original hit/effect code with an explicit re-entry guard.
+  ModernMenu built/deployed with zero warnings. Final runtime regression passed
+  at `local/game/System64/VRMotionRegression-20260921-020150.log`: ASMD ball/beam
+  origins within 0.001 game units of the calculated muzzle in forced motion and
+  synthetic gaze, unchanged desktop beam offsets, stock landmark calibration,
+  animation restoration and existing weapon regressions. Signature commandlet
+  passed at `local/game/System64/VRMotionSignatures.log`. Preserved the owner's
+  latest INI scales/offsets (including Stinger 1.25 and ASMD 0.7). Visual barrel
+  alignment in the headset remains to be confirmed; no live headset session or
+  complete damage/combo gameplay acceptance was performed.
+- Fixed the underlying gaze/motion size inconsistency: both paths now use the
+  existing weapon-family physical geometry baseline. Equal profile multipliers
+  produce equal model scales without a matching option. Preserved motion sizes
+  and offsets; converted the disposable runtime's first three gaze multipliers to
+  1.20, 1.00 and 1.26, matching their motion entries. Their previous rounded gaze
+  sizes change by less than 0.31%; other neutral gaze weapons now use the same
+  physical baseline as motion. No installed profiles were migrated automatically.
+  Expanded the regression to all 14 stock/UPak profile classes, two Old Weapons
+  subclasses, and a custom weapon with changed mesh/view scale. ModernMenu
+  compiled/deployed with zero warnings; the regression passed at
+  `local/game/System64/VRMotionRegression-20260921-012101.log`, including existing
+  projectile/refire checks. This proves the shared sizing calculations, not full
+  mutator/Return to Na Pali gameplay or visual barrel alignment. Documented those
+  boundaries and the migration requirement for older gaze multipliers.
+- Removed the temporary automatic matching option completely at the owner's
+  request: config property, reload handling, averaging, override argument, and
+  source/runtime INI entries. Gaze now directly applies its own multiplier without
+  looking up motion geometry; motion applies only its own multiplier. Retained
+  the rounded direct calibration and all offsets. Replaced the midpoint regression
+  with checks of independent scale application through production helpers.
+  ModernMenu compiled/deployed with zero warnings; the focused weapon regression
+  passed at `local/game/System64/VRMotionRegression-20260921-011528.log`.
+- At the owner's request, disabled automatic gaze/motion size matching in the
+  disposable runtime and set direct two-decimal scales: DispersionPistol
+  3.33/1.20, AutoMag 3.69/1.00, Stinger 2.25/1.26 (gaze/motion). Preserved all
+  offsets and other profiles. Arithmetic against the measured baselines gives
+  mode-size differences of 0.192%, 0.194% and 0.306%; no game launch or rebuild
+  was needed. Updated tuning guidance to reflect the direct-value approach.
+- Follow-up to recurring F8 stutter and removing/replacing the HMD: moved session
+  transition polling out of per-eye Unlock to the existing viewport frame
+  boundary. This prevents STOPPING from ending a session before its pending
+  stereo frame finishes. The prior game log showed STOPPING/IDLE followed by
+  `xrEndFrame` result -16, but recurring-stutter causality remains unproven.
+- Added optional `bMatchGazeAndMotionSize`: arithmetic midpoint of the two actual
+  model draw scales, used in both modes without rewriting profile values or
+  offsets. Enabled only in the owner's tuned disposable runtime; template default
+  remains False. Measured DispersionPistol 4.485000/3.185136 -> 3.835068, AutoMag
+  4.255000/4.235294 -> 4.245147, Stinger 4.887500/3.898073 -> 4.392787.
+- Corrected projectile origins through a temporary FireOffset/view scope around
+  stock firing functions; the previous final CalcDrawOffset hook was not entered
+  by actual stock projectile calls. Gaze DispersionPistol/Stinger now share their
+  rendered placement calculation, with head-center translation available between
+  eye draws. Aim hooks avoid applying tracked rotation twice within that scope.
+  Pinned script state-function lookup returned incorrect objects, so a narrow
+  native SDK field resolver supplies exact state targets. Charged DispersionPistol
+  and Stinger's five-shot alternate burst retain original stock implementations.
+- Release renderer and ModernMenu built/deployed. Final motion regression passed
+  at `local/game/System64/VRMotionRegression-20260921-010657.log`, covering actual
+  primary/charged/burst origins, stock spread, exact state binding, restored
+  offsets/view, shared sizes and existing refire/geometry checks. Primary origin
+  errors were below 0.001 game units. Signature commandlet passed at
+  `local/game/System64/VRMotionSignatures.log`; reload and map travel passed at
+  `VRReload-20260921-010710.log` and `VRTravel-20260921-010724.log` in the same
+  directory. All three renderer CTests passed. VRFoundation passed at
+  `local/logs/automated-20260921-010740/`; Oculus remained IDLE. Exact barrel
+  alignment (bounds-derived muzzle), headset on/off recovery, perceived matched
+  sizes and recurring stutter still require live headset confirmation. Repository
+  safety check passed with 304 commit candidates.
+
+- Investigated intermittent stuttering reported after F8 `ReloadVRWeapons`.
+  Reload has no recurring timer or file polling. Reuse the live tuning object
+  instead of allocating a replacement on every successful reload, and invalidate
+  resolved class matches even when the profile count is unchanged. The existing
+  live edit/removal regression now checks object identity and passed at
+  `local/game/System64/VRReload-20260921-002041.log`. This removes allocation
+  churn; it does not establish the cause or resolution of the periodic stalls.
+  The prior session log also contained configuration-triggered WinMM messages
+  and headset stop/restart events, without timing evidence linking them to stalls.
+- Implemented weapon-over-HUD composition for gaze and motion aiming. Weapon
+  coverage occupies the second channel of the existing composition mask.
+  Eye-specific slices of one UI swapchain preserve the shared panel's pose,
+  dimensions, canvas and input coordinates, while hiding covered UI pixels.
+  Invisible polygons do not occlude; collision fade keeps the recovery UI visible.
+  Explicit shader resource registers prevent the UI-only compiler variant from
+  shifting the mask binding after removing unused world textures.
+- Renderer Release build/deploy and ModernMenu compilation passed. All three
+  renderer CTests passed, including the new production-shader WARP pixel test
+  for occlusion, asymmetric-eye mapping, out-of-view rejection and premultiplied
+  alpha. Final VR startup/config/desktop-override checks passed at
+  `local/logs/automated-20260921-002843/`. Corrected the harness's obsolete
+  requirement for a desktop-fallback message after successful VR initialization.
+  Oculus remained IDLE during automation: headset overlap, recenter, menus,
+  collision recovery and sustained stutter reproduction remain manual checks.
+  Deployed only to the disposable runtime; preserved the tuned weapon INI.
+
 ## 2026-09-16
 
 - Renamed the unpublished 0.6.2 candidate to 0.7.0 at the owner's request.

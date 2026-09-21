@@ -187,6 +187,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	VRHUDScale = 1.0f;
 	VRPlayerHeightOffset = 0.0f;
 	VRWorldScale = 1.0f;
+	VRAimMode = 0;
 	AntialiasMode = 2;
 	UsePrecache = 1;
 	Coronas = 1;
@@ -250,6 +251,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	new(GetClass(), TEXT("VRHUDScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDScale), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRPlayerHeightOffset"), RF_Public) UFloatProperty(CPP_PROPERTY(VRPlayerHeightOffset), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRWorldScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRWorldScale), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("VRAimMode"), RF_Public) UIntProperty(CPP_PROPERTY(VRAimMode), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("UsePrecache"), RF_Public) UBoolProperty(CPP_PROPERTY(UsePrecache), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("GammaCorrectScreenshots"), RF_Public) UBoolProperty(CPP_PROPERTY(GammaCorrectScreenshots), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("UseDebugLayer"), RF_Public) UBoolProperty(CPP_PROPERTY(UseDebugLayer), TEXT("Display"), CPF_Config);
@@ -314,7 +316,7 @@ int UD3D12RenderDevice::GetSupportedMultisample(int requestedMultisample)
 	{
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		DXGI_FORMAT_R32_UINT,
-		DXGI_FORMAT_R8_UNORM,
+		DXGI_FORMAT_R8G8_UNORM,
 		DXGI_FORMAT_D32_FLOAT
 	};
 
@@ -1272,6 +1274,11 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		return;
 	}
 
+	if (!MotionControllers.Initialize(OpenXRInstance, OpenXRSession, OpenXRGetInstanceProcAddr))
+	{
+		MotionControllers.Release();
+		debugf(TEXT("Unreal Revived OpenXR: motion input unavailable; gaze rendering remains available"));
+	}
 	debugf(TEXT("Unreal Revived OpenXR: D3D12 session and stereo game presentation initialized; monitor rendering remains active"));
 	PollOpenXRSession();
 }
@@ -1461,7 +1468,7 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 	UISwapchainInfo.width = OpenXRUISwapchain.Width;
 	UISwapchainInfo.height = OpenXRUISwapchain.Height;
 	UISwapchainInfo.faceCount = 1;
-	UISwapchainInfo.arraySize = 1;
+	UISwapchainInfo.arraySize = 2;
 	UISwapchainInfo.mipCount = 1;
 	Result = OpenXRFunctions.CreateSwapchain(OpenXRSession, &UISwapchainInfo, &OpenXRUISwapchain.Handle);
 	if (XR_FAILED(Result) || OpenXRUISwapchain.Handle == XR_NULL_HANDLE)
@@ -1478,14 +1485,19 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 		reinterpret_cast<XrSwapchainImageBaseHeader*>(OpenXRUISwapchain.Images.data()));
 	if (XR_FAILED(Result))
 		return 0;
-	OpenXRUISwapchain.RTVs = Heaps.RTV->Alloc(static_cast<INT>(UIImageCount));
+	OpenXRUISwapchain.RTVs = Heaps.RTV->Alloc(static_cast<INT>(UIImageCount * 2));
 	for (uint32_t ImageIndex = 0; ImageIndex < UIImageCount; ImageIndex++)
 	{
 		D3D12_RENDER_TARGET_VIEW_DESC RTVDesc = {};
 		RTVDesc.Format = SelectedFormat;
-		RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-		Device->CreateRenderTargetView(OpenXRUISwapchain.Images[ImageIndex].texture, &RTVDesc,
-			OpenXRUISwapchain.RTVs.CPUHandle(static_cast<INT>(ImageIndex)));
+		RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+		RTVDesc.Texture2DArray.ArraySize = 1;
+		for (uint32_t ViewIndex = 0; ViewIndex < 2; ViewIndex++)
+		{
+			RTVDesc.Texture2DArray.FirstArraySlice = ViewIndex;
+			Device->CreateRenderTargetView(OpenXRUISwapchain.Images[ImageIndex].texture, &RTVDesc,
+				OpenXRUISwapchain.RTVs.CPUHandle(static_cast<INT>(ImageIndex * 2 + ViewIndex)));
+		}
 	}
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC> Elements =
@@ -1653,8 +1665,12 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 	OpenXRFrameBegun = 1;
 	OpenXRSubmitLayer = 0;
 	OpenXRUILayerReady = 0;
+	OpenXRUIEyeMask = 0;
 	OpenXRViewsValid = 0;
 	OpenXRPredictedDisplayTime = FrameState.predictedDisplayTime;
+	MotionControllers.Update(OpenXRLocalSpace, OpenXRPredictedDisplayTime,
+		OpenXRSessionState == XR_SESSION_STATE_FOCUSED && FrameState.shouldRender);
+	MotionSampleTime = appSeconds();
 	for (OpenXRViewSwapchain& Swapchain : OpenXRSwapchains)
 		Swapchain.ImageReady = 0;
 	OpenXRUISwapchain.ImageReady = 0;
@@ -1787,26 +1803,30 @@ UBOOL UD3D12RenderDevice::PresentOpenXREye(uint32_t ViewIndex)
 	return 1;
 }
 
-UBOOL UD3D12RenderDevice::PresentOpenXRUI()
+UBOOL UD3D12RenderDevice::PresentOpenXRUI(uint32_t ViewIndex)
 {
 	if (!OpenXRFrameBegun || !OpenXRViewsValid || !VRUISeparatedThisFrame ||
-		OpenXRUISwapchain.Handle == XR_NULL_HANDLE || !OpenXRUIPresentPipeline)
+		OpenXRUISwapchain.Handle == XR_NULL_HANDLE || !OpenXRUIPresentPipeline || ViewIndex >= 2)
 		return 0;
 
-	XrSwapchainImageAcquireInfo AcquireInfo = { XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
-	XrResult Result = OpenXRFunctions.AcquireSwapchainImage(OpenXRUISwapchain.Handle, &AcquireInfo,
-		&OpenXRUISwapchain.AcquiredImage);
-	if (XR_FAILED(Result) || OpenXRUISwapchain.AcquiredImage >= OpenXRUISwapchain.Images.size())
-		return 0;
-	XrSwapchainImageWaitInfo WaitInfo = { XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
-	WaitInfo.timeout = XR_INFINITE_DURATION;
-	Result = OpenXRFunctions.WaitSwapchainImage(OpenXRUISwapchain.Handle, &WaitInfo);
-	if (XR_FAILED(Result))
-		return 0;
-	OpenXRUISwapchain.ImageReady = 1;
+	if (!OpenXRUISwapchain.ImageReady)
+	{
+		XrSwapchainImageAcquireInfo AcquireInfo = { XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+		XrResult Result = OpenXRFunctions.AcquireSwapchainImage(OpenXRUISwapchain.Handle, &AcquireInfo,
+			&OpenXRUISwapchain.AcquiredImage);
+		if (XR_FAILED(Result) || OpenXRUISwapchain.AcquiredImage >= OpenXRUISwapchain.Images.size())
+			return 0;
+		XrSwapchainImageWaitInfo WaitInfo = { XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
+		WaitInfo.timeout = XR_INFINITE_DURATION;
+		Result = OpenXRFunctions.WaitSwapchainImage(OpenXRUISwapchain.Handle, &WaitInfo);
+		if (XR_FAILED(Result))
+			return 0;
+		OpenXRUISwapchain.ImageReady = 1;
+	}
+	UpdateOpenXRUIAnchor();
 
 	const D3D12_CPU_DESCRIPTOR_HANDLE RTV = OpenXRUISwapchain.RTVs.CPUHandle(
-		static_cast<INT>(OpenXRUISwapchain.AcquiredImage));
+		static_cast<INT>(OpenXRUISwapchain.AcquiredImage * 2 + ViewIndex));
 	const FLOAT Transparent[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	Commands.Current->Draw->ClearRenderTargetView(RTV, Transparent, 0, nullptr);
 	Commands.Current->Draw->SetGraphicsRootSignature(PresentPass.RootSignature);
@@ -1825,10 +1845,36 @@ UBOOL UD3D12RenderDevice::PresentOpenXRUI()
 	PresentPushConstants PushConstants = GetPresentPushConstants();
 	PushConstants.UseWorldPostProcess = 0.0f;
 	PushConstants.UseVRUI = 0.0f;
+	const XrView& Eye = OpenXRViews[ViewIndex];
+	const XrQuaternionf EyeInverse = { -Eye.pose.orientation.x, -Eye.pose.orientation.y,
+		-Eye.pose.orientation.z, Eye.pose.orientation.w };
+	const FVector PanelOrigin = RotateOpenXRVector(EyeInverse,
+		FVector(OpenXRUIAnchorPose.position.x - Eye.pose.position.x,
+			OpenXRUIAnchorPose.position.y - Eye.pose.position.y,
+			OpenXRUIAnchorPose.position.z - Eye.pose.position.z));
+	const FLOAT PanelWidth = VRPanelGeometry::Width(Clamp(VRHUDScale, 0.5f, 2.0f));
+	const FLOAT PanelHeight = VRPanelGeometry::Height(PanelWidth, CurrentSizeX, CurrentSizeY);
+	const FVector PanelRight = RotateOpenXRVector(EyeInverse,
+		RotateOpenXRVector(OpenXRUIAnchorPose.orientation, FVector(PanelWidth, 0.0f, 0.0f)));
+	const FVector PanelUp = RotateOpenXRVector(EyeInverse,
+		RotateOpenXRVector(OpenXRUIAnchorPose.orientation, FVector(0.0f, PanelHeight, 0.0f)));
+	PushConstants.VRPanelOrigin = vec4(PanelOrigin.X, PanelOrigin.Y, PanelOrigin.Z,
+		VRHeadCollisionFade > 0.0f ? 0.0f : 1.0f);
+	PushConstants.VRPanelRight = vec4(PanelRight.X, PanelRight.Y, PanelRight.Z, 0.0f);
+	PushConstants.VRPanelUp = vec4(PanelUp.X, PanelUp.Y, PanelUp.Z, 0.0f);
+	PushConstants.VREyeTangents = vec4(appTan(Eye.fov.angleLeft), appTan(Eye.fov.angleRight),
+		appTan(Eye.fov.angleDown), appTan(Eye.fov.angleUp));
 	Commands.Current->Draw->SetGraphicsRoot32BitConstants(1,
 		sizeof(PresentPushConstants) / sizeof(uint32_t), &PushConstants, 0);
 	Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
 
+	OpenXRUIEyeMask |= 1u << ViewIndex;
+	OpenXRUILayerReady = OpenXRUIAnchorValid && OpenXRUIEyeMask == 3;
+	return 1;
+}
+
+void UD3D12RenderDevice::UpdateOpenXRUIAnchor()
+{
 	if (!OpenXRUIAnchorValid && OpenXRViews.size() == 2)
 	{
 		// Start with an upright, eye-level anchor for HUD, menus and intro.
@@ -1857,8 +1903,6 @@ UBOOL UD3D12RenderDevice::PresentOpenXRUI()
 			OpenXRUIAnchorHeadPosition.z + Offset.Z
 		};
 	}
-	OpenXRUILayerReady = OpenXRUIAnchorValid;
-	return 1;
 }
 
 void UD3D12RenderDevice::FinishOpenXRFrame()
@@ -1909,7 +1953,7 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 	XrCompositionLayerQuad UILayer = { XR_TYPE_COMPOSITION_LAYER_QUAD };
 	UILayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
 	UILayer.space = OpenXRLocalSpace;
-	UILayer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+	UILayer.eyeVisibility = XR_EYE_VISIBILITY_LEFT;
 	UILayer.subImage.swapchain = OpenXRUISwapchain.Handle;
 	UILayer.subImage.imageRect.offset = { 0, 0 };
 	UILayer.subImage.imageRect.extent = { OpenXRUISwapchain.Width, OpenXRUISwapchain.Height };
@@ -1920,14 +1964,18 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 	const FLOAT UIWidth = VRPanelGeometry::Width(UIScale);
 	const FLOAT UIHeight = VRPanelGeometry::Height(UIWidth, CurrentSizeX, CurrentSizeY);
 	UILayer.size = { UIWidth, UIHeight };
-	const XrCompositionLayerBaseHeader* Layers[2] = {
+	XrCompositionLayerQuad RightUILayer = UILayer;
+	RightUILayer.eyeVisibility = XR_EYE_VISIBILITY_RIGHT;
+	RightUILayer.subImage.imageArrayIndex = 1;
+	const XrCompositionLayerBaseHeader* Layers[3] = {
 		reinterpret_cast<const XrCompositionLayerBaseHeader*>(&Layer),
-		reinterpret_cast<const XrCompositionLayerBaseHeader*>(&UILayer)
+		reinterpret_cast<const XrCompositionLayerBaseHeader*>(&UILayer),
+		reinterpret_cast<const XrCompositionLayerBaseHeader*>(&RightUILayer)
 	};
 	XrFrameEndInfo EndInfo = { XR_TYPE_FRAME_END_INFO };
 	EndInfo.displayTime = OpenXRPredictedDisplayTime;
 	EndInfo.environmentBlendMode = OpenXRBlendMode;
-	EndInfo.layerCount = AllImagesReleased ? (UIReleased ? 2 : 1) : 0;
+	EndInfo.layerCount = AllImagesReleased ? (UIReleased ? 3 : 1) : 0;
 	EndInfo.layers = AllImagesReleased ? Layers : nullptr;
 	const XrResult Result = OpenXRFunctions.EndFrame(OpenXRSession, &EndInfo);
 	if (XR_FAILED(Result))
@@ -1944,6 +1992,8 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 
 void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
+	MotionControllers.Release();
+	MotionSampleTime = FTime();
 	OpenXRSessionRunning = 0;
 	OpenXRRenderingReady = 0;
 	OpenXRViewRecenterRequested = 0;
@@ -2100,7 +2150,7 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	D3D12_CLEAR_VALUE clearValue = {}, clearValueInt = {}, clearValueMask = {}, depthValue = {};
 	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	clearValueInt.Format = DXGI_FORMAT_R32_UINT;
-	clearValueMask.Format = DXGI_FORMAT_R8_UNORM;
+	clearValueMask.Format = DXGI_FORMAT_R8G8_UNORM;
 	depthValue.Format = DXGI_FORMAT_D32_FLOAT;
 	depthValue.DepthStencil.Depth = 1.0f;
 
@@ -2139,7 +2189,7 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	ThrowIfFailed(result, "CreateCommittedResource(SceneBuffers.HitBuffer) failed");
 	SceneBuffers.HitBuffer->SetName(TEXT("SceneBuffers.HitBuffer"));
 
-	texDesc.Format = DXGI_FORMAT_R8_UNORM;
+	texDesc.Format = DXGI_FORMAT_R8G8_UNORM;
 	result = Device->CreateCommittedResource(
 		&defaultHeapProps,
 		D3D12_HEAP_FLAG_NONE,
@@ -2181,7 +2231,7 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	SceneBuffers.PPHitBuffer->SetName(TEXT("SceneBuffers.PPHitBuffer"));
 
 	texDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-	texDesc.Format = DXGI_FORMAT_R8_UNORM;
+	texDesc.Format = DXGI_FORMAT_R8G8_UNORM;
 	result = Device->CreateCommittedResource(
 		&defaultHeapProps,
 		D3D12_HEAP_FLAG_NONE,
@@ -2457,7 +2507,7 @@ void UD3D12RenderDevice::CreateScenePass()
 		psoDesc.NumRenderTargets = 3;
 		psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		psoDesc.RTVFormats[1] = DXGI_FORMAT_R32_UINT;
-		psoDesc.RTVFormats[2] = DXGI_FORMAT_R8_UNORM;
+		psoDesc.RTVFormats[2] = DXGI_FORMAT_R8G8_UNORM;
 		psoDesc.BlendState.IndependentBlendEnable = TRUE;
 		psoDesc.BlendState.RenderTarget[1].BlendEnable = FALSE;
 		psoDesc.BlendState.RenderTarget[1].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
@@ -2468,7 +2518,7 @@ void UD3D12RenderDevice::CreateScenePass()
 		psoDesc.BlendState.RenderTarget[2].SrcBlendAlpha = D3D12_BLEND_ONE;
 		psoDesc.BlendState.RenderTarget[2].DestBlendAlpha = D3D12_BLEND_ONE;
 		psoDesc.BlendState.RenderTarget[2].BlendOpAlpha = D3D12_BLEND_OP_MAX;
-		psoDesc.BlendState.RenderTarget[2].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED;
+		psoDesc.BlendState.RenderTarget[2].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED | D3D12_COLOR_WRITE_ENABLE_GREEN;
 	};
 
 	for (int i = 0; i < 64; i++)
@@ -2952,10 +3002,16 @@ void UD3D12RenderDevice::BeginVRUIPass()
 
 uint32_t UD3D12RenderDevice::GetUICompositionFlags(DWORD polyFlags) const
 {
-	if (!UIPassActive)
+	if (!UIPassActive && !VRWeaponPassActive)
 		return 0;
 
-	uint32_t flags = SVF_UIComposition;
+	uint32_t flags = UIPassActive ? SVF_UIComposition : 0;
+	if (VRWeaponPassActive && !(polyFlags & PF_Invisible))
+	{
+		flags |= SVF_VRWeapon;
+		if (!(polyFlags & (PF_Translucent | PF_Modulated | PF_Highlighted | PF_AlphaBlend)))
+			flags |= SVF_VRWeaponOpaque;
+	}
 	if (polyFlags & PF_Translucent)
 		flags |= SVF_UICompositionTranslucent;
 	else if (polyFlags & PF_Modulated)
@@ -2972,7 +3028,7 @@ void UD3D12RenderDevice::ResolveUICompositionMask()
 			SceneBuffers.UICompositionMaskBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
 			SceneBuffers.ResolvedUICompositionMask, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RESOLVE_DEST);
 		Commands.Current->Draw->ResolveSubresource(
-			SceneBuffers.ResolvedUICompositionMask, 0, SceneBuffers.UICompositionMaskBuffer, 0, DXGI_FORMAT_R8_UNORM);
+			SceneBuffers.ResolvedUICompositionMask, 0, SceneBuffers.UICompositionMaskBuffer, 0, DXGI_FORMAT_R8G8_UNORM);
 
 		TransitionResourceBarrier(
 			Commands.Current->Draw,
@@ -3562,8 +3618,158 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 	if (ParseCommand(&Cmd, TEXT("D3D12")))
 	{
 		#if defined(UNREAL_227)
+		if (ParseCommand(&Cmd, TEXT("BEGINVRWEAPONPASS")))
+		{
+			VRWeaponPassActive = IsLocked && OpenXRStereoDrawEye >= 0 && !VRUIPassActive;
+			return 1;
+		}
+		if (ParseCommand(&Cmd, TEXT("ENDVRWEAPONPASS")))
+		{
+			VRWeaponPassActive = false;
+			return 1;
+		}
+		if (ParseCommand(&Cmd, TEXT("RELOADVRWEAPONS")))
+		{
+			const TCHAR* Filename = TEXT("ModernVRWeapons.ini");
+			FString Contents;
+			UClass* TuningClass = FindObject<UClass>(NULL, TEXT("ModernMenu.ModernVRWeaponTuning"));
+			if (GConfig && TuningClass && appLoadFileToString(Contents, Filename) &&
+				Contents.Caps().InStr(TEXT("[MODERNMENU.MODERNVRWEAPONTUNING]")) >= 0)
+			{
+				// Discard only this cached file without writing stale values over
+				// the user's edits. Script clears old profiles before loading.
+				GConfig->UnloadFile(Filename);
+				TuningClass->GetDefaultObject()->LoadConfig(0, TuningClass, Filename, 1);
+				debugf(TEXT("VR weapon tuning reloaded from ModernVRWeapons.ini"));
+				Ar.Logf(TEXT("1"));
+			}
+			else Ar.Logf(TEXT("0"));
+			return 1;
+		}
+		if (ParseCommand(&Cmd, TEXT("VRWEAPONFUNCTION")))
+		{
+			FString ClassName, StateName, FunctionName;
+			if (ParseToken(Cmd, ClassName, 0) && ParseToken(Cmd, StateName, 0) && ParseToken(Cmd, FunctionName, 0))
+			{
+				UClass* WeaponClass = FindObject<UClass>(NULL, *ClassName);
+				if (WeaponClass && WeaponClass->IsChildOf(AWeapon::StaticClass()))
+				{
+					for (TFieldIterator<UState> State(WeaponClass); State; ++State)
+					{
+						if (State->GetFName() != FName(*StateName)) continue;
+						for (TFieldIterator<UFunction> Function(*State); Function; ++Function)
+						{
+							if (Function->GetFName() != FName(*FunctionName)) continue;
+							Ar.Logf(TEXT("%d"), Function->GetIndex());
+							return 1;
+						}
+						break;
+					}
+				}
+			}
+			Ar.Logf(TEXT("-1"));
+			return 1;
+		}
+		if (ParseCommand(&Cmd, TEXT("VRWEAPONFIRE")))
+		{
+			// ScriptHook re-entry must preserve Global.Fire/Global.AltFire. A
+			// virtual script call would instead hit the current state's no-op.
+			FString Alternate;
+			if (Viewport && Viewport->Actor && Viewport->Actor->Weapon &&
+				Viewport->Actor->Weapon->Owner == Viewport->Actor && ParseToken(Cmd, Alternate, 0))
+			{
+				AWeapon* Weapon = Viewport->Actor->Weapon;
+				UFunction* Function = Weapon->FindFunction(Alternate == TEXT("1") ? FName(TEXT("AltFire")) : FName(TEXT("Fire")), 1);
+				if (Function)
+				{
+					FLOAT Value = appAtof(Cmd);
+					Weapon->ProcessEvent(Function, &Value);
+					Ar.Logf(TEXT("1"));
+					return 1;
+				}
+			}
+			Ar.Logf(TEXT("0"));
+			return 1;
+		}
+		if (ParseCommand(&Cmd, TEXT("VRAIMMODE")))
+		{
+			FString Value;
+			if (ParseToken(Cmd, Value, 0))
+			{
+				VRAimMode = appAtoi(*Value) == 1 ? 1 : 0;
+				MotionControllers.Clear();
+				SaveConfig();
+			}
+			Ar.Logf(TEXT("%d"), VRAimMode == 1 ? 1 : 0);
+			return 1;
+		}
+		if (ParseCommand(&Cmd, TEXT("OPENXRMOTIONACTIVE")))
+		{
+			// Mode checks do not need quaternion conversion or pose formatting.
+			Ar.Logf(TEXT("%d"), VRAimMode == 1 && OpenXRSessionRunning && OpenXRRenderingReady ? 1 : 0);
+			return 1;
+		}
+		if (ParseCommand(&Cmd, TEXT("OPENXRCONTROLLER")))
+		{
+			if (VRAimMode != 1 || !OpenXRSessionRunning || !OpenXRRenderingReady)
+				Ar.Logf(TEXT("0"));
+			else
+			{
+				const int Hand = Viewport && Viewport->Actor && Viewport->Actor->Handedness == 1 ? 0 : 1;
+				const auto& State = MotionControllers.Hands[Hand];
+				if (!State.Valid || !OpenXRBaseOrientationValid || !OpenXRHeadPoseValid ||
+					OpenXRSessionState != XR_SESSION_STATE_FOCUSED || appSeconds() - MotionSampleTime > 0.25)
+					Ar.Logf(TEXT("1 0"));
+				else
+				{
+					const FLOAT Units = 50.0f / Clamp(VRWorldScale, 0.4f, 2.5f);
+					const XrQuaternionf Inverse = {-OpenXRBaseOrientation.x, -OpenXRBaseOrientation.y,
+						-OpenXRBaseOrientation.z, OpenXRBaseOrientation.w};
+					const auto& P = State.Grip.position;
+					const FVector Offset = OpenXRVectorToUnreal(RotateOpenXRVector(Inverse,
+						FVector(P.x - OpenXRBaseHeadPosition.x, P.y - OpenXRBaseHeadPosition.y,
+							P.z - OpenXRBaseHeadPosition.z))) * Units;
+					const FRotator Rotation = RelativeOpenXRRotation(OpenXRBaseOrientation, State.Aim.orientation);
+					Ar.Logf(TEXT("1 1 %d %d %d %.6f %.6f %.6f %.6f %.6f "),
+						Rotation.Pitch, Rotation.Yaw, Rotation.Roll, Offset.X, Offset.Y, Offset.Z,
+						Clamp(VRPlayerHeightOffset, -0.75f, 1.5f) * Units, Units / 50.0f);
+				}
+			}
+			return 1;
+		}
+		if (ParseCommand(&Cmd, TEXT("OPENXRINPUT")))
+		{
+			if (!OpenXRSessionRunning || !OpenXRRenderingReady)
+				Ar.Logf(TEXT("0"));
+			else
+			{
+				auto Left = MotionControllers.Hands[0];
+				auto Right = MotionControllers.Hands[1];
+				if (OpenXRSessionState != XR_SESSION_STATE_FOCUSED || appSeconds() - MotionSampleTime > 0.25)
+					Left = Right = {};
+				if (!Left.Connected && !Right.Connected)
+				{
+					Ar.Logf(TEXT("0"));
+					return 1;
+				}
+				// Xbox-compatible buttons: ABXY, grips as shoulders, left menu as Start.
+				const INT Buttons = (Right.Primary ? 0x1000 : 0) | (Right.Secondary ? 0x2000 : 0) |
+					(Left.Primary ? 0x4000 : 0) | (Left.Secondary ? 0x8000 : 0) |
+					(Left.Squeeze > 0.5f ? 0x100 : 0) | (Right.Squeeze > 0.5f ? 0x200 : 0) |
+					(Left.Click ? 0x40 : 0) | (Right.Click ? 0x80 : 0) | (Left.Menu ? 0x10 : 0);
+				const bool CanAim = OpenXRHeadPoseValid && (VRAimMode != 1 ||
+					(Viewport && Viewport->Actor && Viewport->Actor->Handedness == 1 ? Left.Valid : Right.Valid));
+				Ar.Logf(TEXT("1 %d %d %d %d %d %d %d %d %d"), CanAim ? 1 : 0, Buttons,
+					(INT)(Clamp(Left.Stick.x, -1.f, 1.f) * 32767), (INT)(Clamp(Left.Stick.y, -1.f, 1.f) * 32767),
+					(INT)(Clamp(Right.Stick.x, -1.f, 1.f) * 32767), (INT)(Clamp(Right.Stick.y, -1.f, 1.f) * 32767),
+					CanAim ? (INT)(Clamp(Left.Trigger, 0.f, 1.f) * 255) : 0,
+					CanAim ? (INT)(Clamp(Right.Trigger, 0.f, 1.f) * 255) : 0, VRAimMode == 1 ? 1 : 0);
+			}
+			return 1;
+		}
 		if (ParseCommand(&Cmd, TEXT("OPENXRPOSE")))
 		{
+			const bool HeadCenterRotation = ParseCommand(&Cmd, TEXT("CENTER")) != 0;
 			if (OpenXRSessionRunning && OpenXRHeadPoseValid && OpenXRBaseOrientationValid)
 			{
 				FRotator EyeRotation = OpenXRRelativeHeadRotation;
@@ -3571,11 +3777,12 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 				FVector HeadOffset(0.0f, 0.0f, 0.0f);
 				// Larger perceived worlds require fewer game units per tracked meter.
 				const FLOAT UnitsPerMeter = 50.0f / Clamp(VRWorldScale, 0.4f, 2.5f);
-				if (OpenXRStereoDrawEye >= 0 && OpenXRViewsValid && OpenXRViews.size() == 2)
+				if ((OpenXRStereoDrawEye >= 0 || HeadCenterRotation) && OpenXRViewsValid && OpenXRViews.size() == 2)
 				{
-					EyeRotation = RelativeOpenXRRotation(OpenXRBaseOrientation,
-						OpenXRViews[OpenXRStereoDrawEye].pose.orientation);
-					const XrVector3f& Position = OpenXRViews[OpenXRStereoDrawEye].pose.position;
+					if (!HeadCenterRotation && OpenXRStereoDrawEye >= 0)
+						EyeRotation = RelativeOpenXRRotation(OpenXRBaseOrientation,
+							OpenXRViews[OpenXRStereoDrawEye].pose.orientation);
+					const XrVector3f& Position = OpenXRViews[OpenXRStereoDrawEye >= 0 ? OpenXRStereoDrawEye : 0].pose.position;
 					const XrQuaternionf BaseInverse = {
 						-OpenXRBaseOrientation.x, -OpenXRBaseOrientation.y,
 						-OpenXRBaseOrientation.z, OpenXRBaseOrientation.w
@@ -3593,6 +3800,8 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 						CurrentHeadPosition - FVector(OpenXRBaseHeadPosition.x,
 							OpenXRBaseHeadPosition.y, OpenXRBaseHeadPosition.z));
 					HeadOffset = OpenXRVectorToUnreal(LocalHeadDelta) * UnitsPerMeter;
+					if (OpenXRStereoDrawEye < 0)
+						EyeOffset = HeadOffset;
 				}
 				Ar.Logf(TEXT("1 %d %d %d %.6f %.6f %.6f %.6f %.6f %.6f %.6f %.6f"), EyeRotation.Pitch,
 					EyeRotation.Yaw, EyeRotation.Roll,
@@ -3849,6 +4058,7 @@ void UD3D12RenderDevice::Lock(FPlane InFlashScale, FPlane InFlashFog, FPlane Scr
 		WorldSceneCaptured = false;
 		UIPassActive = false;
 		VRUIPassActive = false;
+		VRWeaponPassActive = false;
 		VRUISeparatedThisFrame = false;
 
 		FlashScale = InFlashScale;
@@ -3903,7 +4113,7 @@ void UD3D12RenderDevice::DrawStats(FSceneNode* Frame)
 
 PresentPushConstants UD3D12RenderDevice::GetPresentPushConstants()
 {
-	PresentPushConstants pushconstants;
+	PresentPushConstants pushconstants = {};
 	pushconstants.HdrScale = 0.8f + HdrScale * (3.0f / 255.0f);
 	pushconstants.ChromaticAberration = ChromaticAberration / 255.0f;
 	pushconstants.VignetteIntensity = VignetteIntensity / 255.0f;
@@ -3978,10 +4188,6 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 {
 	guard(UD3D12RenderDevice::Unlock);
 
-#if defined(UNREAL_227)
-	PollOpenXRSession();
-#endif
-
 	if (!IsLocked) // Don't trust the engine.
 		return;
 
@@ -3992,11 +4198,13 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 
 		if (Blit)
 		{
+			if ((VRUISeparatedThisFrame && OpenXRStereoDrawEye >= 0) ||
+				(WorldSceneCaptured && IsWorldPostProcessEnabled()))
+				ResolveUICompositionMask();
 			if (VRUISeparatedThisFrame && OpenXRStereoDrawEye >= 0)
 			{
 				CopySceneToPostProcess(PPI_VRUI);
-				if (OpenXRStereoDrawEye == 1)
-					PresentOpenXRUI();
+				PresentOpenXRUI(static_cast<uint32_t>(OpenXRStereoDrawEye));
 				CopyPostProcessImage(PPI_VRUIBase, PPI_FinalFrame);
 			}
 			else
@@ -4006,9 +4214,6 @@ void UD3D12RenderDevice::Unlock(UBOOL Blit)
 			{
 				RunBloomPass(SceneBuffers.PPImageSRV[PPI_WorldScene], PPI_WorldScene);
 			}
-			if (WorldSceneCaptured && IsWorldPostProcessEnabled())
-				ResolveUICompositionMask();
-
 			TransitionResourceBarrier(Commands.Current->Draw, FrameBuffers[BackBufferIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE rtv = FrameBufferRTVs.CPUHandle(BackBufferIndex);
@@ -4520,6 +4725,8 @@ void UD3D12RenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Inf
 	float UMult = GetUMult(Info);
 	float VMult = GetVMult(Info);
 	int flags = (PolyFlags & (PF_RenderFog | PF_Translucent | PF_Modulated | PF_AlphaBlend)) == PF_RenderFog ? 16 : 0;
+	if (VRWeaponPassActive)
+		flags |= GetUICompositionFlags(PolyFlags);
 
 	if ((PolyFlags & (PF_Translucent | PF_Modulated | PF_AlphaBlend)) == 0 && LightMode == 2) flags |= 32;
 
