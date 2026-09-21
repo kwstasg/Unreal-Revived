@@ -131,9 +131,8 @@ OpenXR 1.1.61 loader as a standalone DLL. D3D12Drv resolves that DLL only after
 an explicit VR request, so it is not an import-time dependency. Requested VR
 launches resolve the OpenXR entry points dynamically and bind a compatible
 D3D12 device and direct queue to the guarded session foundation. The current
-experimental frame loop creates two runtime-owned eye swapchains and submits a
-completed UE1 game frame to both. It does not yet render independent UE1 scene
-cameras for each runtime view.
+frame loop creates two runtime-owned eye swapchains and renders independently
+culled UE1 cameras using each runtime view's pose and asymmetric projection.
 
 The `XInputWinDrv.dll` package is built from a generated copy of the
 pinned SDK's WinDrv source. Configure runs `scripts/stage-xinput-windrv.ps1`,
@@ -397,7 +396,7 @@ For deterministic silent validation, pass the source explicitly in addition to
 the destination:
 
 ```powershell
-.\UnrealRevived-Setup-0.7.0.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART `
+.\UnrealRevived-Setup-0.8.0.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART `
   /DIR="C:\Games\Unreal Revived" /OriginalGameRoot="C:\Unreal"
 ```
 

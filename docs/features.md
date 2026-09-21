@@ -102,7 +102,7 @@ runtime/gameplay compatibility remains ongoing.
 | First-run defaults | Starts with Direct3D 12, XInputWinDrv, ALAudio, ModernMenu, validated display settings, and practical keyboard, mouse, and controller bindings. |
 | Existing-install handling | Opens the branded uninstall dialog when Setup finds a current Unreal Revived installation; canceling leaves the existing copy unchanged. |
 | Interactive uninstall | Uses one branded confirmation before standard uninstall progress, removes only Unreal Revived, and explicitly leaves the source Unreal Gold installation and OldUnreal downloads unchanged. |
-| Save preservation policy | Configures interactive and silent uninstall to retain saves by default and backs up saves and canonical profiles before removal. Complete end-to-end validation of the revised interactive uninstall flow remains pending. |
+| Save preservation policy | Retains saves by default and backs up saves, desktop/VR profiles, controls and weapon calibration before removal. The isolated silent lifecycle verifies exact preservation and retained-save reinstall; it does not automate clicks in the interactive confirmation dialog. |
 | Reinstall protection | Accepts a retained save-only destination and prevents original-game saves from overwriting those retained files. |
 | Installed shortcuts | Creates a Start Menu shortcut and offers an optional desktop shortcut; both launch the canonical installed profile without development arguments. |
 | Project credits | Displays the Unreal Revived banner above the preserved original, OldUnreal, driver, author, and project-link credits. |

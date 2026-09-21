@@ -8,7 +8,9 @@ param(
 
     [string] $IniName = 'D3D12Test.ini',
 
-    [string] $UserIniName = 'D3D12TestUser.ini'
+    [string] $UserIniName = 'D3D12TestUser.ini',
+
+    [switch] $Production
 )
 
 $ErrorActionPreference = 'Stop'
@@ -79,6 +81,10 @@ if (Test-Path -LiteralPath $editorIniPath -PathType Leaf) {
 
 Remove-Item -LiteralPath $runtimePackageDirectory -Recurse -Force -ErrorAction SilentlyContinue
 Copy-Item -LiteralPath $sourcePackageDirectory -Destination $runtimePackageDirectory -Recurse
+if ($Production) {
+    Get-ChildItem -LiteralPath (Join-Path $runtimePackageDirectory 'Classes') -Filter '*Test*.uc' -File |
+        Remove-Item -Force
+}
 Copy-Item -LiteralPath $menuTextureDirectory -Destination (Join-Path $runtimePackageDirectory 'Textures') -Recurse
 Copy-Item -LiteralPath $introNvidiaTexture -Destination (Join-Path $runtimePackageDirectory 'Textures\NvidiaIntroLogoRuntime.png') -Force
 # Unreal requires power-of-two imports. Pack the complete source into the
@@ -132,6 +138,16 @@ finally {
 
 if (-not (Test-Path -LiteralPath $outputPackage)) {
     throw "UCC did not produce $outputPackage"
+}
+
+if ($Production) {
+    $packageContents = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($outputPackage))
+    foreach ($fixture in Get-ChildItem -LiteralPath $sourceDirectory -Filter '*Test*.uc' -File) {
+        if ($packageContents.Contains($fixture.BaseName)) {
+            throw "Production package contains test fixture: $($fixture.BaseName)"
+        }
+    }
+    Write-Host 'Production ModernMenu verified: no test fixture names in compiled package'
 }
 
 Copy-Item -LiteralPath $brandingLogo -Destination (Join-Path $helpDirectory 'Logo.bmp') -Force

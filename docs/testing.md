@@ -1,5 +1,35 @@
 # Testing
 
+## VR hook lifecycle and production packaging
+
+Build the fixture-enabled development menu before running these checks:
+
+```powershell
+cmake --build local/build --target deploy-modern-menu --config Release
+powershell -NoProfile -File scripts/test-vr-map-travel.ps1
+powershell -NoProfile -File scripts/test-vr-motion-regressions.ps1
+```
+
+The lifecycle fixture calls the production console's hook creation method,
+checks that neither hook belongs to the console, travels through three maps,
+saves and loads using a temporary isolated save directory, rebinds the hooks,
+and exits. Invalid owners, assertions and script warnings fail the check.
+User profiles and saves are not used as test output.
+
+Installer staging rebuilds the menu with `-Production`, omitting the 13 fixture
+classes and rejecting their names in the compiled package. Rebuild the normal
+development target before running fixtures again. The release package is tested
+through the isolated installer/launcher lifecycle, not by shipping test classes.
+
+## Known VR focus-recovery issue
+
+The owner reproduced recurring stutter after desktop focus loss and return,
+without F8 or headset removal. The attempted deferred-paint correction failed
+live validation and was removed with its temporary diagnostics. Existing idle
+OpenXR smoke checks do not establish that focus recovery is smooth. Further
+owner reproduction requests are paused; keep this limitation explicit in release
+notes. See [the renderer status](renderer-227k.md#vr-session-and-firing-adapters).
+
 ## VR gamepad locomotion checks
 
 Build/run the portable direction tests with:

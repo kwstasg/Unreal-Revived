@@ -257,12 +257,17 @@ function EnsureVRAimHook()
 	Pose = Player.ConsoleCommand("D3D12 OPENXRPOSE");
 	if (Left(Pose, 1) != "1")
 		return;
+	BindVRWeaponHooks(Player);
+}
+
+function BindVRWeaponHooks(PlayerPawn Player)
+{
 	if (VRAimHook == None)
-		VRAimHook = new class'ModernVRAimHook';
+		VRAimHook = new(None) class'ModernVRAimHook';
 	if (!VRAimHook.bHasHooks)
 		VRAimHook.InstallHooks();
 	if (VRMotionHook == None)
-		VRMotionHook = new class'ModernVRMotionHook';
+		VRMotionHook = new(None) class'ModernVRMotionHook';
 	VRMotionHook.EnsureHooks(Player);
 }
 

@@ -3,6 +3,7 @@ class ModernVRTravelTestGame extends SinglePlayer;
 
 var PlayerPawn TestPlayer;
 var int TravelStage;
+var bool bLoadedSave;
 
 event InitGame(string Options, out string Error)
 {
@@ -17,13 +18,20 @@ event PostLogin(PlayerPawn NewPlayer)
 	SetTimer(1, False);
 }
 
+event PostLoadGame()
+{
+	Super.PostLoadGame();
+	bLoadedSave = True;
+	SetTimer(1, False);
+}
+
 event Timer()
 {
 	local ModernConsole C;
 	local float Scale;
 	local vector Muzzle, Offset;
 	local ModernVRInteraction Interaction;
-	if (TravelStage > 0)
+	if (TravelStage > 0 && TravelStage < 4)
 	{
 		Interaction = ModernVRInteraction(TestPlayer.AddInteraction(class'ModernVRInteraction', True));
 		if (Interaction.bHasCrosshairRay)
@@ -31,10 +39,9 @@ event Timer()
 		Log("VRTRAVEL map change completed stage=" $ TravelStage);
 	}
 	C = ModernConsole(TestPlayer.Player.Console);
-	if (C.VRAimHook == None) C.VRAimHook = new class'ModernVRAimHook';
-	C.VRAimHook.InstallHooks();
-	if (C.VRMotionHook == None) C.VRMotionHook = new class'ModernVRMotionHook';
-	C.VRMotionHook.EnsureHooks(TestPlayer);
+	C.BindVRWeaponHooks(TestPlayer);
+	if (C.VRAimHook.Outer == C || C.VRMotionHook.Outer == C)
+		Log("VRTRAVEL FAIL: hooks must not use the console as their outer");
 	if (!C.VRAimHook.bHasHooks || !C.VRMotionHook.bHasHooks)
 		Log("VRTRAVEL FAIL: VR hooks did not rebind");
 	C.VRInteractionPlayer = TestPlayer;
@@ -45,10 +52,24 @@ event Timer()
 	class'ModernVRWeaponTuning'.static.GetSettings();
 	if (TestPlayer.Weapon != None)
 		class'ModernVRMotionSupport'.static.GetWeaponGeometry(TestPlayer.Weapon, Scale, Muzzle, Offset);
-	if (TravelStage >= 3)
+	if (bLoadedSave)
 	{
+		Log("VRTRAVEL save load and production hook rebinding completed");
 		Log("VRTRAVEL repeated map changes and hook rebinding completed");
 		TestPlayer.ConsoleCommand("quit");
+		return;
+	}
+	if (TravelStage == 3)
+	{
+		TravelStage = 4;
+		TestPlayer.bDelayedCommand = True;
+		TestPlayer.DelayedCommand = "SaveGame 0";
+		SetTimer(2, False);
+		return;
+	}
+	if (TravelStage == 4)
+	{
+		TestPlayer.ClientTravel("?load=0", TRAVEL_Absolute, False);
 		return;
 	}
 	Log("VRTRAVEL populated VR references; starting new map");

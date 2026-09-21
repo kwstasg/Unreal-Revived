@@ -17,8 +17,8 @@
   #define ProductName "Unreal Revived"
   #define ProductGuid "8D6614ED-8854-4D0E-9666-A891EC92713B"
 #endif
-#define ProductVersion "0.7.0"
-#define ProductFileVersion "0.7.0.0"
+#define ProductVersion "0.8.0"
+#define ProductFileVersion "0.8.0.0"
 #define ProductAuthor "Kwstasg - Kostas Giannakakis"
 #define ProjectUrl "https://github.com/kwstasg/Unreal-Revived"
 #ifndef ProductIconName
@@ -42,6 +42,7 @@ OutputBaseFilename=UnrealRevived-Setup-{#ProductVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
+WizardSizePercent=120,150
 WizardImageFile={#StageRoot}\payload\InstallerWizard.png
 DisableWelcomePage=no
 PrivilegesRequired=lowest
@@ -506,21 +507,29 @@ var
   RequestedDirectory: String;
   ButtonWidth: Integer;
 begin
+  WizardForm.WelcomeLabel2.Height := WizardForm.WelcomePage.ClientHeight -
+    WizardForm.WelcomeLabel2.Top - ScaleY(16);
   WizardForm.WelcomeLabel1.Caption :=
     'Welcome to Unreal Revived {#ProductVersion}';
   WizardForm.WelcomeLabel2.Caption :=
-    'The definitive Unreal Gold experience for modern Windows.' + #13#10 + #13#10 +
-    '- Native Direct3D 12 with corrected HD lightmaps, modern texture ' +
-    'quality, and up to 8x MSAA' + #13#10 +
-    '- World-only post-processing: bloom, chromatic aberration, vignette, ' +
-    'animated film grain, and CRT scanlines' + #13#10 +
-    '- 4K, widescreen, borderless, and high-refresh display support' + #13#10 +
-    '- Seated OpenXR VR: stereo tracking, gaze-aligned gamepad movement, ' +
-    'and stable spatial HUD/menus; separate normal and VR shortcuts' + #13#10 +
-    '- SDL3 controllers: Xbox, DualShock, DualSense, hot-plugging, and up to ' +
+    'Rediscover Unreal and Return to Na Pali on modern Windows, ' +
+    'on your screen or in seated VR.' + #13#10 + #13#10 +
+    '- Modern graphics: Direct3D 12, HD lightmaps, up to 8x MSAA, ' +
+    'and customizable visual effects' + #13#10 +
+    '- Modern displays: widescreen, 4K rendering, borderless windows, ' +
+    'and high-refresh support' + #13#10 +
+    '- Seated VR: stereo depth, head tracking, and your choice of ' +
+    'head-gaze or motion-controller aiming' + #13#10 +
+    '- Adjustable VR comfort: height and world-size controls, ' +
+    'wall-collision fade, and a stable, adjustable HUD' + #13#10 +
+    '- Flexible controls: keyboard, mouse, and gamepads, with up to ' +
     'three bindings per action' + #13#10 +
-    '- Unreal and Return to Na Pali campaigns, multiplayer, OpenAL audio, ' +
-    'ModernMenu, and recovery renderers';
+    '- Both classic campaigns: refreshed menus, OpenAL audio, and ' +
+    'separate desktop and VR launch options' + #13#10 + #13#10 +
+    'Ready-to-use defaults, with optional settings to make the ' +
+    'experience your own.' + #13#10 + #13#10 +
+    'Requires your original game files. Setup installs separately ' +
+    'and leaves your original game untouched.';
 
   ProjectLinkLabel := TNewLinkLabel.Create(WizardForm);
   ProjectLinkLabel.Parent := WizardForm;

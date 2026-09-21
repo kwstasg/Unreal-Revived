@@ -39,9 +39,13 @@ function Run-Installer {
     $registration = Get-ItemProperty $testKey
     if ($registration.InstallLocation.TrimEnd('\') -ne $installed) { throw 'Validation registration points outside the test installation.' }
     $manifest = Get-Content -LiteralPath (Join-Path $StageRoot 'payload/payload-manifest.json') -Raw | ConvertFrom-Json
-    foreach ($name in @('UnrealRevived.exe','UnrealRevivedVR.exe','D3D12Drv.dll','XInputWinDrv.dll','openxr_loader.dll','ModernMenu.u','OldWeapons.u')) {
+    foreach ($name in @('UnrealRevived.exe','UnrealRevivedVR.exe','D3D12Drv.dll','XInputWinDrv.dll','openxr_loader.dll','ModernMenu.u','ModernVRWeapons.ini','OldWeapons.u')) {
         $expected = ($manifest.files | Where-Object path -eq $name).sha256
         if ((Get-FileHash -LiteralPath (Join-Path $system $name)).Hash -ne $expected) { throw "Installed hash mismatch: $name" }
+    }
+    $menuContents = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Join-Path $system 'ModernMenu.u')))
+    foreach ($fixture in Get-ChildItem -LiteralPath (Join-Path $repo 'UnrealScript/ModernMenu/Classes') -Filter '*Test*.uc' -File) {
+        if ($menuContents.Contains($fixture.BaseName)) { throw "Installed menu contains test fixture: $($fixture.BaseName)" }
     }
     Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Integrity.psm1') -Force
     $hostManifest = Get-Content -LiteralPath (Join-Path $StageRoot 'payload/unreal-gold-227k_15-win64.json') -Raw | ConvertFrom-Json
@@ -102,13 +106,16 @@ foreach ($profile in @('Unreal.ini','UnrealVR.ini')) {
 }
 New-Item -ItemType Directory -Path (Join-Path $installed 'Save') -Force | Out-Null
 Set-Content -LiteralPath (Join-Path $installed 'Save/validation-save.txt') -Value $token -Encoding ASCII
+$tuningPath = Join-Path $system 'ModernVRWeapons.ini'
+$tuningLines = Set-UnrealRevivedIniValue (Get-Content -LiteralPath $tuningPath) 'ModernMenu.ModernVRWeaponTuning' 'Profiles' '(WeaponClass="UnrealShare.AutoMag",Scale=1.23,GazeOffsetCM=(X=4,Y=5,Z=6),MotionOffsetCM=(X=7,Y=8,Z=9))'
+Set-Content -LiteralPath $tuningPath -Value $tuningLines -Encoding ASCII
 $savedHashes = @{}
-foreach ($name in @('Unreal.ini','UnrealVR.ini','User.ini')) { $savedHashes[$name] = (Get-FileHash -LiteralPath (Join-Path $system $name)).Hash }
+foreach ($name in @('Unreal.ini','UnrealVR.ini','User.ini','ModernVRWeapons.ini')) { $savedHashes[$name] = (Get-FileHash -LiteralPath (Join-Path $system $name)).Hash }
 & (Join-Path $PSScriptRoot 'install-unreal-revived.ps1') -InstallRoot $installed -PayloadRoot (Join-Path $StageRoot 'payload') -OriginalGameRoot $OriginalGameRoot
 foreach ($name in $savedHashes.Keys) {
     if ((Get-FileHash -LiteralPath (Join-Path $system $name)).Hash -ne $savedHashes[$name]) { throw "Profile migration changed $name" }
 }
-Write-Host 'PASS: installer profile migration preserves changed desktop/VR settings and controls byte-for-byte'
+Write-Host 'PASS: installer profile migration preserves changed desktop/VR settings, controls and weapon calibration byte-for-byte'
 Run-Uninstaller
 if ((Get-Content -LiteralPath (Join-Path $installed 'Save/validation-save.txt') -Raw).Trim() -ne $token) { throw 'Uninstall lost retained save' }
 $testBackups = @(Get-ChildItem -LiteralPath $documents -Directory -Filter 'Unreal Revived Backup *' | Where-Object { $_.FullName -notin $backupsBefore })
@@ -117,7 +124,7 @@ if ($backup.Count -ne 1) { throw 'Cannot identify the validation user-data backu
 foreach ($name in $savedHashes.Keys) {
     if ((Get-FileHash -LiteralPath (Join-Path $backup[0].FullName "System64/$name")).Hash -ne $savedHashes[$name]) { throw "Uninstall backup changed $name" }
 }
-Write-Host 'PASS: uninstall retains saves and backs up all three profiles exactly'
+Write-Host 'PASS: uninstall retains saves and backs up all four profiles exactly'
 Run-Installer 'reinstall'
 if ((Get-Content -LiteralPath (Join-Path $installed 'Save/validation-save.txt') -Raw).Trim() -ne $token) { throw 'Reinstall lost retained save' }
 Write-Host 'PASS: reinstall with retained saves and existing icon leftovers'

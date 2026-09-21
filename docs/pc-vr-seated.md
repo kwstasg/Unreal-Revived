@@ -6,9 +6,10 @@ evidence in [vr-ui-investigation.md](vr-ui-investigation.md).
 
 ## Status
 
-An opt-in [motion-controller aiming development build](vr-motion-controllers.md)
-now adds a second aiming method. Its physical-controller acceptance is pending;
-the seated gaze baseline and remaining validations below still apply.
+Opt-in [motion-controller aiming](vr-motion-controllers.md) adds a second aiming
+method. The owner accepted the shared gaze/motion weapon sizing, placement,
+firing alignment and HUD overlap on September 21. Other controller profiles and
+remote-client VR firing remain outside the validated support boundary.
 
 This document records the implemented seated VR mode and its remaining roadmap. The
 mode-selection, loader, runtime/HMD detection, D3D12 compatibility, session
@@ -19,11 +20,11 @@ camera direction, natural yaw/pitch/roll, no visibility gaps, and no rotational
 stretching or swimming. The vertical optical-center mapping accounts for UE1's
 positive-down camera Y and the renderer's final vertical presentation flip.
 
-The validated feature set is frozen for the 0.6.0 release candidate. The
-first-person weapon now follows headset rotation and seated leaning through a
-render-only path without changing gameplay aim, controls, or scripted cameras.
-Its initial lower, handed placement is accepted while finer comfort tuning is
-deferred. Gaze aim hooks exist but require broader weapon/multiplayer validation.
+The first-person weapon follows headset rotation and seated leaning through a
+render-only placement path. Scoped gaze/motion firing hooks align actual shots
+with the calibrated muzzle without changing scripted cameras. The September 21
+milestone accepts all 14 stock/UPak weapon profiles; custom weapon adapters and
+remote-client multiplayer remain separate compatibility work.
 Head-oriented gamepad walking/strafing and horizontal right-stick turning were
 user-validated on 2026-09-11, including movement while looking 90 degrees left/right.
 Jumping/crouching and broader movement states need further coverage. Swimming,

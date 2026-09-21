@@ -1,5 +1,60 @@
 # Changelog
 
+## 0.8.0 - 2026-09-21
+
+Changes since 0.7.0. Tested, accepted and approved for release by the owner on
+September 21, 2026.
+
+### Aim with Oculus Touch
+
+Choose **Head gaze** or **Motion controllers** in **Preferences > VR > Aiming
+Method**. Aim and position your weapon with a Touch controller, or keep the
+familiar head-gaze mode. Touch buttons and sticks work in either mode using
+your existing controller bindings. Head gaze remains the default.
+
+### Weapons that fit both aiming modes
+
+Fourteen weapon profiles cover the original game and Return to Na Pali. Weapons
+keep consistent physical sizes between gaze and motion aiming, with separately
+tuned positions. Shots, muzzle effects and aiming now follow the calibrated
+barrel more accurately, including alternate and charged fire.
+
+Left- and center-handed gaze placement has been corrected, including Eightball
+and Rocket Launcher. RazorJack follows its rotating alternate-fire muzzle, and
+solid weapon surfaces correctly cover the HUD behind them.
+
+### Optional weapon tuning
+
+The included `System64/ModernVRWeapons.ini` is ready to use without editing.
+For a personal fit, change a weapon's shared `Scale`, its `GazeOffsetCM`, or its
+`MotionOffsetCM`. Save and enter `ReloadVRWeapons` in the game console to apply
+the changes immediately. Existing custom calibration is not overwritten when
+installation applies files over it.
+
+### Easier controls and steadier brightness settings
+
+- Assign up to three inputs per action. Adding another replaces the oldest,
+  with the displayed order remembered across restarts. Clearing and canceling
+  bindings are more consistent across mouse, keyboard and controller.
+- Fresh/reset controls use **Q/E/F** for previous item, next item and use item.
+  **Home** opens the command line and **Page Up** opens team chat; Tab and R are
+  no longer assigned to text entry by default. Existing saved bindings stay yours.
+- Brightness retains its correct percentage when reopening Video preferences
+  or changing display settings. Keyboard/controller adjustments use useful
+  five-percentage-point steps; mouse adjustment remains precise.
+
+### Reliability and known limits
+
+Fixed VR hook ownership during shutdown, with map travel, save/load and weapon
+firing regression checks passing. The production menu no longer includes
+developer test fixtures. These changes do not claim an FPS increase.
+
+**Known issue:** losing and regaining desktop focus can still cause recurring
+VR stutter. Rift CV1 with Oculus Touch is the validated VR setup; remote-client
+VR firing and other headset/controller combinations are not supported claims.
+
+[Installation, optional tuning and compatibility](docs/release-0.8.0.md)
+
 ## 0.7.0 - 2026-09-16
 
 This update gives you more control over how Unreal feels in seated VR, adds

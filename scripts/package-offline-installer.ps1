@@ -58,6 +58,8 @@ $iniModule = Join-Path $repositoryRoot 'scripts\UnrealRevived.Ini.psm1'
 $permissions = Join-Path $repositoryRoot 'PERMISSIONS.md'
 $installerDefinition = Join-Path $repositoryRoot 'packaging\UnrealRevived.iss'
 
+& (Join-Path $PSScriptRoot 'build-modern-menu.ps1') -GameRoot $GameRoot -Production
+
 foreach ($requiredPath in @($hostManifestPath, $contentManifestPath, $PatchArchive, $RendererDll, $LoaderDll, $OpenXRNotice, $InputDll, $rendererInt, $modernMenu, $oldWeapons, $installScript, $copyScript, $backupScript, $brandingLogo, $brandingSetupLogo, $installerWizardImage, $brandingIcon, $iniModule, $permissions)) {
     if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
         throw "Missing offline package input: $requiredPath"

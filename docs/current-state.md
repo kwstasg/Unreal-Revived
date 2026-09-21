@@ -29,6 +29,44 @@ before changing these paths. This supersedes older pending visual-acceptance
 notes for these weapon changes, not the separate remote-client multiplayer,
 recurring-stutter or broader VR compatibility limitations.
 
+## Release readiness after the weapon milestone
+
+The failed focus-recovery paint change and temporary diagnostics have been
+removed. Renderer source and the runtime smoke harness match the accepted
+weapon milestone; the restored renderer is built and deployed to `local/game`.
+Release cleanup status:
+
+- Focus loss/return still causes recurring headset stutter without F8 or HMD
+  removal. Keep this as a known issue, not a completed fix.
+- Both VR script hooks now explicitly use the transient package as their owner.
+  The production creation path passes repeated map travel, save/load, rebinding
+  and shutdown without invalid-outer warnings. Weapon firing regression passes.
+- Installer staging builds a production `ModernMenu.u` without the 13 test
+  fixtures and rejects their names in the compiled output. Development builds
+  retain fixtures for regression tests.
+- Startup/state/error logging remains intentional. Performance sampling is
+  opt-in via `UNREAL_REVIVED_MEASURE_PERFORMANCE`; this audit is not an FPS or
+  zero-overhead certification.
+- The cleanup candidate (then numbered 0.7.0) was locally validated through fresh
+  installation, desktop/VR startup and restart, payload hashes, preservation of
+  edited profiles/calibration, uninstall, save retention and reinstall. Validation
+  used an isolated app identity and cleaned its registration, shortcuts and test
+  backups. All 30 development profile/save hashes stayed unchanged. Artifact
+  identity and evidence are recorded in [the progress log](progress.md).
+- The four agreed release-cleanup tasks are complete. Focus-loss stutter remains
+  deferred. The owner tested, accepted and explicitly authorized publication of
+  0.8.0 on September 21, 2026. Publish the accepted installer without rebuilding:
+  SHA-256 `5A00521B1F84CA25A423DD3109153C21D3BF3218A3DB02BC659764933CAEBD58`.
+  Its embedded payload records base revision `988eb80` and `sourceDirty=true`
+  at build time; retain that record rather than modifying the accepted artifact.
+- The 0.8.0 installer and launcher metadata, payload hashes, optional calibration
+  inclusion and fixture exclusion passed. All 30 runtime profile/save hashes
+  stayed unchanged. The earlier lifecycle result applies to the preceding cleanup
+  build; the owner has now tested and accepted the versioned installer. No
+  rebuild is needed for this documentation-only acceptance record.
+
+See [release notes](release-0.8.0.md) and [the investigation record](progress.md).
+
 ## Supported boundary
 
 - Host: OldUnreal 227k_15, Windows x64.
@@ -50,9 +88,8 @@ recurring-stutter or broader VR compatibility limitations.
   without restarting Setup.
 - Prebuilt build: the installer is attached to the project's
   [latest GitHub release](https://github.com/kwstasg/Unreal-Revived/releases/latest).
-  The current source is prepared as 0.7.0 and retains the seated OpenXR and
-  Return to Na Pali VR HUD fixes, with bundled Old Weapons and removal of the
-  Realtime Ultra pawn-shadow menu option.
+  The owner-approved 0.8.0 update adds Touch aiming, calibrated weapons, optional weapon
+  tuning, binding and brightness improvements, and release cleanup.
 - Packaging authorization: redistribution, mirroring, and offline bundling of
   the pinned OldUnreal 227k_15 Windows patch is confirmed in
   [`../PERMISSIONS.md`](../PERMISSIONS.md) and must not be reopened as a blocker.
@@ -97,9 +134,10 @@ still sourced from the selected logical game resolution. The first-person
 weapon now follows headset rotation and seated head-center translation through
 a render-only overlay hook, with a conservative lower, handed placement that
 does not alter gameplay state. Live validation retained scripted flybys,
-controls, stereo fusion, and distortion-free tracking; finer weapon placement
-tuning remains a TODO. Gaze aim hooks are implemented but broader weapon and
-multiplayer validation is pending. Gamepad headset-yaw walking/jumping and
+controls, stereo fusion, and distortion-free tracking. The September 21 weapon
+milestone accepts shared gaze/motion sizing, placement, firing alignment and
+weapon/HUD composition for all 14 calibrated stock/UPak families. Remote-client
+VR firing remains unsupported. Gamepad headset-yaw walking/jumping and
 horizontal right-stick turning were user-validated on 2026-09-11. Combined view/UI
 recenter, quick bindings and UI colors are user-validated. Head-collision fade
 and recovery were user-validated at walls, corners and low ceilings, with a door,
@@ -232,9 +270,9 @@ remain shared. Native launch, restart, profile isolation, and installer lifecycl
 checks are recorded in [`branded-launchers.md`](branded-launchers.md).
 
 The current maintenance installer is built as
-`local/package/offline-installer/output/UnrealRevived-Setup-0.7.0.exe`, with
+`local/package/offline-installer/output/UnrealRevived-Setup-0.8.0.exe`, with
 its base source revision and working-tree dirty flag in `payload-manifest.json`.
-The binary is unsigned. See [`release-0.7.0.md`](release-0.7.0.md). The
+The binary is unsigned. See [`release-0.8.0.md`](release-0.8.0.md). The
 preserved 0.6.0 publication and validation record remains in
 [`release-0.6.0.md`](release-0.6.0.md).
 

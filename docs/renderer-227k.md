@@ -31,10 +31,19 @@ collision fade disables this cutout so recovery UI stays visible. Desktop
 composition is unchanged. Present-shader texture/sampler registers are explicit
 because UI-only compilation otherwise removes unused inputs and shifts bindings.
 
-Production-shader pixel tests and runtime initialization pass. In-headset
-alignment, menu transitions and comfort are not yet validated for this change.
+Production-shader pixel tests and runtime initialization pass. The owner
+accepted weapon/HUD overlap as part of the September 21 weapon milestone.
+Keep the shared UI maintenance contract unchanged.
 
 ## VR session and firing adapters
+
+Known issue: losing and regaining desktop window focus can trigger recurring VR
+stutter on the owner's Oculus Rift CV1 setup, without F8 or headset removal.
+Captures showed Windows `Ghost` foreground windows coinciding with stalls; this
+does not establish the underlying cause. The experimental deferred-paint change
+did not resolve the problem in headset testing and was removed, along with its
+temporary timing commands and test-harness extension. The accepted milestone's
+window handling remains in use. Do not claim this issue is fixed for release.
 
 OpenXR session events are polled at the viewport frame boundary, before
 `PrepareOpenXRFrame`, rather than again during each eye's `Unlock`. A STOPPING

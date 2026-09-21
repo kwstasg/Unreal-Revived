@@ -61,7 +61,7 @@ overwrite the original installation or reset an active working tree.
 
 This is a local milestone, not a published release or installer.
 Remote-client VR firing, full campaign/mod compatibility,
-other headset/controller combinations and the recurring F8/HMD stutter report
+other headset/controller combinations and the recurring focus-loss stutter
 are not declared resolved by this weapon acceptance.
 
 Older profiles used `GazeScale` and `MotionScale`. Replace these with `Scale`;
@@ -90,7 +90,8 @@ calculation; custom renderers, extra model attachments, unusual animations or
 firing implementations may need adapters. Both aiming modes now use calibrated
 stock muzzle references for all 14 profile families, including hitscan weapons.
 Replacement meshes retain the bounds-based estimate; this is not universal
-barrel/pivot calibration. Multiplayer remains unverified.
+barrel/pivot calibration. Local listen-host firing regression passes;
+equivalent remote-client VR firing remains unsupported.
 
 ## Placement and inheritance
 

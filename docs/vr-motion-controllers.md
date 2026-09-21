@@ -1,4 +1,4 @@
-# Motion-controller aiming development build
+# Motion-controller aiming
 
 Preferences > VR > **Aiming Method** selects **Head gaze** (default) or
 **Motion controllers**. The setting is `VRAimMode=0/1` in
@@ -105,7 +105,8 @@ and the distinction between size coverage and complete gameplay support.
 The Automag now uses an initial grip anchor at 20% along its bounds from the
 rear, centered laterally, and 25% up from the bottom. The model offset rotates
 with the wrist; the muzzle and flash receive the same offset. This calibration
-applies to both handed meshes and Old Automag and needs headset feedback.
+applies to both handed meshes and Old Automag. The resulting calibrated weapon
+placement is included in the September 21 accepted milestone.
 
 The stock Automag/Old Automag cache now measures the `Still` frame, temporarily
 restoring the live animation immediately afterward. This prevents a pickup,
@@ -137,9 +138,9 @@ DispersionPistol updates its muzzle for each power level without changing the
 cached model size. These are not animated muzzle sockets. ASMD gaze shots use
 the same muzzle transform, and its primary beam's amplified stock visual offsets
 are compensated during VR firing only. The mesh, projectile origin and flash
-share this geometry and world-size scaling. Hand pivot, barrel alignment, weapon
-effects and close wall behavior require physical-controller checks before
-acceptance. Mods with different spawn/render paths may need their own adapter.
+share this geometry and world-size scaling. The owner accepted the calibrated
+placement and primary/alternate alignment for the stock/UPak weapon families.
+Mods with different spawn/render paths may need their own adapter.
 
 ## Multiplayer boundary
 
@@ -174,8 +175,9 @@ Development baseline: `local/backups/vr-motion-baseline-20260919-233710/`.
 - `ModernMenu.ModernVRMotionTestCommandlet`: native hook signatures, stock/UPak
   global hook registration, duplicate prevention and rotation composition.
 - `scripts/test-vr-map-travel.ps1`: seeds the VR camera cache and hooks without
-  a headset, performs real map travel, checks the new player's cache starts
-  empty, and rejects broken references or invalid hook owners through shutdown.
+  a headset through the production console hook constructor, performs real map
+  travel and isolated save/load, checks the new player's cache starts empty,
+  and rejects broken references or invalid hook owners through shutdown.
 - `ModernVRMotionTestGame`: real engine regression for global versus state Fire
   dispatch, blocked-shot recovery, repeated stock/Old Weapons firing and switching,
   measured physical sizes, a shared baseline and profile scale for both modes,
@@ -195,11 +197,11 @@ Development baseline: `local/backups/vr-motion-baseline-20260919-233710/`.
   Oculus runtime reported the headset unavailable. These were fallback tests,
   not successful live stereo/controller sessions.
 
-Before calling this headset-validated, connect/wake the CV1 and Touch controllers
-and check both hands, Center/Hidden, every stock/UPak weapon and alternate fire,
-charged fire during tracking loss, barrel/reticle alignment in both eyes, walls,
-recenter, height/world size, menus, mode changes with held buttons, map travel,
-save/load, and gaze regression. Multiplayer needs a separate client/server test.
+The September 21 owner acceptance covers the calibrated stock/UPak weapon
+sizing, gaze handed placement, motion placement, primary/alternate alignment
+and HUD overlap. It supersedes earlier pending weapon-acceptance notes, not
+unverified hardware combinations or every tracking-loss/held-input scenario.
+Remote-client VR firing remains unsupported. Focus-loss stutter is deferred.
 
 Build the standalone native tests with CMake from `D3D12Drv/tests` and provide
 `OPENXR_INCLUDE_DIR` if the pinned SDK is outside `local/build/_deps/openxr-src`.

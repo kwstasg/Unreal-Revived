@@ -81,6 +81,11 @@ These targets are created when the configured game root already contains
 The ModernMenu target compiles `ModernMenu.u`, updates the development INIs,
 and refreshes the normal and recovery shortcuts. Deploy targets require the
 development marker created by bootstrap.
+Development menu builds include regression fixtures. Installer staging always
+rebuilds with `scripts/build-modern-menu.ps1 -GameRoot local/game -Production`,
+which excludes `*Test*.uc` from staged sources and verifies the compiled package
+contains none of their class names. Packaging leaves this production package in
+the development runtime; run `deploy-modern-menu` again before fixture tests.
 The Old Weapons target compiles `OldWeapons.u` from the pinned SDK and mirrors
 its `.int` registration into `System/` for New Game discovery.
 

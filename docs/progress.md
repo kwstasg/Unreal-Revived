@@ -12,6 +12,145 @@ under `local/logs/`.
 
 ## 2026-09-21
 
+- The owner explicitly authorized committing, pushing and publishing 0.8.0
+  after accepting the installer. Verified the exact accepted installer hash
+  `5A00521B1F84CA25A423DD3109153C21D3BF3218A3DB02BC659764933CAEBD58`
+  and checksum sidecar. Prepared the release notes and source for tag
+  `UnrealRevived-Setup-0.8.0`. Publication uses the existing tested binary,
+  retaining its original embedded base revision/dirty build record. No rebuild
+  or new runtime testing is needed for this publication-only step.
+
+- The owner tested the corrected 0.8.0 installer and confirmed "everything is
+  in order". Recorded acceptance of the current 89,756,358-byte candidate,
+  SHA-256 `5A00521B1F84CA25A423DD3109153C21D3BF3218A3DB02BC659764933CAEBD58`.
+  Updated release/current-state notes and changelog without rebuilding or
+  changing the tested artifact. Focus-loss stutter remains deferred and existing
+  hardware/multiplayer limits are unchanged. This is test acceptance, not an
+  instruction to publish; no commit, push, release tag or upload was performed.
+
+- Corrected the welcome layout after the owner showed a narrowed window and
+  clipped text. `WizardSizePercent=100,130` had overridden the modern width,
+  and increasing window height did not expand the static welcome label.
+  Set supported sizing to `120,150` and extend `WelcomeLabel2.Height` to the
+  available welcome-page height. An initial height of 160 was rejected by Inno;
+  the corrected value compiled. Opened only the isolated validation welcome
+  screen, inspected its 612x579 capture and confirmed the one-line heading,
+  all six features and final paragraph are visible. No installation was run.
+  Evidence: `local/logs/release-080-welcome-layout.png` and
+  `local/logs/release-080-layout-build.log`. Closed the validation preview and
+  rebuilt the normal installer: 89,756,358 bytes, SHA-256
+  `5A00521B1F84CA25A423DD3109153C21D3BF3218A3DB02BC659764933CAEBD58`.
+  Updated release identity and checksum; game payload/settings are unchanged.
+
+- Replaced the previous welcome copy with the owner's approved feature overview:
+  modern graphics/displays, seated VR with gaze or motion-controller aiming,
+  adjustable VR comfort, flexible controls and both campaigns. Removed the
+  controller brand and profile count from this screen. Initially set sizing to
+  `100,130`, incorrectly assuming 100 retained the modern width. Inno compilation
+  passed using the existing game payload; no game behavior or settings changed.
+  Current candidate: 89,756,319 bytes, SHA-256
+  `FC7E2ABF472BF39E0E5C40102E4C61695FF3BAF02BD22040437D647D4E6A9E57`.
+  Evidence: `local/logs/release-080-approved-welcome-build.log`. Updated the
+  checksum sidecar and release record; publication remains on hold for owner
+  acceptance. No visual or full installer lifecycle check was repeated.
+
+- Updated the 0.8.0 installer welcome screen to describe Touch/head-gaze aiming,
+  14 calibrated weapon profiles, optional size/position tuning, existing input
+  bindings and separate desktop/VR settings. Added the installed configuration
+  path and clarified that Setup leaves the original game untouched. Kept the
+  existing logo and layout. Inno compilation passed using the unchanged verified
+  payload; no runtime or installer lifecycle test was repeated for this copy edit.
+  Rebuilt candidate: 89,756,201 bytes, SHA-256
+  `B0C25769B4761B6DBADECAF3ECE22B42D2DA08F760554218AB056537FACC27B8`.
+  Build evidence: `local/logs/release-080-welcome-build.log`. Updated the checksum
+  sidecar and candidate identity in the release notes. Nothing was published.
+
+- Prepared the private 0.8.0 test installer after resolving the owner's mixed
+  0.8.0/0.9.0 request explicitly in favor of 0.8.0. Updated both launcher
+  resources, Inno version fields, rebuild artifact checks and current build
+  examples. Compared against `UnrealRevived-Setup-0.7.0`, restored its historical
+  release notes, and wrote a player-facing 0.8.0 changelog covering Touch aiming,
+  calibrated weapons, optional tuning, bindings, brightness and cleanup.
+  Updated only comments in the shipped weapon seed; all 14 accepted profiles
+  remain identical. Documented seed-only installation and the distinction from
+  uninstall backups, which are not automatically restored.
+  Built `local/package/offline-installer/output/UnrealRevived-Setup-0.8.0.exe`
+  (89,756,267 bytes), SHA-256
+  `70836D74B50DC1D84BCE9680A9D1E36EAC0A85D09F6D844C9F1B8A4A67D7F2FA`.
+  Verified installer product version 0.8.0/file version 0.8.0.0, both launchers,
+  every manifest payload hash, packaged calibration and fixture exclusion.
+  All 30 runtime profile/save hashes stayed unchanged. Build evidence:
+  `local/logs/release-080-launch-build.log` and
+  `local/logs/release-080-package-build.log`. No new full installer lifecycle or
+  headset test was run for this version/comment-only rebuild; owner acceptance
+  remains required. GitHub main was queried at `aa5d9b2`, two commits behind local
+  HEAD `988eb80`, with release changes uncommitted. Nothing was pushed, tagged,
+  uploaded or published. Await the owner's explicit release approval.
+
+- Completed the four agreed release-cleanup tasks, with focus-loss stutter
+  explicitly deferred. Built the fixture-free 0.7.0 installer at
+  `local/package/offline-installer/output/UnrealRevived-Setup-0.7.0.exe`
+  (89,758,998 bytes), SHA-256
+  `617AC96AC32EE8F4CC0640A268CEA37D57D41F4449C7D2960350E2D754A51209`.
+  The same staged payload compiled with the isolated validation AppId passed
+  fresh installation, component/host hashes, fixture exclusion, calibrated seed,
+  desktop and VR startup, argument isolation, both Preferences restart paths,
+  Old Weapons activation, edited profile/calibration preservation, uninstall
+  backup integrity, save retention, reinstall and final cleanup. CV1 detection
+  and OpenXR initialization passed, without claiming new visual validation.
+  Evidence: `local/logs/release-package-build.log`,
+  `local/logs/release-installer-lifecycle.log`, and the isolated installation
+  logs under `local/tests/release-070-clean-20260921/`.
+  All 30 development profile/save SHA-256 values remained unchanged; deployed
+  renderer, input, loader, ModernMenu and OldWeapons match the payload. Validation
+  registration, shortcuts and synthetic test backups were removed by the harness.
+  Updated release/current-state documentation and removed stale acceptance TODOs.
+  The production installation was not targeted, no personal backup was made,
+  and nothing was committed or published. The payload records the base revision
+  and `sourceDirty=true`; older same-version artifacts are not this candidate.
+
+- Release cleanup: made console-created aim/motion hooks explicitly transient
+  with `new(None)` and routed the lifecycle fixture through the production
+  constructor. The earlier fixture created hooks on a different outer and did
+  not exercise console ownership. Expanded it to save/load into an isolated
+  temporary save directory. Repeated travel, save/load, rebinding and shutdown
+  passed without script warnings or invalid owners at
+  `local/game/System64/VRTravel-20260921-163258.log`; accepted firing regression
+  passed at `local/game/System64/VRMotionRegression-20260921-163309.log`.
+  Added a production menu build excluding all 13 test fixture sources and
+  checking their names are absent from the compiled package; compilation passed
+  with zero warnings. Installer staging requires this production rebuild while
+  normal development builds retain regression fixtures. Reconciled stale
+  renderer/weapon acceptance descriptions and documented the build split.
+  Focus-loss stutter remains explicitly deferred; no firing/calibration changes.
+
+- Audited remaining production VR logging and test reachability after removing
+  the failed focus experiment. Active VR script classes have no direct `Log`
+  calls; production script references to the named VR/bindings/video test
+  classes were not found. The menu build nevertheless copies and compiles all
+  classes, including fixtures, into its shared package. No packaging split or
+  gameplay cleanup was performed during this read-only code audit. Renderer
+  logging includes startup/state/error reporting and an environment-enabled
+  performance sampler; retained error logging can repeat under persistent
+  failures. No zero-overhead or full performance certification is claimed.
+  Updated current-state and release notes with unresolved focus stutter, recorded
+  saved-game hook invalid-outer warnings and the missing new installer validation.
+  Automatic/runtime testing was not repeated for this documentation-only audit.
+
+- Closed the unsuccessful focus-recovery experiment without claiming a fix.
+  The owner reproduced stutter after desktop focus loss/return without F8 or
+  headset removal, and confirmed the deferred-paint attempt did not help.
+  Captures showed Windows `Ghost` windows coinciding with 66-78 ms draw stalls;
+  that correlation did not prove the proposed paint-handling cause. Evidence
+  remains in ignored `local/logs/vr-focus-reproduction-20260921/`.
+  Removed the paint override, timing/process probes, diagnostic commands and
+  temporary harness extension. Renderer source and runtime harness now exactly
+  match `vr-weapons-validated-2026-09-21`; the renderer rebuilt and deployed
+  successfully, with the deployed DLL matching the build. All 30 runtime profile
+  and save-file hashes were unchanged. Removed obsolete diagnostic instructions
+  and marked focus-loss stutter unresolved. No further owner captures requested,
+  no unrelated code/assets deleted, and no installer built or published.
+
 ### Accepted milestone: VR weapon baseline
 
 The owner confirmed "Everything seems perfect now" after the final Eightball

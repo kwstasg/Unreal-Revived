@@ -102,6 +102,18 @@ graphics session with a new test directory under `local/`.
 
 ## September 12, 2026 installer validation
 
+The September 21 release-cleanup candidate was subsequently rebuilt and passed
+the same isolated lifecycle with production-only `ModernMenu.u`. Coverage now
+also rejects packaged test fixtures, checks the shipped weapon-calibration seed,
+changes that calibration and verifies preservation during profile migration and
+the uninstall backup alongside all three canonical profiles. Fresh/reinstall
+payload hashes, desktop/VR launches and restarts, Old Weapons activation, save
+retention and test cleanup passed. The CV1 was detected and OpenXR initialized;
+this automated check does not replace the earlier owner visual acceptance.
+Evidence: `local/logs/release-installer-lifecycle.log`; candidate checksum is in
+[the progress record](progress.md). No production installation was
+targeted and no release was published.
+
 The full isolated lifecycle passed, including fresh installation, both native
 hosts and Preferences Restart, exact preservation of changed profiles when
 applying installer configuration, exact uninstall backups of all three INIs,
