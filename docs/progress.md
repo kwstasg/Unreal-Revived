@@ -24,17 +24,20 @@ remote-client multiplayer limitations or the recurring-stutter investigation.
 Promoted the owner's latest 14 runtime profiles to the shipped seed template,
 including Eightball gaze Y=20. Exact profile parity passed; existing runtime
 calibration remains untouched and build/install remain seed-only. Preserved the
-working source and full local runtime under the annotated milestone
-`vr-weapons-validated-2026-09-21`, with the private snapshot/checksum and recovery
-details in [the weapon guide](vr-weapon-tuning.md#accepted-milestone).
+working source under the annotated milestone `vr-weapons-validated-2026-09-21`,
+with recovery details in [the weapon guide](vr-weapon-tuning.md#accepted-milestone).
 The source snapshot also retains existing controller, bindings and video work;
 the milestone does not expand its visual acceptance claim to untested behavior.
 The preceding zero-warning ModernMenu build and firing regression passed at
 `local/game/System64/VRMotionRegression-20260921-145525.log`.
 The final accepted calibration also passed at
-`local/game/System64/VRMotionRegression-20260921-152645.log`. The complete private
-runtime snapshot contains 3,819 files, each verified against its source with
-SHA-256; its renderer and input DLLs match the existing Release build outputs.
+`local/game/System64/VRMotionRegression-20260921-152645.log`. A private runtime
+snapshot was initially verified across 3,819 files with SHA-256; its renderer
+and input DLLs matched the existing Release build outputs. The owner subsequently
+requested repository-only preservation, so that additional backup and source
+bundle were removed. The milestone commit/tag and active runtime are retained;
+the tag's original backup reference is historical. Future recovery uses the
+tagged source and normal runtime provisioning/build steps.
 Repository safety and source whitespace checks passed. No installer was built
 and nothing was published as part of this local milestone.
 

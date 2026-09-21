@@ -47,24 +47,20 @@ Preserve it as the known-good weapon baseline for future work.
 
 - Annotated local Git tag: `vr-weapons-validated-2026-09-21`.
 - Shipped calibration: `UnrealScript/ModernMenu/Config/ModernVRWeapons.ini`.
-- Private snapshot: `local/backups/vr-weapons-validated-2026-09-21/`.
-- The snapshot contains the full accepted `game/` runtime, configurations,
-  saves and binaries, plus SHA-256 file records in `runtime-manifest.json`.
-  `milestone-receipt.json` links those records to the commit/tag and local
-  `source.bundle`, which preserves the committed source and Git history.
+
+The repository is the milestone record. At the owner's request, the additional
+runtime backup and source bundle were removed; the original tag annotation's
+backup reference is historical, not an available recovery artifact.
 
 To recover the source without disturbing ongoing work, create a separate
 worktree with `git worktree add --detach ../Unreal-Revived-vr-baseline vr-weapons-validated-2026-09-21`.
-Restore the snapshot's `game/` into that worktree's ignored `local/game/` and
-compare file hashes against the manifest before testing. Preserve newer saves
-and profiles separately; do not overwrite the original installation or reset
-an active working tree. Recreate development shortcuts for the new location
-instead of using the copied absolute-path shortcuts.
+Follow [the build instructions](building.md) to provision a disposable runtime
+and rebuild from that source. Git retains source and shipped calibration, not
+game assets, generated binaries, saves or private runtime profiles. Do not
+overwrite the original installation or reset an active working tree.
 
-This is a local milestone, not a published release or installer. The backup
-contains private game content and must stay outside source control and public
-release artifacts. Copy the snapshot to another drive for protection against
-loss of this machine. Remote-client VR firing, full campaign/mod compatibility,
+This is a local milestone, not a published release or installer.
+Remote-client VR firing, full campaign/mod compatibility,
 other headset/controller combinations and the recurring F8/HMD stutter report
 are not declared resolved by this weapon acceptance.
 
