@@ -87,8 +87,8 @@ event Timer()
 	Video.BrightnessSlider.SetValue(120);
 	Video.ContrastSlider.SetValue(100);
 	VRSettings = ModernVRConfigCW(C.Root.CreateWindow(class'ModernVRConfigCW', 20, 20, 400, 320));
-	Check(VRSettings.RenderQualityCombo.GetValue2() == "0", "VR defaults to current profile");
-	VRSettings.RenderQualityCombo.SetSelectedIndex(4);
+	Check(VRSettings.RenderQualityCombo.GetValue2() == "2", "VR defaults to Balanced");
+	VRSettings.RenderQualityCombo.SetSelectedIndex(3);
 	VRSettings.LoadSettings();
 	Check(VRSettings.RenderQualityCombo.GetValue2() == "4", "VR quality preference persists");
 	Check(TestPlayer.ConsoleCommand("D3D12 VRSTATSACTIVE") == "0", "desktop uses desktop FPS counters");

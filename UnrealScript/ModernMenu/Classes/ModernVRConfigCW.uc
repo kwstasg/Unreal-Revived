@@ -9,7 +9,6 @@ var UWindowComboControl AimMethodCombo;
 var UWindowComboControl RenderQualityCombo;
 var localized string RenderQualityText;
 var localized string RenderQualityHelp;
-var localized string CurrentProfileText;
 var localized string PerformanceQualityText;
 var localized string BalancedQualityText;
 var localized string HighQualityText;
@@ -77,7 +76,6 @@ function Created()
 	RenderQualityCombo.SetHelpText(RenderQualityHelp);
 	RenderQualityCombo.SetFont(F_Normal);
 	RenderQualityCombo.SetEditable(False);
-	RenderQualityCombo.AddItem(CurrentProfileText, "0");
 	RenderQualityCombo.AddItem(PerformanceQualityText, "1");
 	RenderQualityCombo.AddItem(BalancedQualityText, "2");
 	RenderQualityCombo.AddItem(HighQualityText, "3");
@@ -239,9 +237,9 @@ function LoadSettings()
 	AimMethodCombo.SetSelectedIndex(Clamp(int(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRAimMode")), 0, 1));
 	Quality = int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice VRRenderQuality"));
-	if (Quality < 0 || Quality > 4)
-		Quality = 0;
-	RenderQualityCombo.SetSelectedIndex(Quality);
+	if (Quality < 1 || Quality > 4)
+		Quality = 2;
+	RenderQualityCombo.SetSelectedIndex(Quality - 1);
 
 	Distance = float(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRHUDDistance"));
@@ -450,10 +448,9 @@ defaultproperties
 	RightEyeSizeText="Right eye: "
 	EyeSizeHelp="Scene resolution -> image sent to the headset, in pixels. Before the first frame, this shows the configured eye size."
 	RenderQualityText="VR Render Quality"
-	RenderQualityHelp="Current profile keeps the original 1280 x 1024 scene resolution. Other modes scale the runtime-recommended eye resolution. Changes apply immediately with a brief pause. The VR layout stays fixed."
-	CurrentProfileText="Current profile (Default)"
+	RenderQualityHelp="Balanced uses the runtime-recommended eye resolution. Other modes scale that resolution. Changes apply immediately with a brief pause. The VR layout stays fixed."
 	PerformanceQualityText="Performance - 75%"
-	BalancedQualityText="Balanced - 100%"
+	BalancedQualityText="Balanced - 100% (Default)"
 	HighQualityText="Quality - 125%"
 	UltraQualityText="Ultra - 150%"
 	QualityRestartText="Applying render quality..."

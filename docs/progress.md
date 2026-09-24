@@ -12,6 +12,13 @@ under `local/logs/`.
 
 ## 2026-09-24
 
+- Owner accepted the controller/menu checkpoint and authorized removing the temporary
+  Current profile option. Balanced (100%) is now the renderer and menu default;
+  four presets remain, with internal allocation recovery retained. No migrations
+  were added. Renderer/menu builds, all nine native tests and in-game preferences
+  passed (`VideoPreferences-20260924-202328.log`). Other-headset hardware validation
+  remains separate from this CV1 acceptance.
+
 - Expanded OpenXR controller suggestions to Index, Vive wands, Microsoft motion,
   simple controllers and advertised Cosmos/Focus 3/HP/Touch Pro/Touch Plus profiles.
   Retained all 17 original Touch bindings and the Xbox input path. Added runtime

@@ -1,5 +1,5 @@
 # Requires a connected OpenXR headset/runtime; never writes the player's INIs.
-param([int[]] $Qualities = @(0, 1, 2, 3, 4))
+param([int[]] $Qualities = @(1, 2, 3, 4))
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $gameRoot = & (Join-Path $PSScriptRoot 'assert-development-runtime.ps1') -GameRoot (Join-Path $repoRoot 'local/game')
@@ -8,7 +8,7 @@ $systemDir = Join-Path $gameRoot 'System64'
 Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Ini.psm1') -Force
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 foreach ($quality in $Qualities) {
-    if ($quality -lt 0 -or $quality -gt 4) { throw 'Quality must be 0 through 4.' }
+    if ($quality -lt 1 -or $quality -gt 4) { throw 'Quality must be 1 through 4.' }
     $iniName = "VRQuality-$stamp-$quality.ini"
     $userName = "VRQualityUser-$stamp-$quality.ini"
     $logName = "VRQuality-$stamp-$quality.log"

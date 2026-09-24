@@ -7,7 +7,8 @@ Touch's original 17 bindings are retained: sticks, A/B/X/Y, grip-as-shoulder,
 triggers, stick clicks and left Menu as Start. Xbox input, binding preferences,
 dead zones, sensitivity, tracking-loss firing protection and mixed-device merging
 remain unchanged. Head-gaze versus motion aiming still changes aiming only.
-Default world resolution, HUD texture, panel layout, distance and scale are unchanged.
+Following owner acceptance, Balanced is the default scene resolution (runtime recommendation).
+HUD texture, panel layout, distance and scale are unchanged.
 
 ## Controller profiles
 
@@ -100,7 +101,7 @@ Together with `D3D12 VRRENDERSIZE 0/1`, this makes external reports actionable.
 Record runtime version, headset, controller model, active profile and any physical
 button that does not produce the expected action. Test each hand, held-input
 release, disconnect/reconnect, menus, firing and recentering. CV1 Touch plus Xbox
-should retain the accepted controls; this build still needs that visual/manual check.
+should retain the accepted controls; the owner accepted the controller/menu build before promoting Balanced to default.
 
 ## Primary references
 

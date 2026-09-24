@@ -29,12 +29,12 @@ event Timer()
 		{
 			if (Size == LowSize)
 				Log("VRQUALITYTEST FAIL live 75 to 150 did not change dimensions");
-			TestPlayer.ConsoleCommand("D3D12 VRRENDERQUALITY 0");
+			TestPlayer.ConsoleCommand("D3D12 VRRENDERQUALITY 2");
 		}
 		else if (LiveStep == 3)
 		{
-			if (Left(Size, 9) != "1280x1024")
-				Log("VRQUALITYTEST FAIL live return to default changed baseline");
+			if (TestPlayer.ConsoleCommand("D3D12 VRRENDERQUALITY") != "2" || Size == LowSize)
+				Log("VRQUALITYTEST FAIL live return to Balanced");
 			Log("VRQUALITYTEST live completed");
 			Log("VRQUALITYTEST completed");
 			TestPlayer.ConsoleCommand("quit");

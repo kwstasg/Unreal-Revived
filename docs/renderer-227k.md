@@ -370,3 +370,7 @@ full acceptance matrix remain incomplete, so this is not a supported VR release.
 RTX support and a Vulkan driver are also future work; their order and status
 are tracked in
 [`roadmap.md`](roadmap.md).
+
+VR quality now defaults to Balanced (runtime-recommended per-eye scene/output sizes).
+Current profile is no longer selectable; internal allocation recovery remains.
+See [VR quality](vr-render-quality.md) for presets and validation.

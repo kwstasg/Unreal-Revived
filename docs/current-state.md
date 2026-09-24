@@ -6,6 +6,9 @@ history.
 
 ## Current VR quality development checkpoint
 
+After owner acceptance of controller/menu behavior, Balanced (100%) is the default.
+The temporary Current profile option is removed; four runtime-scaled presets remain.
+
 Commit `df6921c` preserves the owner-accepted CV1 baseline. The follow-up removes
 Epic and improves aspect labels. Optional HUD/Menu Sharpness was subsequently
 removed at the owner's request; the original fixed UI texture is restored.

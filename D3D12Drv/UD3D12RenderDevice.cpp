@@ -184,7 +184,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	EnableVR = 0;
 	VRHUDDistance = 1.75f;
 	VRHUDScale = 1.0f;
-	VRRenderQuality = 0; // Existing profiles retain their original render resolution.
+	VRRenderQuality = 2; // Balanced uses the runtime-recommended eye resolution.
 	VRPlayerHeightOffset = 0.0f;
 	VRWorldScale = 1.0f;
 	VRAimMode = 0;
@@ -4135,7 +4135,7 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 				Ar.Log(TEXT("failed"));
 			else if (VRQualityBuffersFailed)
 				Ar.Log(TEXT("fallback"));
-			else if (OpenXRSession != XR_NULL_HANDLE && VRRenderQuality != ActiveVRRenderQuality)
+			else if (OpenXRSession != XR_NULL_HANDLE && VRRenderSizing::NormalizeQuality(VRRenderQuality) != ActiveVRRenderQuality)
 				Ar.Log(TEXT("pending"));
 			else
 				Ar.Log(TEXT("ready"));

@@ -18,8 +18,8 @@ int main()
 		for (int Quality : { -1, 0, 5, 6, 999 })
 		{
 			const auto Original = EyeSize(Quality, Logical, 3000, 3200, 6000, 6400);
-			Check(Original.Width == Logical.Width && Original.Height == Logical.Height,
-				"Default and invalid presets must preserve customized profiles");
+			Check(Original.Width == 3000 && Original.Height == 3200,
+				"Unset and invalid presets must use Balanced runtime sizing");
 		}
 	}
 	const Size Expected[] = { Profile, {1500,1800}, {2000,2400}, {2500,3000}, {3000,3600} };

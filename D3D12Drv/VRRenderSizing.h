@@ -10,7 +10,7 @@ struct Size { int Width; int Height; };
 
 inline int NormalizeQuality(int Quality)
 {
-	return Quality >= 0 && Quality <= 4 ? Quality : 0;
+	return Quality >= 1 && Quality <= 4 ? Quality : 2;
 }
 
 inline Size EyeSize(int Quality, Size Profile, uint32_t Width, uint32_t Height,

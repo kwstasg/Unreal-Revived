@@ -8,8 +8,8 @@ recovery on CV1 on 24 September 2026. Commit `df6921c` preserves that accepted
 implementation before optional HUD sharpness and the removal of Epic.
 These are development changes, not a published release.
 
-Defaults remain Current profile (`VRRenderQuality=0`) and the original 1024-square
-UI texture. VR logical layout stays locked to 1280 x 1024,
+After owner acceptance, Balanced (`VRRenderQuality=2`) is now the default.
+Current profile is removed from the menu. The original 1024-square UI texture remains. VR logical layout stays locked to 1280 x 1024,
 as requested after larger logical resolutions caused distortion. Distance,
 scale, panel anchor, tracking, projection, aiming and anti-aliasing defaults
 are unchanged. Desktop and VR launchers retain separate profiles.
@@ -35,14 +35,13 @@ Preferences -> VR -> VR Render Quality:
 
 | Setting | Saved value | Scene per eye | OpenXR output per eye |
 | --- | --- | --- | --- |
-| Current profile (Default) | 0 | 1280x1024 | Runtime recommendation |
 | Performance - 75% | 1 | 75% of recommended width and height | Same as scene |
-| Balanced - 100% | 2 | Runtime recommendation | Same as scene |
+| Balanced - 100% (Default) | 2 | Runtime recommendation | Same as scene |
 | Quality - 125% | 3 | 125% of recommended width and height | Same as scene |
 | Ultra - 150% | 4 | 150% of recommended width and height | Same as scene |
 
 Epic 200% is removed. Unsupported quality values use the default; no retired-
-setting migration is retained. Ultra costs 2.25 times Balanced's pixels. Runtime supersampling may
+setting migration is retained. Values outside 1 through 4 use Balanced. Ultra costs 2.25 times Balanced's pixels. Runtime supersampling may
 already be included in the recommendation; percentages do not set refresh rate.
 For the tested CV1 recommendation of 1344x1600, optional outputs are 1008x1200,
 1344x1600, 1680x2000 and 2016x2400. Recommendations may change with runtime settings.
@@ -50,8 +49,9 @@ For the tested CV1 recommendation of 1344x1600, optional outputs are 1008x1200,
 Changes apply at the next frame boundary without restarting. Replacement eye
 swapchains and scene buffers are allocated before retiring the working pair.
 Failed live allocations keep the previous resources and display a failure.
-Optional startup allocation failure retries the default path. Default allocation
-or device failure is not recoverable through this fallback.
+Startup allocation failure retains the internal recovery path: runtime-sized
+eye output with original scene buffers. It is not a selectable quality preset.
+Failure of recovery allocation or the device is not recoverable through this fallback.
 
 ### HUD/menu texture
 
@@ -151,14 +151,14 @@ cmake --build local/build-feature --config Release --target D3D12Drv
 cmake --build local/build-vr-tests --config Release
 ctest --test-dir local/build-vr-tests -C Release --output-on-failure
 powershell -NoProfile -File scripts/test-video-preferences.ps1
-powershell -NoProfile -File scripts/test-vr-render-quality.ps1 -Qualities 0
+powershell -NoProfile -File scripts/test-vr-render-quality.ps1 -Qualities 2
 powershell -NoProfile -File scripts/check-repository.ps1
 ```
 
 Build the development menu and deploy the fresh renderer to `local/game` before
 gameplay tests; preserve player INIs when running the menu build script.
 Fixtures use disposable INIs. The live quality test requires an available
-OpenXR runtime and checks 75% -> 150% -> default
+OpenXR runtime and checks 75% -> 150% -> Balanced
 switches in one process. Initialization alone does not establish optical quality.
 
 Native tests cover unequal runtime sizes, all presets, small through high-resolution
@@ -177,7 +177,7 @@ Other headset owners should compare stereo geometry, nearby objects, panel bound
 wide-FOV edge visibility, head rotation/translation, runtime timing and fallback.
 Record headset/runtime version, refresh rate, runtime resolution and actual eye sizes.
 
-Remaining: hardware reports for other headsets (especially canted/wide-FOV devices)
+Remaining: hardware reports for other headsets (especially canted/wide-FOV devices).
 The owner closed the focus-loss stutter task on 24 September 2026. The planned code/settings work,
 automated rotated-eye coverage, documentation and Git checkpoints are complete.
 No cross-headset optical guarantee is claimed.
