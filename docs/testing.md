@@ -21,14 +21,10 @@ classes and rejecting their names in the compiled package. Rebuild the normal
 development target before running fixtures again. The release package is tested
 through the isolated installer/launcher lifecycle, not by shipping test classes.
 
-## Known VR focus-recovery issue
+## Focus-recovery task status
 
-The owner reproduced recurring stutter after desktop focus loss and return,
-without F8 or headset removal. The attempted deferred-paint correction failed
-live validation and was removed with its temporary diagnostics. Existing idle
-OpenXR smoke checks do not establish that focus recovery is smooth. Further
-owner reproduction requests are paused; keep this limitation explicit in release
-notes. See [the renderer status](renderer-227k.md#vr-session-and-firing-adapters).
+Closed at the owner's direction on 24 September 2026. No further focus-loss
+stutter investigation is scheduled; historical logs remain in the progress record.
 
 ## VR gamepad locomotion checks
 
@@ -847,3 +843,11 @@ Use an available staged payload/patch directory. This creates a new directory un
 profiles return to the fresh defaults while a save sentinel remains unchanged.
 The full branded-installer lifecycle separately checks actual uninstall/reinstall
 and backup behavior; profile migration is no longer part of that contract.
+
+## Multi-profile controllers and menu back
+
+See [the controller matrix and validation contract](vr-controller-compatibility.md).
+Run `scripts/test-menu-back.ps1` with the development menu for hierarchical B/back
+and pause-state checks. The native controller lifecycle tests exercise optional
+profile rejection and wand combinations; physical controller behavior still needs
+CV1 acceptance and reports from owners of the other devices.

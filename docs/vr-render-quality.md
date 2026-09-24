@@ -81,11 +81,12 @@ IPD or lens-distortion corrections are hardcoded by headset model.
 
 The projection audit found independent eye poses in `OPENXRPOSE`, asymmetric
 FOV projection in `SetSceneNode`, and the corresponding poses/FOVs submitted in
-`FinishOpenXRFrame`. These accepted paths remain unchanged. Runtime lens correction
+`FinishOpenXRFrame`. Eye projection/submission remain unchanged. Runtime lens correction
 does not excuse incorrect application projections. Canted optics and very wide
 FOV still require hardware checks; the existing conservative culling FOV has a
-170-degree cap. The legacy head orientation is derived from the first eye, so
-head-center/gaze behavior on canted devices specifically remains unverified.
+170-degree cap. Canted-eye head orientation now uses the runtime VIEW space with a two-eye
+midpoint fallback; parallel-eye CV1 behavior is preserved. See the
+[controller/headset compatibility contract](vr-controller-compatibility.md).
 
 Compatibility targets include Quest 2/3/3S/Pro, Index, Vive Pro/Pro 2/Cosmos,
 Beyond/Beyond 2, Crystal/Crystal Light and PS VR2 through their PC OpenXR runtimes.
@@ -177,6 +178,6 @@ wide-FOV edge visibility, head rotation/translation, runtime timing and fallback
 Record headset/runtime version, refresh rate, runtime resolution and actual eye sizes.
 
 Remaining: hardware reports for other headsets (especially canted/wide-FOV devices)
-and the separately deferred focus-loss stutter issue. The planned code/settings work,
+The owner closed the focus-loss stutter task on 24 September 2026. The planned code/settings work,
 automated rotated-eye coverage, documentation and Git checkpoints are complete.
 No cross-headset optical guarantee is claimed.

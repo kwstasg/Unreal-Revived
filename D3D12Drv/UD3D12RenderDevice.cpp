@@ -1118,15 +1118,21 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		return;
 	}
 
-	const char* EnabledExtensions[] = { XR_KHR_D3D12_ENABLE_EXTENSION_NAME, XR_EXT_USER_PRESENCE_EXTENSION_NAME };
+	std::vector<const char*> EnabledExtensions = { XR_KHR_D3D12_ENABLE_EXTENSION_NAME };
+	if (VRPresenceExtension) EnabledExtensions.push_back(XR_EXT_USER_PRESENCE_EXTENSION_NAME);
+	for (const auto& Profile : OpenXRControllers::Profiles())
+		if (Profile.Extension)
+			for (const auto& Extension : Extensions)
+				if (strcmp(Extension.extensionName, Profile.Extension) == 0)
+					EnabledExtensions.push_back(Profile.Extension);
 	XrInstanceCreateInfo CreateInfo = { XR_TYPE_INSTANCE_CREATE_INFO };
 	strncpy_s(CreateInfo.applicationInfo.applicationName, "Unreal Revived", _TRUNCATE);
 	CreateInfo.applicationInfo.applicationVersion = 6;
 	strncpy_s(CreateInfo.applicationInfo.engineName, "Unreal Engine 1", _TRUNCATE);
 	CreateInfo.applicationInfo.engineVersion = 227;
 	CreateInfo.applicationInfo.apiVersion = XR_API_VERSION_1_0;
-	CreateInfo.enabledExtensionCount = VRPresenceExtension ? 2 : 1;
-	CreateInfo.enabledExtensionNames = EnabledExtensions;
+	CreateInfo.enabledExtensionCount = static_cast<uint32_t>(EnabledExtensions.size());
+	CreateInfo.enabledExtensionNames = EnabledExtensions.data();
 	Result = CreateInstance(&CreateInfo, &OpenXRInstance);
 	if (XR_FAILED(Result) || OpenXRInstance == XR_NULL_HANDLE)
 	{
@@ -1290,7 +1296,7 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		return;
 	}
 
-	if (!MotionControllers.Initialize(OpenXRInstance, OpenXRSession, OpenXRGetInstanceProcAddr))
+	if (!MotionControllers.Initialize(OpenXRInstance, OpenXRSession, OpenXRGetInstanceProcAddr, EnabledExtensions))
 	{
 		MotionControllers.Release();
 		debugf(TEXT("Unreal Revived OpenXR: motion input unavailable; gaze rendering remains available"));
@@ -1320,6 +1326,7 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 	RESOLVE_OPENXR_FUNCTION(EndSession);
 	RESOLVE_OPENXR_FUNCTION(CreateReferenceSpace);
 	RESOLVE_OPENXR_FUNCTION(DestroySpace);
+	RESOLVE_OPENXR_FUNCTION(LocateSpace);
 	RESOLVE_OPENXR_FUNCTION(EnumerateViewConfigurationViews);
 	RESOLVE_OPENXR_FUNCTION(EnumerateEnvironmentBlendModes);
 	RESOLVE_OPENXR_FUNCTION(EnumerateSwapchainFormats);
@@ -1391,6 +1398,10 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 		debugf(TEXT("Unreal Revived OpenXR: seated local reference space creation failed (result %d)"), Result);
 		return 0;
 	}
+
+	SpaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
+	if (XR_FAILED(OpenXRFunctions.CreateReferenceSpace(OpenXRSession, &SpaceInfo, &OpenXRHeadSpace)))
+		OpenXRHeadSpace = XR_NULL_HANDLE;
 
 	uint32_t FormatCount = 0;
 	Result = OpenXRFunctions.EnumerateSwapchainFormats(OpenXRSession, 0, &FormatCount, nullptr);
@@ -1825,7 +1836,14 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 	}
 	if ((ViewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) != 0)
 	{
-		OpenXRHeadOrientation = NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation);
+		// Eye orientations can include optical cant. Prefer the actual head space.
+		OpenXRHeadOrientation = OpenXRHeadOrientationFromViews(OpenXRViews[0].pose.orientation, OpenXRViews[1].pose.orientation);
+		XrSpaceLocation HeadLocation = { XR_TYPE_SPACE_LOCATION };
+		if (OpenXREyesHaveDifferentOrientations(OpenXRViews[0].pose.orientation, OpenXRViews[1].pose.orientation) &&
+			OpenXRHeadSpace != XR_NULL_HANDLE &&
+			XR_SUCCEEDED(OpenXRFunctions.LocateSpace(OpenXRHeadSpace, OpenXRLocalSpace, OpenXRPredictedDisplayTime, &HeadLocation)) &&
+			(HeadLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT))
+			OpenXRHeadOrientation = NormalizeOpenXRQuaternion(HeadLocation.pose.orientation);
 		OpenXRHeadPoseValid = 1;
 		if (OpenXRViewRecenterRequested &&
 			(ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) != 0)
@@ -2198,6 +2216,9 @@ void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 		Pipeline.reset();
 	OpenXRViews.clear();
 	OpenXRConfigurationViews.clear();
+	if (OpenXRHeadSpace != XR_NULL_HANDLE && OpenXRFunctions.DestroySpace)
+		OpenXRFunctions.DestroySpace(OpenXRHeadSpace);
+	OpenXRHeadSpace = XR_NULL_HANDLE;
 	if (OpenXRLocalSpace != XR_NULL_HANDLE && OpenXRFunctions.DestroySpace)
 		OpenXRFunctions.DestroySpace(OpenXRLocalSpace);
 	OpenXRLocalSpace = XR_NULL_HANDLE;
@@ -3903,6 +3924,13 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			Ar.Logf(TEXT("%d"), VRAimMode == 1 ? 1 : 0);
 			return 1;
 		}
+		if (ParseCommand(&Cmd, TEXT("OPENXRPROFILES")))
+		{
+			const auto LeftProfile = to_utf16(MotionControllers.ProfileName(0));
+			const auto RightProfile = to_utf16(MotionControllers.ProfileName(1));
+			Ar.Logf(TEXT("Left: %ls | Right: %ls"), LeftProfile.c_str(), RightProfile.c_str());
+			return 1;
+		}
 		if (ParseCommand(&Cmd, TEXT("OPENXRMOTIONACTIVE")))
 		{
 			// Mode checks do not need quaternion conversion or pose formatting.
@@ -3956,7 +3984,7 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 				const INT Buttons = (Right.Primary ? 0x1000 : 0) | (Right.Secondary ? 0x2000 : 0) |
 					(Left.Primary ? 0x4000 : 0) | (Left.Secondary ? 0x8000 : 0) |
 					(Left.Squeeze > 0.5f ? 0x100 : 0) | (Right.Squeeze > 0.5f ? 0x200 : 0) |
-					(Left.Click ? 0x40 : 0) | (Right.Click ? 0x80 : 0) | (Left.Menu ? 0x10 : 0);
+					(Left.Click ? 0x40 : 0) | (Right.Click ? 0x80 : 0) | ((Left.Menu || Right.Menu) ? 0x10 : 0) | ((Left.View || Right.View) ? 0x20 : 0);
 				const bool CanAim = OpenXRHeadPoseValid && (VRAimMode != 1 ||
 					(Viewport && Viewport->Actor && Viewport->Actor->Handedness == 1 ? Left.Valid : Right.Valid));
 				Ar.Logf(TEXT("1 %d %d %d %d %d %d %d %d %d"), CanAim ? 1 : 0, Buttons,

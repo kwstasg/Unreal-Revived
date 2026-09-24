@@ -774,7 +774,10 @@ state UWindow
 		if (Action == IST_Press && Bindings != None && Bindings.bPolling)
 		{
 			if (Key == IK_Joy2)
+			{
 				Bindings.CancelKeySelection(True);
+				return True;
+			}
 			else if (Key == IK_Joy8)
 			{
 				ModernRoot.PrepareControllerMenuClose();

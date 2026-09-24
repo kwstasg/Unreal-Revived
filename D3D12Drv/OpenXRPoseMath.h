@@ -22,6 +22,22 @@ inline XrQuaternionf NormalizeOpenXRQuaternion(const XrQuaternionf& Q)
 	return { Q.x * InverseLength, Q.y * InverseLength, Q.z * InverseLength, Q.w * InverseLength };
 }
 
+inline bool OpenXREyesHaveDifferentOrientations(const XrQuaternionf& Left, const XrQuaternionf& Right)
+{
+	const auto A = NormalizeOpenXRQuaternion(Left);
+	const auto B = NormalizeOpenXRQuaternion(Right);
+	return std::abs(A.x*B.x + A.y*B.y + A.z*B.z + A.w*B.w) < 0.999999f;
+}
+
+inline XrQuaternionf OpenXRHeadOrientationFromViews(const XrQuaternionf& Left, const XrQuaternionf& Right)
+{
+	const auto A = NormalizeOpenXRQuaternion(Left);
+	if (!OpenXREyesHaveDifferentOrientations(Left,Right)) return A;
+	const auto B = NormalizeOpenXRQuaternion(Right);
+	const float Sign = A.x*B.x + A.y*B.y + A.z*B.z + A.w*B.w < 0 ? -1.0f : 1.0f;
+	return NormalizeOpenXRQuaternion({A.x+Sign*B.x,A.y+Sign*B.y,A.z+Sign*B.z,A.w+Sign*B.w});
+}
+
 template<class VectorType>
 inline VectorType RotateOpenXRVector(const XrQuaternionf& Q, const VectorType& Vector)
 {

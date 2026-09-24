@@ -1,9 +1,12 @@
-// Unreal Revived - optional OpenXR Touch input, independent of head tracking.
+// Unreal Revived - optional OpenXR controller input, independent of head tracking.
 #pragma once
 
 #include <openxr/openxr.h>
 #include <cstring>
 #include <vector>
+#include <string>
+#include <algorithm>
+#include <cmath>
 
 class OpenXRControllers
 {
@@ -17,12 +20,33 @@ public:
 		XrVector2f Stick = {};
 		float Trigger = 0;
 		float Squeeze = 0;
-		bool Primary = false, Secondary = false, Click = false, Menu = false;
+		bool Primary = false, Secondary = false, Click = false, Menu = false, View = false;
 	};
 	HandState Hands[2]; // left, right
 	bool Ready = false;
 
-	bool Initialize(XrInstance instance, XrSession session, PFN_xrGetInstanceProcAddr resolve)
+	enum class Layout { Touch, Index, Wand, Simple, Mixed, DigitalTouch, BothMenuTouch };
+	struct Profile { const char* Path; const char* Extension; Layout Controls; };
+	static const std::vector<Profile>& Profiles()
+	{
+		static const std::vector<Profile> Entries = {
+			{"/interaction_profiles/oculus/touch_controller", nullptr, Layout::Touch},
+			{"/interaction_profiles/valve/index_controller", nullptr, Layout::Index},
+			{"/interaction_profiles/htc/vive_controller", nullptr, Layout::Wand},
+			{"/interaction_profiles/microsoft/motion_controller", nullptr, Layout::Mixed},
+			{"/interaction_profiles/khr/simple_controller", nullptr, Layout::Simple},
+			{"/interaction_profiles/htc/vive_cosmos_controller", "XR_HTC_vive_cosmos_controller_interaction", Layout::DigitalTouch},
+			{"/interaction_profiles/htc/vive_focus3_controller", "XR_HTC_vive_focus3_controller_interaction", Layout::Touch},
+			{"/interaction_profiles/hp/mixed_reality_controller", "XR_EXT_hp_mixed_reality_controller", Layout::BothMenuTouch},
+			{"/interaction_profiles/facebook/touch_controller_pro", "XR_FB_touch_controller_pro", Layout::Touch},
+			{"/interaction_profiles/meta/touch_controller_plus", "XR_META_touch_controller_plus", Layout::Touch}
+		};
+		return Entries;
+	}
+	std::vector<std::string> AcceptedProfiles;
+
+	bool Initialize(XrInstance instance, XrSession session, PFN_xrGetInstanceProcAddr resolve,
+		const std::vector<const char*>& enabledExtensions = {})
 	{
 		Instance = instance;
 		Session = session;
@@ -42,6 +66,8 @@ public:
 		XR_INPUT_FUNCTION(GetActionStateFloat);
 		XR_INPUT_FUNCTION(GetActionStateVector2f);
 		XR_INPUT_FUNCTION(LocateSpace);
+		XR_INPUT_FUNCTION(GetCurrentInteractionProfile);
+		XR_INPUT_FUNCTION(PathToString);
 #undef XR_INPUT_FUNCTION
 		if (!Path("/user/hand/left", Paths[0]) || !Path("/user/hand/right", Paths[1])) return false;
 		XrActionSetCreateInfo set = { XR_TYPE_ACTION_SET_CREATE_INFO };
@@ -56,38 +82,23 @@ public:
 			!Action("primary", XR_ACTION_TYPE_BOOLEAN_INPUT, Primary) ||
 			!Action("secondary", XR_ACTION_TYPE_BOOLEAN_INPUT, Secondary) ||
 			!Action("stick_click", XR_ACTION_TYPE_BOOLEAN_INPUT, Click) ||
-			!Action("menu", XR_ACTION_TYPE_BOOLEAN_INPUT, Menu)) return false;
-		std::vector<XrActionSuggestedBinding> bindings;
-		auto Bind = [&](XrAction action, const char* path) -> bool {
-			XrPath p;
-			if (!Path(path, p)) return false;
-			bindings.push_back({action, p});
-			return true;
-		};
-#define BIND(action, path) if (!Bind(action, path)) return false
-		BIND(Aim, "/user/hand/left/input/aim/pose");
-		BIND(Aim, "/user/hand/right/input/aim/pose");
-		BIND(Grip, "/user/hand/left/input/grip/pose");
-		BIND(Grip, "/user/hand/right/input/grip/pose");
-		BIND(Stick, "/user/hand/left/input/thumbstick");
-		BIND(Stick, "/user/hand/right/input/thumbstick");
-		BIND(Trigger, "/user/hand/left/input/trigger/value");
-		BIND(Trigger, "/user/hand/right/input/trigger/value");
-		BIND(Squeeze, "/user/hand/left/input/squeeze/value");
-		BIND(Squeeze, "/user/hand/right/input/squeeze/value");
-		BIND(Primary, "/user/hand/left/input/x/click");
-		BIND(Primary, "/user/hand/right/input/a/click");
-		BIND(Secondary, "/user/hand/left/input/y/click");
-		BIND(Secondary, "/user/hand/right/input/b/click");
-		BIND(Click, "/user/hand/left/input/thumbstick/click");
-		BIND(Click, "/user/hand/right/input/thumbstick/click");
-		BIND(Menu, "/user/hand/left/input/menu/click");
-#undef BIND
-		XrInteractionProfileSuggestedBinding profile = { XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
-		if (!Path("/interaction_profiles/oculus/touch_controller", profile.interactionProfile)) return false;
-		profile.countSuggestedBindings = static_cast<uint32_t>(bindings.size());
-		profile.suggestedBindings = bindings.data();
-		if (XR_FAILED(SuggestInteractionProfileBindings(instance, &profile))) return false;
+			!Action("menu", XR_ACTION_TYPE_BOOLEAN_INPUT, Menu) ||
+			!Action("view", XR_ACTION_TYPE_BOOLEAN_INPUT, View) ||
+			!Action("squeeze_click", XR_ACTION_TYPE_BOOLEAN_INPUT, SqueezeClick) ||
+			!Action("pad", XR_ACTION_TYPE_VECTOR2F_INPUT, Pad) ||
+			!Action("pad_click", XR_ACTION_TYPE_BOOLEAN_INPUT, PadClick) ||
+			!Action("pad_touch", XR_ACTION_TYPE_BOOLEAN_INPUT, PadTouch) ||
+			!Action("menu_pressure", XR_ACTION_TYPE_FLOAT_INPUT, MenuPressure) ||
+			!Action("view_pressure", XR_ACTION_TYPE_FLOAT_INPUT, ViewPressure)) return false;
+		AcceptedProfiles.clear();
+		for (const auto& profile : Profiles())
+		{
+			if (profile.Extension && std::none_of(enabledExtensions.begin(), enabledExtensions.end(),
+				[&](const char* value) { return std::strcmp(value, profile.Extension) == 0; })) continue;
+			if (Suggest(profile)) AcceptedProfiles.push_back(profile.Path);
+		}
+		// An unsupported optional profile must never disable other controllers.
+		if (AcceptedProfiles.empty()) return false;
 		for (int i = 0; i < 2; ++i)
 		{
 			XrActionSpaceCreateInfo space = { XR_TYPE_ACTION_SPACE_CREATE_INFO };
@@ -105,18 +116,18 @@ public:
 		return Ready;
 	}
 
-	void Clear() { Hands[0] = {}; Hands[1] = {}; }
+	void Clear() { Hands[0] = {}; Hands[1] = {}; WandGrip[0] = WandGrip[1] = false; WandUsed[0] = WandUsed[1] = false; }
 
 	void Update(XrSpace base, XrTime time, bool active)
 	{
-		Clear();
-		if (!Ready || !active) return;
+		Hands[0] = {}; Hands[1] = {};
+		if (!Ready || !active) { Clear(); return; }
 		XrActiveActionSet activeSet = {Set, XR_NULL_PATH};
 		XrActionsSyncInfo sync = { XR_TYPE_ACTIONS_SYNC_INFO };
 		sync.countActiveActionSets = 1;
 		sync.activeActionSets = &activeSet;
 		// XR_SESSION_NOT_FOCUSED is a positive result, but must not expose input.
-		if (SyncActions(Session, &sync) != XR_SUCCESS) return;
+		if (SyncActions(Session, &sync) != XR_SUCCESS) { Clear(); return; }
 		for (int i = 0; i < 2; ++i)
 		{
 			HandState& hand = Hands[i];
@@ -127,18 +138,64 @@ public:
 				Pose(Grip, GripSpaces[i], i, base, time, hand.Grip);
 			// Buttons/sticks remain usable as a gamepad in gaze mode even when
 			// positional tracking is temporarily invalid.
-			if (!hand.Connected) continue;
+			if (!hand.Connected) { WandGrip[i] = WandUsed[i] = false; continue; }
 			hand.Trigger = Float(Trigger, i);
-			hand.Squeeze = Float(Squeeze, i);
+			hand.Squeeze = std::max(Float(Squeeze, i), Boolean(SqueezeClick, i) ? 1.0f : 0.0f);
 			hand.Primary = Boolean(Primary, i);
 			hand.Secondary = Boolean(Secondary, i);
 			hand.Click = Boolean(Click, i);
-			hand.Menu = Boolean(Menu, i);
+			hand.Menu = Boolean(Menu, i) || Float(MenuPressure, i) > 0.5f;
+			hand.View = Boolean(View, i) || Float(ViewPressure, i) > 0.5f;
 			XrActionStateGetInfo info = Info(Stick, i);
 			XrActionStateVector2f value = { XR_TYPE_ACTION_STATE_VECTOR2F };
 			if (XR_SUCCEEDED(GetActionStateVector2f(Session, &info, &value)) && value.isActive)
+			{
 				hand.Stick = value.currentState;
+				WandGrip[i] = WandUsed[i] = false;
+			}
+			else
+			{
+				info = Info(Pad, i);
+				value = { XR_TYPE_ACTION_STATE_VECTOR2F };
+				if (XR_SUCCEEDED(GetActionStateVector2f(Session, &info, &value)) && value.isActive)
+				{
+					if (Boolean(PadTouch, i)) hand.Stick = value.currentState;
+					const bool held = hand.Squeeze > 0.5f;
+					if (held)
+					{
+						WandUsed[i] |= hand.Menu || hand.Secondary;
+						hand.Stick = {};
+						if (Boolean(PadClick, i))
+						{
+							WandUsed[i] = true;
+							hand.Primary = value.currentState.y > 0.35f;
+							hand.Secondary |= value.currentState.y < -0.35f;
+							hand.Click = std::abs(value.currentState.y) <= 0.35f && std::abs(value.currentState.x) <= 0.35f;
+						}
+						// Shoulder fires on release only if this was not a modifier chord.
+						hand.Squeeze = 0;
+					}
+					else
+					{
+						hand.Squeeze = WandGrip[i] && !WandUsed[i] ? 1.0f : 0.0f;
+						WandUsed[i] = false;
+					}
+					WandGrip[i] = held;
+				}
+			}
 		}
+	}
+
+	std::string ProfileName(int hand)
+	{
+		if (!Ready || hand < 0 || hand > 1) return "unavailable";
+		XrInteractionProfileState state = { XR_TYPE_INTERACTION_PROFILE_STATE };
+		if (XR_FAILED(GetCurrentInteractionProfile(Session, Paths[hand], &state)) || !state.interactionProfile)
+			return "unbound";
+		char name[XR_MAX_PATH_LENGTH] = {};
+		uint32_t count = 0;
+		if (XR_FAILED(PathToString(Instance,state.interactionProfile,sizeof(name),&count,name))) return "unavailable";
+		return name;
 	}
 
 	void Release()
@@ -163,7 +220,60 @@ private:
 	XrPath Paths[2] = {};
 	XrSpace AimSpaces[2] = {}, GripSpaces[2] = {};
 	XrAction Aim = {}, Grip = {}, Stick = {}, Trigger = {}, Squeeze = {};
-	XrAction Primary = {}, Secondary = {}, Click = {}, Menu = {};
+	XrAction Primary = {}, Secondary = {}, Click = {}, Menu = {}, View = {};
+	XrAction SqueezeClick = {}, Pad = {}, PadClick = {}, PadTouch = {}, MenuPressure = {}, ViewPressure = {};
+	bool WandGrip[2] = {}, WandUsed[2] = {};
+	bool Suggest(const Profile& profile)
+	{
+		std::vector<XrActionSuggestedBinding> bindings;
+		auto bind = [&](XrAction action, int hand, const char* suffix) {
+			XrPath path = XR_NULL_PATH;
+			const std::string name = std::string(hand ? "/user/hand/right/input/" : "/user/hand/left/input/") + suffix;
+			if (!Path(name.c_str(), path)) return false;
+			bindings.push_back({action, path});
+			return true;
+		};
+		const auto layout = profile.Controls;
+		for (int hand = 0; hand < 2; ++hand)
+		{
+			if (!bind(Aim,hand,"aim/pose") || !bind(Grip,hand,"grip/pose")) return false;
+			if (layout == Layout::Simple)
+			{
+				if (!bind(Primary,hand,"select/click") || !bind(Menu,hand,"menu/click")) return false;
+				continue;
+			}
+			if (!bind(Trigger,hand,"trigger/value")) return false;
+			const bool digital = layout == Layout::Wand || layout == Layout::Mixed || layout == Layout::DigitalTouch;
+			if (!bind(digital ? SqueezeClick : Squeeze, hand, digital ? "squeeze/click" : "squeeze/value")) return false;
+			if (layout == Layout::Wand)
+			{
+				if (!bind(Pad,hand,"trackpad") || !bind(PadClick,hand,"trackpad/click") ||
+					!bind(PadTouch,hand,"trackpad/touch") || !bind(hand ? Secondary : Menu,hand,"menu/click")) return false;
+				continue;
+			}
+			if (!bind(Stick,hand,"thumbstick") || !bind(Click,hand,"thumbstick/click")) return false;
+			if (layout == Layout::Mixed)
+			{
+				if (!bind(Primary,hand,"trackpad/click") || !bind(hand ? Secondary : Menu,hand,"menu/click")) return false;
+				continue;
+			}
+			if (!bind(Primary,hand,hand || layout == Layout::Index ? "a/click" : "x/click") ||
+				!bind(Secondary,hand,hand || layout == Layout::Index ? "b/click" : "y/click")) return false;
+			if (layout == Layout::Index)
+			{
+				if (!bind(hand ? ViewPressure : MenuPressure,hand,"trackpad/force")) return false;
+			}
+			else if (!hand || layout == Layout::BothMenuTouch)
+			{
+				if (!bind(hand ? View : Menu,hand,"menu/click")) return false;
+			}
+		}
+		XrInteractionProfileSuggestedBinding info = { XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+		if (!Path(profile.Path,info.interactionProfile)) return false;
+		info.countSuggestedBindings = static_cast<uint32_t>(bindings.size());
+		info.suggestedBindings = bindings.data();
+		return XR_SUCCEEDED(SuggestInteractionProfileBindings(Instance,&info));
+	}
 #define XR_INPUT_MEMBER(name) PFN_xr##name name = nullptr
 	XR_INPUT_MEMBER(StringToPath);
 	XR_INPUT_MEMBER(CreateActionSet);
@@ -179,6 +289,8 @@ private:
 	XR_INPUT_MEMBER(GetActionStateFloat);
 	XR_INPUT_MEMBER(GetActionStateVector2f);
 	XR_INPUT_MEMBER(LocateSpace);
+	XR_INPUT_MEMBER(GetCurrentInteractionProfile);
+	XR_INPUT_MEMBER(PathToString);
 #undef XR_INPUT_MEMBER
 	bool Path(const char* name, XrPath& path) { return XR_SUCCEEDED(StringToPath(Instance, name, &path)); }
 	bool Action(const char* name, XrActionType type, XrAction& action)

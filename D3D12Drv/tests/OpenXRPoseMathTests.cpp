@@ -27,6 +27,15 @@ int main()
 	Check(Near(OpenXRVectorToUnreal(Vector(0,1,0)), Vector(0,0,1)), "up coordinate conversion");
 	const auto Identity = NormalizeOpenXRQuaternion({0,0,0,0});
 	Check(Near(Identity.w,1), "invalid quaternion has safe identity fallback");
+	const XrQuaternionf LeftEye = {0,-std::sin(0.05f),0,std::cos(0.05f)};
+	const XrQuaternionf RightEye = {0,std::sin(0.05f),0,std::cos(0.05f)};
+	const auto Center = OpenXRHeadOrientationFromViews(LeftEye,RightEye);
+	Check(Near(Center.y,0) && Near(Center.w,1), "canted eye fallback does not inherit the left eye yaw");
+	const auto Parallel = OpenXRHeadOrientationFromViews(LeftEye,LeftEye);
+	Check(!OpenXREyesHaveDifferentOrientations(LeftEye,LeftEye), "parallel eyes retain the original head path");
+	Check(Near(Parallel.y,LeftEye.y) && Near(Parallel.w,LeftEye.w), "parallel-eye baseline unchanged");
+	const XrQuaternionf NegativeRight = {-RightEye.x,-RightEye.y,-RightEye.z,-RightEye.w};
+	Check(Near(OpenXRHeadOrientationFromViews(LeftEye,NegativeRight).w,1), "head midpoint accepts opposite quaternion signs");
 	for (float Yaw : {-2.0f,0.0f,1.5f})
 		for (float Pitch : {-0.8f,0.0f,0.8f})
 			for (float Cant : {-0.2f,-0.08726646f,0.0f,0.08726646f,0.2f})

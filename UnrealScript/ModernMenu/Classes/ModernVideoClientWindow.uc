@@ -93,6 +93,11 @@ function Created()
 	local float ScanlineStrengthTop;
 
 	Super.Created();
+	// The stock skin list may omit our active skin. Saving its fallback entry
+	// would reset the whole menu system when Preferences closes.
+	if (GuiSkinCombo.FindItemIndex2(Root.LookAndFeelClass, True) < 0)
+		GuiSkinCombo.AddItem("Unreal Revived", Root.LookAndFeelClass);
+	GuiSkinCombo.SetSelectedIndex(GuiSkinCombo.FindItemIndex2(Root.LookAndFeelClass, True));
 	CreateDisplayModeControl();
 	RemoveObsoleteVideoControls();
 	BrightnessSlider.bNoSlidingNotify = False;

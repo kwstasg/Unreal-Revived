@@ -11,7 +11,10 @@ Epic and improves aspect labels. Optional HUD/Menu Sharpness was subsequently
 removed at the owner's request; the original fixed UI texture is restored.
 Retired-setting and installer profile migrations are removed: installs seed fresh
 settings while saves remain retained. Rotated-eye math now has automated coverage. See [current settings and validation limits](vr-render-quality.md). Other
-headsets remain hardware-unverified; focus-loss stutter is still deferred.
+headsets remain hardware-unverified. Focus-loss stutter is closed at the owner's
+direction (24 September 2026). Broader controller profiles, canted-eye head
+orientation and consistent B/back navigation are covered in
+[the compatibility contract](vr-controller-compatibility.md).
 
 ## Read first
 
@@ -36,7 +39,7 @@ including Eightball gaze Y=20; existing user calibration is never overwritten.
 See [the milestone and recovery record](vr-weapon-tuning.md#accepted-milestone)
 before changing these paths. This supersedes older pending visual-acceptance
 notes for these weapon changes, not the separate remote-client multiplayer,
-recurring-stutter or broader VR compatibility limitations.
+broader VR compatibility limitations.
 
 ## Release readiness after the weapon milestone
 
@@ -45,8 +48,8 @@ removed. Renderer source and the runtime smoke harness match the accepted
 weapon milestone; the restored renderer is built and deployed to `local/game`.
 Release cleanup status:
 
-- Focus loss/return still causes recurring headset stutter without F8 or HMD
-  removal. Keep this as a known issue, not a completed fix.
+- Focus-loss stutter is closed at the owner's direction on 24 September 2026;
+  no further investigation is scheduled.
 - Both VR script hooks now explicitly use the transient package as their owner.
   The production creation path passes repeated map travel, save/load, rebinding
   and shutdown without invalid-outer warnings. Weapon firing regression passes.
@@ -62,8 +65,8 @@ Release cleanup status:
   used an isolated app identity and cleaned its registration, shortcuts and test
   backups. All 30 development profile/save hashes stayed unchanged. Artifact
   identity and evidence are recorded in [the progress log](progress.md).
-- The four agreed release-cleanup tasks are complete. Focus-loss stutter remains
-  deferred. The owner tested, accepted and explicitly authorized publication of
+- The four agreed release-cleanup tasks are complete. The historical focus-loss investigation
+  was subsequently closed. The owner tested, accepted and explicitly authorized publication of
   0.8.0 on September 21, 2026. The accepted installer was published without rebuilding:
   SHA-256 `5A00521B1F84CA25A423DD3109153C21D3BF3218A3DB02BC659764933CAEBD58`.
   Its embedded payload records base revision `988eb80` and `sourceDirty=true`

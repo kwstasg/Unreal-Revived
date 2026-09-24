@@ -46,13 +46,13 @@ Keep the shared UI maintenance contract unchanged.
 
 ## VR session and firing adapters
 
-Known issue: losing and regaining desktop window focus can trigger recurring VR
-stutter on the owner's Oculus Rift CV1 setup, without F8 or headset removal.
-Captures showed Windows `Ghost` foreground windows coinciding with stalls; this
-does not establish the underlying cause. The experimental deferred-paint change
-did not resolve the problem in headset testing and was removed, along with its
-temporary timing commands and test-harness extension. The accepted milestone's
-window handling remains in use. Do not claim this issue is fixed for release.
+The owner closed the focus-loss stutter task on 24 September 2026. Its historical
+investigation is retained in the progress log; no further work is scheduled.
+
+Broader controller profiles and the conditional canted-eye head-orientation path
+are described in [the compatibility contract](vr-controller-compatibility.md).
+Parallel-eye CV1 head orientation, per-eye projection/submission and defaults
+remain on the accepted path. The added VIEW space is released with the LOCAL space.
 
 OpenXR session events are polled at the viewport frame boundary, before
 `PrepareOpenXRFrame`, rather than again during each eye's `Unlock`. A STOPPING

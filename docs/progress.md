@@ -12,6 +12,22 @@ under `local/logs/`.
 
 ## 2026-09-24
 
+- Expanded OpenXR controller suggestions to Index, Vive wands, Microsoft motion,
+  simple controllers and advertised Cosmos/Focus 3/HP/Touch Pro/Touch Plus profiles.
+  Retained all 17 original Touch bindings and the Xbox input path. Added runtime
+  profile diagnostics, isolated profile rejection and tested wand button adapters.
+  Canted-eye head orientation uses runtime VIEW space with a midpoint fallback;
+  parallel-eye CV1 orientation, per-eye projection and current defaults remain intact.
+  Fixed B navigation through dropdowns, modal dialogs, Preferences and root. Including
+  the active GUI skin in Preferences prevents its close from resetting the entire UI.
+  Focus-loss stutter is closed at the owner's direction, with no further work added.
+  Renderer/menu builds, nine native renderer tests, two input tests, menu-back,
+  video preferences and gameplay VR motion regressions passed. Evidence:
+  `MenuBack-20260924-200222.log`, `VideoPreferences-20260924-195919.log`,
+  `VRMotionRegression-20260924-195926.log`. Live OpenXR could not initialize in
+  `VRQuality-20260924-200029-0.log`; CV1 Touch/Xbox manual acceptance of this build
+  and other-headset hardware reports remain required. See `vr-controller-compatibility.md`.
+
 - At the owner's request, removed optional HUD/Menu Sharpness and restored its
   original texture and menu layout. Removed the Epic migration and installer
   profile-preservation branches; fresh installs seed defaults and retain saves.

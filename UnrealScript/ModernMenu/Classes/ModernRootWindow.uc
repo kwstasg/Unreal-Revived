@@ -208,12 +208,45 @@ function PrepareControllerMenuClose()
 
 function ControllerBack()
 {
-	if (FindActiveMessageBox(Self) != None)
-		CloseActiveWindow();
-	else if (MenuBar != None && MenuBar.Selected != None)
+	local UWindowMessageBox MessageBox;
+	local UWindowComboControl Combo;
+	local UWindowWindow Window;
+	local UWindowFramedWindow Frame;
+
+	if (ControllerBindings != None && ControllerBindings.bPolling)
+	{
+		ControllerBindings.CancelKeySelection(True);
+		return;
+	}
+	MessageBox = FindActiveMessageBox(Self);
+	if (MessageBox != None)
+	{
+		MessageBox.EscClose();
+		return;
+	}
+	Combo = GetFocusedCombo();
+	if (Combo != None && Combo.bListVisible)
+	{
+		Combo.CloseUp();
+		return;
+	}
+	if (MenuBar != None && MenuBar.Selected != None)
+	{
 		MenuBar.CloseUp();
-	else
-		CloseActiveWindow();
+		return;
+	}
+	// Root.ActiveWindow can be the menu bar after a mouse click. Find the
+	// visible frame explicitly instead of allowing root Escape to resume play.
+	for (Window = LastChildWindow; Window != None; Window = Window.PrevSiblingWindow)
+	{
+		Frame = UWindowFramedWindow(Window);
+		if (Frame != None && Frame.bWindowVisible)
+		{
+			Frame.EscClose();
+			return;
+		}
+	}
+	Console.CloseUWindow();
 }
 
 function OpenControllerMenuBar()
@@ -408,7 +441,11 @@ function UWindowComboControl GetFocusedCombo()
 {
 	local UWindowWindow Window;
 	local UWindowComboList List;
+	local UWindowComboArray ArrayList;
 
+	ArrayList = UWindowComboArray(KeyFocusWindow);
+	if (ArrayList != None)
+		return ArrayList.Owner;
 	List = UWindowComboList(KeyFocusWindow);
 	if (List != None)
 		return List.Owner;

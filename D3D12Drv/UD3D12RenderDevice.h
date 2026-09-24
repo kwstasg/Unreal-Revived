@@ -542,6 +542,7 @@ private:
 	XrSystemId OpenXRSystemId = XR_NULL_SYSTEM_ID;
 	XrSession OpenXRSession = XR_NULL_HANDLE;
 	XrSpace OpenXRLocalSpace = XR_NULL_HANDLE;
+	XrSpace OpenXRHeadSpace = XR_NULL_HANDLE;
 	XrSessionState OpenXRSessionState = XR_SESSION_STATE_UNKNOWN;
 	PFN_xrGetInstanceProcAddr OpenXRGetInstanceProcAddr = nullptr;
 	struct OpenXRDispatch
@@ -551,6 +552,7 @@ private:
 		PFN_xrEndSession EndSession = nullptr;
 		PFN_xrCreateReferenceSpace CreateReferenceSpace = nullptr;
 		PFN_xrDestroySpace DestroySpace = nullptr;
+		PFN_xrLocateSpace LocateSpace = nullptr;
 		PFN_xrEnumerateViewConfigurationViews EnumerateViewConfigurationViews = nullptr;
 		PFN_xrEnumerateEnvironmentBlendModes EnumerateEnvironmentBlendModes = nullptr;
 		PFN_xrEnumerateSwapchainFormats EnumerateSwapchainFormats = nullptr;

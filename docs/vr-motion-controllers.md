@@ -19,13 +19,17 @@ The existing weapon-hand preference chooses the controller:
 | Center | Right | Visible at the right hand |
 | Hidden | Right | Hidden |
 
-The initial binding profile is OpenXR Oculus Touch, including Rift CV1 Touch.
-Controllers can connect after startup. They do not have to be connected to build
-or launch the game. Other controller profiles are not yet supplied.
+Oculus Touch (including Rift CV1) retains its original 17 suggested bindings.
+Additional profiles now cover Index, Vive wands, Microsoft motion controllers,
+Khronos simple controllers, and optional Cosmos, Focus 3, HP, Touch Pro and Touch
+Plus profiles. Extension profiles are enabled only when the runtime advertises
+them. A rejected profile does not disable the remaining profiles. Controllers
+can connect after startup. Only CV1 Touch and Xbox have owner hardware acceptance.
+See [the controller compatibility matrix](vr-controller-compatibility.md).
 
 ## Controls
 
-Touch input feeds the existing Xbox input processing and menu navigation in
+Motion-controller input feeds the existing Xbox input processing and menu navigation in
 **both Head gaze and Motion controllers**. The aiming selection changes the aim
 source, not whether the Touch buttons/sticks can be used.
 It does not rewrite any gamepad bindings. Existing controller dead zones,
@@ -47,7 +51,7 @@ still held on the other. Keyboard/mouse remain available.
 The system-owned right Oculus button is not rebound. Touch has no dedicated
 D-pad or Back button. Stick-based menu navigation continues to work. Primary
 fire remains the existing right-trigger binding even with left-hand aiming;
-no bindings are automatically swapped. This first build does not add haptics,
+no bindings are automatically swapped. This implementation does not add haptics,
 hand meshes, laser menus, physical reloading, or two-handed weapon handling.
 
 Release controls after changing modes. Initial activation requires neutral
