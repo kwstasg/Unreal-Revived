@@ -27,9 +27,9 @@ milestone accepts all 14 stock/UPak weapon profiles; custom weapon adapters and
 remote-client multiplayer remain separate compatibility work.
 Head-oriented gamepad walking/strafing and horizontal right-stick turning were
 user-validated on 2026-09-11, including movement while looking 90 degrees left/right.
-Jumping/crouching and broader movement states need further coverage. Swimming,
-flying, mirror selection, broader gameplay validation, and
-SteamVR coverage remain incomplete.
+Gaze-directed swimming/flying and right-stick turning were subsequently fixed
+and accepted on September 24. Mirror selection, broader gameplay validation
+and other-runtime hardware coverage remain open.
 Head-collision fade was user-validated on 2026-09-15: walls, corners and low
 ceilings fade to black and recover on retreat; a door, world-size adjustments,
 swimming in water and an elevator behaved normally.
@@ -120,7 +120,9 @@ Implemented in the dedicated VR preferences page:
 - Explicit normal/VR shortcuts select the mode; Preferences Restart preserves it.
 
 UI recenter and HUD adjustments update immediately in VR.
-Broader comfort and motion-control options are deferred.
+Motion aiming and multi-profile controller mappings are implemented; see
+[controller compatibility](vr-controller-compatibility.md). Stereo-aligned VR
+vignette comfort remains unfinished.
 
 Pending: selectable left/right/off desktop mirror and more
 detailed runtime/headset status. Automatic/delayed HUD following was superseded
@@ -217,6 +219,7 @@ flybys, swimming/flying and unavailable tracking retain their existing paths.
 
 The first supported configuration is seated gamepad play with smooth turning
 and horizontal head-oriented locomotion. Standing tracking may work but is not
-an acceptance requirement. Motion controllers, tracked hands, teleportation,
-snap turning, room-scale design, comfort vignette, and advanced comfort
-configuration belong to later milestones.
+an acceptance requirement. Motion-controller aiming and bindings are implemented. Tracked hands,
+teleportation, snap turning, room-scale design and advanced comfort settings
+remain future work. The current vignette is a desktop effect; VR alignment
+and visibility still need correction.

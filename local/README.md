@@ -1,65 +1,29 @@
 # Local resources
 
-Everything in this directory except this file is ignored by Git.
+Everything here except this file is ignored by Git.
 
-```text
-local/
-  game/             Marked disposable Unreal Revived development runtime
-  sdk/227k_15/      Extracted OldUnreal 227k_15 Windows SDK
-  downloads/        Verified patch and SDK archives
-  package/offline-installer/output/  Current validated installer and SHA-256
-  package/developer-bundle/          Generated developer bundle
-  reference/        Reference repository clones and research material
-  logs/             Collected runtime and diagnostic logs
-  build/            Local build and staging output
-  build-*/          Standalone native test/launcher build trees
-  tests/            New disposable test runs, grouped by task
-  archive/          Historical test evidence
-  branded-launch-preview/  Accepted working preview (stable launch path)
-```
+| Directory | Purpose |
+| --- | --- |
+| `build/` | Canonical development and packaging build tree |
+| `build-vr-tests/`, `build-input-tests/` | Regenerable builds of maintained native tests |
+| `game/` | Marked disposable development runtime, profiles and saves |
+| `sdk/227k_15/` | Pinned host SDK |
+| `downloads/` | Verified dependency/host archives |
+| `package/offline-installer/` | Current installer staging and output |
+| `package/developer-bundle/` | Current generated developer bundle |
+| `reference/` | Reference source and research, not build output |
+| `logs/` | Current validation evidence and cleanup inventory |
+| `tests/<task>/` | Temporary isolated runs; remove when the task is complete |
+| `user-data/retired-preview/` | Saves/profiles preserved from the deleted launcher preview |
 
-The selected original Unreal Gold installation is the recovery source and must
-remain unmodified, whether it came from OldUnreal or another valid source.
-Create or refresh the complete local environment with:
+Use `cmake -S . -B local/build -A x64` before the documented build commands.
+Do not create alternate development build trees or rename CMake caches. Separate
+native test builds are legitimate; their sources and commands stay maintained.
+Never modify the original game installation. Bootstrap details are in
+[building](../docs/building.md); active work is in [pending tasks](../docs/pending-tasks.md).
 
-```powershell
-powershell -NoProfile -File scripts/bootstrap-dev-environment.ps1
-```
-
-Bootstrap physically copies the original game into `local/game/`, overlays the
-verified host, installs the SDK, and writes the required development marker.
-It reuses verified archives in `local/downloads/` or fetches them from the
-original OldUnreal release. Previously downloaded archives can also be placed
-in this directory for verified offline use.
-
-Recommended environment variables:
-
-```text
-UE1_GAME_ROOT=<repository>\local\game
-UE1_227K_SDK_ROOT=<repository>\local\sdk\227k_15
-```
-
-Never force-add files from this directory. Run
-`scripts/check-repository.ps1` before commits and release packaging.
-
-Keep new test runtimes and one-off helpers under `tests/<task>/`, rather than
-creating more folders directly here. Store diagnostic logs under `logs/`.
-Do not create project rollback snapshots; the owner relies on committed Git
-history and explicitly requested removal of accepted-baseline, user-tested and
-old public installer backups. Keep the current release and active runtimes.
-Do not move existing build trees casually:
-CMake caches contain absolute paths. The working preview also has launchers
-pointing to its current location.
-
-The current installer uses `package/offline-installer/output/`. On September 12,
-the owner explicitly requested deletion of all project rollback snapshots and
-obsolete installer copies. `backups/` and `archive/2026-09-12/packages/` were
-removed. Earlier relocation records describe historical locations, not retained
-backups. The deletion record is `logs/rollback-cleanup-20260912.json`.
-
-Historical test runtimes and older test-log directories are compacted into
-`archive/2026-09-12/experiments.zip` and `historical-test-logs.zip`.
-`compact-verified.json` records their source locations, counts, sizes and
-archive hashes; every file was compared byte-for-byte by SHA-256 before its
-expanded copy was removed. Extract an archive when inspecting older evidence.
-The current release validation logs remain directly available under `logs/`.
+Use Git commits for code rollback. Do not create project backup directories or
+retain obsolete installer copies, experiment runtimes, staging helpers or logs.
+On task completion remove disposable artifacts; retain current evidence, pinned
+inputs, user data and the current package. Historical paths in progress/release
+records do not imply that old binary artifacts are retained.

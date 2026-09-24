@@ -2,8 +2,8 @@
 
 ## Accepted milestone - 2026-09-10
 
-Historical dated log directories referenced below are retained in
-`local/archive/2026-09-12/historical-test-logs.zip` after housekeeping.
+Historical log paths below are provenance only. Obsolete logs and experiment
+archives were removed at the owner's request on 25 September 2026.
 
 The user validated and accepted the complete VR menu, desktop-like UI/HUD
 placement, shared panel geometry, stable slider adjustment, meaningful distance,
@@ -57,7 +57,7 @@ placement: the same panel is submitted using eye-specific array slices and
 left/right visibility. Each slice cuts out the corresponding eye's weapon
 coverage, keeping pose, physical size, source layout and input coordinates
 unchanged. Collision fade leaves recovery UI unobscured. Pixel tests cover the
-new composition math; in-headset validation of this addition remains pending.
+composition math; the owner accepted stock/UPak weapon/HUD overlap on September 21.
 
 ## Settings and physical geometry
 

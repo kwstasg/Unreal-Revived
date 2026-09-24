@@ -29,21 +29,19 @@ because the engine derives some localization names from the executable filename.
 
 ## Build and test
 
-Use a **disposable copy of an installed runtime**, including `Unreal.ini`,
-`UnrealVR.ini` and `User.ini`. Staging verifies the original host module hashes
-before adding the new executables. Do not stage over the accepted installation
-while testing this preview.
+Normal launcher builds use the canonical `local/build` tree. Stage and test only
+in a marked disposable installed runtime with `Unreal.ini`, `UnrealVR.ini` and
+`User.ini`; use the isolated installer lifecycle in this guide to create it.
+The old `branded-launch-preview` experiment has been retired.
 
 ```powershell
-cmake -S Launch -B local/build-branded-launch -A x64
-cmake --build local/build-branded-launch --config Release
-ctest --test-dir local/build-branded-launch -C Release --output-on-failure
-powershell -NoProfile -File scripts/stage-branded-launchers.ps1 `
-  -RuntimeRoot local/branded-launch-preview/runtime `
-  -BinaryRoot local/build-branded-launch/Release
-powershell -NoProfile -File scripts/test-branded-launchers.ps1 `
-  -RuntimeRoot local/branded-launch-preview/runtime
+cmake -S . -B local/build -A x64
+cmake --build local/build --target UnrealRevived UnrealRevivedVR --config Release
 ```
+
+Pass that disposable runtime to `stage-branded-launchers.ps1 -RuntimeRoot` with
+`-BinaryRoot local/build/Launch/Release`, then to
+`test-branded-launchers.ps1 -RuntimeRoot`. Do not use a production installation.
 
 The runtime test requires the user's graphics/OpenXR runtime for headset
 detection; a sandbox account can exercise unavailable-runtime fallback.

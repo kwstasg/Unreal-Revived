@@ -4,13 +4,30 @@ This log records meaningful implementation milestones, why they were needed,
 and how they were validated. Keep current behavior documented in the focused
 technical guides; use this file for the chronological record.
 
-Historical paths below record where evidence was originally produced. The
-September 12 cleanup compacted available dated test-log directories into
-`local/archive/2026-09-12/historical-test-logs.zip`; see `compact-verified.json`
-beside it for the directories included. Current release-validation logs remain
-under `local/logs/`.
+Historical paths below record where evidence was produced. The owner requested
+removal of obsolete experiments and archived logs on 25 September 2026; many
+old paths no longer exist. Current validation evidence stays under `local/logs/`
+and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
+
+- Completed owner-requested workspace/source/docs cleanup. Removed 143 obsolete
+  local targets (2.52 GiB): alternate build, generated test builds, duplicate
+  launcher runtime, old installer experiment, archived experiments/logs, exported
+  investigation classes, stale test INIs and staging helpers. Preserved nine
+  preview saves and three profiles under `local/user-data/retired-preview`;
+  verified 31 protected data files by SHA-256. Current package, canonical build,
+  SDK/downloads, maintained test sources and unrelated music edits are retained.
+  Inventory: `local/logs/cleanup-20260925.json`.
+- Removed unreachable quality-zero sizing/test branches. Profile-reset regression
+  now uses `local/tests` and cleans its own runtime. Full canonical native build,
+  nine renderer tests, two input tests and profile reset passed. The renderer
+  rebuilt successfully after deleting the experimental tree. Repository safety,
+  whitespace and local Markdown-link checks passed. Updated current guides to
+  remove stale scene-resolution, locomotion, collision and focus-loss claims;
+  historical records explicitly identify removed evidence. `pending-tasks.md`
+  is the current backlog, including unresolved VR vignette stereo alignment.
+
 
 - Restored the documented `local/build` workflow after development had drifted
   to a temporary build tree. Configured the canonical directory, verified cached

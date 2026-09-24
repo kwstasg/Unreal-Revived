@@ -835,12 +835,13 @@ remains distinct from mock runtime and WARP validation.
 For fresh installer profile generation without launching Setup or touching registry:
 
 ```powershell
-powershell -NoProfile -File scripts/test-installer-profile-reset.ps1 -StageRoot local/package/offline-installer-music-navigation
+powershell -NoProfile -File scripts/test-installer-profile-reset.ps1 -StageRoot local/package/offline-installer
 ```
 
 Use an available staged payload/patch directory. This creates a new directory under
-`local`, runs the real profile writer, adds old settings and verifies all four
+`local/tests`, runs the real profile writer, adds old settings and verifies all four
 profiles return to the fresh defaults while a save sentinel remains unchanged.
+The disposable directory is removed on success or failure.
 The full branded-installer lifecycle separately checks actual uninstall/reinstall
 and backup behavior; profile migration is no longer part of that contract.
 
@@ -850,4 +851,4 @@ See [the controller matrix and validation contract](vr-controller-compatibility.
 Run `scripts/test-menu-back.ps1` with the development menu for hierarchical B/back
 and pause-state checks. The native controller lifecycle tests exercise optional
 profile rejection and wand combinations; physical controller behavior still needs
-CV1 acceptance and reports from owners of the other devices.
+reports from owners of the other devices; the owner accepted CV1 Touch/Xbox.

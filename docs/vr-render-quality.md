@@ -147,7 +147,9 @@ builds are not established by resolution support.
 Automated checks:
 
 ```powershell
+cmake -S . -B local/build -A x64
 cmake --build local/build --config Release --target D3D12Drv
+cmake -S D3D12Drv/tests -B local/build-vr-tests -A x64
 cmake --build local/build-vr-tests --config Release
 ctest --test-dir local/build-vr-tests -C Release --output-on-failure
 powershell -NoProfile -File scripts/test-video-preferences.ps1
@@ -181,3 +183,5 @@ Remaining: hardware reports for other headsets (especially canted/wide-FOV devic
 The owner closed the focus-loss stutter task on 24 September 2026. The planned code/settings work,
 automated rotated-eye coverage, documentation and Git checkpoints are complete.
 No cross-headset optical guarantee is claimed.
+
+For unfinished work, including VR vignette alignment, see [pending tasks](pending-tasks.md).

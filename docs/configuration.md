@@ -366,11 +366,11 @@ head-mounted-display system, validate the D3D12 adapter and feature level, and
 attempt to create a session. When compatible, they allocate two eye swapchains,
 begin the session, locate the runtime views, and render independently culled
 eye cameras with runtime pose, IPD, asymmetric FOV, and seated head movement.
-Spatial UI and explicit UI recenter are user-accepted. Gaze aim hooks and
-headset-yaw gamepad walking/jumping are implemented with broader live validation
-pending. Seated-view recenter, collision comfort and full compatibility coverage
-remain incomplete; this is not a supported VR release. See the
-[2026-09-11 audit](vr-audit-2026-09-11.md) for isolation limits and startup behavior.
+Spatial UI, recenter, head collision, gaze/motion aiming and gaze-directed
+walking/swimming/flying have CV1 owner acceptance. Balanced now renders at the
+runtime-recommended eye resolution, with live 75/100/125/150% presets. Other
+headsets and controller profiles require hardware reports. See
+[VR quality](vr-render-quality.md) and [controller compatibility](vr-controller-compatibility.md).
 
 The 227 adapter fixes `MaxTextureSize` at 4096, disables the engine lightmap
 atlas, disables masked-font requirements, and advertises the renderer as

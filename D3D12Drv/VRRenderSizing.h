@@ -17,7 +17,7 @@ inline Size EyeSize(int Quality, Size Profile, uint32_t Width, uint32_t Height,
 	uint32_t MaxWidth, uint32_t MaxHeight, uint32_t DeviceLimit = 16384)
 {
 	Quality = NormalizeQuality(Quality);
-	if (!Quality || !Width || !Height || !MaxWidth || !MaxHeight || !DeviceLimit)
+	if (!Width || !Height || !MaxWidth || !MaxHeight || !DeviceLimit)
 		return Profile;
 	const double Scales[] = { 0.0, 0.75, 1.0, 1.25, 1.5 };
 	const double Scale = std::min({ Scales[Quality],

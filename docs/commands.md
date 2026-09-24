@@ -149,6 +149,19 @@ powershell -NoProfile -File scripts/test-d3d12-runtime.ps1 -Suite Content -Scree
 powershell -NoProfile -File scripts/test-supported-renderers.ps1 -RunSeconds 8
 ```
 
+Native regression suites (their generated directories may have been cleaned):
+
+```powershell
+cmake -S D3D12Drv/tests -B local/build-vr-tests -A x64
+cmake --build local/build-vr-tests --config Release
+ctest --test-dir local/build-vr-tests -C Release --output-on-failure
+cmake -S XInputWinDrv/tests -B local/build-input-tests -A x64
+cmake --build local/build-input-tests --config Release
+ctest --test-dir local/build-input-tests -C Release --output-on-failure
+```
+
+Configure `local/build` first so the pinned OpenXR headers are available.
+
 Run the required repository safety check before packaging or committing:
 
 ```powershell

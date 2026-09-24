@@ -1,14 +1,14 @@
 # Roadmap
 
 This roadmap records the intended order of the project's main future additions.
-It is planning material only: none of the features below should be described as
-implemented or supported until its acceptance criteria have been completed and
-validated.
+Seated VR is implemented with CV1 acceptance; the other-headset acceptance
+boundary and current unfinished work are listed in [pending tasks](pending-tasks.md).
+RTX and Vulkan remain plans, not implemented features.
 
 ## 1. Seated PC VR through OpenXR
 
 The first major addition is optional, seated-first PC VR through OpenXR. It
-will preserve flat-screen play as the default and continue to use
+preserves flat-screen play as the default and continues to use
 `D3D12Drv.D3D12RenderDevice` rather than requiring players to select another
 video driver.
 

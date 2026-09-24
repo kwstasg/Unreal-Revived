@@ -16,7 +16,8 @@ quality scales runtime eye recommendations independently of the locked 1280x1024
 logical layout. HUD/menu output is restored to its original fixed 1024x1024 texture.
 The optional HUD setting and retired Epic migration were removed at the owner's
 request. Shared production pose helpers support standalone rotated-eye regressions;
-eye projection, physical panel geometry and head-pose policy remain unchanged.
+eye projection and physical panel geometry remain unchanged. Canted-eye head
+orientation uses runtime VIEW space with a two-eye midpoint fallback.
 
 ## VR weapon and HUD composition
 
@@ -357,16 +358,14 @@ positive-up upper/lower FOV bounds are exchanged and negated when constructing
 the scene projection. Live Rift CV1 validation confirmed fused depth and
 distortion-free head rotation after this correction.
 
-The eye swapchains use the runtime's recommended 1344x1600 resolution on the
-validated Rift CV1, but each eye currently originates at the selected logical
-UE1 game resolution and is scaled to the swapchain. This preserves normalized
-projection and stereo alignment but makes headset sharpness dependent on the
-logical resolution. Direct per-eye rendering at the runtime-recommended size
-remains a quality improvement. Spatial UI and explicit UI recenter were
-user-accepted on 2026-09-10. Canvas rendering uses symmetric game projection;
-OpenXR projects the completed shared panel into the eyes. See the
-[VR UI maintenance contract](vr-ui-recovery-design.md). Collision comfort and the
-full acceptance matrix remain incomplete, so this is not a supported VR release.
+Balanced renders scene and output at each eye's runtime-recommended size.
+The 75/125/150% presets scale those dimensions, independently of the fixed
+1280x1024 logical layout. Only internal allocation recovery uses the original
+scene-buffer path. See [VR render quality](vr-render-quality.md).
+Spatial UI, explicit recenter, head-collision fade and gaze-directed swimming/
+flying have CV1 owner acceptance. OpenXR projects the shared UI panel into both
+eyes; see [the maintenance contract](vr-ui-recovery-design.md). Other headsets
+and runtimes still need hardware validation.
 RTX support and a Vulkan driver are also future work; their order and status
 are tracked in
 [`roadmap.md`](roadmap.md).
@@ -381,4 +380,4 @@ the clear inner radius remains 0.30. This restores the gentler owner-accepted
 maximum after the narrower 0.16/0.38 mask caused visible stereo overlap on CV1.
 Zero remains off. The mask is centered separately in each eye image, not in a
 shared angular frame; reducing coverage does not establish stereo alignment or
-comfort. HUD/menu exclusions remain intact. Headset revalidation is pending.
+comfort. HUD/menu exclusions remain intact. Desktop appearance was accepted; VR visibility and stereo alignment remain open.

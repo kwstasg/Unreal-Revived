@@ -21,6 +21,12 @@ unavailable.
   saves, or build output from `local/`.
 - Preserve unrelated working-tree changes and keep edits within the requested
   component.
+- Use Git history for code rollback, not filesystem snapshots. Keep one-off test
+  runtimes under `local/tests/<task>` and logs under `local/logs`; remove obsolete
+  generated artifacts at task completion without deleting user saves/profiles,
+  current packages or maintained regression-test sources.
+- Keep `docs/pending-tasks.md` current; dated audits are historical evidence, not
+  active task lists.
 
 ## Architecture and compatibility
 

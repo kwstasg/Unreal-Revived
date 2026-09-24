@@ -205,7 +205,7 @@ The September 21 owner acceptance covers the calibrated stock/UPak weapon
 sizing, gaze handed placement, motion placement, primary/alternate alignment
 and HUD overlap. It supersedes earlier pending weapon-acceptance notes, not
 unverified hardware combinations or every tracking-loss/held-input scenario.
-Remote-client VR firing remains unsupported. Focus-loss stutter is deferred.
+Remote-client VR firing remains unsupported. Focus-loss stutter was closed at the owner's direction on September 24.
 
 Build the standalone native tests with CMake from `D3D12Drv/tests` and provide
 `OPENXR_INCLUDE_DIR` if the pinned SDK is outside `local/build/_deps/openxr-src`.

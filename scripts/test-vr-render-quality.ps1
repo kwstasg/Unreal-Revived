@@ -34,10 +34,8 @@ foreach ($quality in $Qualities) {
             $g = $eye.Groups
             if ([int] $g[2].Value -ne $quality) { throw "Unexpected fallback in $logName" }
             $scale = @(1.0, 0.75, 1.0, 1.25, 1.5)[$quality]
-            if ($quality -ne 0) {
-                $scale = [Math]::Min($scale, [Math]::Min([int] $g[7].Value, 16384) / [double] $g[5].Value)
-                $scale = [Math]::Min($scale, [Math]::Min([int] $g[8].Value, 16384) / [double] $g[6].Value)
-            }
+            $scale = [Math]::Min($scale, [Math]::Min([int] $g[7].Value, 16384) / [double] $g[5].Value)
+            $scale = [Math]::Min($scale, [Math]::Min([int] $g[8].Value, 16384) / [double] $g[6].Value)
             $width = [Math]::Max(1, [Math]::Floor([int] $g[5].Value * $scale))
             $height = [Math]::Max(1, [Math]::Floor([int] $g[6].Value * $scale))
             if ([int] $g[3].Value -ne $width -or [int] $g[4].Value -ne $height) {

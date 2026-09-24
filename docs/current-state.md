@@ -53,8 +53,8 @@ broader VR compatibility limitations.
 ## Release readiness after the weapon milestone
 
 The failed focus-recovery paint change and temporary diagnostics have been
-removed. Renderer source and the runtime smoke harness match the accepted
-weapon milestone; the restored renderer is built and deployed to `local/game`.
+removed. The following release record describes the September 21 weapon milestone;
+subsequent development changes are summarized above and in `progress.md`.
 Release cleanup status:
 
 - Focus-loss stutter is closed at the owner's direction on 24 September 2026;
@@ -62,7 +62,7 @@ Release cleanup status:
 - Both VR script hooks now explicitly use the transient package as their owner.
   The production creation path passes repeated map travel, save/load, rebinding
   and shutdown without invalid-outer warnings. Weapon firing regression passes.
-- Installer staging builds a production `ModernMenu.u` without the 13 test
+- Installer staging builds a production `ModernMenu.u` without development test
   fixtures and rejects their names in the compiled output. Development builds
   retain fixtures for regression tests.
 - Startup/state/error logging remains intentional. Performance sampling is
@@ -153,9 +153,9 @@ compose the relative OpenXR pose onto the authoritative `PlayerCalcView` result
 before scene culling, with per-eye position and seated translation applied in
 the same base-camera space. Live Oculus Rift CV1 validation confirmed fused
 stereo with natural depth, correct base direction, natural yaw/pitch/roll, no
-black visibility gaps, and no rotational stretching or swimming. The OpenXR
-swapchains use the runtime-recommended 1344x1600 resolution, while the scene is
-still sourced from the selected logical game resolution. The first-person
+black visibility gaps, and no rotational stretching or swimming. Balanced renders each eye at its runtime-recommended size (1344x1600 in the
+earlier CV1 test). Other presets scale that recommendation; logical layout
+stays fixed at 1280x1024. The first-person
 weapon now follows headset rotation and seated head-center translation through
 a render-only overlay hook, with a conservative lower, handed placement that
 does not alter gameplay state. Live validation retained scripted flybys,
@@ -167,8 +167,8 @@ horizontal right-stick turning were user-validated on 2026-09-11. Combined view/
 recenter, quick bindings and UI colors are user-validated. Head-collision fade
 and recovery were user-validated at walls, corners and low ceilings, with a door,
 world-size adjustments, swimming in water and an elevator also passing on
-2026-09-15. Swimming/flying movement semantics, mirror
-options and broader acceptance testing remain incomplete. The
+2026-09-15. Gaze-directed swimming/flying was accepted on September 24. Selectable mirror
+options and broader hardware acceptance remain open. The
 offline installer includes visual source selection, hidden
 manifest-filtered original-game copying, and direct Inno installation of the
 filtered build-time-extracted patch tree. The policy removes only validated
@@ -330,6 +330,9 @@ preserved 0.6.0 publication and validation record remains in
   from embedding the pinned 227k_15 payload from ignored local inputs.
 
 ## Next priorities
+
+The authoritative current checklist is [pending tasks](pending-tasks.md), including
+the unresolved VR vignette alignment and current installer acceptance.
 
 The spatial UI milestone was user-accepted on 2026-09-10: complete desktop-like
 HUD/menu layout on one upright OpenXR panel, explicit UI recenter, and stable,
