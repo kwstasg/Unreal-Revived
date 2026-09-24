@@ -12,6 +12,13 @@ under `local/logs/`.
 
 ## 2026-09-24
 
+- Owner rejected the narrowed vignette because of excessive VR coverage and
+  visible per-eye overlap. Restored the gentler accepted 0.30/0.52 maximum
+  radii, with added coverage only above 50%. Retained one slider and default off;
+  removed the unvalidated VR comfort suggestion from its help text. Builds and
+  production shader regression passed. Deployed for CV1 revalidation; this
+  reduction does not claim a shared stereo mask or resolved binocular overlap.
+
 - At the owner's request, coupled vignette opacity and coverage across the one
   existing slider. Increasing strength progressively narrows the clear center;
   100% provides opaque outer edges, while the default remains off. Updated help

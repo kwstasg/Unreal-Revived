@@ -375,9 +375,10 @@ VR quality now defaults to Balanced (runtime-recommended per-eye scene/output si
 Current profile is no longer selectable; internal allocation recovery remains.
 See [VR quality](vr-render-quality.md) for presets and validation.
 
-The single Vignette slider increases darkness and coverage together. Its smooth
-coverage curve contracts inner/outer radii from 0.30/0.72 to 0.16/0.38 normalized
-UV units at 100%, producing a narrower clear center and opaque outer edges.
-Zero remains off by default. This is a static per-eye image mask, not a projection
-or runtime FOV change or a motion-triggered effect. Existing HUD/menu exclusions
-remain intact. It is optional for VR comfort; headset comfort needs owner testing.
+The single Vignette slider retains its original falloff through 50%. Above that,
+its outer radius contracts smoothly from 0.72 to 0.52 normalized UV units;
+the clear inner radius remains 0.30. This restores the gentler owner-accepted
+maximum after the narrower 0.16/0.38 mask caused visible stereo overlap on CV1.
+Zero remains off. The mask is centered separately in each eye image, not in a
+shared angular frame; reducing coverage does not establish stereo alignment or
+comfort. HUD/menu exclusions remain intact. Headset revalidation is pending.
