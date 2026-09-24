@@ -12,6 +12,13 @@ under `local/logs/`.
 
 ## 2026-09-24
 
+- Updated Multiplayer > Download Latest Update to the project releases/latest
+  URL. Increased vignette edge coverage above 50%, with stronger darkening at
+  100%; off/default and the lower half retain their previous appearance.
+  Renderer/menu builds, production shader WARP coverage and menu-back regression
+  passed (`MenuBack-20260924-203645.log`). Deployed to the disposable runtime;
+  final vignette strength remains a visual preference for owner review.
+
 - Owner accepted the controller/menu checkpoint and authorized removing the temporary
   Current profile option. Balanced (100%) is now the renderer and menu default;
   four presets remain, with internal allocation recovery retained. No migrations

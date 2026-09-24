@@ -37,6 +37,8 @@ function Created()
 	}
 
 	Super.Created();
+	MenuBar.Multiplayer.Close(True);
+	MenuBar.Multiplayer = MenuBar.MultiplayerItem.CreateMenu(class'ModernMultiplayerMenu');
 	MenuBar.Help.Close(True);
 	MenuBar.Help = MenuBar.HelpItem.CreateMenu(class'ModernHelpMenu');
 	ModernHelpMenu(MenuBar.Help).Context.bChecked = MenuBar.ShowHelp;

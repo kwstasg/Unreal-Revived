@@ -403,7 +403,8 @@ std::string FileResource::readAllText(const std::string& filename)
 					}
 					if (VignetteIntensity > 0.0)
 					{
-						float vignette = smoothstep(0.30, 0.72, radialDistance);
+						float outerRadius = lerp(0.72, 0.52, smoothstep(0.5, 1.0, VignetteIntensity));
+						float vignette = smoothstep(0.30, outerRadius, radialDistance);
 						processedWorld *= 1.0 - vignette * VignetteIntensity;
 					}
 					float3 finalColor = texFinalFrame.Sample(samplerTex, input.texCoord).rgb;

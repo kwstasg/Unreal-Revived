@@ -374,3 +374,7 @@ are tracked in
 VR quality now defaults to Balanced (runtime-recommended per-eye scene/output sizes).
 Current profile is no longer selectable; internal allocation recovery remains.
 See [VR quality](vr-render-quality.md) for presets and validation.
+
+Vignette retains its original falloff through 50%. Above that, its outer radius
+contracts smoothly from 0.72 to 0.52 normalized UV units at 100%, darkening more
+of the screen edges. The center and existing HUD/menu exclusion remain intact.
