@@ -12,6 +12,12 @@ under `local/logs/`.
 
 ## 2026-09-24
 
+- At the owner's request, coupled vignette opacity and coverage across the one
+  existing slider. Increasing strength progressively narrows the clear center;
+  100% provides opaque outer edges, while the default remains off. Updated help
+  text and documented the static image mask. Renderer/menu builds and production
+  shader WARP regression passed; deployed to local/game for visual comfort review.
+
 - Updated Multiplayer > Download Latest Update to the project releases/latest
   URL. Increased vignette edge coverage above 50%, with stronger darkening at
   100%; off/default and the lower half retain their previous appearance.
