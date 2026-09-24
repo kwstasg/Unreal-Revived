@@ -147,7 +147,7 @@ builds are not established by resolution support.
 Automated checks:
 
 ```powershell
-cmake --build local/build-feature --config Release --target D3D12Drv
+cmake --build local/build --config Release --target D3D12Drv
 cmake --build local/build-vr-tests --config Release
 ctest --test-dir local/build-vr-tests -C Release --output-on-failure
 powershell -NoProfile -File scripts/test-video-preferences.ps1

@@ -19,6 +19,12 @@ direction (24 September 2026). Broader controller profiles, canted-eye head
 orientation and consistent B/back navigation are covered in
 [the compatibility contract](vr-controller-compatibility.md).
 
+## Build workflow
+
+Use `local/build` for development and packaging, as documented in `commands.md`.
+If absent, run `cmake -S . -B local/build -A x64`. Temporary experiment trees
+are not the normal build path. Standalone test builds retain their own directories.
+
 ## Read first
 
 1. Read [`progress.md`](progress.md) for completed milestones and validation.

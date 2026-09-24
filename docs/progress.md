@@ -10,6 +10,17 @@ September 12 cleanup compacted available dated test-log directories into
 beside it for the directories included. Current release-validation logs remain
 under `local/logs/`.
 
+## 2026-09-25
+
+- Restored the documented `local/build` workflow after development had drifted
+  to a temporary build tree. Configured the canonical directory, verified cached
+  dependency archives against pinned SHA-256 values, built the Release renderer,
+  and confirmed both offline packaging targets are generated. Corrected the VR
+  guide command and reinforced the canonical path in developer instructions,
+  command reference and current-state notes. No installer was built or published.
+  Evidence: `local/logs/canonical-configure.log` and
+  `local/logs/canonical-renderer-build.log`.
+
 ## 2026-09-24
 
 - Owner rejected the narrowed vignette because of excessive VR coverage and

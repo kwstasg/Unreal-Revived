@@ -25,6 +25,9 @@ unavailable.
 ## Architecture and compatibility
 
 - CMake is the canonical renderer build path. See `docs/building.md`.
+- Use `local/build` for normal development and packaging. If absent, configure it
+  using the documented command; do not redirect users to a temporary experiment
+  tree. Keep current command examples aligned with `docs/commands.md`.
 - The supported current host is OldUnreal 227k_15 on Windows x64.
 - Keep host-specific renderer compatibility behind `UNREAL_227` where
   practical. Preserve recognizable upstream UT99VulkanDrv structure.

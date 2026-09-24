@@ -55,7 +55,8 @@ modifying an unmarked directory or the original game installation.
 
 ## Configure and compile
 
-Configure the Visual Studio x64 build directory:
+Configure the canonical Visual Studio x64 build directory (required before any
+`cmake --build` command, including packaging):
 
 ```powershell
 cmake -S . -B local/build -A x64

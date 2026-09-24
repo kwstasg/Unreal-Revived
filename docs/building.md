@@ -124,6 +124,11 @@ cmake -S . -B local/build -A x64
 cmake --build local/build --config Release
 ```
 
+`local/build` is the canonical development and packaging build directory. Run
+the configure command first if it is missing. Temporary experiment directories
+are not substitutes for this documented workflow; do not rename or move a CMake
+build tree, because its cache contains absolute paths.
+
 The renderer is built as `D3D12Drv.dll` with C++17 and links against the 227
 Core, Engine, and Render import libraries plus the Windows Direct3D 12, DXGI,
 and shader compiler libraries. CMake also builds the hash-pinned Khronos
