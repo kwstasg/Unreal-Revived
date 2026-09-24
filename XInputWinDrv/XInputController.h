@@ -11,6 +11,7 @@
 
 class UWindowsClient;
 class UWindowsViewport;
+bool SuppressVRMousePitch(UWindowsViewport* Viewport);
 
 class FXInputController
 {

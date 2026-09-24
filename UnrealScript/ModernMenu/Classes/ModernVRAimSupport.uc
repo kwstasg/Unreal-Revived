@@ -6,6 +6,15 @@
 
 class ModernVRAimSupport extends Object abstract;
 
+// Clear only software tilt, never the facing direction or tracked head pose.
+static function LevelBasePitch(PlayerPawn Player)
+{
+	Player.ViewRotation.Pitch = 0;
+	Player.ViewRotation.Roll = 0;
+	Player.aLookUp = 0;
+	Player.aMouseY = 0;
+}
+
 static function SetCrosshairRay(PlayerPawn Player, vector Start, rotator Aim)
 {
 	local ModernVRInteraction Interaction;

@@ -318,12 +318,16 @@ function SyncDisplayMode()
 	CurrentMode = GetPlayerOwner().ConsoleCommand("GetScreenMode");
 	if (DisplayModeCombo.GetValue2() != CurrentMode)
 		DisplayModeCombo.SetSelectedIndex(DisplayModeCombo.FindItemIndex2(CurrentMode));
-	ResolutionCombo.SetDisabled(CurrentMode ~= "Borderless");
+	ResolutionCombo.SetDisabled(CurrentMode ~= "Borderless"
+		|| GetPlayerOwner().ConsoleCommand("D3D12 VRLAUNCHMODE") == "-vr");
+	if (GetPlayerOwner().ConsoleCommand("D3D12 VRLAUNCHMODE") == "-vr")
+		ResolutionCombo.SetHelpText("VR layout is fixed at 1280 x 1024 (5:4). Use Preferences > VR > VR Render Quality to change eye resolution.");
 }
 
 function ApplyDisplayMode()
 {
 	GetPlayerOwner().ConsoleCommand("SetScreenMode" @ DisplayModeCombo.GetValue2());
+	LoadAvailableSettings();
 	SyncDisplayMode();
 }
 
@@ -415,11 +419,82 @@ function LoadBrightnessSetting()
 function LoadAvailableSettings()
 {
 	Super.LoadAvailableSettings();
+	FormatResolutionOptions();
 	// The parent loads brightness in legacy 1-10 units on creation and on
 	// resolution/display changes. Restore percent units after every refresh,
 	// without notifying the slider or writing the loaded value back.
 	BrightnessSlider.SetRange(50, 200, 1);
 	LoadBrightnessSetting();
+}
+
+static function string ResolutionLabel(string RawResolution)
+{
+	local string WidthText, HeightText;
+	local int Width, Height, A, B, Remainder;
+
+	if (!Divide(Caps(RawResolution), "X", WidthText, HeightText))
+		return RawResolution;
+	Width = int(WidthText);
+	Height = int(HeightText);
+	if (Width <= 0 || Height <= 0)
+		return RawResolution;
+	A = Width;
+	B = Height;
+	while (B != 0)
+	{
+		Remainder = A % B;
+		A = B;
+		B = Remainder;
+	}
+	return Width $ " " $ Chr(215) $ " " $ Height $ " (" $ (Width / A) $ ":" $ (Height / A) $ ")";
+}
+
+function FormatResolutionOptions()
+{
+	local UWindowComboListItem Item;
+	local string Current;
+	local bool WasInitialized;
+
+	WasInitialized = bInitialized;
+	bInitialized = False;
+	Current = GetPlayerOwner().ConsoleCommand("GetCurrentRes");
+	for (Item = UWindowComboListItem(ResolutionCombo.List.Items.Next); Item != None;
+		Item = UWindowComboListItem(Item.Next))
+	{
+		if (Item.Value2 == "")
+			Item.Value2 = Item.Value;
+		Item.Value = ResolutionLabel(Item.Value2);
+	}
+	if (ResolutionCombo.FindItemIndex2(Current) < 0)
+		ResolutionCombo.AddItem(ResolutionLabel(Current), Current);
+	ResolutionCombo.SetSelectedIndex(ResolutionCombo.FindItemIndex2(Current));
+	bInitialized = WasInitialized;
+}
+
+function SettingsChanged()
+{
+	local string NewSettings;
+
+	if (!bInitialized || ResolutionCombo.GetValue2() == "")
+		return;
+	OldSettings = GetPlayerOwner().ConsoleCommand("GetCurrentRes") $ "x"
+		$ GetPlayerOwner().ConsoleCommand("GetCurrentColorDepth");
+	NewSettings = ResolutionCombo.GetValue2() $ "x" $ ColorDepthCombo.GetValue2();
+	if (NewSettings != OldSettings)
+	{
+		GetPlayerOwner().ConsoleCommand("SetRes " $ NewSettings);
+		LoadAvailableSettings();
+		ConfirmSettings = MessageBox(ConfirmSettingsTitle, ConfirmSettingsText, MB_YesNo, MR_No, MR_None, 10);
+	}
+}
+
+function ResolutionChanged(float W, float H)
+{
+	Super(UWindowDialogClientWindow).ResolutionChanged(W, H);
+	// The inherited handler compares the display label to the engine value.
+	// Our labels include an aspect ratio; refresh using the raw value instead.
+	if (ResolutionCombo != None)
+		LoadAvailableSettings();
 }
 
 function BrightnessChanged()

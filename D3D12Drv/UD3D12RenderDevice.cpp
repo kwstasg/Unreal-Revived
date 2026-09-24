@@ -10,6 +10,8 @@
 #include "FileResource.h"
 #include "halffloat.h"
 #include "VRPanelGeometry.h"
+#include "VRRenderSizing.h"
+#include "OpenXREyeSwapchains.h"
 
 IMPLEMENT_CLASS(UD3D12RenderDevice);
 
@@ -122,9 +124,11 @@ void UD3D12RenderDevice::DrawViewportWithOpenXR(FViewportCallback* Original, UBO
 		return;
 
 	PollOpenXRSession();
+	ApplyPendingVRQuality();
 	const UBOOL OpenXRFramePending = Player && OpenXRSessionRunning && PrepareOpenXRFrame();
 	if (!OpenXRFramePending || !OpenXRViewsValid || !OpenXRHeadPoseValid || !OpenXRBaseOrientationValid)
 	{
+		LastVREyeBuffer = -1;
 		Original->Draw(Blit);
 		if (OpenXRFramePending)
 			FinishOpenXRFrame();
@@ -132,6 +136,15 @@ void UD3D12RenderDevice::DrawViewportWithOpenXR(FViewportCallback* Original, UBO
 	}
 
 	const FLOAT SavedFovAngle = Player->FovAngle;
+	if (VRPitch.Pending && OpenXRSessionState == XR_SESSION_STATE_FOCUSED
+		&& (!VRPitch.HasPresenceEvents || VRPitch.WasPresent)
+		&& Player->Health > 0 && !Player->bBehindView && !Player->ViewTarget)
+	{
+		Player->ViewRotation.Pitch = Player->ViewRotation.Roll = 0;
+		Player->aLookUp = Player->aMouseY = 0;
+		VRPitch.Pending = false;
+	}
+	const bool UseQualityBuffers = PrepareVRQualityBuffers();
 	try
 	{
 		for (uint32_t ViewIndex = 0; ViewIndex < OpenXRViews.size() && OpenXRSessionRunning; ViewIndex++)
@@ -145,11 +158,27 @@ void UD3D12RenderDevice::DrawViewportWithOpenXR(FViewportCallback* Original, UBO
 			OpenXRStereoDrawEye = static_cast<INT>(ViewIndex);
 			// The camera hook supplies fresh collision state for this draw.
 			VRHeadCollisionFade = 0.0f;
+			if (UseQualityBuffers)
+			{
+				ActiveVREyeBuffer = VREyeBuffers[1].Width > 0 ? static_cast<INT>(ViewIndex) : 0;
+				std::swap(SceneBuffers, VREyeBuffers[ActiveVREyeBuffer]);
+			}
 			Original->Draw(Blit);
+			if (ActiveVREyeBuffer >= 0)
+			{
+				LastVREyeBuffer = ActiveVREyeBuffer;
+				std::swap(SceneBuffers, VREyeBuffers[ActiveVREyeBuffer]);
+				ActiveVREyeBuffer = -1;
+			}
 		}
 	}
 	catch (...)
 	{
+		if (ActiveVREyeBuffer >= 0)
+		{
+			std::swap(SceneBuffers, VREyeBuffers[ActiveVREyeBuffer]);
+			ActiveVREyeBuffer = -1;
+		}
 		Player->FovAngle = SavedFovAngle;
 		OpenXRStereoDrawEye = -1;
 		FinishOpenXRFrame();
@@ -185,6 +214,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	EnableVR = 0;
 	VRHUDDistance = 1.75f;
 	VRHUDScale = 1.0f;
+	VRRenderQuality = 0; // Existing profiles retain their original render resolution.
 	VRPlayerHeightOffset = 0.0f;
 	VRWorldScale = 1.0f;
 	VRAimMode = 0;
@@ -249,6 +279,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	new(GetClass(), TEXT("EnableVR"), RF_Public) UBoolProperty(CPP_PROPERTY(EnableVR), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRHUDDistance"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDDistance), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRHUDScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDScale), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("VRRenderQuality"), RF_Public) UIntProperty(CPP_PROPERTY(VRRenderQuality), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRPlayerHeightOffset"), RF_Public) UFloatProperty(CPP_PROPERTY(VRPlayerHeightOffset), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRWorldScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRWorldScale), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRAimMode"), RF_Public) UIntProperty(CPP_PROPERTY(VRAimMode), TEXT("Display"), CPF_Config);
@@ -466,7 +497,7 @@ UBOOL UD3D12RenderDevice::Init(UViewport* InViewport, INT NewX, INT NewY, INT Ne
 
 		Heaps.Common = std::make_unique<DescriptorHeap>(Device.get(), 64 * 1024, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
 		Heaps.Sampler = std::make_unique<DescriptorHeap>(Device.get(), 64, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-		Heaps.RTV = std::make_unique<DescriptorHeap>(Device.get(), 64, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
+		Heaps.RTV = std::make_unique<DescriptorHeap>(Device.get(), RenderTargetDescriptorCapacity, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 		Heaps.DSV = std::make_unique<DescriptorHeap>(Device.get(), 64, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE);
 
 		for (int i = 0; i < 2; i++)
@@ -690,6 +721,14 @@ UBOOL UD3D12RenderDevice::SetRes(INT NewX, INT NewY, INT NewColorBytes, UBOOL Fu
 
 	if (NewX == 0 || NewY == 0)
 		return 1;
+
+	// Keep the proven logical viewport independent of eye render quality.
+	if (!ParseParam(appCmdLine(), TEXT("novr")) &&
+		(ParseParam(appCmdLine(), TEXT("vr")) || EnableVR))
+	{
+		NewX = 1280;
+		NewY = 1024;
+	}
 
 	SubmitCommands(false);
 	WaitDeviceIdle();
@@ -985,6 +1024,8 @@ void UD3D12RenderDevice::Exit()
 	ReleaseScenePass();
 	ReleaseSceneBuffers();
 	ReleaseUploadBuffer();
+	for (SceneBufferSet& Buffers : VREyeBuffers)
+		Buffers = {};
 	Heaps.DSV.reset();
 	Heaps.RTV.reset();
 	Heaps.Sampler.reset();
@@ -1091,13 +1132,15 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		return;
 	}
 	bool SupportsD3D12 = false;
+	VRPresenceExtension = false;
 	for (const XrExtensionProperties& Extension : Extensions)
 	{
 		if (strcmp(Extension.extensionName, XR_KHR_D3D12_ENABLE_EXTENSION_NAME) == 0)
 		{
 			SupportsD3D12 = true;
-			break;
 		}
+		if (strcmp(Extension.extensionName, XR_EXT_USER_PRESENCE_EXTENSION_NAME) == 0)
+			VRPresenceExtension = true;
 	}
 	if (!SupportsD3D12)
 	{
@@ -1105,14 +1148,14 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		return;
 	}
 
-	const char* EnabledExtensions[] = { XR_KHR_D3D12_ENABLE_EXTENSION_NAME };
+	const char* EnabledExtensions[] = { XR_KHR_D3D12_ENABLE_EXTENSION_NAME, XR_EXT_USER_PRESENCE_EXTENSION_NAME };
 	XrInstanceCreateInfo CreateInfo = { XR_TYPE_INSTANCE_CREATE_INFO };
 	strncpy_s(CreateInfo.applicationInfo.applicationName, "Unreal Revived", _TRUNCATE);
 	CreateInfo.applicationInfo.applicationVersion = 6;
 	strncpy_s(CreateInfo.applicationInfo.engineName, "Unreal Engine 1", _TRUNCATE);
 	CreateInfo.applicationInfo.engineVersion = 227;
 	CreateInfo.applicationInfo.apiVersion = XR_API_VERSION_1_0;
-	CreateInfo.enabledExtensionCount = 1;
+	CreateInfo.enabledExtensionCount = VRPresenceExtension ? 2 : 1;
 	CreateInfo.enabledExtensionNames = EnabledExtensions;
 	Result = CreateInstance(&CreateInfo, &OpenXRInstance);
 	if (XR_FAILED(Result) || OpenXRInstance == XR_NULL_HANDLE)
@@ -1177,7 +1220,10 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 		if (XR_SUCCEEDED(Result) && RawFunction)
 		{
 			XrSystemProperties Properties = { XR_TYPE_SYSTEM_PROPERTIES };
+			XrSystemUserPresencePropertiesEXT Presence = { XR_TYPE_SYSTEM_USER_PRESENCE_PROPERTIES_EXT };
+			if (VRPresenceExtension) Properties.next = &Presence;
 			Result = reinterpret_cast<PFN_xrGetSystemProperties>(RawFunction)(OpenXRInstance, OpenXRSystemId, &Properties);
+			VRPitch.HasPresenceEvents = XR_SUCCEEDED(Result) && Presence.supportsUserPresence;
 			if (XR_SUCCEEDED(Result))
 			{
 				debugf(TEXT("Unreal Revived OpenXR: headset detected=%ls vendor=%u orientationTracking=%s positionTracking=%s"),
@@ -1336,6 +1382,8 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 		return 0;
 	}
 	OpenXRViews.assign(ViewCount, { XR_TYPE_VIEW });
+	ActiveVRRenderQuality = VRRenderSizing::NormalizeQuality(VRRenderQuality);
+	VRQualityBuffersFailed = false;
 
 	uint32_t BlendModeCount = 0;
 	Result = OpenXRFunctions.EnumerateEnvironmentBlendModes(OpenXRInstance, OpenXRSystemId,
@@ -1409,29 +1457,36 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 		return 0;
 	}
 
+	VREyeFormat = SelectedFormat;
 	OpenXRSwapchains.resize(ViewCount);
+	OpenXREyeSwapchains::Pair EyePair;
+	if (!OpenXREyeSwapchains::Create(OpenXRSession, OpenXRConfigurationViews.data(), ActiveVRRenderQuality,
+		static_cast<int64_t>(SelectedFormat), OpenXRFunctions.CreateSwapchain,
+		OpenXRFunctions.DestroySwapchain, EyePair))
+	{
+		debugf(TEXT("Unreal Revived OpenXR: eye swapchain creation failed, including current-profile fallback"));
+		return 0;
+	}
+	ActiveVRRenderQuality = EyePair.Quality;
+	VRQualityBuffersFailed = EyePair.FellBack;
+	if (EyePair.FellBack)
+		debugf(TEXT("Unreal Revived OpenXR: optional eye swapchain size rejected; using current profile for both eyes"));
+	// Transfer both handles before image enumeration so teardown owns the pair
+	// even if enumerating the first eye fails.
+	for (uint32_t ViewIndex = 0; ViewIndex < ViewCount; ++ViewIndex)
+	{
+		OpenXRSwapchains[ViewIndex].Handle = EyePair.Handles[ViewIndex];
+		OpenXRSwapchains[ViewIndex].Width = EyePair.Sizes[ViewIndex].Width;
+		OpenXRSwapchains[ViewIndex].Height = EyePair.Sizes[ViewIndex].Height;
+	}
 	for (uint32_t ViewIndex = 0; ViewIndex < ViewCount; ViewIndex++)
 	{
 		OpenXRViewSwapchain& ViewSwapchain = OpenXRSwapchains[ViewIndex];
 		const XrViewConfigurationView& View = OpenXRConfigurationViews[ViewIndex];
-		ViewSwapchain.Width = static_cast<INT>(View.recommendedImageRectWidth);
-		ViewSwapchain.Height = static_cast<INT>(View.recommendedImageRectHeight);
-		XrSwapchainCreateInfo SwapchainInfo = { XR_TYPE_SWAPCHAIN_CREATE_INFO };
-		SwapchainInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
-		SwapchainInfo.format = static_cast<int64_t>(SelectedFormat);
-		SwapchainInfo.sampleCount = 1;
-		SwapchainInfo.width = View.recommendedImageRectWidth;
-		SwapchainInfo.height = View.recommendedImageRectHeight;
-		SwapchainInfo.faceCount = 1;
-		SwapchainInfo.arraySize = 1;
-		SwapchainInfo.mipCount = 1;
-		Result = OpenXRFunctions.CreateSwapchain(OpenXRSession, &SwapchainInfo, &ViewSwapchain.Handle);
-		if (XR_FAILED(Result) || ViewSwapchain.Handle == XR_NULL_HANDLE)
-		{
-			ViewSwapchain.Handle = XR_NULL_HANDLE;
-			debugf(TEXT("Unreal Revived OpenXR: view %u swapchain creation failed (result %d)"), ViewIndex, Result);
-			return 0;
-		}
+		debugf(TEXT("Unreal Revived OpenXR: eye=%u quality=%d output=%dx%d recommended=%ux%u max=%ux%u"),
+			ViewIndex, ActiveVRRenderQuality, ViewSwapchain.Width, ViewSwapchain.Height,
+			View.recommendedImageRectWidth, View.recommendedImageRectHeight,
+			View.maxImageRectWidth, View.maxImageRectHeight);
 
 		uint32_t ImageCount = 0;
 		Result = OpenXRFunctions.EnumerateSwapchainImages(ViewSwapchain.Handle, 0, &ImageCount, nullptr);
@@ -1571,6 +1626,103 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 	return 1;
 }
 
+void UD3D12RenderDevice::ApplyPendingVRQuality()
+{
+	if (!VRQualityPending || !OpenXRRenderingReady || OpenXRFrameBegun || OpenXRSwapchains.size() != 2)
+		return;
+	VRQualityPending = false;
+	const INT Quality = VRRenderSizing::NormalizeQuality(VRRenderQuality);
+	if (Quality == ActiveVRRenderQuality && !VRQualityBuffersFailed)
+		return;
+
+	// Prepare a complete replacement before retiring either working eye.
+	std::vector<OpenXRViewSwapchain> Replacement(2);
+	SceneBufferSet ReplacementBuffers[2];
+	OpenXREyeSwapchains::Pair Pair;
+	auto ReleaseReplacement = [&]()
+	{
+		for (auto& Eye : Replacement)
+		{
+			Eye.RTVs.reset();
+			if (Eye.Handle != XR_NULL_HANDLE) OpenXRFunctions.DestroySwapchain(Eye.Handle);
+			Eye.Handle = XR_NULL_HANDLE;
+		}
+		for (auto& Buffers : ReplacementBuffers)
+		{
+			std::swap(SceneBuffers, Buffers);
+			ReleaseSceneBuffers();
+			std::swap(SceneBuffers, Buffers);
+			Buffers = {};
+		}
+	};
+	try
+	{
+		if (!OpenXREyeSwapchains::Create(OpenXRSession, OpenXRConfigurationViews.data(), Quality,
+			static_cast<int64_t>(VREyeFormat), OpenXRFunctions.CreateSwapchain,
+			OpenXRFunctions.DestroySwapchain, Pair))
+			throw std::runtime_error("eye swapchain creation failed");
+		for (int Eye = 0; Eye < 2; ++Eye)
+		{
+			Replacement[Eye].Handle = Pair.Handles[Eye];
+			Replacement[Eye].Width = Pair.Sizes[Eye].Width;
+			Replacement[Eye].Height = Pair.Sizes[Eye].Height;
+		}
+		if (Pair.FellBack) throw std::runtime_error("requested eye size rejected");
+		for (auto& Eye : Replacement)
+		{
+			uint32_t Count = 0;
+			if (XR_FAILED(OpenXRFunctions.EnumerateSwapchainImages(Eye.Handle, 0, &Count, nullptr)) || !Count)
+				throw std::runtime_error("eye image count unavailable");
+			Eye.Images.assign(Count, { XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR });
+			if (XR_FAILED(OpenXRFunctions.EnumerateSwapchainImages(Eye.Handle, Count, &Count,
+				reinterpret_cast<XrSwapchainImageBaseHeader*>(Eye.Images.data()))))
+				throw std::runtime_error("eye image enumeration failed");
+			Eye.RTVs = Heaps.RTV->Alloc(static_cast<INT>(Count));
+			for (uint32_t Image = 0; Image < Count; ++Image)
+			{
+				D3D12_RENDER_TARGET_VIEW_DESC Desc = {};
+				Desc.Format = VREyeFormat;
+				Desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+				Device->CreateRenderTargetView(Eye.Images[Image].texture, &Desc, Eye.RTVs.CPUHandle(Image));
+			}
+		}
+		if (Quality)
+		{
+			const int Count = Pair.Sizes[0].Width == Pair.Sizes[1].Width &&
+				Pair.Sizes[0].Height == Pair.Sizes[1].Height ? 1 : 2;
+			for (int Eye = 0; Eye < Count; ++Eye)
+			{
+				std::swap(SceneBuffers, ReplacementBuffers[Eye]);
+				try { ResizeSceneBuffers(Pair.Sizes[Eye].Width, Pair.Sizes[Eye].Height, GetSettingsMultisample()); }
+				catch (...) { std::swap(SceneBuffers, ReplacementBuffers[Eye]); throw; }
+				std::swap(SceneBuffers, ReplacementBuffers[Eye]);
+			}
+		}
+		SubmitCommands(false);
+		WaitDeviceIdle();
+	}
+	catch (const std::exception& Error)
+	{
+		SubmitCommands(false);
+		WaitDeviceIdle();
+		ReleaseReplacement();
+		VRQualityChangeFailed = true;
+		debugf(TEXT("Unreal Revived OpenXR: live quality change failed; keeping active quality %d: %s"),
+			ActiveVRRenderQuality, to_utf16(Error.what()).c_str());
+		return;
+	}
+	OpenXRSwapchains.swap(Replacement);
+	for (int Eye = 0; Eye < 2; ++Eye) std::swap(VREyeBuffers[Eye], ReplacementBuffers[Eye]);
+	ReleaseReplacement();
+	ActiveVRRenderQuality = Quality;
+	VRQualityBuffersFailed = false;
+	VRQualityChangeFailed = false;
+	LastVREyeBuffer = -1;
+	VRStatistics = {};
+	debugf(TEXT("Unreal Revived OpenXR: live quality=%d eye=%dx%d"), Quality,
+		OpenXRSwapchains[0].Width, OpenXRSwapchains[0].Height);
+}
+
 void UD3D12RenderDevice::PollOpenXRSession()
 {
 	if (OpenXRInstance == XR_NULL_HANDLE || OpenXRSession == XR_NULL_HANDLE || !OpenXRGetInstanceProcAddr)
@@ -1593,6 +1745,11 @@ void UD3D12RenderDevice::PollOpenXRSession()
 			const XrEventDataSessionStateChanged* StateEvent =
 				reinterpret_cast<const XrEventDataSessionStateChanged*>(&Event);
 			OpenXRSessionState = StateEvent->state;
+			if (OpenXRSessionState == XR_SESSION_STATE_SYNCHRONIZED ||
+				OpenXRSessionState == XR_SESSION_STATE_STOPPING || OpenXRSessionState == XR_SESSION_STATE_IDLE)
+				VRPitch.Hidden();
+			if (OpenXRSessionState == XR_SESSION_STATE_FOCUSED) VRPitch.Focused();
+			VRStatistics = {};
 			debugf(TEXT("Unreal Revived OpenXR: session state=%d"), (INT)OpenXRSessionState);
 			if (OpenXRSessionState == XR_SESSION_STATE_READY && OpenXRRenderingReady && !OpenXRSessionRunning)
 			{
@@ -1635,6 +1792,11 @@ void UD3D12RenderDevice::PollOpenXRSession()
 				OpenXRViewsValid = 0;
 			}
 		}
+		else if (Event.type == XR_TYPE_EVENT_DATA_USER_PRESENCE_CHANGED_EXT && VRPitch.HasPresenceEvents)
+		{
+			const auto* Presence = reinterpret_cast<const XrEventDataUserPresenceChangedEXT*>(&Event);
+			if (Presence->session == OpenXRSession) VRPitch.Presence(Presence->isUserPresent != 0);
+		}
 		else if (Event.type == XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING)
 			debugf(TEXT("Unreal Revived OpenXR: runtime reported instance loss pending"));
 	}
@@ -1668,6 +1830,7 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 	OpenXRUIEyeMask = 0;
 	OpenXRViewsValid = 0;
 	OpenXRPredictedDisplayTime = FrameState.predictedDisplayTime;
+	VRShouldRender = FrameState.shouldRender != 0;
 	MotionControllers.Update(OpenXRLocalSpace, OpenXRPredictedDisplayTime,
 		OpenXRSessionState == XR_SESSION_STATE_FOCUSED && FrameState.shouldRender);
 	MotionSampleTime = appSeconds();
@@ -1707,6 +1870,7 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 						static_cast<DWORD>(RelativeOpenXRRotation(OpenXRBaseOrientation, OpenXRHeadOrientation).Yaw)) & 65535);
 				ViewRotation.Pitch = ViewRotation.Roll = 0;
 				Viewport->Actor->ViewRotation = ViewRotation;
+				Viewport->Actor->aLookUp = Viewport->Actor->aMouseY = 0;
 			}
 			OpenXRBaseOrientationValid = 0;
 			// Explicit recenter faces the current gaze in all three axes. A
@@ -1978,6 +2142,8 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 	EndInfo.layerCount = AllImagesReleased ? (UIReleased ? 3 : 1) : 0;
 	EndInfo.layers = AllImagesReleased ? Layers : nullptr;
 	const XrResult Result = OpenXRFunctions.EndFrame(OpenXRSession, &EndInfo);
+	if (XR_SUCCEEDED(Result) && AllImagesReleased)
+		VRStatistics.Submit(VRFrameStatistics::Now());
 	if (XR_FAILED(Result))
 		debugf(TEXT("Unreal Revived OpenXR: xrEndFrame failed (result %d)"), Result);
 	else if (AllImagesReleased && !OpenXRFirstFrameLogged)
@@ -1992,6 +2158,16 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 
 void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
+	VRPitch = {};
+	VRPresenceExtension = false;
+	VRQualityPending = false;
+	VRQualityChangeFailed = false;
+	VRShouldRender = false;
+	VRStatistics = {};
+	LastVREyeBuffer = -1;
+	ActiveVRRenderQuality = 0;
+	for (auto& Buffers : VREyeBuffers)
+		Buffers = {};
 	MotionControllers.Release();
 	MotionSampleTime = FTime();
 	OpenXRSessionRunning = 0;
@@ -2112,6 +2288,50 @@ void UD3D12RenderDevice::LogPerformanceSummary()
 	double AverageFrameTime = TotalFrameTime / SortedFrameTimes.size();
 	debugf(TEXT("D3D12Drv performance: samples=%u average_ms=%.3f median_ms=%.3f p95_ms=%.3f p99_ms=%.3f max_ms=%.3f average_fps=%.2f"),
 		(unsigned int)SortedFrameTimes.size(), AverageFrameTime, Percentile(0.50), Percentile(0.95), Percentile(0.99), SortedFrameTimes.back(), 1000.0 / AverageFrameTime);
+}
+
+bool UD3D12RenderDevice::PrepareVRQualityBuffers()
+{
+	if (!ActiveVRRenderQuality || VRQualityBuffersFailed || OpenXRConfigurationViews.size() != 2 ||
+		OpenXRSwapchains.size() != 2 || CurrentSizeX <= 0 || CurrentSizeY <= 0)
+		return false;
+	VRRenderSizing::Size Sizes[2];
+	for (int Eye = 0; Eye < 2; ++Eye)
+	{
+		// Render directly at the accepted output size; do not discard the extra
+		// scene detail in a fixed-size present texture before lens correction.
+		Sizes[Eye] = { OpenXRSwapchains[Eye].Width, OpenXRSwapchains[Eye].Height };
+	}
+	// Sequential eye draws can reuse one set when their dimensions match.
+	const int BufferCount = Sizes[0].Width == Sizes[1].Width && Sizes[0].Height == Sizes[1].Height ? 1 : 2;
+	for (int Eye = 0; Eye < BufferCount; ++Eye)
+	{
+		std::swap(SceneBuffers, VREyeBuffers[Eye]);
+		try
+		{
+			if (SceneBuffers.Width != Sizes[Eye].Width || SceneBuffers.Height != Sizes[Eye].Height)
+				debugf(TEXT("Unreal Revived OpenXR: quality=%d buffer=%d scene=%dx%d runtime=%ux%u; profile/UI layout remains %dx%d"),
+					ActiveVRRenderQuality, Eye, Sizes[Eye].Width, Sizes[Eye].Height,
+					OpenXRConfigurationViews[Eye].recommendedImageRectWidth,
+					OpenXRConfigurationViews[Eye].recommendedImageRectHeight, CurrentSizeX, CurrentSizeY);
+			ResizeSceneBuffers(Sizes[Eye].Width, Sizes[Eye].Height, GetSettingsMultisample());
+		}
+		catch (const std::exception& Error)
+		{
+			std::swap(SceneBuffers, VREyeBuffers[Eye]);
+			SubmitCommands(false);
+			WaitDeviceIdle();
+			for (auto& Buffers : VREyeBuffers)
+				Buffers = {};
+			VRQualityBuffersFailed = true;
+			LastVREyeBuffer = -1;
+			debugf(TEXT("Unreal Revived OpenXR: optional quality buffers failed; using current profile %dx%d for this session: %s"),
+				CurrentSizeX, CurrentSizeY, to_utf16(Error.what()).c_str());
+			return false;
+		}
+		std::swap(SceneBuffers, VREyeBuffers[Eye]);
+	}
+	return true;
 }
 
 void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
@@ -2257,6 +2477,9 @@ void UD3D12RenderDevice::ResizeSceneBuffers(int width, int height, int multisamp
 	debugf(TEXT("D3D12Drv: VR UI buffers %s at %dx%d"), NeedsVRUIBuffers() ? TEXT("enabled") : TEXT("disabled"), width, height);
 	for (int i = 0; i < PostProcessImageCount; i++)
 	{
+		// Screenshots are returned to the engine at its logical viewport size.
+		texDesc.Width = i == PPI_Screenshot ? CurrentSizeX : width;
+		texDesc.Height = i == PPI_Screenshot ? CurrentSizeY : height;
 		result = Device->CreateCommittedResource(
 			&defaultHeapProps,
 			D3D12_HEAP_FLAG_NONE,
@@ -2412,6 +2635,9 @@ bool UD3D12RenderDevice::AreSceneBuffersReady() const
 		if (!SceneBuffers.PPImage[i])
 			return false;
 	}
+	const auto Screenshot = SceneBuffers.PPImage[PPI_Screenshot]->GetDesc();
+	if (Screenshot.Width != static_cast<UINT64>(CurrentSizeX) || Screenshot.Height != static_cast<UINT>(CurrentSizeY))
+		return false;
 	return true;
 }
 
@@ -3051,6 +3277,10 @@ void UD3D12RenderDevice::ResolveUICompositionMask()
 
 void UD3D12RenderDevice::RunBloomPass(const DescriptorSet& source, PostProcessImageIndex targetImageIndex)
 {
+	// The preceding VR UI pass leaves a 1024x1024 scissor. Bloom owns its
+	// raster bounds; every downsample level fits inside the full scene extent.
+	const D3D12_RECT BloomScissor = { 0, 0, SceneBuffers.Width, SceneBuffers.Height };
+	Commands.Current->Draw->RSSetScissorRects(1, &BloomScissor);
 	float blurAmount = 0.6f + BloomAmount * (1.9f / 255.0f);
 	float bloomLevel = BloomAmount / 255.0f;
 	BloomPushConstants pushconstants;
@@ -3646,13 +3876,13 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			else Ar.Logf(TEXT("0"));
 			return 1;
 		}
-		if (ParseCommand(&Cmd, TEXT("VRWEAPONFUNCTION")))
+		if (ParseCommand(&Cmd, TEXT("VRWEAPONFUNCTION")) || ParseCommand(&Cmd, TEXT("VRSTATEFUNCTION")))
 		{
 			FString ClassName, StateName, FunctionName;
 			if (ParseToken(Cmd, ClassName, 0) && ParseToken(Cmd, StateName, 0) && ParseToken(Cmd, FunctionName, 0))
 			{
 				UClass* WeaponClass = FindObject<UClass>(NULL, *ClassName);
-				if (WeaponClass && WeaponClass->IsChildOf(AWeapon::StaticClass()))
+				if (WeaponClass && (WeaponClass->IsChildOf(AWeapon::StaticClass()) || WeaponClass->IsChildOf(APlayerPawn::StaticClass())))
 				{
 					for (TFieldIterator<UState> State(WeaponClass); State; ++State)
 					{
@@ -3891,6 +4121,65 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			Ar.Logf(TEXT("%.2f"), VRHUDScale);
 			return 1;
 		}
+		else if (ParseCommand(&Cmd, TEXT("VRRENDERQUALITY")))
+		{
+			VRRenderQuality = VRRenderSizing::NormalizeQuality(appAtoi(Cmd));
+			VRQualityPending = true;
+			VRQualityChangeFailed = false;
+			SaveConfig();
+			Ar.Logf(TEXT("%d"), VRRenderQuality);
+			debugf(TEXT("Unreal Revived OpenXR: render quality %d queued for next frame"), VRRenderQuality);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRQUALITYSTATUS")))
+		{
+			if (VRQualityChangeFailed)
+				Ar.Log(TEXT("failed"));
+			else if (VRQualityBuffersFailed)
+				Ar.Log(TEXT("fallback"));
+			else if (OpenXRSession != XR_NULL_HANDLE && VRRenderQuality != ActiveVRRenderQuality)
+				Ar.Log(TEXT("pending"));
+			else
+				Ar.Log(TEXT("ready"));
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRSTATSACTIVE")))
+		{
+			Ar.Log(OpenXRSessionRunning && VRShouldRender && OpenXRSessionState == XR_SESSION_STATE_FOCUSED
+				? TEXT("1") : TEXT("0"));
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRFPSRESET")))
+		{
+			VRStatistics = {};
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRFPS")))
+		{
+			const INT Index = appAtoi(Cmd);
+			const bool Active = OpenXRSessionRunning && VRShouldRender && OpenXRSessionState == XR_SESSION_STATE_FOCUSED;
+			Ar.Logf(TEXT("%.1f"), Index == 0 && !Active ? 0.0 : VRStatistics.Value(Index, VRFrameStatistics::Now()));
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRRENDERSIZE")))
+		{
+			const INT Eye = Clamp<INT>(appAtoi(Cmd), 0, 1);
+			if (!OpenXRRenderingReady || OpenXRSwapchains.size() != 2)
+				return 1;
+			INT Width = CurrentSizeX, Height = CurrentSizeY;
+			if (ActiveVRRenderQuality && !VRQualityBuffersFailed)
+			{
+				const INT Buffer = VREyeBuffers[1].Width > 0 ? Eye : 0;
+				const auto& Buffers = ActiveVREyeBuffer == Buffer ? SceneBuffers : VREyeBuffers[Buffer];
+				// Before the first render (headset unworn), buffers are lazy.
+				// Their configured size is already fixed by the eye swapchain.
+				Width = Buffers.Width > 0 ? Buffers.Width : OpenXRSwapchains[Eye].Width;
+				Height = Buffers.Height > 0 ? Buffers.Height : OpenXRSwapchains[Eye].Height;
+			}
+			Ar.Logf(TEXT("%dx%d -> %dx%d"), Width, Height,
+				OpenXRSwapchains[Eye].Width, OpenXRSwapchains[Eye].Height);
+			return 1;
+		}
 		else if (ParseCommand(&Cmd, TEXT("BLOOM")))
 		{
 			BloomAmount = Clamp<INT>(appAtoi(Cmd), 0, 255);
@@ -3961,6 +4250,12 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 	}
 	else if (ParseCommand(&Cmd, TEXT("GetRes")))
 	{
+		if (!ParseParam(appCmdLine(), TEXT("novr")) &&
+			(ParseParam(appCmdLine(), TEXT("vr")) || EnableVR))
+		{
+			Ar.Log(TEXT("1280x1024"));
+			return 1;
+		}
 		struct Resolution
 		{
 			int X;
@@ -3975,8 +4270,12 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 		// Always include what the monitor is currently using
 		GetOutputRect();
 		resolutions.insert({ DesktopResolution.Width, DesktopResolution.Height });
-		resolutions.insert({ 2560, 1440 });
-		resolutions.insert({ 3840, 2160 });
+		// D3D12 fullscreen already letterboxes a logical render size into a
+		// desktop-sized window; these do not need to be physical monitor modes.
+		const Resolution Presets[] = { {1024,768}, {1280,720}, {1280,1024},
+			{1600,900}, {1600,1200}, {1600,1280}, {1920,1080}, {1920,1536},
+			{2560,1440}, {3840,2160} };
+		resolutions.insert(std::begin(Presets), std::end(Presets));
 
 		IDXGIOutput* output = nullptr;
 		HRESULT result = SwapChain3->GetContainingOutput(&output);
@@ -4036,7 +4335,7 @@ void UD3D12RenderDevice::Lock(FPlane InFlashScale, FPlane InFlashFog, FPlane Scr
 	}
 #endif
 
-	if (CurrentSizeX && CurrentSizeY)
+	if (CurrentSizeX && CurrentSizeY && ActiveVREyeBuffer < 0)
 	{
 		try
 		{
@@ -4076,8 +4375,8 @@ void UD3D12RenderDevice::Lock(FPlane InFlashScale, FPlane InFlashFog, FPlane Scr
 		Commands.Current->Draw->ClearDepthStencilView(depthview, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		D3D12_RECT box = {};
-		box.right = CurrentSizeX;
-		box.bottom = CurrentSizeY;
+		box.right = SceneBuffers.Width;
+		box.bottom = SceneBuffers.Height;
 		Commands.Current->Draw->RSSetScissorRects(1, &box);
 
 		SceneConstants.HitIndex = 0;
@@ -5216,13 +5515,14 @@ void UD3D12RenderDevice::ReadPixels(FColor* Pixels, UBOOL bGammaCorrectOutput)
 {
 	guard(UD3D12RenderDevice::ReadPixels);
 
+	auto& ReadBuffers = ActiveVREyeBuffer < 0 && LastVREyeBuffer >= 0 ? VREyeBuffers[LastVREyeBuffer] : SceneBuffers;
 	ID3D12Resource* imageResource = nullptr;
 
 	if (GammaCorrectScreenshots)
 	{
-		TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[PPI_Screenshot], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		TransitionResourceBarrier(Commands.Current->Draw, ReadBuffers.PPImage[PPI_Screenshot], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE rtv = SceneBuffers.PPImageRTV[PPI_Screenshot].CPUHandle();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtv = ReadBuffers.PPImageRTV[PPI_Screenshot].CPUHandle();
 		Commands.Current->Draw->SetGraphicsRootSignature(PresentPass.RootSignature);
 		Commands.Current->Draw->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
 
@@ -5248,17 +5548,17 @@ void UD3D12RenderDevice::ReadPixels(FColor* Pixels, UBOOL bGammaCorrectOutput)
 		Commands.Current->Draw->SetPipelineState(PresentPass.Present[presentShader]);
 		Commands.Current->Draw->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		Commands.Current->Draw->IASetVertexBuffers(0, 1, &PresentPass.PPStepVertexBufferView);
-		Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, SceneBuffers.PresentSRVs.GPUHandle());
+		Commands.Current->Draw->SetGraphicsRootDescriptorTable(0, ReadBuffers.PresentSRVs.GPUHandle());
 		Commands.Current->Draw->SetGraphicsRoot32BitConstants(1, sizeof(PresentPushConstants) / sizeof(uint32_t), &pushconstants, 0);
 		Commands.Current->Draw->DrawInstanced(6, 1, 0, 0);
 
-		TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[PPI_Screenshot], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		imageResource = SceneBuffers.PPImage[PPI_Screenshot];
+		TransitionResourceBarrier(Commands.Current->Draw, ReadBuffers.PPImage[PPI_Screenshot], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		imageResource = ReadBuffers.PPImage[PPI_Screenshot];
 	}
 	else
 	{
-		TransitionResourceBarrier(Commands.Current->Draw, SceneBuffers.PPImage[PPI_FinalFrame], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		imageResource = SceneBuffers.PPImage[PPI_FinalFrame];
+		TransitionResourceBarrier(Commands.Current->Draw, ReadBuffers.PPImage[PPI_FinalFrame], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		imageResource = ReadBuffers.PPImage[PPI_FinalFrame];
 	}
 
 	D3D12_RESOURCE_DESC desc = imageResource->GetDesc();
@@ -5319,9 +5619,14 @@ void UD3D12RenderDevice::ReadPixels(FColor* Pixels, UBOOL bGammaCorrectOutput)
 	{
 		int desty = GammaCorrectScreenshots ? y : (h - y - 1);
 		uint8_t* dest = (uint8_t*)pixelData + desty * w * 4;
-		uint16_t* src = (uint16_t*)(srcpixels + y * footprint.Footprint.RowPitch);
+		const int SourceY = GammaCorrectScreenshots ? y :
+			static_cast<int>(static_cast<int64_t>(y) * desc.Height / h);
+		uint16_t* srcrow = (uint16_t*)(srcpixels + SourceY * footprint.Footprint.RowPitch);
 		for (int x = 0; x < w; x++)
 		{
+			const int SourceX = GammaCorrectScreenshots ? x :
+				static_cast<int>(static_cast<int64_t>(x) * desc.Width / w);
+			uint16_t* src = srcrow + SourceX * 4;
 			float red = halfToFloatSimple(*(src++));
 			float green = halfToFloatSimple(*(src++));
 			float blue = halfToFloatSimple(*(src++));
@@ -5402,6 +5707,17 @@ void UD3D12RenderDevice::SetSceneNode(FSceneNode* Frame)
 	SceneViewport.TopLeftY = SceneBuffers.Height - Frame->YB - Frame->Y;
 	SceneViewport.Width = Frame->X;
 	SceneViewport.Height = Frame->Y;
+	if (ActiveVREyeBuffer >= 0)
+	{
+		const auto Raster = VRRenderSizing::RasterViewport({ CurrentSizeX, CurrentSizeY },
+			{ SceneBuffers.Width, SceneBuffers.Height },
+			{ static_cast<float>(Frame->XB), static_cast<float>(Frame->YB),
+			  static_cast<float>(Frame->X), static_cast<float>(Frame->Y) });
+		SceneViewport.TopLeftX = Raster.X;
+		SceneViewport.TopLeftY = Raster.Y;
+		SceneViewport.Width = Raster.Width;
+		SceneViewport.Height = Raster.Height;
+	}
 	SceneViewport.MinDepth = 0.1f;
 	SceneViewport.MaxDepth = 1.0f;
 	Commands.Current->Draw->RSSetViewports(1, &SceneViewport);

@@ -84,3 +84,9 @@ diff --git a/Src/WinViewport.cpp b/Src/WinViewport.cpp
 @@ -1554,0 +1563,2 @@
 +			if (GetOuterUWindowsClient()->XInputController)
 +				GetOuterUWindowsClient()->XInputController->ResetState();
+diff --git a/Src/WinInput.cpp b/Src/WinInput.cpp
+--- a/Src/WinInput.cpp
++++ b/Src/WinInput.cpp
+@@ -334 +334 @@
+-			if (DY) Viewport->CauseInputEvent(IK_MouseY, IST_Axis, -DY);
++			if (DY && !SuppressVRMousePitch(Viewport)) Viewport->CauseInputEvent(IK_MouseY, IST_Axis, -DY);

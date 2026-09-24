@@ -25,12 +25,16 @@ namespace
 		return std::isfinite(Speed) && std::fabs(Speed) > 0.0001f;
 	}
 
-	bool ReadMovementYaw(UWindowsViewport* Viewport, FLOAT& YawRadians)
+	bool ReadMovementYaw(UWindowsViewport* Viewport, FLOAT& YawRadians, bool& RotateGroundMovement)
 	{
 		APlayerPawn* Player = Viewport->Actor;
 		if (!Player || !Viewport->RenDev || !Viewport->Input || Player->Health <= 0 ||
-			Player->bBehindView || Player->ViewTarget || Player->bShowMenu || Player->bFreeLook ||
-			(Player->Physics != PHYS_Walking && Player->Physics != PHYS_Falling))
+			Player->bBehindView || Player->ViewTarget || Player->bShowMenu || Player->bFreeLook)
+			return false;
+		RotateGroundMovement = Player->Physics == PHYS_Walking || Player->Physics == PHYS_Falling;
+		const bool CheatFlying = Player->GetStateFrame() && Player->GetStateFrame()->StateNode &&
+			Player->GetStateFrame()->StateNode->GetFName() == FName(TEXT("CheatFlying"));
+		if (!RotateGroundMovement && Player->Physics != PHYS_Swimming && Player->Physics != PHYS_Flying && !CheatFlying)
 			return false;
 		// Query cached renderer state only; this does not initialize OpenXR or
 		// load its DLL. Flat/recovery renderers return no active pose.
@@ -89,6 +93,19 @@ namespace
 	{
 		return Value == -32768 ? 32767 : static_cast<SHORT>(-Value);
 	}
+}
+
+bool SuppressVRMousePitch(UWindowsViewport* Viewport)
+{
+	if (!Viewport || !Viewport->RenDev || !Viewport->Input || !Viewport->Actor ||
+		GIsEditor || Viewport->Actor->bShowMenu || Viewport->Actor->bBehindView || Viewport->Actor->ViewTarget)
+		return false;
+	FLOAT Speed;
+	const TCHAR* Binding = *Viewport->Input->Bindings[IK_MouseY];
+	if (!ReadAxisSpeed(Binding, TEXT("aMouseY"), Speed) && !ReadAxisSpeed(Binding, TEXT("aLookUp"), Speed))
+		return false;
+	FStringOutputDevice Active;
+	return Viewport->RenDev->Exec(TEXT("D3D12 VRSTATSACTIVE"), Active) && Active == TEXT("1");
 }
 
 FXInputController::FXInputController()
@@ -450,9 +467,12 @@ UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client
 	FLOAT MoveX = Client->ScaleXYZ * LeftX * std::fabs(LeftX) * StickFrameScale;
 	FLOAT MoveY = Client->ScaleXYZ * LeftY * std::fabs(LeftY) * StickFrameScale;
 	FLOAT YawRadians, StrafeSpeed, ForwardSpeed, LookSpeed;
-	if (ReadMovementYaw(Viewport, YawRadians))
+	bool RotateGroundMovement = false;
+	if (ReadMovementYaw(Viewport, YawRadians, RotateGroundMovement))
 	{
-		if (ReadAxisSpeed(*Viewport->Input->Bindings[IK_JoyX], TEXT("aStrafe"), StrafeSpeed) &&
+		// Swimming/flying already compose the full gaze in PlayerMove. Only
+		// walking/falling need this horizontal input rotation; never apply both.
+		if (RotateGroundMovement && ReadAxisSpeed(*Viewport->Input->Bindings[IK_JoyX], TEXT("aStrafe"), StrafeSpeed) &&
 			ReadAxisSpeed(*Viewport->Input->Bindings[IK_JoyY], TEXT("aBaseY"), ForwardSpeed))
 		{
 			MoveX *= StrafeSpeed;

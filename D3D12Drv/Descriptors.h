@@ -4,6 +4,10 @@
 
 #pragma once
 
+// Profile + two active eyes + two replacement eyes, bloom/UI targets and
+// both generations of runtime swapchains must coexist during live switching.
+inline constexpr int RenderTargetDescriptorCapacity = 256;
+
 class DescriptorSet;
 
 class DescriptorHeap

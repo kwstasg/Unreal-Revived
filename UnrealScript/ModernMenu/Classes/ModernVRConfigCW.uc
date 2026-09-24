@@ -6,6 +6,17 @@ class ModernVRConfigCW extends UWindowDialogClientWindow;
 
 var UMenuLabelControl VRHeading;
 var UWindowComboControl AimMethodCombo;
+var UWindowComboControl RenderQualityCombo;
+var localized string RenderQualityText;
+var localized string RenderQualityHelp;
+var localized string CurrentProfileText;
+var localized string PerformanceQualityText;
+var localized string BalancedQualityText;
+var localized string HighQualityText;
+var localized string UltraQualityText;
+var localized string ExtremeQualityText;
+var localized string QualityRestartText;
+var localized string QualityFallbackText;
 var UWindowHSliderControl HUDDistanceSlider;
 var UWindowHSliderControl HUDScaleSlider;
 var UWindowHSliderControl PlayerHeightSlider;
@@ -16,6 +27,11 @@ var ModernResetButton HUDDistanceResetButton;
 var ModernResetButton HUDScaleResetButton;
 var UWindowSmallButton RecenterButton;
 var UMenuLabelControl StatusLabel;
+var UMenuLabelControl LeftEyeSizeLabel;
+var UMenuLabelControl RightEyeSizeLabel;
+var localized string LeftEyeSizeText;
+var localized string RightEyeSizeText;
+var localized string EyeSizeHelp;
 var bool bInitialized;
 
 var localized string VRHeadingText;
@@ -56,6 +72,19 @@ function Created()
 	AimMethodCombo.AddItem(GazeAimText);
 	AimMethodCombo.AddItem(MotionAimText);
 	AimMethodCombo.EditBoxWidth = 150;
+
+	RenderQualityCombo = UWindowComboControl(CreateControl(class'UWindowComboControl', 20, 75, 300, 1));
+	RenderQualityCombo.SetText(RenderQualityText);
+	RenderQualityCombo.SetHelpText(RenderQualityHelp);
+	RenderQualityCombo.SetFont(F_Normal);
+	RenderQualityCombo.SetEditable(False);
+	RenderQualityCombo.AddItem(CurrentProfileText, "0");
+	RenderQualityCombo.AddItem(PerformanceQualityText, "1");
+	RenderQualityCombo.AddItem(BalancedQualityText, "2");
+	RenderQualityCombo.AddItem(HighQualityText, "3");
+	RenderQualityCombo.AddItem(UltraQualityText, "4");
+	RenderQualityCombo.AddItem(ExtremeQualityText, "5");
+	RenderQualityCombo.EditBoxWidth = 175;
 
 	HUDDistanceSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 45, 300, 1));
 	HUDDistanceSlider.SetRange(50, 500, 5);
@@ -101,26 +130,34 @@ function Created()
 
 	StatusLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 205, 340, 1));
 	StatusLabel.SetFont(F_Normal);
-	HUDDistanceSlider.WinTop += 30;
-	HUDScaleSlider.WinTop += 30;
-	PlayerHeightSlider.WinTop += 30;
-	WorldSizeSlider.WinTop += 30;
-	HUDDistanceResetButton.WinTop += 30;
-	HUDScaleResetButton.WinTop += 30;
-	PlayerHeightResetButton.WinTop += 30;
-	WorldSizeResetButton.WinTop += 30;
-	RecenterButton.WinTop += 30;
-	StatusLabel.WinTop += 30;
+	HUDDistanceSlider.WinTop += 60;
+	HUDScaleSlider.WinTop += 60;
+	PlayerHeightSlider.WinTop += 60;
+	WorldSizeSlider.WinTop += 60;
+	HUDDistanceResetButton.WinTop += 60;
+	HUDScaleResetButton.WinTop += 60;
+	PlayerHeightResetButton.WinTop += 60;
+	WorldSizeResetButton.WinTop += 60;
+	RecenterButton.WinTop += 60;
+	StatusLabel.WinTop += 60;
+	LeftEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 290, 340, 1));
+	LeftEyeSizeLabel.SetFont(F_Normal);
+	LeftEyeSizeLabel.SetHelpText(EyeSizeHelp);
+	RightEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 310, 340, 1));
+	RightEyeSizeLabel.SetFont(F_Normal);
+	RightEyeSizeLabel.SetHelpText(EyeSizeHelp);
 
 	RemoveFromTabOrder(VRHeading);
 	RemoveFromTabOrder(StatusLabel);
+	RemoveFromTabOrder(LeftEyeSizeLabel);
+	RemoveFromTabOrder(RightEyeSizeLabel);
 	RemoveFromTabOrder(HUDDistanceResetButton);
 	RemoveFromTabOrder(HUDScaleResetButton);
 	RemoveFromTabOrder(PlayerHeightResetButton);
 	RemoveFromTabOrder(WorldSizeResetButton);
 	LoadSettings();
 	bInitialized = True;
-	DesiredHeight = 270;
+	DesiredHeight = 340;
 }
 
 function ModernResetButton CreateSliderResetButton(UWindowHSliderControl Slider)
@@ -196,12 +233,17 @@ function LoadSettings()
 	local float Scale;
 	local float HeightOffset;
 	local float WorldScale;
+	local int Quality;
 	local bool bWasInitialized;
 
 	bWasInitialized = bInitialized;
 	bInitialized = False;
 	AimMethodCombo.SetSelectedIndex(Clamp(int(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRAimMode")), 0, 1));
+	Quality = int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice VRRenderQuality"));
+	if (Quality < 0 || Quality > 5)
+		Quality = 0;
+	RenderQualityCombo.SetSelectedIndex(Quality);
 
 	Distance = float(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRHUDDistance"));
@@ -254,6 +296,7 @@ function BeforePaint(Canvas C, float X, float Y)
 	local bool bD3D12;
 	local bool bVR;
 	local float ControlWidth;
+	local string QualityStatus;
 
 	Super.BeforePaint(C, X, Y);
 	bD3D12 = IsD3D12Active();
@@ -261,6 +304,7 @@ function BeforePaint(Canvas C, float X, float Y)
 	ControlWidth = FMax(220, WinWidth - 40);
 	VRHeading.SetSize(ControlWidth, 1);
 	AimMethodCombo.SetSize(ControlWidth, 1);
+	RenderQualityCombo.SetSize(ControlWidth, 1);
 	HUDDistanceSlider.SetSize(ControlWidth - 16, 1);
 	HUDScaleSlider.SetSize(ControlWidth - 16, 1);
 	PlayerHeightSlider.SetSize(ControlWidth - 16, 1);
@@ -275,9 +319,14 @@ function BeforePaint(Canvas C, float X, float Y)
 		+ HUDScaleSlider.WinWidth + 2;
 	RecenterButton.AutoWidth(C);
 	StatusLabel.SetSize(ControlWidth, 1);
+	LeftEyeSizeLabel.SetSize(ControlWidth, 1);
+	RightEyeSizeLabel.SetSize(ControlWidth, 1);
+	LeftEyeSizeLabel.SetText("");
+	RightEyeSizeLabel.SetText("");
 
 	HUDDistanceSlider.bDisabled = !bD3D12;
 	AimMethodCombo.bDisabled = !bD3D12;
+	RenderQualityCombo.SetDisabled(!bD3D12);
 	HUDScaleSlider.bDisabled = !bD3D12;
 	HUDDistanceResetButton.bDisabled = !bD3D12;
 	HUDScaleResetButton.bDisabled = !bD3D12;
@@ -299,6 +348,22 @@ function BeforePaint(Canvas C, float X, float Y)
 		StatusLabel.SetText(ActiveStatusText);
 	else
 		StatusLabel.SetText(InactiveStatusText);
+	if (bD3D12)
+	{
+		QualityStatus = GetPlayerOwner().ConsoleCommand("D3D12 VRRENDERSIZE 0");
+		if (QualityStatus != "")
+			LeftEyeSizeLabel.SetText(LeftEyeSizeText $ QualityStatus);
+		QualityStatus = GetPlayerOwner().ConsoleCommand("D3D12 VRRENDERSIZE 1");
+		if (QualityStatus != "")
+			RightEyeSizeLabel.SetText(RightEyeSizeText $ QualityStatus);
+		QualityStatus = GetPlayerOwner().ConsoleCommand("D3D12 VRQUALITYSTATUS");
+		if (QualityStatus == "fallback")
+			StatusLabel.SetText(QualityFallbackText);
+		else if (QualityStatus == "pending")
+			StatusLabel.SetText(QualityRestartText);
+		else if (QualityStatus == "failed")
+			StatusLabel.SetText("Quality change failed. Previous quality retained.");
+	}
 }
 
 function WindowShown()
@@ -330,6 +395,8 @@ function Notify(UWindowDialogControl C, byte E)
 
 	if (E == DE_Change && C == AimMethodCombo)
 		GetPlayerOwner().ConsoleCommand("D3D12 VRAIMMODE" @ AimMethodCombo.GetSelectedIndex());
+	else if (E == DE_Change && C == RenderQualityCombo)
+		GetPlayerOwner().ConsoleCommand("D3D12 VRRENDERQUALITY" @ RenderQualityCombo.GetValue2());
 	else if (E == DE_Change && C == HUDDistanceSlider)
 	{
 		ApplyDistance();
@@ -381,6 +448,19 @@ function Notify(UWindowDialogControl C, byte E)
 defaultproperties
 {
 	VRHeadingText="Virtual Reality"
+	LeftEyeSizeText="Left eye: "
+	RightEyeSizeText="Right eye: "
+	EyeSizeHelp="Scene resolution -> image sent to the headset, in pixels. Before the first frame, this shows the configured eye size."
+	RenderQualityText="VR Render Quality"
+	RenderQualityHelp="Current profile keeps the original 1280 x 1024 scene resolution. Other modes scale the runtime-recommended eye resolution. Changes apply immediately with a brief pause. The VR layout stays fixed."
+	CurrentProfileText="Current profile (Default)"
+	PerformanceQualityText="Performance - 75%"
+	BalancedQualityText="Balanced - 100%"
+	HighQualityText="Quality - 125%"
+	UltraQualityText="Ultra - 150%"
+	ExtremeQualityText="Epic - 200%"
+	QualityRestartText="Applying render quality..."
+	QualityFallbackText="Using current profile: quality buffers unavailable."
 	AimMethodText="Aiming Method"
 	AimMethodHelp="Touch buttons and sticks work in both aiming modes. Motion aiming uses your weapon hand preference; Center and Hidden use the right hand. Release controls after switching."
 	GazeAimText="Head gaze"
@@ -397,7 +477,7 @@ defaultproperties
 	WorldSizeHelp="100% is normal size. Above 100% makes you feel smaller in a larger world; below 100% makes you feel bigger in a smaller world. Scales viewpoint height, stereo depth and your displayed weapon together."
 	RecenterText="Recenter VR View"
 	RecenterHelp="Level software view tilt, make your current horizontal gaze forward, and recenter the shared HUD/menu panel."
-	ActiveStatusText="OpenXR is active. Changes apply immediately."
+	ActiveStatusText="OpenXR active. Render quality changes apply immediately."
 	InactiveStatusText="Launch with the Unreal Revived VR shortcut to use VR."
 	D3D12RequiredText="VR requires the Direct3D 12 video driver."
 	ResetVRSettingHelp="Reset this VR setting to the Unreal Revived default."

@@ -240,6 +240,45 @@ int main()
 	const auto Partial = Render(0, 0, -1);
 	for (size_t Channel = 0; Channel < 4; Channel++)
 		Check(std::fabs(Partial[Channel] - Visible[Channel] * (127.0f / 255.0f)) < 0.001f, "partial coverage preserves premultiplied color");
+	// Reproduce the VR UI scissor leaking into the production bloom shader.
+	const auto BloomCode = Compile("shaders/BloomCombine.frag", "ps_5_0");
+	ComPtr<ID3D11PixelShader> BloomShader;
+	Check(SUCCEEDED(Device->CreatePixelShader(BloomCode->GetBufferPointer(), BloomCode->GetBufferSize(), nullptr, &BloomShader)), "bloom shader");
+	Context->PSSetShader(BloomShader.Get(), nullptr, 0);
+	Context->PSSetShaderResources(0, 1, UIView.GetAddressOf());
+	RasterDesc.ScissorEnable = TRUE;
+	Check(SUCCEEDED(Device->CreateRasterizerState(&RasterDesc, &Raster)), "bloom scissor rasterizer");
+	Context->RSSetState(Raster.Get());
+	const int Sizes[][2] = {{1280,1024},{1008,1200},{1344,1600},{1680,2000},{2016,2400},{2688,3200}};
+	for (const auto& Size : Sizes)
+	{
+		TextureDesc.Width = Size[0]; TextureDesc.Height = Size[1];
+		TextureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+		ComPtr<ID3D11Texture2D> BloomTarget;
+		ComPtr<ID3D11RenderTargetView> BloomView;
+		Check(SUCCEEDED(Device->CreateTexture2D(&TextureDesc, nullptr, &BloomTarget)), "bloom target");
+		Check(SUCCEEDED(Device->CreateRenderTargetView(BloomTarget.Get(), nullptr, &BloomView)), "bloom RTV");
+		Context->OMSetRenderTargets(1, BloomView.GetAddressOf(), nullptr);
+		Viewport.Width = float(Size[0]); Viewport.Height = float(Size[1]);
+		Context->RSSetViewports(1, &Viewport);
+		for (int Fixed = 0; Fixed < 2; ++Fixed)
+		{
+			const float Clear[] = {0,0,0,0};
+			Context->ClearRenderTargetView(BloomView.Get(), Clear);
+			const D3D11_RECT Rect = {0,0,Fixed ? Size[0] : 1024,Fixed ? Size[1] : 1024};
+			Context->RSSetScissorRects(1, &Rect);
+			Context->Draw(6, 0);
+			const D3D11_BOX Corner = {UINT(Size[0]-1),UINT(Size[1]-1),0,UINT(Size[0]),UINT(Size[1]),1};
+			Context->CopySubresourceRegion(Readback.Get(), 0, 0, 0, 0, BloomTarget.Get(), 0, &Corner);
+			D3D11_MAPPED_SUBRESOURCE Data = {};
+			Check(SUCCEEDED(Context->Map(Readback.Get(), 0, D3D11_MAP_READ, 0, &Data)), "bloom readback");
+			const float Red = *static_cast<const float*>(Data.pData);
+			Context->Unmap(Readback.Get(), 0);
+			Check(std::fabs(Red - (Fixed ? 0.25f : 0.0f)) < 0.001f,
+				"full-resolution bloom reaches the eye edge; inherited UI bounds clip it");
+		}
+	}
 	TestSceneCoverage(Device.Get(), Context.Get());
 	std::cout << "Production VR UI shader occlusion, eye mapping, material coverage and alpha checks passed\n";
 }

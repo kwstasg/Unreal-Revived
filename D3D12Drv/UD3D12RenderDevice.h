@@ -14,6 +14,8 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 #include "OpenXRControllers.h"
+#include "VRFrameStatistics.h"
+#include "VRPitchRecovery.h"
 #include <functional>
 
 struct SceneVertex
@@ -138,6 +140,7 @@ public:
 	void DrawViewportWithOpenXR(FViewportCallback* Original, UBOOL Blit);
 	void InitializeOpenXRFoundation();
 	UBOOL InitializeOpenXRRendering();
+	void ApplyPendingVRQuality();
 	void PollOpenXRSession();
 	UBOOL PrepareOpenXRFrame();
 	UBOOL PresentOpenXREye(uint32_t ViewIndex);
@@ -263,7 +266,7 @@ public:
 		PPI_Count
 	};
 
-	struct
+	struct SceneBufferSet
 	{
 		ComPtr<ID3D12Resource> ColorBuffer;
 		ComPtr<ID3D12Resource> HitBuffer;
@@ -292,6 +295,12 @@ public:
 		int RequestedMultisample = 1;
 		int Multisample = 1;
 	} SceneBuffers;
+	SceneBufferSet VREyeBuffers[2];
+	INT ActiveVRRenderQuality = 0;
+	INT ActiveVREyeBuffer = -1;
+	INT LastVREyeBuffer = -1;
+	bool VRQualityBuffersFailed = false;
+	bool PrepareVRQualityBuffers();
 
 	struct ScenePipelineState
 	{
@@ -383,6 +392,7 @@ public:
 	BITFIELD EnableVR;
 	FLOAT VRHUDDistance;
 	FLOAT VRHUDScale;
+	INT VRRenderQuality;
 	FLOAT VRPlayerHeightOffset;
 	FLOAT VRWorldScale;
 	INT VRAimMode;
@@ -590,6 +600,13 @@ private:
 	UBOOL OpenXRFrameBegun = 0;
 	UBOOL OpenXRSubmitLayer = 0;
 	UBOOL OpenXRFirstFrameLogged = 0;
+	VRFrameStatistics VRStatistics;
+	VRPitchRecovery VRPitch;
+	bool VRPresenceExtension = false;
+	bool VRQualityPending = false;
+	bool VRQualityChangeFailed = false;
+	bool VRShouldRender = false;
+	DXGI_FORMAT VREyeFormat = DXGI_FORMAT_UNKNOWN;
 	UBOOL OpenXRStereoRenderingLogged = 0;
 	UBOOL OpenXRFovLogged = 0;
 	INT OpenXRStereoDrawEye = -1;

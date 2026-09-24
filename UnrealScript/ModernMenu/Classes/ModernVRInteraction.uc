@@ -10,6 +10,7 @@ class ModernVRInteraction extends PlayerInteraction;
 
 // Updated by each eye's calculated view and shared with its weapon overlay.
 var float BodyHeightOffset;
+var transient bool bBasePitchInitialized;
 
 // Calculated before eye separation. Owned by this player's interaction, never
 // by a class default that could retain a destroyed pawn across map travel.
@@ -19,6 +20,7 @@ var rotator CrosshairAim;
 
 event NotifyLevelChange()
 {
+	bBasePitchInitialized = False;
 	bHasCrosshairRay = False;
 }
 
@@ -338,6 +340,12 @@ event bool PlayerCalcView(out actor ViewActor, out vector CameraLocation, out ro
 	BodyHeightOffset = 0;
 	if (PlayerOwner == None || !ReadHeadPose(HeadRotation, EyeOffset, HeadOffset, HeightOffset, BodyScale))
 		return False;
+	if (!bBasePitchInitialized && !PlayerOwner.bBehindView && PlayerOwner.ViewTarget == None
+		&& PlayerOwner.ConsoleCommand("D3D12 VRSTATSACTIVE") == "1")
+	{
+		class'ModernVRAimSupport'.static.LevelBasePitch(PlayerOwner);
+		bBasePitchInitialized = True;
+	}
 
 	// Re-enter the real player implementation with this highest-priority hook
 	// disabled, preserving subclass/state flybys and view-target cameras.

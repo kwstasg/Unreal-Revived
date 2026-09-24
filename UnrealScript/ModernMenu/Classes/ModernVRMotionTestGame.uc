@@ -109,8 +109,64 @@ function RunTests()
 	TestIndependentSizes(SavedSettings);
 	BenchmarkProfileLookup();
 	BenchmarkFunctionResolution();
+	TestFreeMovement();
 	class'ModernVRWeaponTuning'.default.Settings = SavedSettings;
 	Log("VRMOTION regression failures: " $ Failures);
+}
+
+function TestFreeMovement()
+{
+	local ModernVRMovementTestHook MoveHook;
+	local int StateIndex, Direction;
+	local name MoveState;
+	local vector Expected;
+	local rotator SavedView;
+	MoveHook = new class'ModernVRMovementTestHook';
+	Check(MoveHook.InstallHooks(TestPlayer), "movement hooks installed");
+	MoveHook.bPoseActive = True;
+	SavedView = TestPlayer.ViewRotation;
+	TestPlayer.ViewRotation = rot(12000,16384,4000);
+	TestPlayer.aLookUp = 100;
+	TestPlayer.aMouseY = 50;
+	class'ModernVRAimSupport'.static.LevelBasePitch(TestPlayer);
+	Check(TestPlayer.ViewRotation == rot(0,16384,0), "VR pitch recovery levels mouse-play saves and preserves yaw");
+	Check(TestPlayer.aLookUp == 0 && TestPlayer.aMouseY == 0, "pitch recovery clears pending vertical input");
+	for (StateIndex = 0; StateIndex < 3; StateIndex++)
+	{
+		if (StateIndex == 0) MoveState = 'PlayerSwimming';
+		else if (StateIndex == 1) MoveState = 'PlayerFlying';
+		else MoveState = 'CheatFlying';
+		for (Direction = 0; Direction < 4; Direction++)
+		{
+			TestPlayer.GotoState(MoveState);
+			TestPlayer.ViewRotation = rot(0,0,0);
+			TestPlayer.aForward = 100;
+			TestPlayer.aStrafe = 0;
+			TestPlayer.aUp = 0;
+			TestPlayer.aTurn = 0;
+			TestPlayer.aLookup = 0;
+			MoveHook.TestHead = rot(0,16384,0);
+			if (Direction == 1) MoveHook.TestHead.Pitch = 8192;
+			if (Direction == 2) MoveHook.TestHead.Pitch = -8192;
+			if (Direction == 3) TestPlayer.aForward = -100;
+			Expected = vector(MoveHook.TestHead);
+			if (Direction == 3) Expected *= -1;
+			TestPlayer.PlayerTick(0);
+			Log("VRMOVE state=" $ TestPlayer.GetStateName() $ " acceleration=" $ TestPlayer.Acceleration $ " expected=" $ Expected);
+			Check(VSize(Normal(TestPlayer.Acceleration) - Expected) < 0.01,
+				string(MoveState) $ " follows gaze, direction " $ Direction);
+			Check(TestPlayer.ViewRotation == rot(0,0,0), "movement preserves base view rotation");
+		}
+	}
+	MoveHook.bPoseActive = False;
+	TestPlayer.GotoState('PlayerFlying');
+	TestPlayer.aForward = 100;
+	TestPlayer.aStrafe = 0;
+	TestPlayer.aUp = 0;
+	TestPlayer.PlayerTick(0);
+	Check(Normal(TestPlayer.Acceleration) Dot vect(1,0,0) > 0.99, "inactive VR keeps stock flying direction");
+	TestPlayer.GotoState('PlayerWalking');
+	TestPlayer.ViewRotation = SavedView;
 }
 
 function TestGazeHandedOffsets()

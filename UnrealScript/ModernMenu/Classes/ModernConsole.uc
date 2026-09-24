@@ -195,6 +195,8 @@ function SetFPSStatistics(bool bEnabled)
 	StatisticsFPS = 0;
 	StatisticsLowFPS = 0;
 	StatisticsHighFPS = 0;
+	if (Viewport.Actor != None)
+		Viewport.Actor.ConsoleCommand("D3D12 VRFPSRESET");
 	UpdateVSyncStatistics();
 }
 
@@ -265,7 +267,7 @@ function BindVRWeaponHooks(PlayerPawn Player)
 	if (VRAimHook == None)
 		VRAimHook = new(None) class'ModernVRAimHook';
 	if (!VRAimHook.bHasHooks)
-		VRAimHook.InstallHooks();
+		VRAimHook.InstallHooks(Player);
 	if (VRMotionHook == None)
 		VRMotionHook = new(None) class'ModernVRMotionHook';
 	VRMotionHook.EnsureHooks(Player);
@@ -534,6 +536,8 @@ function string FormatFPS(float Value)
 
 function DrawFPSStatistics(Canvas C)
 {
+	local string VREyeSize;
+	local bool bVRStatsActive;
 	local float AverageFPS;
 	local float LabelWidth;
 	local float LineHeight;
@@ -566,12 +570,33 @@ function DrawFPSStatistics(Canvas C)
 	// area.  This console is shared by every map and language, and scaling the
 	// offset with HudScaler keeps the separation consistent with the messages.
 	C.SetPos(16, FPSStatisticsStartY * class'HUD'.Default.HudScaler);
+	VREyeSize = Viewport.Actor.ConsoleCommand("D3D12 VRRENDERSIZE 0");
+	bVRStatsActive = VREyeSize != "" && Viewport.Actor.ConsoleCommand("D3D12 VRSTATSACTIVE") == "1";
+	if (bVRStatsActive)
+	{
+		DrawFPSLine(C, "FPS:", float(Viewport.Actor.ConsoleCommand("D3D12 VRFPS 0")), LabelWidth, LineHeight);
+		DrawFPSLine(C, "AVG:", float(Viewport.Actor.ConsoleCommand("D3D12 VRFPS 1")), LabelWidth, LineHeight);
+		DrawFPSLine(C, "Low:", float(Viewport.Actor.ConsoleCommand("D3D12 VRFPS 2")), LabelWidth, LineHeight);
+		DrawFPSLine(C, "High:", float(Viewport.Actor.ConsoleCommand("D3D12 VRFPS 3")), LabelWidth, LineHeight);
+	}
+	else
+	{
 	DrawFPSLine(C, "FPS:", StatisticsFPS, LabelWidth, LineHeight);
 	DrawFPSLine(C, "AVG:", AverageFPS, LabelWidth, LineHeight);
 	DrawFPSLine(C, "Low:", StatisticsLowFPS, LabelWidth, LineHeight);
 	DrawFPSLine(C, "High:", StatisticsHighFPS, LabelWidth, LineHeight);
-	DrawTextLine(C, "Res:", string(C.SizeX) @ "x" @ string(C.SizeY), LabelWidth, LineHeight);
-	DrawTextLine(C, "VSync:", StatisticsVSync, LabelWidth, LineHeight);
+	}
+	if (bVRStatsActive)
+	{
+		DrawTextLine(C, "Res:", Left(VREyeSize, InStr(VREyeSize, " -> ")), LabelWidth, LineHeight);
+		// Active headset frames are synchronized by OpenXR's frame loop.
+		DrawTextLine(C, "VSync:", "On", LabelWidth, LineHeight);
+	}
+	else
+	{
+		DrawTextLine(C, "Res:", string(C.SizeX) @ "x" @ string(C.SizeY), LabelWidth, LineHeight);
+		DrawTextLine(C, "VSync:", StatisticsVSync, LabelWidth, LineHeight);
+	}
 	C.Font = SavedFont;
 	C.FontScale = SavedFontScale;
 	C.Style = SavedStyle;
