@@ -12,6 +12,19 @@ under `local/logs/`.
 
 ## 2026-09-24
 
+- At the owner's request, removed optional HUD/Menu Sharpness and restored its
+  original texture and menu layout. Removed the Epic migration and installer
+  profile-preservation branches; fresh installs seed defaults and retain saves.
+  Added shared production pose-math coverage for rotated/canted eyes, coordinate
+  conversion and quaternion equivalence without changing projection policy.
+  Renderer/menu builds, nine native tests and in-game preferences passed.
+  Profile-reset regression passed against the real installer writer in a new
+  disposable directory, verifying all four profiles and unchanged saved data.
+  Evidence: `VideoPreferences-20260924-142014.log` and
+  `local/profile-reset-test-9bb25248e9ac49908a93e71a86840a15`.
+  Other-headset hardware validation and the separate focus-loss stutter issue
+  remain open; no new packaged installer or full lifecycle run is claimed.
+
 - Saved the owner-accepted VR implementation as rollback commit `df6921c`.
   Removed Epic (saved value migrates to Ultra), fixed familiar/custom aspect
   labels, and added live opt-in HUD/Menu Sharpness with the original default.

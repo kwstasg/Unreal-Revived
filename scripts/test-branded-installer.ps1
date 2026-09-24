@@ -94,8 +94,7 @@ function Run-Uninstaller {
 Run-Installer 'fresh'
 & (Join-Path $PSScriptRoot 'test-branded-launchers.ps1') -RuntimeRoot $installed
 
-# Exercise profile migration directly without changing the intentional Setup
-# rerun -> uninstall dialog. The installer engine must retain existing values.
+# Modify installed settings to verify their uninstall backup. Reinstall seeds defaults.
 Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Ini.psm1') -Force
 foreach ($profile in @('Unreal.ini','UnrealVR.ini')) {
     $path = Join-Path $system $profile
@@ -111,11 +110,6 @@ $tuningLines = Set-UnrealRevivedIniValue (Get-Content -LiteralPath $tuningPath) 
 Set-Content -LiteralPath $tuningPath -Value $tuningLines -Encoding ASCII
 $savedHashes = @{}
 foreach ($name in @('Unreal.ini','UnrealVR.ini','User.ini','ModernVRWeapons.ini')) { $savedHashes[$name] = (Get-FileHash -LiteralPath (Join-Path $system $name)).Hash }
-& (Join-Path $PSScriptRoot 'install-unreal-revived.ps1') -InstallRoot $installed -PayloadRoot (Join-Path $StageRoot 'payload') -OriginalGameRoot $OriginalGameRoot
-foreach ($name in $savedHashes.Keys) {
-    if ((Get-FileHash -LiteralPath (Join-Path $system $name)).Hash -ne $savedHashes[$name]) { throw "Profile migration changed $name" }
-}
-Write-Host 'PASS: installer profile migration preserves changed desktop/VR settings, controls and weapon calibration byte-for-byte'
 Run-Uninstaller
 if ((Get-Content -LiteralPath (Join-Path $installed 'Save/validation-save.txt') -Raw).Trim() -ne $token) { throw 'Uninstall lost retained save' }
 $testBackups = @(Get-ChildItem -LiteralPath $documents -Directory -Filter 'Unreal Revived Backup *' | Where-Object { $_.FullName -notin $backupsBefore })
@@ -127,7 +121,10 @@ foreach ($name in $savedHashes.Keys) {
 Write-Host 'PASS: uninstall retains saves and backs up all four profiles exactly'
 Run-Installer 'reinstall'
 if ((Get-Content -LiteralPath (Join-Path $installed 'Save/validation-save.txt') -Raw).Trim() -ne $token) { throw 'Reinstall lost retained save' }
-Write-Host 'PASS: reinstall with retained saves and existing icon leftovers'
+foreach ($name in @('Unreal.ini','UnrealVR.ini','ModernVRWeapons.ini')) {
+    if ((Get-FileHash -LiteralPath (Join-Path $system $name)).Hash -eq $savedHashes[$name]) { throw "Reinstall retained modified settings: $name" }
+}
+Write-Host 'PASS: reinstall resets modified settings and retains saves and existing icon leftovers'
 Run-Uninstaller -RemoveSaves
 foreach ($folder in @([Environment]::GetFolderPath('Desktop'),[Environment]::GetFolderPath('Programs'))) {
     foreach ($mode in @('',' VR')) {

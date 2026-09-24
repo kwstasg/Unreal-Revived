@@ -9,7 +9,7 @@ implementation before optional HUD sharpness and the removal of Epic.
 These are development changes, not a published release.
 
 Defaults remain Current profile (`VRRenderQuality=0`) and the original 1024-square
-UI texture (`VRHUDQuality=0`). VR logical layout stays locked to 1280 x 1024,
+UI texture. VR logical layout stays locked to 1280 x 1024,
 as requested after larger logical resolutions caused distortion. Distance,
 scale, panel anchor, tracking, projection, aiming and anti-aliasing defaults
 are unchanged. Desktop and VR launchers retain separate profiles.
@@ -41,8 +41,8 @@ Preferences -> VR -> VR Render Quality:
 | Quality - 125% | 3 | 125% of recommended width and height | Same as scene |
 | Ultra - 150% | 4 | 150% of recommended width and height | Same as scene |
 
-Epic 200% is removed. Its saved value 5 migrates to Ultra, preserving the other
-settings. Ultra costs 2.25 times Balanced's pixels. Runtime supersampling may
+Epic 200% is removed. Unsupported quality values use the default; no retired-
+setting migration is retained. Ultra costs 2.25 times Balanced's pixels. Runtime supersampling may
 already be included in the recommendation; percentages do not set refresh rate.
 For the tested CV1 recommendation of 1344x1600, optional outputs are 1008x1200,
 1344x1600, 1680x2000 and 2016x2400. Recommendations may change with runtime settings.
@@ -53,21 +53,13 @@ Failed live allocations keep the previous resources and display a failure.
 Optional startup allocation failure retries the default path. Default allocation
 or device failure is not recoverable through this fallback.
 
-### Optional HUD/Menu Sharpness
+### HUD/menu texture
 
-| Setting | Saved value | UI output texture per eye |
-| --- | --- | --- |
-| Default | 0 | 1024x1024, original behavior |
-| High | 1 | 1536x1536 |
-| Ultra | 2 | 2048x2048 |
-
-This independently enlarges the compositor UI texture, clamped to runtime and
-D3D12 limits. Changes apply live, retain the prior texture on allocation failure,
-and preserve both eye slices, physical panel size, distance, anchor and logical
-layout. It retains more detail from higher-resolution UI rendering; it cannot
-add detail absent from the source or replace low-resolution game textures.
-World quality still determines the source raster resolution. Default is unchanged.
-The new optional settings need the owner's CV1 visual comparison before acceptance.
+The optional sharpness feature was removed at the owner's request. HUD and menu
+rendering retain the original fixed 1024x1024 texture, layout, size and anchor.
+There is no HUD quality setting or pending visual-acceptance task for that feature.
+Installation seeds fresh settings; uninstall/reinstall retains saves without
+migrating settings. Development rebuilds still preserve the local testing profiles.
 
 ### F11
 
@@ -165,25 +157,26 @@ powershell -NoProfile -File scripts/check-repository.ps1
 Build the development menu and deploy the fresh renderer to `local/game` before
 gameplay tests; preserve player INIs when running the menu build script.
 Fixtures use disposable INIs. The live quality test requires an available
-OpenXR runtime and checks 75% -> 150% -> default plus High -> Ultra -> default HUD
+OpenXR runtime and checks 75% -> 150% -> default
 switches in one process. Initialization alone does not establish optical quality.
 
 Native tests cover unequal runtime sizes, all presets, small through high-resolution
-recommendations, uniform limits/overflow, logical viewport mapping, HUD size limits,
+recommendations, uniform limits/overflow, logical viewport mapping,
 allocation failures and rollback. WARP tests exercise descriptor capacity through
 200 replacements, asymmetric UI-mask lookup, weapon occlusion and bloom scissor
 coverage, including an oversized stress case beyond the remaining presets.
-Preferences tests exercise labels, saved settings, Epic migration and desktop
-resolution selection/confirmation/revert. Pitch, locomotion and panel tests retain
+Preferences tests exercise labels, saved settings and desktop
+resolution selection/confirmation/revert. Shared production quaternion/vector helpers now also test independent rotated
+eye orientations, cant, coordinate conversion, orthonormality and equivalent
+quaternion signs. This validates the math, not runtime head-center semantics.
+Pitch, locomotion and panel tests retain
 the previously accepted baseline. Synthetic tests do not certify any headset model.
 
-For the new HUD option, compare small text in menus and gameplay at a fixed world
-quality, then return to Default. Confirm unchanged panel bounds, pointer alignment,
-weapon cutouts and recentering in both eyes. Repeat after map travel and remount.
-Other headset owners should additionally compare stereo geometry, nearby objects,
+Other headset owners should compare stereo geometry, nearby objects, panel bounds,
 wide-FOV edge visibility, head rotation/translation, runtime timing and fallback.
 Record headset/runtime version, refresh rate, runtime resolution and actual eye sizes.
 
-Remaining: CV1 visual acceptance of the new optional UI sharpness, hardware reports
-for other headsets (especially canted/wide-FOV devices), and the separately deferred
-focus-loss stutter issue. No cross-headset optical guarantee is claimed.
+Remaining: hardware reports for other headsets (especially canted/wide-FOV devices)
+and the separately deferred focus-loss stutter issue. The planned code/settings work,
+automated rotated-eye coverage, documentation and Git checkpoints are complete.
+No cross-headset optical guarantee is claimed.

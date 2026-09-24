@@ -828,10 +828,22 @@ A useful test record includes:
 - checks performed and their outcomes;
 - relevant log or screenshot paths under ignored `local/` storage.
 
-## VR resolution and HUD sharpness
+## VR resolution and compatibility
 
 Follow [the quality regression and hardware checklist](vr-render-quality.md#validation-and-remaining-acceptance).
-Default UI sharpness must retain the accepted panel; High/Ultra change its output
-texture live. Automated tests cover sizing/limits, rollback descriptor capacity,
-aspect labels, Epic migration and independent saved preferences. Hardware
-acceptance remains distinct from mock runtime and WARP validation.
+HUD/menu texture remains the original fixed size; the optional sharpness feature
+was withdrawn. Automated tests cover sizing/limits, rollback descriptor capacity,
+aspect labels and the shared production rotated-eye math. Hardware acceptance
+remains distinct from mock runtime and WARP validation.
+
+For fresh installer profile generation without launching Setup or touching registry:
+
+```powershell
+powershell -NoProfile -File scripts/test-installer-profile-reset.ps1 -StageRoot local/package/offline-installer-music-navigation
+```
+
+Use an available staged payload/patch directory. This creates a new directory under
+`local`, runs the real profile writer, adds old settings and verifies all four
+profiles return to the fresh defaults while a save sentinel remains unchanged.
+The full branded-installer lifecycle separately checks actual uninstall/reinstall
+and backup behavior; profile migration is no longer part of that contract.

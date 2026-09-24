@@ -88,18 +88,9 @@ event Timer()
 	Video.ContrastSlider.SetValue(100);
 	VRSettings = ModernVRConfigCW(C.Root.CreateWindow(class'ModernVRConfigCW', 20, 20, 400, 320));
 	Check(VRSettings.RenderQualityCombo.GetValue2() == "0", "VR defaults to current profile");
-	Check(VRSettings.HUDQualityCombo.GetValue2() == "0", "HUD sharpness keeps original default");
-	VRSettings.HUDQualityCombo.SetSelectedIndex(2);
-	VRSettings.LoadSettings();
-	Check(VRSettings.HUDQualityCombo.GetValue2() == "2", "HUD sharpness preference persists");
-	Check(VRSettings.RenderQualityCombo.GetValue2() == "0", "HUD sharpness independent of world quality");
-	VRSettings.HUDQualityCombo.SetSelectedIndex(0);
 	VRSettings.RenderQualityCombo.SetSelectedIndex(4);
 	VRSettings.LoadSettings();
 	Check(VRSettings.RenderQualityCombo.GetValue2() == "4", "VR quality preference persists");
-	TestPlayer.ConsoleCommand("D3D12 VRRENDERQUALITY 5");
-	VRSettings.LoadSettings();
-	Check(VRSettings.RenderQualityCombo.GetValue2() == "4", "retired Epic migrates to Ultra");
 	Check(TestPlayer.ConsoleCommand("D3D12 VRSTATSACTIVE") == "0", "desktop uses desktop FPS counters");
 	Check(TestPlayer.ConsoleCommand("GetCurrentRes") == OriginalResolution, "VR preset leaves desktop resolution unchanged");
 	VRSettings.RenderQualityCombo.SetSelectedIndex(0);

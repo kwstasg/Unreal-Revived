@@ -7,8 +7,10 @@ history.
 ## Current VR quality development checkpoint
 
 Commit `df6921c` preserves the owner-accepted CV1 baseline. The follow-up removes
-Epic, improves aspect labels and adds opt-in live HUD/Menu Sharpness while retaining
-defaults. See [current settings and validation limits](vr-render-quality.md). Other
+Epic and improves aspect labels. Optional HUD/Menu Sharpness was subsequently
+removed at the owner's request; the original fixed UI texture is restored.
+Retired-setting and installer profile migrations are removed: installs seed fresh
+settings while saves remain retained. Rotated-eye math now has automated coverage. See [current settings and validation limits](vr-render-quality.md). Other
 headsets remain hardware-unverified; focus-loss stutter is still deferred.
 
 ## Read first

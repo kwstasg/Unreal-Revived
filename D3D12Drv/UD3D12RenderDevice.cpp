@@ -61,37 +61,7 @@ private:
 	FViewportCallback* Original;
 };
 
-static XrQuaternionf MultiplyOpenXRQuaternions(const XrQuaternionf& A, const XrQuaternionf& B)
-{
-	return {
-		A.w * B.x + A.x * B.w + A.y * B.z - A.z * B.y,
-		A.w * B.y - A.x * B.z + A.y * B.w + A.z * B.x,
-		A.w * B.z + A.x * B.y - A.y * B.x + A.z * B.w,
-		A.w * B.w - A.x * B.x - A.y * B.y - A.z * B.z
-	};
-}
-
-static XrQuaternionf NormalizeOpenXRQuaternion(const XrQuaternionf& Q)
-{
-	const FLOAT Length = appSqrt(Q.x * Q.x + Q.y * Q.y + Q.z * Q.z + Q.w * Q.w);
-	if (Length <= 0.00001f)
-		return { 0.0f, 0.0f, 0.0f, 1.0f };
-	const FLOAT InverseLength = 1.0f / Length;
-	return { Q.x * InverseLength, Q.y * InverseLength, Q.z * InverseLength, Q.w * InverseLength };
-}
-
-static FVector RotateOpenXRVector(const XrQuaternionf& Q, const FVector& Vector)
-{
-	const FVector QuaternionVector(Q.x, Q.y, Q.z);
-	const FVector TwiceCross = (QuaternionVector ^ Vector) * 2.0f;
-	return Vector + TwiceCross * Q.w + (QuaternionVector ^ TwiceCross);
-}
-
-static FVector OpenXRVectorToUnreal(const FVector& Vector)
-{
-	// OpenXR is +X right, +Y up, -Z forward. UE1 is +X forward, +Y right, +Z up.
-	return FVector(-Vector.Z, Vector.X, Vector.Y);
-}
+#include "OpenXRPoseMath.h"
 
 static FRotator RelativeOpenXRRotation(const XrQuaternionf& BaseOrientation,
 	const XrQuaternionf& Orientation)
@@ -125,7 +95,6 @@ void UD3D12RenderDevice::DrawViewportWithOpenXR(FViewportCallback* Original, UBO
 
 	PollOpenXRSession();
 	ApplyPendingVRQuality();
-	ApplyPendingVRHUDQuality();
 	const UBOOL OpenXRFramePending = Player && OpenXRSessionRunning && PrepareOpenXRFrame();
 	if (!OpenXRFramePending || !OpenXRViewsValid || !OpenXRHeadPoseValid || !OpenXRBaseOrientationValid)
 	{
@@ -215,8 +184,7 @@ void UD3D12RenderDevice::StaticConstructor()
 	EnableVR = 0;
 	VRHUDDistance = 1.75f;
 	VRHUDScale = 1.0f;
-	VRRenderQuality = 0;
-	VRHUDQuality = 0; // Preserve the original UI texture unless explicitly changed.
+	VRRenderQuality = 0; // Existing profiles retain their original render resolution.
 	VRPlayerHeightOffset = 0.0f;
 	VRWorldScale = 1.0f;
 	VRAimMode = 0;
@@ -282,7 +250,6 @@ void UD3D12RenderDevice::StaticConstructor()
 	new(GetClass(), TEXT("VRHUDDistance"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDDistance), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRHUDScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDScale), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRRenderQuality"), RF_Public) UIntProperty(CPP_PROPERTY(VRRenderQuality), TEXT("Display"), CPF_Config);
-	new(GetClass(), TEXT("VRHUDQuality"), RF_Public) UIntProperty(CPP_PROPERTY(VRHUDQuality), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRPlayerHeightOffset"), RF_Public) UFloatProperty(CPP_PROPERTY(VRPlayerHeightOffset), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRWorldScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRWorldScale), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRAimMode"), RF_Public) UIntProperty(CPP_PROPERTY(VRAimMode), TEXT("Display"), CPF_Config);
@@ -1229,7 +1196,6 @@ void UD3D12RenderDevice::InitializeOpenXRFoundation()
 			VRPitch.HasPresenceEvents = XR_SUCCEEDED(Result) && Presence.supportsUserPresence;
 			if (XR_SUCCEEDED(Result))
 			{
-				VRMaxUISize = Min<INT>(16384, Min<INT>(Properties.graphicsProperties.maxSwapchainImageWidth, Properties.graphicsProperties.maxSwapchainImageHeight));
 				debugf(TEXT("Unreal Revived OpenXR: headset detected=%ls vendor=%u orientationTracking=%s positionTracking=%s"),
 					appFromAnsi(Properties.systemName), Properties.vendorId,
 					Properties.trackingProperties.orientationTracking ? TEXT("true") : TEXT("false"),
@@ -1386,7 +1352,6 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 		return 0;
 	}
 	OpenXRViews.assign(ViewCount, { XR_TYPE_VIEW });
-	if (VRRenderQuality == 5) { VRRenderQuality = 4; SaveConfig(); }
 	ActiveVRRenderQuality = VRRenderSizing::NormalizeQuality(VRRenderQuality);
 	VRQualityBuffersFailed = false;
 
@@ -1519,12 +1484,45 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 		}
 	}
 
-	ActiveVRHUDQuality = VRRenderSizing::NormalizeHUDQuality(VRHUDQuality);
-	if (!CreateVRUISwapchain(OpenXRUISwapchain, ActiveVRHUDQuality))
+	OpenXRUISwapchain.Width = 1024;
+	OpenXRUISwapchain.Height = 1024;
+	XrSwapchainCreateInfo UISwapchainInfo = { XR_TYPE_SWAPCHAIN_CREATE_INFO };
+	UISwapchainInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+	UISwapchainInfo.format = static_cast<int64_t>(SelectedFormat);
+	UISwapchainInfo.sampleCount = 1;
+	UISwapchainInfo.width = OpenXRUISwapchain.Width;
+	UISwapchainInfo.height = OpenXRUISwapchain.Height;
+	UISwapchainInfo.faceCount = 1;
+	UISwapchainInfo.arraySize = 2;
+	UISwapchainInfo.mipCount = 1;
+	Result = OpenXRFunctions.CreateSwapchain(OpenXRSession, &UISwapchainInfo, &OpenXRUISwapchain.Handle);
+	if (XR_FAILED(Result) || OpenXRUISwapchain.Handle == XR_NULL_HANDLE)
 	{
-		VRHUDQualityFailed = true;
-		ActiveVRHUDQuality = 0;
-		if (!CreateVRUISwapchain(OpenXRUISwapchain, 0)) return 0;
+		debugf(TEXT("Unreal Revived OpenXR: UI swapchain creation failed (result %d)"), Result);
+		return 0;
+	}
+	uint32_t UIImageCount = 0;
+	Result = OpenXRFunctions.EnumerateSwapchainImages(OpenXRUISwapchain.Handle, 0, &UIImageCount, nullptr);
+	if (XR_FAILED(Result) || UIImageCount == 0)
+		return 0;
+	OpenXRUISwapchain.Images.assign(UIImageCount, { XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR });
+	Result = OpenXRFunctions.EnumerateSwapchainImages(OpenXRUISwapchain.Handle, UIImageCount, &UIImageCount,
+		reinterpret_cast<XrSwapchainImageBaseHeader*>(OpenXRUISwapchain.Images.data()));
+	if (XR_FAILED(Result))
+		return 0;
+	OpenXRUISwapchain.RTVs = Heaps.RTV->Alloc(static_cast<INT>(UIImageCount * 2));
+	for (uint32_t ImageIndex = 0; ImageIndex < UIImageCount; ImageIndex++)
+	{
+		D3D12_RENDER_TARGET_VIEW_DESC RTVDesc = {};
+		RTVDesc.Format = SelectedFormat;
+		RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+		RTVDesc.Texture2DArray.ArraySize = 1;
+		for (uint32_t ViewIndex = 0; ViewIndex < 2; ViewIndex++)
+		{
+			RTVDesc.Texture2DArray.FirstArraySlice = ViewIndex;
+			Device->CreateRenderTargetView(OpenXRUISwapchain.Images[ImageIndex].texture, &RTVDesc,
+				OpenXRUISwapchain.RTVs.CPUHandle(static_cast<INT>(ImageIndex * 2 + ViewIndex)));
+		}
 	}
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC> Elements =
@@ -1596,74 +1594,6 @@ UBOOL UD3D12RenderDevice::InitializeOpenXRRendering()
 	debugf(TEXT("Unreal Revived OpenXR: stereo swapchains ready views=%u size=%dx%d format=%d blendMode=%d"),
 		ViewCount, OpenXRSwapchains[0].Width, OpenXRSwapchains[0].Height, (INT)SelectedFormat, (INT)OpenXRBlendMode);
 	return 1;
-}
-
-bool UD3D12RenderDevice::CreateVRUISwapchain(OpenXRViewSwapchain& Target, INT Quality)
-{
-	Target.Width = Target.Height = VRRenderSizing::HUDSize(Quality, VRMaxUISize);
-	XrSwapchainCreateInfo Info = { XR_TYPE_SWAPCHAIN_CREATE_INFO };
-	Info.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
-	Info.format = static_cast<int64_t>(VREyeFormat);
-	Info.sampleCount = Info.faceCount = Info.mipCount = 1;
-	Info.arraySize = 2;
-	Info.width = Target.Width;
-	Info.height = Target.Height;
-	try
-	{
-		if (XR_FAILED(OpenXRFunctions.CreateSwapchain(OpenXRSession, &Info, &Target.Handle)) || Target.Handle == XR_NULL_HANDLE)
-			throw std::runtime_error("UI swapchain creation failed");
-		uint32_t Count = 0;
-		if (XR_FAILED(OpenXRFunctions.EnumerateSwapchainImages(Target.Handle, 0, &Count, nullptr)) || !Count)
-			throw std::runtime_error("UI image count unavailable");
-		Target.Images.assign(Count, { XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR });
-		if (XR_FAILED(OpenXRFunctions.EnumerateSwapchainImages(Target.Handle, Count, &Count,
-			reinterpret_cast<XrSwapchainImageBaseHeader*>(Target.Images.data()))))
-			throw std::runtime_error("UI image enumeration failed");
-		Target.RTVs = Heaps.RTV->Alloc(static_cast<INT>(Count * 2));
-		for (uint32_t Image = 0; Image < Count; ++Image)
-		{
-			D3D12_RENDER_TARGET_VIEW_DESC Desc = {};
-			Desc.Format = VREyeFormat;
-			Desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-			Desc.Texture2DArray.ArraySize = 1;
-			for (uint32_t Eye = 0; Eye < 2; ++Eye)
-			{
-				Desc.Texture2DArray.FirstArraySlice = Eye;
-				Device->CreateRenderTargetView(Target.Images[Image].texture, &Desc, Target.RTVs.CPUHandle(Image * 2 + Eye));
-			}
-		}
-		return true;
-	}
-	catch (const std::exception& Error)
-	{
-		Target.RTVs.reset();
-		if (Target.Handle != XR_NULL_HANDLE) OpenXRFunctions.DestroySwapchain(Target.Handle);
-		Target = {};
-		debugf(TEXT("Unreal Revived OpenXR: HUD quality allocation failed: %s"), to_utf16(Error.what()).c_str());
-		return false;
-	}
-}
-
-void UD3D12RenderDevice::ApplyPendingVRHUDQuality()
-{
-	if (!VRHUDQualityPending || !OpenXRRenderingReady || OpenXRFrameBegun) return;
-	VRHUDQualityPending = false;
-	const INT Quality = VRRenderSizing::NormalizeHUDQuality(VRHUDQuality);
-	if (Quality == ActiveVRHUDQuality) return;
-	OpenXRViewSwapchain Replacement;
-	if (!CreateVRUISwapchain(Replacement, Quality))
-	{
-		VRHUDQualityFailed = true;
-		return;
-	}
-	SubmitCommands(false);
-	WaitDeviceIdle();
-	std::swap(OpenXRUISwapchain, Replacement);
-	Replacement.RTVs.reset();
-	if (Replacement.Handle != XR_NULL_HANDLE) OpenXRFunctions.DestroySwapchain(Replacement.Handle);
-	ActiveVRHUDQuality = Quality;
-	VRHUDQualityFailed = false;
-	debugf(TEXT("Unreal Revived OpenXR: HUD quality=%d texture=%dx%d"), Quality, OpenXRUISwapchain.Width, OpenXRUISwapchain.Height);
 }
 
 void UD3D12RenderDevice::ApplyPendingVRQuality()
@@ -2198,10 +2128,6 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 
 void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
-	VRHUDQualityPending = false;
-	VRHUDQualityFailed = false;
-	ActiveVRHUDQuality = 0;
-	VRMaxUISize = 16384;
 	VRPitch = {};
 	VRPresenceExtension = false;
 	VRQualityPending = false;
@@ -4163,25 +4089,6 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			VRHUDScale = Clamp(appAtof(Cmd), 0.5f, 2.0f);
 			SaveConfig();
 			Ar.Logf(TEXT("%.2f"), VRHUDScale);
-			return 1;
-		}
-		else if (ParseCommand(&Cmd, TEXT("VRHUDQUALITY")))
-		{
-			VRHUDQuality = VRRenderSizing::NormalizeHUDQuality(appAtoi(Cmd));
-			VRHUDQualityPending = true;
-			VRHUDQualityFailed = false;
-			SaveConfig();
-			return 1;
-		}
-		else if (ParseCommand(&Cmd, TEXT("VRHUDSTATUS")))
-		{
-			Ar.Log(VRHUDQualityFailed ? TEXT("failed") : TEXT("ready"));
-			return 1;
-		}
-		else if (ParseCommand(&Cmd, TEXT("VRHUDSIZE")))
-		{
-			if (OpenXRRenderingReady)
-				Ar.Logf(TEXT("%dx%d"), OpenXRUISwapchain.Width, OpenXRUISwapchain.Height);
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("VRRENDERQUALITY")))

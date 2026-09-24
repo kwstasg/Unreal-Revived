@@ -71,8 +71,8 @@ Copy-Item -LiteralPath $inputDll -Destination (Join-Path $system64Directory 'XIn
 Copy-Item -LiteralPath $modernMenu -Destination (Join-Path $system64Directory 'ModernMenu.u') -Force
 $weaponTuningSource = Join-Path $PayloadRoot 'ModernVRWeapons.ini'
 $weaponTuningDestination = Join-Path $system64Directory 'ModernVRWeapons.ini'
-if ((Test-Path -LiteralPath $weaponTuningSource) -and -not (Test-Path -LiteralPath $weaponTuningDestination)) {
-    Copy-Item -LiteralPath $weaponTuningSource -Destination $weaponTuningDestination
+if (Test-Path -LiteralPath $weaponTuningSource) {
+    Copy-Item -LiteralPath $weaponTuningSource -Destination $weaponTuningDestination -Force
 }
 Copy-Item -LiteralPath $oldWeapons -Destination (Join-Path $system64Directory 'OldWeapons.u') -Force
 foreach ($launcher in @('UnrealRevived.exe', 'UnrealRevivedVR.exe')) {
@@ -180,49 +180,18 @@ $defaultIniLines = Set-UnrealRevivedIniValue $defaultIniLines 'XInputWinDrv.Wind
 $defaultIniLines = Set-UnrealRevivedVideoDefaults $defaultIniLines
 Set-Content -LiteralPath $defaultIni -Value $defaultIniLines -Encoding ASCII
 
-if ((Test-Path -LiteralPath $canonicalIni -PathType Leaf) -and (Select-String -LiteralPath $canonicalIni -Pattern '^\[Engine\.Engine\]$' -Quiet)) {
-    $iniLines = Get-Content -LiteralPath $canonicalIni
-    $iniLines = Remove-UnrealRevivedIniValue $iniLines 'URL' 'EntryMap' 'EntryIII.unr'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'URL' 'LocalMap' 'Unreal.unr?Game=ModernMenu.ModernIntro'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'URL' 'AltLocalMap' 'Unreal.unr?Game=ModernMenu.ModernIntro'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'FirstRun' 'FirstRun' '227'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'GameRenderDevice' 'D3D12Drv.D3D12RenderDevice'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'WindowedRenderDevice' 'D3D12Drv.D3D12RenderDevice'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'Console' 'ModernMenu.ModernConsole'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.Engine' 'ViewportManager' 'XInputWinDrv.WindowsClient'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UnrealConsole' 'RootWindow' 'ModernMenu.ModernRootWindow'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'OptionsUMenuDefault' 'ModernMenu.ModernOptionsMenu'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'UMenu.UMenuMenuBar' 'GameUMenuDefault' 'ModernMenu.ModernGameMenu'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'Unreal.ini'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'Engine.GameInfo' 'bUseRealtimeShadow' 'False'
-    $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
-    if (-not ($iniLines -contains '[XInputWinDrv.WindowsClient]')) {
-        $iniLines = Copy-UnrealRevivedIniSection $iniLines 'WinDrv.WindowsClient' 'XInputWinDrv.WindowsClient'
-    }
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'UseJoystick' 'True'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'UseXInput' 'True'
-    $iniLines = Set-UnrealRevivedIniValue $iniLines 'XInputWinDrv.WindowsClient' 'XInputFallbackToWinMM' 'True'
-}
-else {
-    $iniLines = $defaultIniLines
-}
+# Setup uses uninstall/reinstall; seed fresh profiles instead of migrating old settings.
+$iniLines = $defaultIniLines
 Set-Content -LiteralPath $canonicalIni -Value $iniLines -Encoding ASCII
 
 # VR has its own display/renderer profile, but shares controls and saves.
-# Seed it only once so upgrades retain the user's subsequent VR preferences.
 $vrIni = Join-Path $system64Directory 'UnrealVR.ini'
-if (Test-Path -LiteralPath $vrIni -PathType Leaf) {
-    $vrIniLines = Get-Content -LiteralPath $vrIni
-}
-else {
-    $vrIniLines = $iniLines
-    foreach ($clientSection in @('WinDrv.WindowsClient', 'XInputWinDrv.WindowsClient')) {
-        $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'WindowedViewportX' '1280'
-        $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'WindowedViewportY' '1024'
-        $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'StartupFullscreen' 'False'
-        $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'StartupBorderless' 'False'
-    }
+$vrIniLines = $iniLines
+foreach ($clientSection in @('WinDrv.WindowsClient', 'XInputWinDrv.WindowsClient')) {
+    $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'WindowedViewportX' '1280'
+    $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'WindowedViewportY' '1024'
+    $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'StartupFullscreen' 'False'
+    $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines $clientSection 'StartupBorderless' 'False'
 }
 $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartIni' 'UnrealVR.ini'
 $vrIniLines = Set-UnrealRevivedIniValue $vrIniLines 'ModernMenu.ModernOptionsClientWindow' 'RestartUserIni' 'User.ini'
@@ -281,9 +250,7 @@ $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'HudScaler'
 $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.HUD' 'CrosshairScale' '1.500000'
 $userIniLines = Set-UnrealRevivedUserVideoDefaults $userIniLines
 Set-Content -LiteralPath $defaultUserIni -Value $userIniLines -Encoding ASCII
-if (-not (Test-Path -LiteralPath $canonicalUserIni -PathType Leaf)) {
-    Set-Content -LiteralPath $canonicalUserIni -Value $userIniLines -Encoding ASCII
-}
+Set-Content -LiteralPath $canonicalUserIni -Value $userIniLines -Encoding ASCII
 
 $installedModules = @{}
 $hostManifest = Get-Content -LiteralPath $hostManifestPath -Raw | ConvertFrom-Json

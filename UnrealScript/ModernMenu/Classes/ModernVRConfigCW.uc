@@ -7,7 +7,6 @@ class ModernVRConfigCW extends UWindowDialogClientWindow;
 var UMenuLabelControl VRHeading;
 var UWindowComboControl AimMethodCombo;
 var UWindowComboControl RenderQualityCombo;
-var UWindowComboControl HUDQualityCombo;
 var localized string RenderQualityText;
 var localized string RenderQualityHelp;
 var localized string CurrentProfileText;
@@ -85,16 +84,6 @@ function Created()
 	RenderQualityCombo.AddItem(UltraQualityText, "4");
 	RenderQualityCombo.EditBoxWidth = 175;
 
-	HUDQualityCombo = UWindowComboControl(CreateControl(class'UWindowComboControl', 20, 105, 300, 1));
-	HUDQualityCombo.SetText("HUD/Menu Sharpness");
-	HUDQualityCombo.SetHelpText("Changes the HUD/menu output texture immediately, keeping panel size and layout. Higher settings retain more detail from higher VR render quality; they cannot add detail absent from the source.");
-	HUDQualityCombo.SetFont(F_Normal);
-	HUDQualityCombo.SetEditable(False);
-	HUDQualityCombo.AddItem("Default", "0");
-	HUDQualityCombo.AddItem("High", "1");
-	HUDQualityCombo.AddItem("Ultra", "2");
-	HUDQualityCombo.EditBoxWidth = 175;
-
 	HUDDistanceSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 45, 300, 1));
 	HUDDistanceSlider.SetRange(50, 500, 5);
 	HUDDistanceSlider.SetHelpText(HUDDistanceHelp);
@@ -139,20 +128,20 @@ function Created()
 
 	StatusLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 205, 340, 1));
 	StatusLabel.SetFont(F_Normal);
-	HUDDistanceSlider.WinTop += 90;
-	HUDScaleSlider.WinTop += 90;
-	PlayerHeightSlider.WinTop += 90;
-	WorldSizeSlider.WinTop += 90;
-	HUDDistanceResetButton.WinTop += 90;
-	HUDScaleResetButton.WinTop += 90;
-	PlayerHeightResetButton.WinTop += 90;
-	WorldSizeResetButton.WinTop += 90;
-	RecenterButton.WinTop += 90;
-	StatusLabel.WinTop += 90;
-	LeftEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 320, 340, 1));
+	HUDDistanceSlider.WinTop += 60;
+	HUDScaleSlider.WinTop += 60;
+	PlayerHeightSlider.WinTop += 60;
+	WorldSizeSlider.WinTop += 60;
+	HUDDistanceResetButton.WinTop += 60;
+	HUDScaleResetButton.WinTop += 60;
+	PlayerHeightResetButton.WinTop += 60;
+	WorldSizeResetButton.WinTop += 60;
+	RecenterButton.WinTop += 60;
+	StatusLabel.WinTop += 60;
+	LeftEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 290, 340, 1));
 	LeftEyeSizeLabel.SetFont(F_Normal);
 	LeftEyeSizeLabel.SetHelpText(EyeSizeHelp);
-	RightEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 340, 340, 1));
+	RightEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 310, 340, 1));
 	RightEyeSizeLabel.SetFont(F_Normal);
 	RightEyeSizeLabel.SetHelpText(EyeSizeHelp);
 
@@ -166,7 +155,7 @@ function Created()
 	RemoveFromTabOrder(WorldSizeResetButton);
 	LoadSettings();
 	bInitialized = True;
-	DesiredHeight = 370;
+	DesiredHeight = 340;
 }
 
 function ModernResetButton CreateSliderResetButton(UWindowHSliderControl Slider)
@@ -250,13 +239,9 @@ function LoadSettings()
 	AimMethodCombo.SetSelectedIndex(Clamp(int(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRAimMode")), 0, 1));
 	Quality = int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice VRRenderQuality"));
-	if (Quality == 5) Quality = 4;
 	if (Quality < 0 || Quality > 4)
 		Quality = 0;
 	RenderQualityCombo.SetSelectedIndex(Quality);
-	Quality = int(GetPlayerOwner().ConsoleCommand("get ini:Engine.Engine.GameRenderDevice VRHUDQuality"));
-	if (Quality < 0 || Quality > 2) Quality = 0;
-	HUDQualityCombo.SetSelectedIndex(Quality);
 
 	Distance = float(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRHUDDistance"));
@@ -318,7 +303,6 @@ function BeforePaint(Canvas C, float X, float Y)
 	VRHeading.SetSize(ControlWidth, 1);
 	AimMethodCombo.SetSize(ControlWidth, 1);
 	RenderQualityCombo.SetSize(ControlWidth, 1);
-	HUDQualityCombo.SetSize(ControlWidth, 1);
 	HUDDistanceSlider.SetSize(ControlWidth - 16, 1);
 	HUDScaleSlider.SetSize(ControlWidth - 16, 1);
 	PlayerHeightSlider.SetSize(ControlWidth - 16, 1);
@@ -341,7 +325,6 @@ function BeforePaint(Canvas C, float X, float Y)
 	HUDDistanceSlider.bDisabled = !bD3D12;
 	AimMethodCombo.bDisabled = !bD3D12;
 	RenderQualityCombo.SetDisabled(!bD3D12);
-	HUDQualityCombo.SetDisabled(!bD3D12);
 	HUDScaleSlider.bDisabled = !bD3D12;
 	HUDDistanceResetButton.bDisabled = !bD3D12;
 	HUDScaleResetButton.bDisabled = !bD3D12;
@@ -378,8 +361,6 @@ function BeforePaint(Canvas C, float X, float Y)
 			StatusLabel.SetText(QualityRestartText);
 		else if (QualityStatus == "failed")
 			StatusLabel.SetText("Quality change failed. Previous quality retained.");
-		if (GetPlayerOwner().ConsoleCommand("D3D12 VRHUDSTATUS") == "failed")
-			StatusLabel.SetText("HUD quality unavailable. Previous sharpness retained.");
 	}
 }
 
@@ -412,8 +393,6 @@ function Notify(UWindowDialogControl C, byte E)
 
 	if (E == DE_Change && C == AimMethodCombo)
 		GetPlayerOwner().ConsoleCommand("D3D12 VRAIMMODE" @ AimMethodCombo.GetSelectedIndex());
-	else if (E == DE_Change && C == HUDQualityCombo)
-		GetPlayerOwner().ConsoleCommand("D3D12 VRHUDQUALITY" @ HUDQualityCombo.GetValue2());
 	else if (E == DE_Change && C == RenderQualityCombo)
 		GetPlayerOwner().ConsoleCommand("D3D12 VRRENDERQUALITY" @ RenderQualityCombo.GetValue2());
 	else if (E == DE_Change && C == HUDDistanceSlider)

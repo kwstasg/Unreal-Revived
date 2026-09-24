@@ -96,9 +96,18 @@ preserves their current values; this is separate from uninstalling first.
 the same Inno definition with `/DValidationBuild`. That switch gives it a
 separate AppId and shortcut names, protecting the user's production installation.
 It checks fresh installation, executable and host hashes, four shortcuts,
-runtime startup and restart, preservation of existing profile values, uninstall
+runtime startup and restart, fresh profile defaults after reinstall, uninstall
 backups, reinstall with retained saves, and cleanup. Run in the user's Windows
 graphics session with a new test directory under `local/`.
+
+## Current profile policy (24 September 2026)
+
+Setup follows uninstall/reinstall. The profile writer now always seeds desktop,
+VR, controls and bundled weapon calibration from fresh defaults. Old settings
+are not migrated. Saves and the existing uninstall backup remain preserved.
+`scripts/test-installer-profile-reset.ps1` verifies the writer in an isolated
+folder without running Setup. The historical lifecycle results below predate
+this cleanup; a newly packaged installer has not yet repeated the full lifecycle.
 
 ## September 12, 2026 installer validation
 

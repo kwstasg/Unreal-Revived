@@ -49,10 +49,6 @@ void Exercise(ID3D12Device* Device, int Capacity, int Eyes)
 			Release(Replacement);
 		}
 		Check(Heap.GetUsedCount() == Steady, "Live switch leaked RTV descriptors");
-		// UI quality allocates both eye slices before releasing its old swapchain.
-		auto ReplacementUI = Heap.Alloc(6);
-		ReplacementUI.reset();
-		Check(Heap.GetUsedCount() == Steady, "HUD replacement leaked RTV descriptors");
 	}
 	Release(Active);
 	Release(Fixed);
