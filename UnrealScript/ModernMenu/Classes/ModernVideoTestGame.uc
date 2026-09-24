@@ -41,6 +41,12 @@ event Timer()
 		"1024 " $ Chr(215) $ " 768 (4:3)", "4:3 resolution label");
 	Video.LoadAvailableSettings();
 	Check(TestPlayer.ConsoleCommand("GetCurrentRes") == OriginalResolution, "loading labels does not change resolution");
+	Check(class'ModernVideoClientWindow'.static.ResolutionLabel("1366x768") ==
+		"1366 " $ Chr(215) $ " 768 (16:9)", "rounded standard ratio uses familiar label");
+	Check(class'ModernVideoClientWindow'.static.ResolutionLabel("1920x1200") ==
+		"1920 " $ Chr(215) $ " 1200 (16:10)", "16:10 label");
+	Check(class'ModernVideoClientWindow'.static.ResolutionLabel("3440x1440") ==
+		"3440 " $ Chr(215) $ " 1440 (2.39:1)", "custom ultrawide ratio is readable and accurate");
 	Check(Video.ConfirmSettings == None, "loading labels does not request a mode change");
 	Video.BrightnessSlider.SetValue(137);
 	Video.LoadAvailableSettings();
@@ -82,12 +88,18 @@ event Timer()
 	Video.ContrastSlider.SetValue(100);
 	VRSettings = ModernVRConfigCW(C.Root.CreateWindow(class'ModernVRConfigCW', 20, 20, 400, 320));
 	Check(VRSettings.RenderQualityCombo.GetValue2() == "0", "VR defaults to current profile");
+	Check(VRSettings.HUDQualityCombo.GetValue2() == "0", "HUD sharpness keeps original default");
+	VRSettings.HUDQualityCombo.SetSelectedIndex(2);
+	VRSettings.LoadSettings();
+	Check(VRSettings.HUDQualityCombo.GetValue2() == "2", "HUD sharpness preference persists");
+	Check(VRSettings.RenderQualityCombo.GetValue2() == "0", "HUD sharpness independent of world quality");
+	VRSettings.HUDQualityCombo.SetSelectedIndex(0);
 	VRSettings.RenderQualityCombo.SetSelectedIndex(4);
 	VRSettings.LoadSettings();
 	Check(VRSettings.RenderQualityCombo.GetValue2() == "4", "VR quality preference persists");
-	VRSettings.RenderQualityCombo.SetSelectedIndex(5);
+	TestPlayer.ConsoleCommand("D3D12 VRRENDERQUALITY 5");
 	VRSettings.LoadSettings();
-	Check(VRSettings.RenderQualityCombo.GetValue2() == "5", "200 percent quality preference persists");
+	Check(VRSettings.RenderQualityCombo.GetValue2() == "4", "retired Epic migrates to Ultra");
 	Check(TestPlayer.ConsoleCommand("D3D12 VRSTATSACTIVE") == "0", "desktop uses desktop FPS counters");
 	Check(TestPlayer.ConsoleCommand("GetCurrentRes") == OriginalResolution, "VR preset leaves desktop resolution unchanged");
 	VRSettings.RenderQualityCombo.SetSelectedIndex(0);

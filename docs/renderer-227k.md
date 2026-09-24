@@ -9,6 +9,14 @@ This document records the compatibility work required for the OldUnreal
 227k_15 Windows x64 host. Keep host-specific behavior behind `UNREAL_227` where
 practical so upstream renderer structure remains recognizable.
 
+## VR resolution and optional UI detail
+
+See [VR render quality](vr-render-quality.md) for the current contract. World
+quality scales runtime eye recommendations independently of the locked 1280x1024
+logical layout. Optional HUD quality replaces the two-slice UI swapchain at a
+frame boundary, using runtime/device limits and retaining the previous texture
+on failure. Default remains 1024x1024; panel geometry and projections are unchanged.
+
 ## VR weapon and HUD composition
 
 Gaze and motion weapon draws are bracketed by `BEGINVRWEAPONPASS` and

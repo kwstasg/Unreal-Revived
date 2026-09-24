@@ -35,10 +35,28 @@ event Timer()
 		{
 			if (Left(Size, 9) != "1280x1024")
 				Log("VRQUALITYTEST FAIL live return to default changed baseline");
+			TestPlayer.ConsoleCommand("D3D12 VRHUDQUALITY 1");
+		}
+		else if (LiveStep >= 4)
+		{
+			if (TestPlayer.ConsoleCommand("D3D12 VRHUDSTATUS") != "ready")
+				Log("VRQUALITYTEST FAIL live HUD quality was not applied");
+			Log("VRQUALITYTEST HUD step=" $ LiveStep $ " size=" $ TestPlayer.ConsoleCommand("D3D12 VRHUDSIZE"));
+			if (Left(Size, 9) != "1280x1024")
+				Log("VRQUALITYTEST FAIL HUD quality altered scene resolution");
+			if (LiveStep == 4)
+				TestPlayer.ConsoleCommand("D3D12 VRHUDQUALITY 2");
+			else if (LiveStep == 5)
+				TestPlayer.ConsoleCommand("D3D12 VRHUDQUALITY 0");
+			else
+			{
+			if (TestPlayer.ConsoleCommand("D3D12 VRHUDSIZE") != "1024x1024")
+				Log("VRQUALITYTEST FAIL HUD return to default changed baseline");
 			Log("VRQUALITYTEST live completed");
 			Log("VRQUALITYTEST completed");
 			TestPlayer.ConsoleCommand("quit");
 			return;
+			}
 		}
 		LiveStep++;
 		SetTimer(2, False);

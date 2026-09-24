@@ -16,7 +16,7 @@ saves and loads using a temporary isolated save directory, rebinds the hooks,
 and exits. Invalid owners, assertions and script warnings fail the check.
 User profiles and saves are not used as test output.
 
-Installer staging rebuilds the menu with `-Production`, omitting the 13 fixture
+Installer staging rebuilds the menu with `-Production`, omitting the development fixture
 classes and rejecting their names in the compiled package. Rebuild the normal
 development target before running fixtures again. The release package is tested
 through the isolated installer/launcher lifecycle, not by shipping test classes.
@@ -45,8 +45,10 @@ and diagonals. Looking up/down or rolling the head must not introduce vertical
 movement or change speed. Turn with right-stick X while walking; right-stick Y
 must not add camera pitch. Check jump/crouch, release to rest, reconnect, and
 menu navigation. Desktop controls must retain both right-stick axes. The initial
-VR remap covers first-person walking/falling and plain movement-axis bindings;
-swimming/flying and custom aliases retain native behavior pending later work.
+VR remap covers first-person walking/falling and plain movement-axis bindings.
+Gaze swimming/flying/CheatFlying now use state hooks; check forward/backward
+while looking up/down and after turning the chair. Custom aliases retain native
+behavior. Use `scripts/test-vr-motion-regressions.ps1` for state-dispatch checks.
 
 Verify normal/VR shortcuts pass `-novr`/`-vr` despite the saved startup checkbox.
 Installer tasks must independently select neither, either or both desktop icons.
@@ -825,3 +827,11 @@ A useful test record includes:
 - renderer settings changed from defaults;
 - checks performed and their outcomes;
 - relevant log or screenshot paths under ignored `local/` storage.
+
+## VR resolution and HUD sharpness
+
+Follow [the quality regression and hardware checklist](vr-render-quality.md#validation-and-remaining-acceptance).
+Default UI sharpness must retain the accepted panel; High/Ultra change its output
+texture live. Automated tests cover sizing/limits, rollback descriptor capacity,
+aspect labels, Epic migration and independent saved preferences. Hardware
+acceptance remains distinct from mock runtime and WARP validation.

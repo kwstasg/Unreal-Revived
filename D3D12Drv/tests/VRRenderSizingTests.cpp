@@ -13,6 +13,11 @@ int main()
 {
 	using namespace VRRenderSizing;
 	const Size Profile = { 1280, 1024 };
+	Check(NormalizeQuality(5) == 4, "Retired Epic migrates to Ultra");
+	Check(HUDSize(0, 16384) == 1024 && HUDSize(1, 16384) == 1536 && HUDSize(2, 16384) == 2048,
+		"HUD defaults preserved and optional texture sizes independent of eye sizing");
+	Check(HUDSize(2, 1800) == 1800 && HUDSize(-1, 4096) == 1024 && HUDSize(99, 4096) == 1024,
+		"HUD respects runtime limits and invalid settings retain default");
 	for (const Size Logical : { Profile, Size{1920,1080}, Size{1600,1280} })
 	{
 		for (int Quality : { -1, 0, 6, 999 })
@@ -22,8 +27,8 @@ int main()
 				"Default and invalid presets must preserve customized profiles");
 		}
 	}
-	const Size Expected[] = { Profile, {1500,1800}, {2000,2400}, {2500,3000}, {3000,3600}, {4000,4800} };
-	for (int Quality = 1; Quality <= 5; ++Quality)
+	const Size Expected[] = { Profile, {1500,1800}, {2000,2400}, {2500,3000}, {3000,3600} };
+	for (int Quality = 1; Quality <= 4; ++Quality)
 	{
 		const auto Eye = EyeSize(Quality, Profile, 2000, 2400, 6000, 6000);
 		Check(Eye.Width == Expected[Quality].Width && Eye.Height == Expected[Quality].Height,

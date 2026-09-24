@@ -39,9 +39,9 @@ int main()
 		View.maxImageRectWidth = View.maxImageRectHeight = 4096;
 	}
 	OpenXREyeSwapchains::Pair Pair;
-	const uint32_t Widths[] = {1344,1008,1344,1680,2016,2688};
-	const uint32_t Heights[] = {1600,1200,1600,2000,2400,3200};
-	for (int Quality = 0; Quality <= 5; ++Quality)
+	const uint32_t Widths[] = {1344,1008,1344,1680,2016};
+	const uint32_t Heights[] = {1600,1200,1600,2000,2400};
+	for (int Quality = 0; Quality <= 4; ++Quality)
 	{
 		Reset();
 		Check(OpenXREyeSwapchains::Create(XR_NULL_HANDLE, Views, Quality, 29, Create, Destroy, Pair), "pair created");
@@ -72,5 +72,29 @@ int main()
 	Check(OpenXREyeSwapchains::Create(XR_NULL_HANDLE, Views, 4, 29, Create, Destroy, Pair), "asymmetric size pair");
 	Check(Requests[0].width == 2016 && Requests[1].width == 1575 && Requests[1].height == 1800,
 		"clamp each view uniformly without assuming identical eyes");
+	// Synthetic runtime recommendations, not panel specifications or headset certification.
+	for (uint32_t Width : {1024u, 1832u, 2448u, 2880u, 4200u, 6000u})
+		for (int Quality = 1; Quality <= 4; ++Quality)
+		{
+			Reset();
+			for (int Eye = 0; Eye < 2; ++Eye)
+			{
+				Views[Eye].recommendedImageRectWidth = Width + Eye * 32;
+				Views[Eye].recommendedImageRectHeight = Width + 256;
+				Views[Eye].maxImageRectWidth = 8192;
+				Views[Eye].maxImageRectHeight = 7000;
+			}
+			Check(OpenXREyeSwapchains::Create(XR_NULL_HANDLE, Views, Quality, 29, Create, Destroy, Pair),
+				"varied runtime dimensions supported");
+			for (int Eye = 0; Eye < 2; ++Eye)
+			{
+				const auto& Request = Requests[Eye];
+				Check(Request.width > 0 && Request.width <= 8192 && Request.height > 0 && Request.height <= 7000,
+					"both dimensions respect runtime limits across quality range");
+				const double Ratio = double(Views[Eye].recommendedImageRectWidth) / Views[Eye].recommendedImageRectHeight;
+				Check(std::abs(double(Request.width) / Request.height - Ratio) < 0.002,
+					"clamping never independently stretches either eye");
+			}
+		}
 	std::cout << "OpenXR output sizing and stereo allocation fallback checks passed\n";
 }

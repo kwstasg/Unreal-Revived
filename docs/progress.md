@@ -10,6 +10,31 @@ September 12 cleanup compacted available dated test-log directories into
 beside it for the directories included. Current release-validation logs remain
 under `local/logs/`.
 
+## 2026-09-24
+
+- Saved the owner-accepted VR implementation as rollback commit `df6921c`.
+  Removed Epic (saved value migrates to Ultra), fixed familiar/custom aspect
+  labels, and added live opt-in HUD/Menu Sharpness with the original default.
+  Runtime limits and failed allocations preserve working resources and panel
+  geometry. Expanded synthetic per-eye sizing and descriptor replacement checks.
+  Renderer/menu builds, all eight native tests, desktop preferences and repository
+  safety checks passed. Preferences evidence: `VideoPreferences-20260924-102055.log`.
+  Live OpenXR testing could not initialize the runtime (`VRQuality-20260924-102113-0.log`);
+  new HUD visual acceptance and other-headset hardware validation remain pending.
+  Cleaned the quality guide and current-state/testing references to distinguish
+  accepted CV1 behavior, automated coverage and remaining limitations.
+- Owner accepted the current CV1 development build after testing immediate VR
+  quality changes, compact context-sensitive F11 statistics, bloom clipping
+  correction, gaze-directed swimming/flying, and input/pitch recovery. Latest
+  confirmation: mouse pitch prevention and load/remount/recenter behavior were
+  tested and reported perfect. Original default quality and VR logical layout
+  remain preserved. Details and regression evidence: `vr-render-quality.md`.
+- Development renderer, input driver and menu builds pass; native renderer and
+  input tests, menu preferences and gameplay regressions passed as recorded in
+  the session. This is CV1 acceptance, not validation of other headsets or a
+  published release. The separately deferred focus-loss stutter issue has not
+  been claimed fixed.
+
 ## 2026-09-21
 
 - Published [Unreal Revived 0.8.0](https://github.com/kwstasg/Unreal-Revived/releases/tag/UnrealRevived-Setup-0.8.0)

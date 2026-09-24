@@ -430,7 +430,9 @@ function LoadAvailableSettings()
 static function string ResolutionLabel(string RawResolution)
 {
 	local string WidthText, HeightText;
-	local int Width, Height, A, B, Remainder;
+	local int Width, Height, Hundredths;
+	local float Ratio;
+	local string Aspect;
 
 	if (!Divide(Caps(RawResolution), "X", WidthText, HeightText))
 		return RawResolution;
@@ -438,15 +440,22 @@ static function string ResolutionLabel(string RawResolution)
 	Height = int(HeightText);
 	if (Width <= 0 || Height <= 0)
 		return RawResolution;
-	A = Width;
-	B = Height;
-	while (B != 0)
+	Ratio = float(Width) / float(Height);
+	// Allow rounding in modes such as 1366x768; retain custom/monitor modes.
+	if (Abs(Ratio - 16.0/9.0) < 0.002) Aspect = "16:9";
+	else if (Abs(Ratio - 16.0/10.0) < 0.002) Aspect = "16:10";
+	else if (Abs(Ratio - 4.0/3.0) < 0.002) Aspect = "4:3";
+	else if (Abs(Ratio - 5.0/4.0) < 0.002) Aspect = "5:4";
+	else if (Abs(Ratio - 3.0/2.0) < 0.002) Aspect = "3:2";
+	else if (Abs(Ratio - 32.0/9.0) < 0.002) Aspect = "32:9";
+	else if (Abs(Ratio - 21.0/9.0) < 0.002) Aspect = "21:9";
+	else if (Width == Height) Aspect = "1:1";
+	else
 	{
-		Remainder = A % B;
-		A = B;
-		B = Remainder;
+		Hundredths = int(Ratio * 100 + 0.5);
+		Aspect = (Hundredths / 100) $ "." $ Right("0" $ int(Hundredths % 100), 2) $ ":1";
 	}
-	return Width $ " " $ Chr(215) $ " " $ Height $ " (" $ (Width / A) $ ":" $ (Height / A) $ ")";
+	return Width $ " " $ Chr(215) $ " " $ Height $ " (" $ Aspect $ ")";
 }
 
 function FormatResolutionOptions()

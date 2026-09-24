@@ -8,9 +8,15 @@ namespace VRRenderSizing
 {
 struct Size { int Width; int Height; };
 
+inline int NormalizeHUDQuality(int Quality) { return Quality >= 0 && Quality <= 2 ? Quality : 0; }
+inline int HUDSize(int Quality, int Limit)
+{
+	return std::max(1, std::min(1024 + NormalizeHUDQuality(Quality) * 512, Limit));
+}
+
 inline int NormalizeQuality(int Quality)
 {
-	return Quality >= 0 && Quality <= 5 ? Quality : 0;
+	return Quality == 5 ? 4 : (Quality >= 0 && Quality <= 4 ? Quality : 0);
 }
 
 inline Size EyeSize(int Quality, Size Profile, uint32_t Width, uint32_t Height,
@@ -19,7 +25,7 @@ inline Size EyeSize(int Quality, Size Profile, uint32_t Width, uint32_t Height,
 	Quality = NormalizeQuality(Quality);
 	if (!Quality || !Width || !Height || !MaxWidth || !MaxHeight || !DeviceLimit)
 		return Profile;
-	const double Scales[] = { 0.0, 0.75, 1.0, 1.25, 1.5, 2.0 };
+	const double Scales[] = { 0.0, 0.75, 1.0, 1.25, 1.5 };
 	const double Scale = std::min({ Scales[Quality],
 		static_cast<double>(std::min(MaxWidth, DeviceLimit)) / Width,
 		static_cast<double>(std::min(MaxHeight, DeviceLimit)) / Height });

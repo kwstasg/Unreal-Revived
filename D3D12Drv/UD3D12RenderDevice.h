@@ -393,6 +393,7 @@ public:
 	FLOAT VRHUDDistance;
 	FLOAT VRHUDScale;
 	INT VRRenderQuality;
+	INT VRHUDQuality;
 	FLOAT VRPlayerHeightOffset;
 	FLOAT VRWorldScale;
 	INT VRAimMode;
@@ -579,6 +580,12 @@ private:
 	std::vector<XrView> OpenXRViews;
 	std::vector<OpenXRViewSwapchain> OpenXRSwapchains;
 	OpenXRViewSwapchain OpenXRUISwapchain;
+	bool CreateVRUISwapchain(OpenXRViewSwapchain& Target, INT Quality);
+	void ApplyPendingVRHUDQuality();
+	INT ActiveVRHUDQuality = 0;
+	INT VRMaxUISize = 16384;
+	bool VRHUDQualityPending = false;
+	bool VRHUDQualityFailed = false;
 	ComPtr<ID3D12PipelineState> OpenXRUIPresentPipeline;
 	XrPosef OpenXRUIAnchorPose = { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f } };
 	XrVector3f OpenXRUIAnchorHeadPosition = { 0.0f, 0.0f, 0.0f };

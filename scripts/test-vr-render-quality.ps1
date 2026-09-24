@@ -1,5 +1,5 @@
 # Requires a connected OpenXR headset/runtime; never writes the player's INIs.
-param([int[]] $Qualities = @(0, 1, 2, 3, 4, 5))
+param([int[]] $Qualities = @(0, 1, 2, 3, 4))
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $gameRoot = & (Join-Path $PSScriptRoot 'assert-development-runtime.ps1') -GameRoot (Join-Path $repoRoot 'local/game')
@@ -8,7 +8,7 @@ $systemDir = Join-Path $gameRoot 'System64'
 Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Ini.psm1') -Force
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 foreach ($quality in $Qualities) {
-    if ($quality -lt 0 -or $quality -gt 5) { throw 'Quality must be 0 through 5.' }
+    if ($quality -lt 0 -or $quality -gt 4) { throw 'Quality must be 0 through 4.' }
     $iniName = "VRQuality-$stamp-$quality.ini"
     $userName = "VRQualityUser-$stamp-$quality.ini"
     $logName = "VRQuality-$stamp-$quality.log"
@@ -33,7 +33,7 @@ foreach ($quality in $Qualities) {
         foreach ($eye in $eyes) {
             $g = $eye.Groups
             if ([int] $g[2].Value -ne $quality) { throw "Unexpected fallback in $logName" }
-            $scale = @(1.0, 0.75, 1.0, 1.25, 1.5, 2.0)[$quality]
+            $scale = @(1.0, 0.75, 1.0, 1.25, 1.5)[$quality]
             if ($quality -ne 0) {
                 $scale = [Math]::Min($scale, [Math]::Min([int] $g[7].Value, 16384) / [double] $g[5].Value)
                 $scale = [Math]::Min($scale, [Math]::Min([int] $g[8].Value, 16384) / [double] $g[6].Value)

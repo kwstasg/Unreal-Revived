@@ -4,6 +4,13 @@ Use this page to resume work after a context reset. It records the supported
 boundary and points to the authoritative detail without depending on chat
 history.
 
+## Current VR quality development checkpoint
+
+Commit `df6921c` preserves the owner-accepted CV1 baseline. The follow-up removes
+Epic, improves aspect labels and adds opt-in live HUD/Menu Sharpness while retaining
+defaults. See [current settings and validation limits](vr-render-quality.md). Other
+headsets remain hardware-unverified; focus-loss stutter is still deferred.
+
 ## Read first
 
 1. Read [`progress.md`](progress.md) for completed milestones and validation.
