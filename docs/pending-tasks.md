@@ -5,10 +5,11 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **VR vignette:** desktop appearance is accepted. The current image-centered
-  per-eye mask is too subtle at the reduced coverage; stronger coverage caused
-  binocular overlap. Shared stereo alignment and useful VR visibility are not
-  implemented or validated. Preserve the accepted desktop effect when fixing it.
+- **VR vignette acceptance:** shared head-relative angular masking is implemented
+  and passes production shader tests for asymmetric/canted eyes. Desktop falloff
+  is preserved. Check 0/50/100% in CV1 for visibility and a single aligned fade,
+  including head rotation, menus and quality changes. Hardware comfort/appearance
+  is not established by the automated tests.
 - **Other headsets/controllers:** obtain hardware reports for the profiles and
   headsets in [the compatibility guide](vr-controller-compatibility.md), including
   canted/wide-FOV optics, per-eye resolution, bindings and disconnect behavior.

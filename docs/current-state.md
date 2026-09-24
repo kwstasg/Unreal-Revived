@@ -332,7 +332,7 @@ preserved 0.6.0 publication and validation record remains in
 ## Next priorities
 
 The authoritative current checklist is [pending tasks](pending-tasks.md), including
-the unresolved VR vignette alignment and current installer acceptance.
+CV1 acceptance of the new stereo-aligned vignette and current installer acceptance.
 
 The spatial UI milestone was user-accepted on 2026-09-10: complete desktop-like
 HUD/menu layout on one upright OpenXR panel, explicit UI recenter, and stable,

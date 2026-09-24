@@ -968,7 +968,7 @@ defaultproperties
 	ChromaticAberrationText="Chromatic Aberration"
 	ChromaticAberrationHelp="Separate colors toward the screen edges, from 0% off to 100% maximum."
 	VignetteIntensityText="Vignette"
-	VignetteIntensityHelp="Darken the screen edges, with gently increased coverage above 50%. 0% is off; 100% is strongest."
+	VignetteIntensityHelp="Increase edge darkness and coverage. In VR, both eyes use a shared head-centered fade. 0% is off; 100% is strongest."
 	FilmGrainAmountText="Film Grain"
 	FilmGrainAmountHelp="Add animated monochrome film grain, from 0% off to 100% maximum."
 	ScanlineStrengthText="CRT Scanlines"

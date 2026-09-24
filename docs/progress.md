@@ -11,6 +11,20 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Implemented shared head-relative VR vignette rays using runtime asymmetric FOV
+  and the eye-to-head quaternion, preserving accepted desktop falloff. One slider
+  controls opacity and angular coverage; at 100% the clear/faded boundaries are
+  35/55 degrees off forward. HUD/menu exclusions and zero default remain intact.
+  Production shader tests verify matched attenuation across asymmetric eyes,
+  horizontal/vertical cant, center visibility, strength, UI exclusion and desktop
+  falloff. The production pose helper is tested under head yaw/pitch and eye cant.
+  Canonical renderer and menu builds, all nine native tests and desktop preferences
+  passed (`VideoPreferences-20260925-011916.log`). Live VR could not initialize the
+  runtime (result -51, `VRQuality-20260925-011924-2.log`); owner CV1 optical acceptance
+  remains pending. Deployed to local/game; retained current logs and removed the
+  temporary generated native-test build after validation.
+
+
 - Completed owner-requested workspace/source/docs cleanup. Removed 143 obsolete
   local targets (2.52 GiB): alternate build, generated test builds, duplicate
   launcher runtime, old installer experiment, archived experiments/logs, exported

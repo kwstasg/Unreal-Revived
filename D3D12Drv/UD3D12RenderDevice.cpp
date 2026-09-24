@@ -1907,6 +1907,11 @@ UBOOL UD3D12RenderDevice::PresentOpenXREye(uint32_t ViewIndex)
 	const FLOAT BackgroundColor[4] = { 0.005f, 0.012f, 0.025f, 1.0f };
 	PresentPushConstants PushConstants = GetPresentPushConstants();
 	PushConstants.VRHeadCollisionFade = Clamp(VRHeadCollisionFade, 0.0f, 1.0f);
+	const auto& Eye = OpenXRViews[ViewIndex];
+	PushConstants.VREyeTangents = vec4(appTan(Eye.fov.angleLeft), appTan(Eye.fov.angleRight),
+		appTan(Eye.fov.angleDown), appTan(Eye.fov.angleUp));
+	const auto EyeToHead = OpenXREyeToHeadOrientation(OpenXRHeadOrientation, Eye.pose.orientation);
+	PushConstants.VRVignetteEyeToHead = vec4(EyeToHead.x, EyeToHead.y, EyeToHead.z, EyeToHead.w);
 	INT PresentPipeline = GammaMode == 1 ? 1 : 0;
 	if (PushConstants.Brightness != 0.0f || PushConstants.Contrast != 1.0f || PushConstants.Saturation != 1.0f)
 		PresentPipeline |= (Clamp(GrayFormula, 0, 2) + 1) << 1;

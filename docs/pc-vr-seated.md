@@ -122,7 +122,7 @@ Implemented in the dedicated VR preferences page:
 UI recenter and HUD adjustments update immediately in VR.
 Motion aiming and multi-profile controller mappings are implemented; see
 [controller compatibility](vr-controller-compatibility.md). Stereo-aligned VR
-vignette comfort remains unfinished.
+vignette masking is implemented and awaits CV1 visual/comfort acceptance.
 
 Pending: selectable left/right/off desktop mirror and more
 detailed runtime/headset status. Automatic/delayed HUD following was superseded
@@ -221,5 +221,5 @@ The first supported configuration is seated gamepad play with smooth turning
 and horizontal head-oriented locomotion. Standing tracking may work but is not
 an acceptance requirement. Motion-controller aiming and bindings are implemented. Tracked hands,
 teleportation, snap turning, room-scale design and advanced comfort settings
-remain future work. The current vignette is a desktop effect; VR alignment
-and visibility still need correction.
+remain future work. The vignette now preserves the desktop effect and uses a shared angular
+fade in VR; headset acceptance remains pending.

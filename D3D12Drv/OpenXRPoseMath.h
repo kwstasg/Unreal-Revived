@@ -22,6 +22,13 @@ inline XrQuaternionf NormalizeOpenXRQuaternion(const XrQuaternionf& Q)
 	return { Q.x * InverseLength, Q.y * InverseLength, Q.z * InverseLength, Q.w * InverseLength };
 }
 
+inline XrQuaternionf OpenXREyeToHeadOrientation(const XrQuaternionf& Head, const XrQuaternionf& Eye)
+{
+	const auto H = NormalizeOpenXRQuaternion(Head);
+	return NormalizeOpenXRQuaternion(MultiplyOpenXRQuaternions({-H.x,-H.y,-H.z,H.w},
+		NormalizeOpenXRQuaternion(Eye)));
+}
+
 inline bool OpenXREyesHaveDifferentOrientations(const XrQuaternionf& Left, const XrQuaternionf& Right)
 {
 	const auto A = NormalizeOpenXRQuaternion(Left);

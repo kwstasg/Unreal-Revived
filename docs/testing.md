@@ -852,3 +852,17 @@ Run `scripts/test-menu-back.ps1` with the development menu for hierarchical B/ba
 and pause-state checks. The native controller lifecycle tests exercise optional
 profile rejection and wand combinations; physical controller behavior still needs
 reports from owners of the other devices; the owner accepted CV1 Touch/Xbox.
+
+## Stereo vignette
+
+The production shader regression in `vr-ui-occlusion` verifies shared-ray
+attenuation for asymmetric FOVs and horizontal/vertical eye cant, center visibility,
+slider strength, UI exclusion and unchanged desktop falloff. `vr-pose-math`
+checks the production eye-to-head transform under head yaw/pitch and eye cant.
+Build/run using the native-test commands in [commands](commands.md).
+
+In CV1 compare 0%, 50% and 100%: one smooth fade around head-forward, no double
+circles, stable alignment on yaw/pitch/roll, clear center, readable HUD/menu and
+unchanged effect across 75/100/125/150% render quality. Verify desktop appearance
+separately. A shared angular mask does not guarantee subjective comfort or
+alignment in every untested runtime; report hardware and active profile.

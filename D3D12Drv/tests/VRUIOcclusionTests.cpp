@@ -141,7 +141,7 @@ int main()
 	D3D11_SUBRESOURCE_DATA VertexData = {Vertices, 0, 0};
 	ComPtr<ID3D11Buffer> VertexBuffer, Constants;
 	Check(SUCCEEDED(Device->CreateBuffer(&BufferDesc, &VertexData, &VertexBuffer)), "vertex buffer");
-	BufferDesc.ByteWidth = 32 * sizeof(float);
+	BufferDesc.ByteWidth = 36 * sizeof(float);
 	BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	Check(SUCCEEDED(Device->CreateBuffer(&BufferDesc, nullptr, &Constants)), "constant buffer");
 	D3D11_TEXTURE2D_DESC TextureDesc = {};
@@ -195,7 +195,7 @@ int main()
 	Context->PSSetShaderResources(0, 5, Views);
 	ID3D11SamplerState* Samplers[] = {Sampler.Get(), Sampler.Get()};
 	Context->PSSetSamplers(0, 2, Samplers);
-	std::array<float, 32> Parameters = {};
+	std::array<float, 36> Parameters = {};
 	Parameters[0] = Parameters[1] = 1;
 	Parameters[4] = Parameters[5] = Parameters[6] = 1;
 	Parameters[18] = -1;
@@ -240,6 +240,89 @@ int main()
 	const auto Partial = Render(0, 0, -1);
 	for (size_t Channel = 0; Channel < 4; Channel++)
 		Check(std::fabs(Partial[Channel] - Visible[Channel] * (127.0f / 255.0f)) < 0.001f, "partial coverage preserves premultiplied color");
+	// Render the actual world presentation shader at chosen per-eye UVs. The
+	// same head-relative ray must receive the same fade despite cant/asymmetry.
+	const D3D_SHADER_MACRO WorldDefines[] = { {"GAMMA_MODE_D3D9", "1"}, {nullptr, nullptr} };
+	const auto WorldCode = Compile("shaders/Present.frag", "ps_5_0", WorldDefines);
+	ComPtr<ID3D11PixelShader> WorldShader;
+	Check(SUCCEEDED(Device->CreatePixelShader(WorldCode->GetBufferPointer(), WorldCode->GetBufferSize(), nullptr, &WorldShader)), "world vignette shader");
+	const char* RayVertexSource = R"(
+		cbuffer SamplePoint : register(b1) { float2 UV; float2 Padding; };
+		struct Output { float4 pos : SV_Position; float2 uv : PixelTexCoord; };
+		Output main(float2 pos : AttrPos) {
+			Output o; o.pos = float4(pos,0,1); o.uv = UV; return o;
+		}
+	)";
+	ComPtr<ID3DBlob> RayVertexCode;
+	Check(SUCCEEDED(D3DCompile(RayVertexSource, std::char_traits<char>::length(RayVertexSource), "RaySample", nullptr, nullptr,
+		"main", "vs_5_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, &RayVertexCode, nullptr)), "ray sample vertex code");
+	ComPtr<ID3D11VertexShader> RayVertexShader;
+	Check(SUCCEEDED(Device->CreateVertexShader(RayVertexCode->GetBufferPointer(), RayVertexCode->GetBufferSize(), nullptr, &RayVertexShader)), "ray sample vertex shader");
+	BufferDesc.ByteWidth = 16;
+	ComPtr<ID3D11Buffer> RayUV;
+	Check(SUCCEEDED(Device->CreateBuffer(&BufferDesc, nullptr, &RayUV)), "ray UV constants");
+	Context->VSSetConstantBuffers(1, 1, RayUV.GetAddressOf());
+	Context->VSSetShader(RayVertexShader.Get(), nullptr, 0);
+	Context->PSSetShader(WorldShader.Get(), nullptr, 0);
+	Mask.fill(0);
+	Context->UpdateSubresource(MaskTexture.Get(), 0, nullptr, Mask.data(), 16, 0);
+	Parameters[13] = 1; // world-only effects, with UI excluded
+	auto SampleUV = [&](float U, float V) {
+		const float Point[] = {U,V,0,0};
+		Context->UpdateSubresource(RayUV.Get(), 0, nullptr, Point, 0, 0);
+		return Render(0,0,-1)[0];
+	};
+	auto SampleRay = [&](float X, float Y, float Z, float Cant, bool RightEye, bool PitchEye = false) {
+		Parameters[28] = RightEye ? -2.2f : -2.6f;
+		Parameters[29] = RightEye ? 2.6f : 2.2f;
+		Parameters[30] = RightEye ? -1.4f : -1.8f;
+		Parameters[31] = RightEye ? 1.8f : 1.4f;
+		Parameters[32] = PitchEye ? std::sin(Cant/2) : 0;
+		Parameters[34] = 0;
+		Parameters[33] = PitchEye ? 0 : std::sin(Cant/2);
+		Parameters[35] = std::cos(Cant/2);
+		// Inverse eye rotation converts the shared head ray into this eye.
+		const float EyeX = PitchEye ? X : std::cos(Cant)*X - std::sin(Cant)*Z;
+		const float EyeY = PitchEye ? std::cos(Cant)*Y + std::sin(Cant)*Z : Y;
+		const float EyeZ = PitchEye ? -std::sin(Cant)*Y + std::cos(Cant)*Z : std::sin(Cant)*X + std::cos(Cant)*Z;
+		const float U = (EyeX/-EyeZ - Parameters[28])/(Parameters[29]-Parameters[28]);
+		const float V = (EyeY/-EyeZ - Parameters[30])/(Parameters[31]-Parameters[30]);
+		Check(U >= 0 && U <= 1 && V >= 0 && V <= 1, "sample ray lies in both eye frustums");
+		return SampleUV(U,V);
+	};
+	Parameters[9] = 0;
+	const float Unfiltered = SampleRay(0,0,-1,0,false);
+	Parameters[9] = 1;
+	Check(std::abs(SampleRay(0,0,-1,-0.2f,false)-Unfiltered) < 0.005f, "head-forward stays clear with asymmetric canted eyes");
+	for (float Angle : {0.0f, 0.6981317f, 0.7853982f})
+		for (float Sign : {-1.0f,1.0f})
+			for (bool Vertical : {false,true}) {
+				const float X = Vertical ? 0 : Sign*std::sin(Angle);
+				const float Y = Vertical ? Sign*std::sin(Angle) : 0;
+				const float Z = -std::cos(Angle);
+				const float L = SampleRay(X,Y,Z,-0.2f,false);
+				const float R = SampleRay(X,Y,Z,0.2f,true);
+				Check(std::abs(L-R) < 0.005f, "same angular ray fades equally in both eyes");
+				if (Angle > 0.7f) Check(L < Unfiltered*0.6f, "maximum vignette is visibly darker at 45 degrees");
+			}
+	Check(std::abs(SampleRay(0,0.7071068f,-0.7071068f,-0.15f,false,true) -
+		SampleRay(0,0.7071068f,-0.7071068f,0.15f,true,true)) < 0.005f, "vertical cant respects presentation Y convention");
+	Parameters[9] = 0.5f;
+	const float Gentle = SampleRay(0.7071068f,0,-0.7071068f,0,true);
+	Parameters[9] = 1;
+	Check(SampleRay(0.7071068f,0,-0.7071068f,0,true) < Gentle, "one slider increases angular coverage and opacity");
+	// Existing UI-mask exclusion must still win over the VR world fade.
+	for (size_t Index = 0; Index < Mask.size(); Index += 2) Mask[Index] = 255;
+	Context->UpdateSubresource(MaskTexture.Get(), 0, nullptr, Mask.data(), 16, 0);
+	Check(std::abs(SampleRay(0.7071068f,0,-0.7071068f,0,true)-Unfiltered) < 0.005f, "vignette does not darken UI pixels");
+	Mask.fill(0);
+	Context->UpdateSubresource(MaskTexture.Get(), 0, nullptr, Mask.data(), 16, 0);
+	Parameters[32] = Parameters[33] = Parameters[34] = Parameters[35] = 0;
+	const float Desktop = SampleUV(0.85f,0.5f);
+	const float T = (0.35f-0.30f)/(0.52f-0.30f);
+	Check(std::abs(Desktop - 0.25f*(1-T*T*(3-2*T))) < 0.005f, "desktop vignette keeps accepted falloff");
+	Context->VSSetShader(VertexShader.Get(), nullptr, 0);
+
 	// Reproduce the VR UI scissor leaking into the production bloom shader.
 	const auto BloomCode = Compile("shaders/BloomCombine.frag", "ps_5_0");
 	ComPtr<ID3D11PixelShader> BloomShader;

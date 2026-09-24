@@ -45,8 +45,7 @@ int main()
 				const auto Head = MultiplyOpenXRQuaternions(Heading,Tilt);
 				const XrQuaternionf EyeOffset = {0,std::sin(Cant/2),0,std::cos(Cant/2)};
 				const auto Eye = NormalizeOpenXRQuaternion(MultiplyOpenXRQuaternions(Head,EyeOffset));
-				const XrQuaternionf InverseHead = {-Head.x,-Head.y,-Head.z,Head.w};
-				const auto Relative = NormalizeOpenXRQuaternion(MultiplyOpenXRQuaternions(InverseHead,Eye));
+				const auto Relative = OpenXREyeToHeadOrientation(Head,Eye);
 				const auto Forward = RotateOpenXRVector(Relative,Vector(0,0,-1));
 				Check(Near(Forward,Vector(-std::sin(Cant),0,-std::cos(Cant))), "independent eye cant survives head-relative conversion");
 				const auto Right = RotateOpenXRVector(Eye,Vector(1,0,0));

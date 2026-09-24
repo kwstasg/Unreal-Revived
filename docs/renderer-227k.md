@@ -374,10 +374,19 @@ VR quality now defaults to Balanced (runtime-recommended per-eye scene/output si
 Current profile is no longer selectable; internal allocation recovery remains.
 See [VR quality](vr-render-quality.md) for presets and validation.
 
-The single Vignette slider retains its original falloff through 50%. Above that,
-its outer radius contracts smoothly from 0.72 to 0.52 normalized UV units;
-the clear inner radius remains 0.30. This restores the gentler owner-accepted
-maximum after the narrower 0.16/0.38 mask caused visible stereo overlap on CV1.
-Zero remains off. The mask is centered separately in each eye image, not in a
-shared angular frame; reducing coverage does not establish stereo alignment or
-comfort. HUD/menu exclusions remain intact. Desktop appearance was accepted; VR visibility and stereo alignment remain open.
+The single Vignette slider preserves the accepted desktop falloff: clear inner
+radius 0.30, outer radius 0.72 contracting to 0.52 above 50% intensity. In VR,
+each output pixel instead reconstructs its viewing ray from the runtime eye FOV
+and rotates it into the shared head frame using inverse(head) * eye orientation.
+This handles asymmetric projections and eye cant without changing scene projection.
+The [OpenXR FOV convention](https://registry.khronos.org/OpenXR/specs/1.1/man/html/XrFovf.html)
+and the existing positive-up final-presentation UV convention define that ray.
+
+Both eyes use the same angular fade. The single slider increases opacity and
+contracts the clear/faded boundary from 55/75 degrees to 35/55 degrees off head
+forward at 100%. Zero remains off. This is a static head-relative angular mask,
+not eye tracking, a finite-depth object or an automatic locomotion effect. HUD/menu
+exclusion remains intact; desktop presentation receives no eye rotation and retains
+its existing curve. Shader tests cover equal ray attenuation across asymmetric,
+horizontally/vertically canted eyes, a clear center, useful attenuation at 45 degrees,
+UI exclusion and desktop falloff. CV1 visual acceptance is still required.

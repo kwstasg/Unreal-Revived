@@ -229,6 +229,7 @@ std::string FileResource::readAllText(const std::string& filename)
 				float4 VRPanelRight;
 				float4 VRPanelUp;
 				float4 VREyeTangents;
+				float4 VRVignetteEyeToHead;
 			}
 
 			SamplerState samplerTex : register(s0)
@@ -407,6 +408,20 @@ std::string FileResource::readAllText(const std::string& filename)
 						float innerRadius = 0.30;
 						float outerRadius = lerp(0.72, 0.52, coverage);
 						float vignette = smoothstep(innerRadius, outerRadius, radialDistance);
+						if (dot(VRVignetteEyeToHead, VRVignetteEyeToHead) > 0.5)
+						{
+							// UV Y is positive up in this final presentation pass. Reconstruct
+							// the ray, including asymmetric FOV, then remove optical eye cant.
+							float3 ray = float3(lerp(VREyeTangents.xz, VREyeTangents.yw, input.texCoord), -1.0);
+							float3 twiceCross = 2.0 * cross(VRVignetteEyeToHead.xyz, ray);
+							ray += VRVignetteEyeToHead.w * twiceCross + cross(VRVignetteEyeToHead.xyz, twiceCross);
+							float angle = atan2(length(ray.xy), -ray.z);
+							// One head-centered angular fade for both eyes. Keep a broad clear
+							// center: at full strength the transition spans 35 to 55 degrees.
+							float amount = smoothstep(0.0, 1.0, VignetteIntensity);
+							vignette = smoothstep(lerp(0.9599311, 0.6108652, amount),
+								lerp(1.3089969, 0.9599311, amount), angle);
+						}
 						processedWorld *= 1.0 - vignette * VignetteIntensity;
 					}
 					float3 finalColor = texFinalFrame.Sample(samplerTex, input.texCoord).rgb;

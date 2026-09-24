@@ -65,6 +65,7 @@ struct PresentPushConstants
 	vec4 VRPanelRight;
 	vec4 VRPanelUp;
 	vec4 VREyeTangents;
+	vec4 VRVignetteEyeToHead;
 };
 
 struct BloomPushConstants
