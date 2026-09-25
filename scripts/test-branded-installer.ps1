@@ -92,7 +92,12 @@ function Run-Uninstaller {
 }
 
 Run-Installer 'fresh'
+$freshHashes = @{}
+foreach ($name in @('Unreal.ini','UnrealVR.ini','User.ini','ModernVRWeapons.ini')) {
+    $freshHashes[$name] = (Get-FileHash -LiteralPath (Join-Path $system $name)).Hash
+}
 & (Join-Path $PSScriptRoot 'test-branded-launchers.ps1') -RuntimeRoot $installed
+Copy-Item -Path (Join-Path $system '*.log') -Destination $TestRoot
 
 # Modify installed settings to verify their uninstall backup. Reinstall seeds defaults.
 Import-Module (Join-Path $PSScriptRoot 'UnrealRevived.Ini.psm1') -Force
@@ -108,6 +113,7 @@ Set-Content -LiteralPath (Join-Path $installed 'Save/validation-save.txt') -Valu
 $tuningPath = Join-Path $system 'ModernVRWeapons.ini'
 $tuningLines = Set-UnrealRevivedIniValue (Get-Content -LiteralPath $tuningPath) 'ModernMenu.ModernVRWeaponTuning' 'Profiles' '(WeaponClass="UnrealShare.AutoMag",Scale=1.23,GazeOffsetCM=(X=4,Y=5,Z=6),MotionOffsetCM=(X=7,Y=8,Z=9))'
 Set-Content -LiteralPath $tuningPath -Value $tuningLines -Encoding ASCII
+Add-Content -LiteralPath (Join-Path $system 'User.ini') -Value "`r`n[ValidationOldSettings]`r`nMarker=$token" -Encoding ASCII
 $savedHashes = @{}
 foreach ($name in @('Unreal.ini','UnrealVR.ini','User.ini','ModernVRWeapons.ini')) { $savedHashes[$name] = (Get-FileHash -LiteralPath (Join-Path $system $name)).Hash }
 Run-Uninstaller
@@ -121,8 +127,8 @@ foreach ($name in $savedHashes.Keys) {
 Write-Host 'PASS: uninstall retains saves and backs up all four profiles exactly'
 Run-Installer 'reinstall'
 if ((Get-Content -LiteralPath (Join-Path $installed 'Save/validation-save.txt') -Raw).Trim() -ne $token) { throw 'Reinstall lost retained save' }
-foreach ($name in @('Unreal.ini','UnrealVR.ini','ModernVRWeapons.ini')) {
-    if ((Get-FileHash -LiteralPath (Join-Path $system $name)).Hash -eq $savedHashes[$name]) { throw "Reinstall retained modified settings: $name" }
+foreach ($name in $freshHashes.Keys) {
+    if ((Get-FileHash -LiteralPath (Join-Path $system $name)).Hash -ne $freshHashes[$name]) { throw "Reinstall did not restore fresh defaults: $name" }
 }
 Write-Host 'PASS: reinstall resets modified settings and retains saves and existing icon leftovers'
 Run-Uninstaller -RemoveSaves

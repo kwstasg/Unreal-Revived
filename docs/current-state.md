@@ -337,7 +337,13 @@ preserved 0.6.0 publication and validation record remains in
 ## Next priorities
 
 The authoritative current checklist is [pending tasks](pending-tasks.md), including
-CV1 acceptance of the new stereo-aligned vignette and current installer acceptance.
+CV1 visual acceptance of horizon lock and the new stereo-aligned vignette.
+The September 25 current-source installer passed the isolated install/uninstall/
+reinstall lifecycle after settings-migration removal. All four profiles returned
+to fresh defaults and saves were retained. Desktop/VR startup and restart passed;
+Oculus/CV1 initialized in IDLE, without headset visual acceptance. The local
+package records base revision `d2eda30` and a dirty tree including the separately
+reviewed music changes. No new publication or push is authorized or performed.
 
 The spatial UI milestone was user-accepted on 2026-09-10: complete desktop-like
 HUD/menu layout on one upright OpenXR panel, explicit UI recenter, and stable,

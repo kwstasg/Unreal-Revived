@@ -22,12 +22,9 @@ release notes are historical evidence, not a second backlog.
   headsets in [the compatibility guide](vr-controller-compatibility.md), including
   canted/wide-FOV optics, per-eye resolution, bindings and disconnect behavior.
   CV1 Touch and Xbox remain the owner's accepted baseline.
-- **Installer acceptance:** after packaging the current source, repeat the full
-  isolated lifecycle, including fresh settings and retained saves. The September
-  21 lifecycle predates the removal of installer settings migration. Packaging
-  and publication have not been performed as part of this cleanup.
 - **Uncommitted music work:** existing menu navigation changes, its regression
-  fixture and documentation remain intact and outside the cleanup commit.
+  fixture and documentation remain intact and outside the VR/installer commits.
+  Reviewed and regression-tested again on September 25; still uncommitted.
 
 ## Broader coverage and future work
 
@@ -43,6 +40,10 @@ release notes are historical evidence, not a second backlog.
 
 ## Closed or removed
 
+- Current-source installer lifecycle: passed September 25 after settings-migration
+  removal, including four fresh-profile hash comparisons, retained saves, exact
+  backups, fixture exclusion and desktop/VR startup/restart. Oculus/CV1 initialized
+  in IDLE; this does not establish headset visual acceptance. No publication/push.
 - Focus-loss stutter: closed at the owner's direction; do not reopen as pending.
 - Live VR quality, Balanced default, FPS/resolution feedback, bloom, gaze swimming/
   flying, pitch recovery and B/back behavior: owner accepted on CV1.

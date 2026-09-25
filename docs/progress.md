@@ -11,6 +11,26 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Packaged current source through `local/build` and passed the isolated validation
+  installer lifecycle after migration removal: fresh install, production fixture
+  exclusion, payload/host hashes, desktop/VR startup and restart, exact backups,
+  save retention, reinstall with all four profiles matching their original fresh
+  SHA-256 hashes, and final removal/cleanup. Oculus 1.207.0 detected CV1 and
+  initialized the session in IDLE; this is not optical acceptance. Validation
+  registration, shortcuts and uniquely identified test backups were removed.
+  Package: `local/package/offline-installer/output/UnrealRevived-Setup-0.8.0.exe`,
+  SHA-256 `A75BEE74EB4A1176D7DF717345A4D3682E623B7708E58C42A2DB785D4EC449D6`.
+  Manifest: base `d2eda30`, `sourceDirty=true`, including reviewed uncommitted
+  music navigation. No publication/push. Evidence: `local/logs/horizon-20260925`.
+  Save/load/travel and the separate music fixture also passed
+  (`VRTravel-20260925-103024.log`, `MusicReview-20260925.log`).
+  Outside-sandbox live probes verified runtime-driven per-eye dimensions at all
+  four presets (`VRQuality-20260925-104222-1..4.log`); no stereo frame was submitted
+  while the session remained idle. All 35 protected profile/save hashes remained
+  unchanged. Removed the generated native-test tree, duplicate validation installer
+  and completed test runtime after retaining evidence; canonical build/current
+  package remain. Repository safety, whitespace and local Markdown links passed.
+
 - Audited horizon lock and found full-head world-reference capture could store
   pitch/roll on startup or recenter. World capture now uses heading only, retaining
   previous heading near vertical gaze. Natural tracking, yaw transfer, authored

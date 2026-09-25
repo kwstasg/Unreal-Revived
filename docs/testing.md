@@ -846,6 +846,14 @@ profiles return to the fresh defaults while a save sentinel remains unchanged.
 The disposable directory is removed on success or failure.
 The full branded-installer lifecycle separately checks actual uninstall/reinstall
 and backup behavior; profile migration is no longer part of that contract.
+`scripts/test-branded-installer.ps1` requires an installer compiled from the same
+staged payload with `/DValidationBuild` and a new test directory under `local/`.
+It verifies production fixture exclusion and launcher startup/restart, backs up
+modified settings, retains the save sentinel, and requires all four reinstalled
+profiles to match their pre-launch fresh-install SHA-256 hashes exactly.
+Startup logs are copied to the test root before uninstall. Its validation-only
+registration, shortcuts and uniquely identified backups are removed on success.
+VR launcher fallback startup is not evidence of a working headset session.
 
 ## Multi-profile controllers and menu back
 

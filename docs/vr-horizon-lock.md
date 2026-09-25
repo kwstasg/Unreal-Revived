@@ -44,6 +44,11 @@ Production pose-math tests cover pitched/rolled recenter, straightening, preserv
 natural tilt/yaw, vertical-gaze fallback and composition with an authored camera.
 The nine native suites include remount scheduling and the stereo vignette shader.
 These are automated/math checks, not CV1 optical or comfort acceptance.
+Canonical builds, gameplay and save/load/travel regressions passed. The packaged
+launcher initialized Oculus/CV1 and all four live eye-size probes passed outside
+the sandbox, but the session remained idle with no stereo frames submitted.
+The earlier sandboxed probe reported runtime unavailable (-51). Evidence is in
+`local/logs/horizon-20260925`; neither result substitutes for the following checks.
 
 In CV1, repeat startup, save loading and remove/replace with the head upright,
 looking up/down and tilted sideways. Recenter in each pose, then straighten and
