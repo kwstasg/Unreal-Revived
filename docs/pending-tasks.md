@@ -5,11 +5,6 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **Motion-to-gaze weapon offsets after loading:** fixed animation-dependent
-  first-use geometry caching for stock/UPak meshes. All 14 profiles pass actual
-  save/load scale and handed-placement checks; cold-cache animation tests also
-  cover Old Weapons pistols. CV1 confirmation of the reported RocketLauncher
-  offset and the other weapons remains pending. Calibration values are preserved.
 - **Other headsets/controllers:** obtain hardware reports for the profiles and
   headsets in [the compatibility guide](vr-controller-compatibility.md), including
   canted/wide-FOV optics, per-eye resolution, bindings and disconnect behavior.

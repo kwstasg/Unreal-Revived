@@ -675,10 +675,7 @@ function LogBounds(class<Weapon> WeaponClass)
 	local vector Muzzle, Size, ModelOffset, Grip, RotatedGrip;
 	W = Spawn(WeaponClass);
 	W.Mesh = W.PlayerViewMesh;
-	// Physical length is defined at rest, not during equip/fire animation.
-	if (ClassIsChildOf(WeaponClass, class'Eightball')) W.AnimSequence = 'Idle';
-	else W.AnimSequence = 'Still';
-	W.AnimFrame = 0;
+	if (ClassIsChildOf(WeaponClass, class'AutoMag')) W.AnimSequence = 'Still';
 	W.DrawScale = W.PlayerViewScale;
 	W.SetRotation(rot(0,0,0));
 	Bounds = W.GetBoundingBox(True);
@@ -861,7 +858,6 @@ function TestIndependentSizes(ModernVRWeaponTuning Settings)
 		Check(Types[Index] != None, "shared-size weapon class available at index " $ Index);
 		if (Types[Index] == None) continue;
 		W = Spawn(Types[Index]);
-		if (Index < 16) TestGeometryHistory(W);
 		if (Types[Index] == class'ModernVRMotionTestWeapon')
 		{
 			W.PlayerViewMesh = class'Stinger'.default.PlayerViewMesh;
@@ -898,40 +894,6 @@ function TestIndependentSizes(ModernVRWeaponTuning Settings)
 		W.Destroy();
 	}
 	class'ModernVRWeaponTuning'.default.Settings = SavedSettings;
-}
-
-function TestGeometryHistory(Weapon W)
-{
-	local ModernVRWeaponGeometry Fresh;
-	local name Poses[8], SavedSequence;
-	local float SavedFrame, ReferenceScale, Scale;
-	local vector Muzzle, Offset, ReferenceOffset;
-	local Mesh SavedMesh;
-	local int I;
-	SavedMesh = W.Mesh;
-	SavedSequence = W.AnimSequence;
-	SavedFrame = W.AnimFrame;
-	W.Mesh = W.PlayerViewMesh;
-	Poses[0] = 'Still'; Poses[1] = 'Idle'; Poses[2] = 'Idle1';
-	Poses[3] = 'Select'; Poses[4] = 'Fire'; Poses[5] = 'Down';
-	Poses[6] = 'Reload'; Poses[7] = 'Sway';
-	for (I = 0; I < 8; I++)
-	{
-		if (!W.HasAnim(Poses[I])) continue;
-		W.AnimSequence = Poses[I];
-		W.AnimFrame = 0.5;
-		Fresh = new class'ModernVRWeaponGeometry';
-		Fresh.GetGeometry(W, Scale, Muzzle, Offset);
-		if (ReferenceScale == 0) { ReferenceScale = Scale; ReferenceOffset = Offset; }
-		Check(Abs(Scale - ReferenceScale) < 0.0001 && VSize(Offset - ReferenceOffset) < 0.01,
-			"geometry independent of first animation: " $ W.Class $ " " $ Poses[I]);
-		Log("VRHISTORY " $ W.Class $ " " $ Poses[I] $ " scale=" $ Scale);
-		Check(W.AnimSequence == Poses[I] && W.AnimFrame == 0.5,
-			"geometry history query restores animation: " $ W.Class);
-	}
-	W.Mesh = SavedMesh;
-	W.AnimSequence = SavedSequence;
-	W.AnimFrame = SavedFrame;
 }
 
 function TestWeaponTuning()

@@ -11,23 +11,6 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
-- Investigated weapons offset after motion startup, gaze selection and save load.
-  Reproduced first-use animation dependence in geometry bounds: RocketLauncher
-  scale was 12.771392 at Still versus 10.0 at Fire in the diagnostic, with several
-  other families affected. Bounds now follow the fixed stock muzzle reference
-  pose; DispersionPistol uses Still for base size independently of upgrade state.
-  Live animation is restored; profiles, family lengths, HUD and controls are unchanged.
-- Added failing-before/fixed-after cold-cache animation coverage for all 14
-  stock/UPak families and two Old Weapons pistols, plus actual save/load comparisons
-  of all 14 profiles' gaze scale and right/center/left placement after motion-cache
-  initialization. ModernMenu build/deploy passed with zero warnings, weapon and
-  map-travel/save/load regressions passed. Listen-host firing, live calibration
-  reload/removal and Unreal/NyLeve desktop checks also passed. Repository safety
-  and whitespace checks passed; temporary exported sources were removed.
-  Logs: `local/logs/vr-gaze-switch-20260925/`;
-  runtime logs `VRMotionRegression-20260925-134352.log` and
-  `VRTravel-20260925-134358.log`. CV1 report confirmation remains pending.
-
 - Owner accepted automatic HUD recovery and the recenter-height fix at `b69ae2c`
   ("wow looks awsome"). Recorded the new CV1 baseline and closed pending overall
   visual acceptance while retaining individual regression scenarios. Reviewed

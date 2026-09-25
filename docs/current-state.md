@@ -6,12 +6,6 @@ history.
 
 ## Current VR quality development checkpoint
 
-The motion-to-gaze/save-load weapon report exposed animation-dependent geometry
-cache initialization. Stock weapon bounds now use a fixed reference pose, matching
-the existing resting muzzle samples; calibration files remain unchanged. All 14
-stock/UPak profiles pass save/load scale and handed-placement regression checks.
-The deployed fix still needs CV1 confirmation, especially UPak.RocketLauncher.
-
 Preferences > VR now offers Smooth (unchanged default), Instant Snap and Smooth
 Snap, with a 15-90-degree snap-angle slider defaulting to 30 degrees. The owner
 accepted turning behavior as perfect and requested these snap-mode names.
