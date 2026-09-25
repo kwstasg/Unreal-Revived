@@ -11,6 +11,13 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Owner accepted both world/HUD horizon lock and the revised VR vignette as
+  perfect on CV1 at checkpoint `232f768`. Closed both visual-acceptance tasks and
+  preserved heading-only world/panel recenter plus the shared 20-40-degree maximum
+  fade as the accepted baseline. Other-headset coverage remains unverified. This
+  acceptance is documentation-only: no rebuild, packaging, publication or push;
+  the existing installer predates this follow-up. Music edits remain separate.
+
 - Owner confirmed the world horizon fix but reported HUD tilt and a barely
   visible VR vignette. Explicit recenter now captures heading only for the HUD
   too, keeping the panel upright at eye height without changing size/distance,

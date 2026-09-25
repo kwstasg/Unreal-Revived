@@ -385,10 +385,12 @@ and the existing positive-up final-presentation UV convention define that ray.
 Both eyes use the same angular fade. The single slider increases opacity and
 contracts the clear/faded boundary from 40/60 degrees to 20/40 degrees off head
 forward at 100% (30/50 degrees at 50%). The earlier 35/55-degree maximum was
-reported barely visible in CV1; this revised coverage awaits visual acceptance.
+reported barely visible in CV1; the owner accepted this revised coverage as
+perfect on September 25 at checkpoint `232f768`.
 Zero remains off. This is a static head-relative angular mask,
 not eye tracking, a finite-depth object or an automatic locomotion effect. HUD/menu
 exclusion remains intact; desktop presentation receives no eye rotation and retains
 its existing curve. Shader tests cover equal ray attenuation across asymmetric,
 horizontally/vertically canted eyes, a clear center, useful attenuation at 45 degrees,
-UI exclusion and desktop falloff. CV1 visual acceptance is still required.
+UI exclusion and desktop falloff. CV1 visual acceptance is complete; other
+headsets remain hardware-unverified.

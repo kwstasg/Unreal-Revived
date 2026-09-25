@@ -11,8 +11,9 @@ World capture now uses heading only; the owner confirmed the world fix. HUD
 recenter now uses heading only too after the owner reported remaining panel tilt.
 Natural head tracking and scripted cameras remain. The VR vignette was reported
 barely visible; its maximum fade now spans 20-40 degrees instead of 35-55.
-[HUD horizon-lock acceptance](vr-horizon-lock.md) and the revised stereo vignette
-still require CV1 visual testing.
+The owner accepted [world/HUD horizon lock](vr-horizon-lock.md) and the revised
+stereo vignette as perfect on CV1 on September 25 at checkpoint `232f768`.
+Preserve this baseline; other-headset validation remains separate.
 
 After owner acceptance of controller/menu behavior, Balanced (100%) is the default.
 The temporary Current profile option is removed; four runtime-scaled presets remain.
@@ -339,8 +340,9 @@ preserved 0.6.0 publication and validation record remains in
 
 ## Next priorities
 
-The authoritative current checklist is [pending tasks](pending-tasks.md), including
-CV1 visual acceptance of horizon lock and the new stereo-aligned vignette.
+The authoritative current checklist is [pending tasks](pending-tasks.md).
+World/HUD horizon lock and the stereo vignette have CV1 owner acceptance at
+`232f768`; the separate music checkpoint and community hardware reports remain.
 The September 25 current-source installer passed the isolated install/uninstall/
 reinstall lifecycle after settings-migration removal. All four profiles returned
 to fresh defaults and saves were retained. Desktop/VR startup and restart passed;

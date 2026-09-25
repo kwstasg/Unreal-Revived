@@ -40,7 +40,12 @@ compose with tracking; authored flyby/view-target tilt is not flattened.
   world heading/position and the independent upright UI reference are captured
   between eye frames. No controller mappings changed.
 
-## Evidence and remaining acceptance
+## Evidence and acceptance
+
+On September 25 the owner accepted both world/HUD horizon lock and the revised
+vignette as perfect on CV1 at checkpoint `232f768`. This closes their CV1 visual
+acceptance tasks; it does not establish other-headset compatibility. The cases
+below remain the regression checklist for future camera/panel changes.
 
 Production pose-math tests cover pitched/rolled recenter, straightening, preserved
 natural tilt/yaw, vertical-gaze fallback and composition with an authored camera.
@@ -58,5 +63,4 @@ turn left/right: world verticals must stay aligned with physical gravity, while
 natural head motion stays visible. Check mouse yaw and vertical mouse movement,
 the intro flyby and view-target cameras. The HUD should remain upright at eye
 height along the captured horizontal heading, and stay fixed when menus open/close.
-The owner confirmed the world fix; the updated HUD behavior still needs CV1
-acceptance. Focus-loss stutter remains closed.
+World and HUD behavior have CV1 owner acceptance. Focus-loss stutter remains closed.

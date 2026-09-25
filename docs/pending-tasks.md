@@ -5,17 +5,6 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **HUD horizon-lock acceptance:** owner confirmed the world fix but reported
-  remaining HUD tilt. Explicit panel recenter now captures heading only too.
-  Test looking up/down and tilting sideways, then straighten: panel stays upright
-  at eye height while natural head motion remains tracked. Preserve yaw, authored
-  cameras and panel size/distance. See [audit and CV1 cases](vr-horizon-lock.md).
-- **VR vignette acceptance:** shared head-relative angular masking is implemented
-  and passes production shader tests for asymmetric/canted eyes. Desktop falloff
-  is preserved. Owner reported the 35-55-degree maximum barely visible; maximum
-  coverage now fades over 20-40 degrees. Check 0/50/100% in CV1 for visibility and a single aligned fade,
-  including head rotation, menus and quality changes. Hardware comfort/appearance
-  is not established by the automated tests.
 - **Other headsets/controllers:** obtain hardware reports for the profiles and
   headsets in [the compatibility guide](vr-controller-compatibility.md), including
   canted/wide-FOV optics, per-eye resolution, bindings and disconnect behavior.
@@ -38,6 +27,10 @@ release notes are historical evidence, not a second backlog.
 
 ## Closed or removed
 
+- World/HUD horizon lock and revised VR vignette: owner accepted both as perfect
+  on CV1 on September 25, at checkpoint `232f768`. Preserve heading-only world/
+  panel capture and the shared 20-40-degree maximum fade. Other hardware remains
+  unverified; the existing installer predates this accepted follow-up.
 - Current-source installer lifecycle: passed September 25 after settings-migration
   removal, including four fresh-profile hash comparisons, retained saves, exact
   backups, fixture exclusion and desktop/VR startup/restart. Oculus/CV1 initialized

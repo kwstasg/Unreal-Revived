@@ -92,8 +92,9 @@ are harmless compatibility input and no longer select a separate layout.
 The world reference is independent of that panel anchor. The September 25
 [horizon-lock audit](vr-horizon-lock.md) changed world capture to heading only,
 so recentering with head tilt cannot store pitch/roll in the environment. Natural
-head pitch/roll remains tracked. The owner confirmed the world fix; upright HUD
-recenter now awaits CV1 validation.
+head pitch/roll remains tracked. The owner accepted world/HUD horizon lock as
+perfect on CV1 on September 25 at checkpoint `232f768`. This upright panel
+behavior supersedes the earlier full-pose recenter baseline.
 
 ## Rules for future changes
 
