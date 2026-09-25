@@ -1,38 +1,36 @@
 # Unreal Revived 0.9.0
 
-**Stay immersed. Turn your way. Make the view your own.**
-
 *Release candidate: installer lifecycle passed; final owner check pending.*
 
-Return to Unreal and Na Pali with a VR experience that adapts to how you play.
-Keep your HUD nearby, choose your turning style and adjust visual quality on the
-spot—all while retaining the desktop game and your familiar controls.
+Version 0.9.0 includes VR HUD positioning, recentering and turning improvements,
+runtime render-quality settings, and controller and menu fixes. Existing desktop
+play and controller mappings are retained.
 
 ## Highlights
 
-- **A HUD that keeps up.** Stable during small seated movements, with gentle
+- **Automatic HUD repositioning.** Stable during small seated movements, with gentle
   automatic recovery when you stand, step or turn farther away. No mode selection
   needed. Menus stay stationary while you interact.
-- **A level horizon.** Recenter while looking up, down or sideways without storing
+- **World and HUD horizon lock.** Recenter while looking up, down or sideways without storing
   head tilt in the world or HUD. Natural headset orientation remains tracked.
-- **Keep your standing height.** Recenter after standing without dropping your
+- **Recenter height preservation.** Recenter after standing without dropping your
   viewpoint back toward the ground during the same VR session.
-- **Turn your way.** Smooth, Instant Snap or Smooth Snap, with snap angles from
+- **VR turning modes.** Smooth, Instant Snap or Smooth Snap, with snap angles from
   15° to 90°. Smooth remains default; snap starts at 30°.
-- **Tune quality live.** Switch between 75%, 100%, 125% and 150% of the runtime's
+- **VR render-quality presets.** Switch between 75%, 100%, 125% and 150% of the runtime's
   recommended per-eye dimensions without restarting. Balanced 100% is default.
-- **A more coherent VR vignette.** Shared head-relative fading across both eyes,
-  stronger visible coverage and one simple slider. Desktop appearance is preserved.
-- **Look where you swim and fly.** Gaze-directed vertical movement complements
+- **Stereo VR vignette.** Shared head-relative fading across both eyes,
+  stronger visible coverage and a single slider. Desktop appearance is preserved.
+- **Gaze-directed swimming and flying.** Gaze-directed vertical movement complements
   the existing horizontal movement on foot.
-- **Smoother menu navigation.** More consistent controller Back behavior and
+- **Controller and music-menu navigation.** More consistent controller Back behavior and
   improved music-player navigation and playback controls.
-- **Useful visual feedback.** VR-aware F11 statistics, clearer desktop resolution
+- **Rendering statistics and display fixes.** VR-aware F11 statistics, clearer desktop resolution
   labels and corrected VR bloom behavior.
-- **Prepared for more hardware.** Expanded OpenXR controller profiles and per-eye
-  runtime sizing, with community hardware validation still needed.
+- **OpenXR hardware compatibility.** Additional controller profiles and runtime-driven
+  per-eye sizing, with community hardware validation still needed.
 
-Read [everything new since 0.8.0](../CHANGELOG.md) for the full changelog.
+Read [changes since 0.8.0](../CHANGELOG.md) for the full changelog.
 
 ## Installing and updating
 

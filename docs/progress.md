@@ -11,6 +11,10 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Replaced promotional 0.9.0 slogans and headings with standard feature names
+  in the changelog, release highlights and README at the owner's request. Updated
+  remaining installer-status summaries to reflect the completed lifecycle checks.
+
 - Built the production 0.9.0 installer from clean `ae367b82` using `local/build`.
   Isolated installation, desktop/expansion/OldWeapons/VR startup and Preferences
   restart, uninstall with exact profile backups/save retention, fresh-profile
