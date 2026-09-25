@@ -19,6 +19,9 @@ play and controller mappings are retained.
   needed. Menus stay stationary while you interact.
 - **World and HUD horizon lock.** Recenter while looking up, down or sideways without storing
   head tilt in the world or HUD. Natural headset orientation remains tracked.
+- **Accidental mouse movement fix in VR.** Mouse movement no longer adds unwanted
+  camera pitch during normal first-person VR play. Head tracking and yaw turning
+  remain available.
 - **VR render-quality presets.** Switch between 75%, 100%, 125% and 150% of the runtime's
   recommended per-eye dimensions without restarting. Balanced 100% is default.
 - **Gaze-directed swimming and flying.** Gaze-directed vertical movement complements

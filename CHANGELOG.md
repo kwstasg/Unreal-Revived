@@ -40,9 +40,15 @@ distance and size controls are retained.
 Recenter while looking up, down or tilting your head: the world reference and HUD
 remain level, while your natural head movement stays fully tracked. Standing
 after seated play and recentering now preserves the height you gained instead
-of lowering your viewpoint again within the same VR session. Mouse input no
-longer adds unwanted software pitch in normal first-person VR; loading saves
+of lowering your viewpoint again within the same VR session. Loading saves
 and returning to the headset also recover unwanted software tilt.
+
+### Accidental mouse movement fix in VR
+
+Mouse movement no longer adds unwanted camera pitch during normal first-person
+VR play, preventing accidental mouse movement from tilting the world up or down.
+Natural headset orientation, yaw turning and accepted scripted-camera behavior
+are preserved. Desktop mouse-look behavior is unchanged.
 
 ### VR render-quality presets and statistics
 
