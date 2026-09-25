@@ -11,6 +11,14 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Audited the clarified motion-save/restart/load/then-gaze order. No direct motion
+  calibration leak was found in render or firing restoration. Shared first-use
+  geometry and restored hand offsets remain hypotheses requiring equipped-state
+  evidence; the earlier reverted test neither restarted nor switched after load.
+  Recorded [the audit](vr-weapon-mode-load-audit.md). Owner reports no current
+  recurrence after rollback. No runtime changes or new fix claim; this was code
+  review, not a live headset reproduction.
+
 - Owner rejected `d267b77`: it did not resolve motion-to-gaze offsets and made
   more weapons wrong. Reverted the entire attempt in `129c000` and redeployed the
   previous ModernMenu through `local/build`. The pose-cache test exposed a
