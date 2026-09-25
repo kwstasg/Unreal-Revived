@@ -48,7 +48,7 @@ not an alternative to the supported CMake build.
 The OpenXR mode selection, runtime/HMD detection, D3D12 compatibility checks,
 session lifecycle, reference space, frame timing, stereo rendering, eye
 swapchains, and shared VR UI composition live in the D3D12 package, with the
-Khronos loader supplied as a pinned CMake dependency. The seated VR baseline
+Khronos loader supplied as a pinned CMake dependency. The seated and standing VR baseline
 has been accepted on Rift CV1; it is not a placeholder for future implementation.
 RTX support and the Vulkan driver have no assigned source layout yet. See
 [`roadmap.md`](roadmap.md) for milestone order and

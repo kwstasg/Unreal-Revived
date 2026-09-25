@@ -15,11 +15,12 @@ input, or save settings.
 
 ## Launch syntax
 
-The installed product starts directly from `System64\Unreal.exe` with no
-arguments. Its canonical `Unreal.ini` sets both `LocalMap` and 227's
-`AltLocalMap` to `Unreal.unr?Game=ModernMenu.ModernIntro`, so Explorer and the
-installer-created shortcuts select the Unreal Revived shell and intro HUD even
-when the Return to Na Pali campaign is installed.
+The installed product starts from `System64\UnrealRevived.exe` for desktop or
+`System64\UnrealRevivedVR.exe` for VR, without shortcut arguments. They select
+`Unreal.ini` and `UnrealVR.ini` respectively and share `User.ini` and saves. Both
+engine profiles select `Unreal.unr?Game=ModernMenu.ModernIntro` through `LocalMap`
+and 227's `AltLocalMap`, including when Return to Na Pali is installed. See
+[branded launchers](branded-launchers.md).
 
 The verified development-runtime command line remains:
 
@@ -365,7 +366,7 @@ Requested launches create an OpenXR instance, query the active runtime and
 head-mounted-display system, validate the D3D12 adapter and feature level, and
 attempt to create a session. When compatible, they allocate two eye swapchains,
 begin the session, locate the runtime views, and render independently culled
-eye cameras with runtime pose, IPD, asymmetric FOV, and seated head movement.
+eye cameras with runtime pose, IPD, asymmetric FOV, and tracked head movement.
 Spatial UI, recenter, head collision, gaze/motion aiming and gaze-directed
 walking/swimming/flying have CV1 owner acceptance. Balanced now renders at the
 runtime-recommended eye resolution, with live 75/100/125/150% presets. Other
@@ -390,7 +391,11 @@ as interchangeable when changing this code.
 
 ## Installer profile defaults
 
-The offline installer creates canonical `Unreal.ini` and `User.ini` profiles
+Menu rebuilds preserve existing graphics, VR and user video preferences; defaults
+are seeded during fresh runtime creation and installer staging.
+
+The offline installer creates desktop `Unreal.ini`, VR `UnrealVR.ini`, shared
+`User.ini` and `ModernVRWeapons.ini` calibration profiles
 from the pinned host defaults. It applies the following initial preferences
 without changing the original game installation or preventing the player from
 changing them later:

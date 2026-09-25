@@ -11,7 +11,8 @@ method. The owner accepted the shared gaze/motion weapon sizing, placement,
 firing alignment and HUD overlap on September 21. Other controller profiles and
 remote-client VR firing remain outside the validated support boundary.
 
-This document records the implemented seated VR mode and its remaining roadmap. The
+This document records the original seated VR milestone, its standing-play
+extensions in 0.9.0 and remaining roadmap. The
 mode-selection, loader, runtime/HMD detection, D3D12 compatibility, session
 lifecycle, frame timing, independent eye rendering, runtime IPD, asymmetric
 projection, and seated head-pose bridge are implemented locally. Live Oculus
@@ -33,9 +34,9 @@ and other-runtime hardware coverage remain open.
 Head-collision fade was user-validated on 2026-09-15: walls, corners and low
 ceilings fade to black and recover on retreat; a door, world-size adjustments,
 swimming in water and an elevator behaved normally.
-The eye swapchains use the runtime-recommended resolution; the UE1 scene is
-still rendered at the selected logical game resolution before being scaled
-into those swapchains.
+VR scene dimensions use each eye's runtime recommendation scaled by the live
+75/100/125/150% quality preset; Balanced 100% is default. Desktop resolution is
+independent. See [VR render quality](vr-render-quality.md).
 
 The spatial HUD/menu milestone was accepted in the headset on 2026-09-10:
 desktop-like canvas layout, one shared panel and stable live distance/scale.
@@ -65,9 +66,8 @@ motion and menu interaction stay stable. See the current
 - User-validated on 2026-09-15: progressive head-collision fade and recovery at
   walls, corners and low ceilings, plus a door, world-size adjustments, swimming
   in water and an elevator. This covers the reported scenarios, not every custom
-  map or trigger. Swimming movement semantics remain a separate roadmap item.
-- Still to implement: swimming/
-  flying movement semantics, desktop-mirror selection, and
+  map or trigger. Gaze-directed swimming/flying was accepted on September 24.
+- Still to implement: desktop-mirror selection and
   incompatible-overlay handling; finer weapon placement remains optional tuning.
 - Still to validate before support: saves and multiplayer behavior in VR,
   recovery/failure cases with a live runtime, Meta and SteamVR parity, extended
@@ -222,7 +222,7 @@ the accepted gaze-directed movement hooks.
 
 ## Deferred work
 
-The accepted CV1 baseline includes seated play, Touch aiming, Xbox controls,
+The accepted CV1 baseline includes seated and standing play, Touch aiming, Xbox controls,
 Smooth, Instant Snap and Smooth Snap turning, and gaze-directed swimming/flying.
 Automatic upright HUD recovery and height-preserving recenter were accepted at
 `b69ae2c`; these do not establish room-scale pawn movement/collision. The shared

@@ -7,15 +7,25 @@ implemented but unvalidated path as a confirmed compatibility claim. See
 [`current-state.md`](current-state.md) for the precise validation and release
 boundary.
 
-## Rendering and image quality
+## VR gameplay and presentation
 
-The source also includes the user-accepted [VR HUD/menu milestone](vr-ui-recovery-design.md):
-complete desktop-like layout on a shared fixed panel, stable distance/scale
-controls in VR Preferences, and explicit recenter without menu-transition jumps.
-The 0.6.1 release also includes accepted head tracking, gaze-aligned gamepad
-movement, quick recenter bindings, corrected VR UI colors, and a spatial VR HUD
-for Return to Na Pali. Rift CV1 is the validated headset; broader
-runtime/gameplay compatibility remains ongoing.
+Version 0.9.0 builds on the accepted CV1 Touch/Xbox baseline. See the
+[release highlights](release-0.9.0.md) and [changelog](../CHANGELOG.md).
+
+| Feature | Description |
+| --- | --- |
+| Seated and standing VR | Supports standing, tracked stepping and turning with automatic HUD recovery. Physical walking does not move the gameplay collision body. |
+| VR turning modes | Smooth (default), Instant Snap and Smooth Snap; snap angles from 15 to 90 degrees, defaulting to 30. |
+| Automatic HUD repositioning | Keeps small seated movements stable, follows sustained larger movement and holds menus stationary during interaction. |
+| World and HUD horizon lock | Captures heading without storing headset pitch/roll on recenter. Natural head tracking remains active. |
+| Accidental mouse movement fix | Prevents mouse-induced camera pitch in normal first-person VR while preserving yaw and desktop mouse look. |
+| VR render-quality presets | Applies 75/100/125/150% runtime-based per-eye sizing immediately; Balanced 100% is default. |
+| Gaze-directed swimming and flying | Follows vertical as well as horizontal gaze during swimming and flying. |
+| Stereo VR vignette | Uses a shared head-relative fade with one opacity/coverage slider; desktop appearance is retained. |
+| OpenXR hardware compatibility | Includes additional controller profiles and runtime-driven per-eye sizing. |
+| VR bloom correction | Corrects bloom behavior in VR. |
+
+## Rendering and image quality
 
 | Feature | Description |
 | --- | --- |
@@ -45,14 +55,15 @@ runtime/gameplay compatibility remains ongoing.
 | Feature | Description |
 | --- | --- |
 | Refreshed menu package | Adds ModernMenu as a separate UnrealScript package without replacing the network-sensitive stock `UMenu.u` package. |
-| Focused preferences | Provides dedicated Video, Input, and Bindings pages with obsolete or irrelevant legacy controls removed from the normal flow. |
+| Focused preferences | Provides dedicated Video, VR, Input, and Bindings pages with obsolete or irrelevant legacy controls removed from the normal flow. |
 | Consistent control layout | Aligns checkboxes, sliders, values, reset actions, and labels for easier scanning and adjustment. |
-| Persistent FPS statistics | Adds a Video checkbox and F11 command for a compact FPS, average, low, high, resolution, and VSync overlay that persists across maps. |
+| Persistent FPS statistics | Adds a Video checkbox and F11 command for a compact FPS, average, low, high, resolution, and VSync overlay that persists across maps. In active VR it reports application FPS and per-eye scene resolution. |
 | Keyboard focus visibility | Uses a solid two-pixel gold outline to show the active interactive control without outlining its label or dropdown contents. |
 | Mouse-wheel navigation | Scrolls every Preferences tab without requiring the pointer to first focus a specific control. |
 | Live game view behind menus | Provides a persistent, default-enabled HUD option that shows the paused game world behind the menu and previews the choice immediately. |
 | HUD scaling controls | Provides Crosshair Scale and HUD Scale sliders with live values, reset controls, and validated 1.5x defaults. |
 | Controller menu navigation | Supports menu toggle, directional focus, activation, return, tab switching, scrolling, combo boxes, slider reset, and binding capture. |
+| Music-player navigation | Supports keyboard/controller playlist selection, playback, Browse and empty-list handling. |
 | Controller-aware dialogs | Supports controller traversal and activation in message boxes, New Game, Load, and Save, including wrapping and scrolling through slots. |
 | Original campaign launch path | Starts the selected campaign through the stock New Game action while exposing every visible action in controller order. |
 
@@ -87,7 +98,7 @@ runtime/gameplay compatibility remains ongoing.
 | Save-game support | Retains normal saves and protects an existing save-only installation directory during reinstall. |
 | Renderer recovery | Registers Direct3D 12 for normal use while retaining standard OpenGL and XOpenGL as recovery renderers. |
 | Modern audio path | Uses ALAudio with bundled OpenAL Soft as the supported audio engine instead of deprecated Galaxy or experimental SwFMOD. |
-| Canonical installed startup | Launches the installed product from `System64\Unreal.exe` with standard `Unreal.ini` and `User.ini` profiles and no development arguments. |
+| Canonical installed startup | Uses `System64\UnrealRevived.exe` for desktop and `System64\UnrealRevivedVR.exe` for VR, with separate engine profiles and shared controls/saves. |
 
 ## Installation and maintenance
 
@@ -104,7 +115,7 @@ runtime/gameplay compatibility remains ongoing.
 | Interactive uninstall | Uses one branded confirmation before standard uninstall progress, removes only Unreal Revived, and explicitly leaves the source Unreal Gold installation and OldUnreal downloads unchanged. |
 | Save preservation policy | Retains saves by default and backs up saves, desktop/VR profiles, controls and weapon calibration before removal. The isolated silent lifecycle verifies exact preservation and retained-save reinstall; it does not automate clicks in the interactive confirmation dialog. |
 | Reinstall protection | Accepts a retained save-only destination and prevents original-game saves from overwriting those retained files. |
-| Installed shortcuts | Creates a Start Menu shortcut and offers an optional desktop shortcut; both launch the canonical installed profile without development arguments. |
+| Installed shortcuts | Provides separate desktop and VR entries in the Start Menu and optional desktop shortcuts, without development arguments. |
 | Project credits | Displays the Unreal Revived banner above the preserved original, OldUnreal, driver, author, and project-link credits. |
 
 ## Recovery and quality assurance

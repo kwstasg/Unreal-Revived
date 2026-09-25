@@ -33,8 +33,9 @@ release notes are historical evidence, not a second backlog.
 - Complete Advanced/Mutator controller workflows and broader controller lifecycle
   coverage (including DS4 reconnect) need hardware/manual validation.
 - Selectable desktop VR mirror and more detailed runtime status remain planned.
-- Stereo comfort options, tracked hands and full room-scale
-  design are not established by the current seated controller support.
+- Additional comfort options, tracked hands and full room-scale locomotion with
+  gameplay-body collision remain future work. Seated and standing play, automatic
+  HUD recovery, turning modes and the stereo vignette are already implemented.
 - Physical 4K output, other runtimes and a clean-machine installer test need
   external hardware/environment coverage.
 - RTX and a Vulkan renderer remain future projects; see [roadmap](roadmap.md).

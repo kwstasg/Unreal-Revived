@@ -11,6 +11,12 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Synchronized current feature, configuration, roadmap, project-layout, testing
+  and README summaries with the 0.9.0 release notes. Corrected stale launcher
+  names, VR eye-resolution behavior, unfinished swimming/flying claims and
+  installer status. Added the standing/HUD/turning/mouse-pitch features to the
+  feature guide; retained historical release records and current validation limits.
+
 - Promoted seated and standing VR support to a leading 0.9.0 release highlight.
   Retained the distinction between tracked physical movement/HUD recovery and
   full room-scale locomotion with gameplay-body collision.

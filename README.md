@@ -301,20 +301,17 @@ output that could otherwise enter source control.
 | `docs/` | Architecture, configuration, build, testing, and progress detail |
 | `local/` | Ignored machine-local inputs and generated output |
 
-Seated OpenXR VR is implemented in current source builds. RTX support and a
-Vulkan driver remain roadmap components.
-The renderer now has strict opt-in OpenXR mode selection, a bundled pinned
-Khronos loader, diagnostics for the active runtime and HMD, and a guarded
-Direct3D 12 stereo session. The frame loop now presents the completed UE1 game
-through independently culled eye cameras using runtime IPD, asymmetric FOV,
-recommended eye swapchains, and seated head pose. Orientation is composed onto
-UE1's authoritative calculated camera before culling, preserving scripted
-camera direction. Live Oculus Rift CV1 validation confirms fused depth,
-correct yaw/pitch/roll, distortion-free rotation, stable spatial UI, and
-gaze-aligned gamepad walking/strafing with right-stick turning. Gaze aim hooks
-are present; broader weapon/runtime compatibility, swimming/flying controls and
-head-collision fading remain ongoing work. See the
-[seated PC VR plan](docs/pc-vr-seated.md) for validated scope and remaining work.
+OpenXR VR supports seated and standing play in current source builds. It uses
+independently culled eye views, runtime IPD and asymmetric FOV, tracked head pose,
+and live 75/100/125/150% render-quality presets. Balanced 100% is the default.
+CV1 acceptance covers Touch/gaze aiming, Xbox controls, gaze-directed swimming
+and flying, head-collision fade, upright recentering and automatic HUD recovery.
+Smooth, Instant Snap and Smooth Snap turning are available. Accidental mouse
+movement no longer adds unwanted camera pitch during normal first-person VR.
+Physical walking does not move the gameplay collision body through the level.
+See [seated and standing behavior](docs/vr-standing-and-turning.md), the
+[VR implementation plan](docs/pc-vr-seated.md) and [pending tasks](docs/pending-tasks.md).
+RTX and Vulkan remain future work.
 
 ### Documentation
 
@@ -336,18 +333,17 @@ head-collision fading remain ongoing work. See the
 - [Localization](docs/localization.md): project-owned languages and the Greek translation workflow.
 - [Engineering progress](docs/progress.md): completed milestones and evidence.
 - [Project layout](docs/project-layout.md): implemented and planned components.
-- [Roadmap](docs/roadmap.md): ordered future milestones for seated PC VR, RTX
+- [Roadmap](docs/roadmap.md): implemented PC VR and future milestones for RTX
   support, and a Vulkan driver.
-- [Seated PC VR plan](docs/pc-vr-seated.md): scope and acceptance criteria for
-  the first future milestone.
+- [Seated PC VR plan](docs/pc-vr-seated.md): original milestone, current implementation and remaining validation.
 - [Permissions](PERMISSIONS.md): authorized pinned payload and exclusions.
 
 ### Roadmap
 
-The three main future additions, in planned order, are:
+The main milestones, in order, are:
 
-1. Add optional [seated PC VR through OpenXR](docs/pc-vr-seated.md), while
-   preserving flat-screen D3D12 as the default.
+1. [PC VR through OpenXR](docs/pc-vr-seated.md): implemented, including seated
+   and standing play. Broader compatibility work remains; desktop D3D12 is default.
 2. Add RTX support after the seated PC VR milestone.
 3. Add a native Vulkan driver after RTX support.
 

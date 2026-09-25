@@ -4,7 +4,7 @@ Use this page to resume work after a context reset. It records the supported
 boundary and points to the authoritative detail without depending on chat
 history.
 
-## Current VR quality development checkpoint
+## Current 0.9.0 release candidate
 
 The source version is now **0.9.0**. The owner confirmed the maintenance cleanup
 looks correct in game. [End-user highlights](release-0.9.0.md) and the changelog
@@ -330,10 +330,11 @@ selects its own engine profile (`Unreal.ini` or `UnrealVR.ini`); controls and sa
 remain shared. Native launch, restart, profile isolation, and installer lifecycle
 checks are recorded in [`branded-launchers.md`](branded-launchers.md).
 
-The next maintenance installer will be built as
+The validated local 0.9.0 installer is
 `local/package/offline-installer/output/UnrealRevived-Setup-0.9.0.exe`, with
 its base source revision and working-tree dirty flag in `payload-manifest.json`.
-The installer is unsigned. See [`release-0.9.0.md`](release-0.9.0.md). The
+The installer is unsigned; installed-build owner acceptance remains pending. See
+[release notes](release-0.9.0.md) and [validation evidence](release-0.9.0-validation.md). The
 preserved 0.6.0 publication and validation record remains in
 [`release-0.6.0.md`](release-0.6.0.md).
 

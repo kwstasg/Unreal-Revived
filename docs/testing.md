@@ -1,5 +1,10 @@
 # Testing
 
+The [0.9.0 installer validation record](release-0.9.0-validation.md) documents the
+completed isolated lifecycle, fresh settings, save retention, production fixture
+exclusion and desktop/OpenXR startup. Installed-build owner visual acceptance
+remains pending; the OpenXR session initialized in IDLE.
+
 The D3D12 and supported-renderer smoke scripts run each case with a disposable
 copy of the development user profile. Both engine and user source-profile hashes
 must remain unchanged; temporary user INIs are removed on success or failure.

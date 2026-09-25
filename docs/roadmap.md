@@ -1,13 +1,15 @@
 # Roadmap
 
 This roadmap records the intended order of the project's main future additions.
-Seated VR is implemented with CV1 acceptance; the other-headset acceptance
+Seated and standing VR are implemented with CV1 acceptance; the other-headset acceptance
 boundary and current unfinished work are listed in [pending tasks](pending-tasks.md).
 RTX and Vulkan remain plans, not implemented features.
 
-## 1. Seated PC VR through OpenXR
+## 1. PC VR through OpenXR
 
-The first major addition is optional, seated-first PC VR through OpenXR. It
+The first major addition, optional PC VR through OpenXR, is implemented.
+Version 0.9.0 extends the seated baseline with standing play and automatic HUD
+recovery, and adds Smooth, Instant Snap and Smooth Snap turning. It
 preserves flat-screen play as the default and continues to use
 `D3D12Drv.D3D12RenderDevice` rather than requiring players to select another
 video driver.
