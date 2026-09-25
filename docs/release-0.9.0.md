@@ -25,8 +25,9 @@ play and controller mappings are retained.
   the existing horizontal movement on foot.
 - **Controller and music-menu navigation.** More consistent controller Back behavior and
   improved music-player navigation and playback controls.
-- **Rendering statistics and display fixes.** VR-aware F11 statistics, clearer desktop resolution
-  labels and corrected VR bloom behavior.
+- **Rendering statistics and display labels.** VR-aware F11 statistics and clearer
+  desktop resolution labels.
+- **VR bloom correction.** Corrected bloom behavior in VR.
 - **OpenXR hardware compatibility.** Additional controller profiles and runtime-driven
   per-eye sizing, with community hardware validation still needed.
 
