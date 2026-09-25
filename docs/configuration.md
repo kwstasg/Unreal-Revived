@@ -444,8 +444,9 @@ changing them later:
 
 These are installer profile choices, not changes to the render device's
 registered defaults. Existing profiles retain their saved values during normal
-game use; reapplying the installer specifically migrates realtime silhouette
-shadows back to blob shadows to prevent the encounter-time performance defect.
+game use. Installation seeds fresh profiles, including blob-shadow defaults;
+retired-setting migrations have been removed. Uninstall backs up profiles and
+can retain saves for reinstall.
 The shared profile generator writes matching 4x AA/anisotropy, disabled VSync,
 enabled precaching, and disabled trilinear-filter preferences for D3D12,
 OpenGL, and XOpenGL where each renderer exposes the corresponding option.

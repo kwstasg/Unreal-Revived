@@ -11,6 +11,19 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Follow-up documentation audit corrected remaining old executable instructions,
+  settings-migration claims and pre-0.9.0 package provenance in the active handoff.
+  Marked removed milestone backups as historical and linked current lifecycle
+  evidence from the launcher guide. All relative Markdown file links in README,
+  docs and local/README resolve. Repository and whitespace checks passed.
+- Removed six obsolete generated files (189,462 bytes): the duplicate
+  `local/logs/automated-20260925-131007/` run, superseded by the passing 134529
+  Unreal/NyLeve run, and `local/game/System64/MusicTest-20260922-155332.log`.
+  Checked exact workspace paths and rejected reparse points before removal;
+  inventory/hashes are in `local/logs/documentation-cleanup-20260925.json`.
+  Preserved current installer, validation evidence, maintained test sources,
+  user saves/profiles and the owner's uncommitted release-note edits.
+
 - Synchronized current feature, configuration, roadmap, project-layout, testing
   and README summaries with the 0.9.0 release notes. Corrected stale launcher
   names, VR eye-resolution behavior, unfinished swimming/flying claims and

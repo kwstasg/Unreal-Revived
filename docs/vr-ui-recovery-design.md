@@ -10,9 +10,9 @@ placement, shared panel geometry, stable slider adjustment, meaningful distance,
 and explicit recenter behavior on the existing Oculus Rift CV1 setup. This is a
 source milestone, not a GitHub release or a claim of universal headset support.
 
-The accepted implementation and binaries were preserved before cleanup in
-`local/backups/vr-ui-accepted-milestone-20260910-212645/`. Local backups and binaries stay
-ignored. The committed implementation is the baseline for future work; do not
+The accepted implementation and binaries were originally captured under
+`local/backups/vr-ui-accepted-milestone-20260910-212645/`; that obsolete archive
+was removed during cleanup. The committed implementation is the baseline; do not
 restore the older visible-but-clipped `f767139c` experiment.
 
 ## One canvas, one panel

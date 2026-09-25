@@ -101,7 +101,8 @@ Set-Location ../../..
 ```
 
 The explicit map token must precede `ini=` for this host. The installed product
-is different: its canonical INIs allow bare `System64\Unreal.exe` startup.
+uses `System64\UnrealRevived.exe` for desktop and `System64\UnrealRevivedVR.exe`
+for VR, without shortcut arguments. See [launcher profiles](branded-launchers.md).
 
 Launch the development recovery profile:
 

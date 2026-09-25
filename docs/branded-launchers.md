@@ -88,7 +88,8 @@ Setup's existing behavior is intentional: rerunning it on an installed copy
 opens the branded uninstall dialog. Uninstall backs up all three profiles to
 Documents and optionally retains saves for reinstallation. It does not restore
 those backed-up settings automatically. Installing profiles over existing files
-preserves their current values; this is separate from uninstalling first.
+now seeds fresh defaults; see the current policy below. This supersedes the
+older preservation/migration behavior recorded in the historical validation.
 
 `scripts/test-branded-installer.ps1` exercises the real installer compiled from
 the same Inno definition with `/DValidationBuild`. That switch gives it a
@@ -98,14 +99,20 @@ runtime startup and restart, fresh profile defaults after reinstall, uninstall
 backups, reinstall with retained saves, and cleanup. Run in the user's Windows
 graphics session with a new test directory under `local/`.
 
-## Current profile policy (24 September 2026)
+## Current profile policy and 0.9.0 validation
 
 Setup follows uninstall/reinstall. The profile writer now always seeds desktop,
 VR, controls and bundled weapon calibration from fresh defaults. Old settings
 are not migrated. Saves and the existing uninstall backup remain preserved.
 `scripts/test-installer-profile-reset.ps1` verifies the writer in an isolated
-folder without running Setup. The historical lifecycle results below predate
-this cleanup; a newly packaged installer has not yet repeated the full lifecycle.
+folder without running Setup. The 0.9.0 installer subsequently passed the full
+isolated lifecycle after migration removal: fresh defaults for all four files,
+exact uninstall backups, retained saves, fixture exclusion and desktop/VR
+startup/restart. CV1 OpenXR initialized in IDLE; installed-build owner visual
+acceptance remains pending. See [the validation record](release-0.9.0-validation.md).
+
+The lifecycle results below are historical and include superseded migration
+behavior. Their binary/log paths do not imply that those artifacts remain on disk.
 
 ## September 12, 2026 installer validation
 
@@ -143,4 +150,4 @@ September 11 candidate, subsequently accepted by the owner after installation:
 The rebuilt release installer uses the canonical
 `local/package/offline-installer/output/` location. Its release manifest identifies
 the committed source and new checksum; the historical checksum above identifies
-the preserved user-tested candidate only.
+the historical user-tested candidate only; that backup has been removed.

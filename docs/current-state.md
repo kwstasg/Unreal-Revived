@@ -372,13 +372,11 @@ The authoritative current checklist is [pending tasks](pending-tasks.md).
 World/HUD horizon lock and the stereo vignette have CV1 owner acceptance at
 `232f768`; music navigation is reviewed and separately checkpointed. Community
 hardware reports remain pending.
-The September 25 current-source installer passed the isolated install/uninstall/
-reinstall lifecycle after settings-migration removal. All four profiles returned
-to fresh defaults and saves were retained. Desktop/VR startup and restart passed;
-Oculus/CV1 initialized in IDLE, without headset visual acceptance. The local
-package records base revision `d2eda30` and a dirty tree including the separately
-reviewed music changes. That package predates the subsequent upright-HUD and
-stronger-vignette follow-up, which is deployed only to the development runtime.
+The 0.9.0 installer from clean source `ae367b82` passed the isolated lifecycle,
+including fresh settings, retained saves and desktop/VR startup/restart. It
+includes upright HUD recovery, turning and the stronger vignette. Installed-build
+owner acceptance is next; automated CV1 initialization remained in IDLE. Artifact
+identity and evidence are in [the validation record](release-0.9.0-validation.md).
 No new publication or push is authorized or performed.
 
 The spatial UI milestone was user-accepted on 2026-09-10: complete desktop-like
@@ -389,13 +387,13 @@ runtime/gameplay coverage remains separate from this headset acceptance.
 
 The ordered major additions are maintained in [`roadmap.md`](roadmap.md):
 
-1. Seated PC VR through OpenXR.
+1. PC VR through OpenXR: implemented, with seated and standing support.
 2. RTX support.
 3. A native Vulkan driver.
 
-VR's validated base feature set was frozen for 0.6.0; 0.6.1 adds the Return to
-Na Pali VR HUD hotfix. Remaining compatibility work, RTX and Vulkan belong to
-later releases. Continue flat-screen validation, automated regression coverage,
+VR began with the 0.6.0 seated milestone and the 0.6.1 Return to Na Pali HUD
+hotfix. The current 0.9.0 candidate adds standing support and the features
+described above. Remaining compatibility work, RTX and Vulkan are separate. Continue flat-screen validation, automated regression coverage,
 installer UX, and release automation alongside them.
 
 ## Updating the handoff
