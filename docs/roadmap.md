@@ -14,9 +14,10 @@ video driver.
 
 The first milestone is defined in the
 [seated PC VR plan](pc-vr-seated.md). Its intended scope includes true stereo,
-seated 6DoF head tracking, head-gaze aiming, gamepad locomotion, smooth turning,
-the accepted fixed shared HUD/menu panel with explicit recenter, and fade-based
-head collision. Automatic HUD following has been superseded by user preference.
+seated 6DoF head tracking, head-gaze aiming, gamepad locomotion, selectable
+smooth/snap turning, the accepted upright shared HUD/menu panel with explicit
+recenter and automatic recovery, and fade-based head collision. The automatic
+HUD needs no seated/standing option; full room-scale pawn movement remains separate.
 Flat-screen mode must remain isolated from OpenXR initialization and VR runtime
 costs.
 

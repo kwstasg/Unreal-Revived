@@ -648,16 +648,17 @@ exec function ReloadVRWeapons()
 
 function bool HandleVRRecenterKey(EInputKey Key, EInputAction Action)
 {
-	local string KeyName;
+	local string KeyName, Binding;
 	if (Action != IST_Press || Viewport.Actor == None)
 		return False;
 	KeyName = Viewport.Actor.ConsoleCommand("KEYNAME" @ int(Key));
-	if (Viewport.Actor.ConsoleCommand("KEYBINDING" @ KeyName) ~= "ReloadVRWeapons")
+	Binding = Viewport.Actor.ConsoleCommand("KEYBINDING" @ KeyName);
+	if (Binding ~= "ReloadVRWeapons")
 	{
 		ReloadVRWeapons();
 		return True;
 	}
-	if (!(Viewport.Actor.ConsoleCommand("KEYBINDING" @ KeyName) ~= "RecenterVR"))
+	if (!(Binding ~= "RecenterVR"))
 		return False;
 	RecenterVR();
 	return True;

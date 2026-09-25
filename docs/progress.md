@@ -11,6 +11,14 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Completed the [pre-package maintenance audit](prepackage-audit-2026-09-25.md):
+  removed the unused panel-heading helper and obsolete tests, skipped idle HUD
+  easing math, removed a duplicate key-binding query, and isolated smoke-test user
+  profiles. Updated stale seated-VR/roadmap guidance. No weapon geometry, tuning,
+  controls, UI placement or comfort thresholds changed. Release build, 14 native
+  suites, script regressions, 18 supported-renderer map checks and production
+  fixture exclusion passed. Evidence and limits are recorded in the audit.
+
 - Owner retested the intended motion/save/restart/load/gaze sequence and saw no
   offset. Reviewed the 14:04:46 local Unreal.log: CV1 submitted stereo frames,
   Save12 loaded into Noork and the game shut down normally; no script warnings,

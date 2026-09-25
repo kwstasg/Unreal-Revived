@@ -74,6 +74,8 @@ $sourceIni = Join-Path $systemDir 'D3D12Test.ini'
 $userIni = Join-Path $systemDir 'D3D12TestUser.ini'
 $temporaryIniName = 'D3D12Automation.ini'
 $temporaryIni = Join-Path $systemDir $temporaryIniName
+$temporaryUserIniName = "D3D12AutomationUser-$PID.ini"
+$temporaryUserIni = Join-Path $systemDir $temporaryUserIniName
 $runtimeLog = Join-Path $systemDir 'Unreal.log'
 $runningMarker = Join-Path $systemDir 'Running.ini'
 $evidenceRoot = Join-Path $repoRoot (Join-Path 'local/logs' ("automated-{0}" -f (Get-Date -Format 'yyyyMMdd-HHmmss')))
@@ -373,6 +375,7 @@ try {
     }
 
     foreach ($case in $cases) {
+        Copy-Item -LiteralPath $userIni -Destination $temporaryUserIni
         $caseDir = Join-Path $evidenceRoot $case.Name
         New-Item -ItemType Directory -Force -Path $caseDir | Out-Null
 
@@ -396,7 +399,7 @@ try {
         Copy-Item -LiteralPath $temporaryIni -Destination (Join-Path $caseDir $temporaryIniName)
         Remove-Item -LiteralPath $runtimeLog -Force -ErrorAction SilentlyContinue
 
-        $arguments = @($case.Map, "ini=$temporaryIniName", 'userini=D3D12TestUser.ini', '-nosplash') + @($case.AdditionalArguments)
+        $arguments = @($case.Map, "ini=$temporaryIniName", "userini=$temporaryUserIniName", '-nosplash') + @($case.AdditionalArguments)
         Write-Host ("Running {0}: {1}" -f $case.Name, ($arguments -join ' '))
         $process = Start-Process -FilePath $unrealExe -ArgumentList $arguments -WorkingDirectory $systemDir -PassThru
         if ($MeasurePerformance) {
@@ -551,6 +554,7 @@ try {
     }
     Remove-Item -LiteralPath $runningMarker -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $temporaryIni -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $temporaryUserIni -Force -ErrorAction SilentlyContinue
 }
 
 $finalSourceHash = (Get-FileHash -LiteralPath $sourceIni -Algorithm SHA256).Hash

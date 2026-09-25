@@ -9,7 +9,8 @@ history.
 The owner rejected the motion-to-gaze weapon fix `d267b77`: the original offset
 remained and more weapons were affected. `129c000` reverts that attempt, including
 its changed geometry reference poses. The previous weapon behavior is restored;
-the original save-load offset remains unresolved. Preserve existing calibration
+the original save-load offset has not recurred in the owner's latest retest but
+has no confirmed root-cause fix. Preserve existing calibration
 and establish the equipped/rendered failure before another change.
 
 Preferences > VR now offers Smooth (unchanged default), Instant Snap and Smooth

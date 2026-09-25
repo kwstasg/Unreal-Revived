@@ -89,6 +89,8 @@ $userHash = (Get-FileHash -LiteralPath $userIni -Algorithm SHA256).Hash
 $results = @()
 $process = $null
 $temporaryIni = $null
+$temporaryUserIniName = "RendererSmokeUser-$PID.ini"
+$temporaryUserIni = Join-Path $systemDir $temporaryUserIniName
 New-Item -ItemType Directory -Force -Path $evidenceRoot | Out-Null
 
 try {
@@ -112,7 +114,8 @@ try {
             Copy-Item -LiteralPath $temporaryIni -Destination (Join-Path $caseDir $temporaryIniName)
             Remove-Item -LiteralPath $runtimeLog -Force -ErrorAction SilentlyContinue
 
-            $arguments = @($map, "ini=$temporaryIniName", 'userini=D3D12TestUser.ini', '-nosplash', '-windowed')
+            Copy-Item -LiteralPath $userIni -Destination $temporaryUserIni
+            $arguments = @($map, "ini=$temporaryIniName", "userini=$temporaryUserIniName", '-nosplash', '-windowed')
             Write-Host "Running ${caseName}: $($arguments -join ' ')"
             $process = Start-Process -FilePath $unrealExe -ArgumentList $arguments -WorkingDirectory $systemDir -PassThru
             if ($process.WaitForExit($RunSeconds * 1000)) {
@@ -161,6 +164,7 @@ try {
         }
     }
     Remove-Item -LiteralPath $runningMarker -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $temporaryUserIni -Force -ErrorAction SilentlyContinue
     if ($temporaryIni) {
         Remove-Item -LiteralPath $temporaryIni -Force -ErrorAction SilentlyContinue
     }

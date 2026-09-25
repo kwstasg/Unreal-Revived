@@ -1,5 +1,9 @@
 # Testing
 
+The D3D12 and supported-renderer smoke scripts run each case with a disposable
+copy of the development user profile. Both engine and user source-profile hashes
+must remain unchanged; temporary user INIs are removed on success or failure.
+
 ## Automatic HUD follow and recenter height
 
 Follow [the shared seated/standing behavior](vr-standing-and-turning.md). Native

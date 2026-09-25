@@ -5,6 +5,10 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
+- **Next package validation:** maintenance audit completed; see
+  [findings and checks](prepackage-audit-2026-09-25.md). When packaging resumes,
+  rebuild from `local/build` and repeat the isolated installer lifecycle for the
+  newer accepted HUD/recenter/turning/vignette source. No publication or push.
 - **Motion-to-gaze weapon offsets after save load:** intermittent report,
   clarified as motion gameplay/save, process restart, load in motion, then gaze.
   Owner repeated the intended sequence without recurrence after rollback. Logs

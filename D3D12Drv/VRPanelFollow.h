@@ -42,6 +42,8 @@ public:
 		YawDelay = std::abs(Angle) > StartYaw ? YawDelay + Seconds : 0;
 		MovePosition = (MovePosition || PositionDelay >= 0.30f) && Distance > 0.02f;
 		MoveYaw = (MoveYaw || YawDelay >= 0.30f) && std::abs(Angle) > StopYaw;
+		if (!MovePosition && !MoveYaw)
+			return;
 		const float Blend = 1.0f - std::exp(-6.0f * Seconds);
 		if (MovePosition)
 		{

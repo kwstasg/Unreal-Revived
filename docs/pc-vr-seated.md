@@ -38,11 +38,11 @@ still rendered at the selected logical game resolution before being scaled
 into those swapchains.
 
 The spatial HUD/menu milestone was accepted in the headset on 2026-09-10:
-desktop-like canvas layout, one upright fixed panel, stable live distance/scale,
-and explicit UI recenter. This supersedes earlier plans for automatic panel
-following or larger menus that recenter on opening. Explicit Recenter VR View
-now captures full gaze orientation once; its pitch/roll behavior, quick bindings
-and UI color correction were subsequently accepted by the user.
+desktop-like canvas layout, one shared panel and stable live distance/scale.
+September 25 follow-ups replace full-pose recenter with upright heading-only
+capture and add automatic recovery after sustained larger movement. Small seated
+motion and menu interaction stay stable. See the current
+[panel contract](vr-ui-recovery-design.md) and [follow behavior](vr-standing-and-turning.md).
 
 ## Implementation alignment checkpoint
 
@@ -60,7 +60,7 @@ and UI color correction were subsequently accepted by the user.
 - User-validated: gamepad headset-yaw walking/strafing and horizontal right-stick
   turning. Gaze aim hooks still need broader weapon checks. The script-side menu-open
   recenter left behind by the earlier cleanup was removed on 2026-09-11.
-- User-validated: combined view/UI recenter, including full gaze panel placement,
+- User-validated: combined view/UI recenter, including upright panel placement,
   software tilt reset, right-stick click/F10 bindings and corrected UI colors.
 - User-validated on 2026-09-15: progressive head-collision fade and recovery at
   walls, corners and low ceilings, plus a door, world-size adjustments, swimming
@@ -80,8 +80,8 @@ flat-screen experience. Both modes will use
 `D3D12Drv.D3D12RenderDevice`; players will not need to change video drivers.
 
 The milestone includes true stereo, seated 6DoF tracking, head-gaze aiming,
-gamepad locomotion, smooth right-stick turning, the accepted fixed shared HUD/menu
-panel with explicit recenter, and fade-based head collision.
+gamepad locomotion, selectable smooth/snap turning, the shared upright HUD/menu
+panel with automatic recovery and explicit recenter, and fade-based head collision.
 
 ## Mode selection and non-VR isolation
 
@@ -114,27 +114,30 @@ panel with explicit recenter, and fade-based head collision.
 Implemented in the dedicated VR preferences page:
 
 - Recenter VR View: level software tilt, make current horizontal gaze forward,
-  refresh the seated tracking reference, and recenter the shared panel.
+  refresh horizontal tracking position while retaining the session's height
+  reference, and recenter the upright shared panel at current eye height.
 - HUD distance and scale.
 - Basic active/inactive status.
+- Smooth (default), Instant Snap and Smooth Snap; snap angle defaults to 30 degrees.
+- Immediate 75/100/125/150% render quality, with Balanced 100% as default.
 - Explicit normal/VR shortcuts select the mode; Preferences Restart preserves it.
 
 UI recenter and HUD adjustments update immediately in VR.
 Motion aiming and multi-profile controller mappings are implemented; see
 [controller compatibility](vr-controller-compatibility.md). Stereo-aligned VR
-vignette masking is implemented and awaits CV1 visual/comfort acceptance.
+vignette masking has CV1 owner acceptance.
 
 Pending: selectable left/right/off desktop mirror and more
-detailed runtime/headset status. Automatic/delayed HUD following was superseded
-by the user-accepted fixed panel and must not be reintroduced by assumption.
+detailed runtime/headset status. Automatic HUD recovery is implemented without
+a seated/standing option and has CV1 owner acceptance.
 
 ## Stereo camera and head collision
 
 - Use the system's active OpenXR runtime through a vendor-neutral path.
 - Render independently culled left- and right-eye scenes using runtime poses,
   asymmetric projections, IPD, recommended resolution, and frame timing.
-- Use a seated/local reference space; recenter makes the current seated pose
-  and yaw neutral.
+- Use local reference space; recenter refreshes horizontal position and heading
+  without erasing tracked height gained by standing or crouching.
 - Track head orientation and seated leaning independently of the gameplay
   collision capsule.
 - Preserve 1:1 physical head tracking without clamping or pushing the camera.
@@ -151,7 +154,7 @@ by the user-accepted fixed panel and must not be reintroduced by assumption.
 
 - Use the left stick for forward/backward movement and strafing.
 - Orient movement to headset yaw while ignoring head pitch and roll.
-- Use the right stick for smooth horizontal body/world rotation only.
+- Use the right stick for horizontal body/world rotation in the selected turn mode.
 - Keep head rotation independent of right-stick turning.
 - Aim the crosshair and weapon through the center of the headset view.
 - Preserve muzzle origin, close-wall obstruction, projectiles, hitscan,
@@ -164,21 +167,22 @@ valid cached OpenXR pose. Rotate shaped movement axes into horizontal gaze space
 accounting for body/view yaw and axis speed. Raw JoyZ/JoyR menu input is unchanged.
 Plain JoyX aStrafe / JoyY aBaseY bindings are supported; custom aliases and compound
 commands are preserved without remapping. Keyboard/mouse, third-person cameras,
-flybys, swimming/flying and unavailable tracking retain their existing paths.
+flybys and unavailable tracking retain their existing paths. Swimming/flying use
+the accepted gaze-directed movement hooks.
 
 ## HUD and menus
 
 - Render the HUD as a floating stereo panel with adjustable depth and scale.
 - Keep it stable during ordinary head movement.
-- Use one fixed panel anchor for HUD, intro and menus; no automatic following.
-- Do not continuously follow head pitch, roll, or seated leaning. Explicit
-  Recenter VR View captures full gaze orientation once, including pitch/roll.
-- Capture horizontal heading and eye height at session initialization or low-level
-  UI-only reset. Explicit view recenter captures all three orientation axes;
-  gamepad turning and opening menus do not reset this reference.
+- Use one upright panel anchor for HUD, intro and menus. Small seated movements
+  keep it fixed; sustained larger translations and turns trigger bounded follow.
+- Capture horizontal heading and eye height at initialization and recenter.
+  Never capture head pitch/roll into the panel anchor.
+- Opening a displaced menu can recover its pose once; it then stays stationary
+  throughout interaction. Follow resumes when the menu closes.
 - Keep the crosshair head-gaze aligned independently from the HUD panel.
 - Preserve identical panel geometry when opening or closing menus.
-- Recenter the shared panel only with the VR Preferences Recenter control.
+- Explicit recenter remains available through VR Preferences and existing bindings.
 - Preserve existing gamepad menu navigation.
 
 ## Architecture and compatibility
@@ -210,16 +214,18 @@ flybys, swimming/flying and unavailable tracking retain their existing paths.
 - Verify head-collision fading without changing the OpenXR pose.
 - Test head-gaze aiming, recoil, spread, projectiles, hitscan weapons, muzzle
   obstruction, and nearby targets.
-- Confirm fixed shared-panel behavior, explicit recenter, live scale/distance
-  changes, spatial menus, and mirror selection.
+- Confirm stable seated panel behavior, automatic recovery after sustained larger
+  motion, explicit recenter, live scale/distance changes and spatial menus.
+  Selectable mirror options remain deferred.
 - Validate Meta OpenXR first and SteamVR second with the same executable.
 - Regression-test ordinary D3D12 plus OpenGL and XOpenGL recovery startup.
 
 ## Deferred work
 
-The first supported configuration is seated gamepad play with smooth turning
-and horizontal head-oriented locomotion. Standing tracking may work but is not
-an acceptance requirement. Motion-controller aiming and bindings are implemented. Tracked hands,
-teleportation, snap turning, room-scale design and advanced comfort settings
-remain future work. The vignette now preserves the desktop effect and uses a shared angular
-fade in VR; headset acceptance remains pending.
+The accepted CV1 baseline includes seated play, Touch aiming, Xbox controls,
+Smooth, Instant Snap and Smooth Snap turning, and gaze-directed swimming/flying.
+Automatic upright HUD recovery and height-preserving recenter were accepted at
+`b69ae2c`; these do not establish room-scale pawn movement/collision. The shared
+angular VR vignette and world/HUD horizon lock were accepted at `232f768`.
+Tracked hands, teleportation, full room-scale gameplay and broader headset
+validation remain separate work. See [pending tasks](pending-tasks.md).
