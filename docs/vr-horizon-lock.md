@@ -16,9 +16,11 @@ is undefined, capture retains the previous heading (identity on first startup).
 Recenter transfers the change in horizontal heading to pawn yaw before capturing
 the new reference, preserving the facing direction. Position is still recentered.
 
-The accepted HUD anchor is separate: explicit recenter still captures full gaze
-orientation for the panel. Its distance, size, projection, placement and menu
-transition behavior are unchanged. Scripted `PlayerCalcView` rotations still
+The HUD anchor is separate. Following owner feedback that the world was fixed
+but the HUD still tilted, explicit recenter now captures heading only for the
+panel too. It stays upright at eye height instead of storing recenter pitch/roll.
+Its distance, size, projection and menu-transition behavior are unchanged.
+Scripted `PlayerCalcView` rotations still
 compose with tracking; authored flyby/view-target tilt is not flattened.
 
 ## Audited entry points
@@ -35,7 +37,7 @@ compose with tracking; authored flyby/view-target tilt is not flattened.
   return alone is not a recenter. Session restart captures a heading-only world
   reference; ordinary remount does not move the HUD anchor.
 - Explicit recenter: software pitch/roll and pending vertical input are cleared;
-  world heading/position and the independent full-gaze UI reference are captured
+  world heading/position and the independent upright UI reference are captured
   between eye frames. No controller mappings changed.
 
 ## Evidence and remaining acceptance
@@ -54,6 +56,7 @@ In CV1, repeat startup, save loading and remove/replace with the head upright,
 looking up/down and tilted sideways. Recenter in each pose, then straighten and
 turn left/right: world verticals must stay aligned with physical gravity, while
 natural head motion stays visible. Check mouse yaw and vertical mouse movement,
-the intro flyby and view-target cameras. The HUD should face the captured gaze
-and stay fixed when menus open/close. Complete horizon lock remains unverified
-until these hardware cases pass. Focus-loss stutter remains closed.
+the intro flyby and view-target cameras. The HUD should remain upright at eye
+height along the captured horizontal heading, and stay fixed when menus open/close.
+The owner confirmed the world fix; the updated HUD behavior still needs CV1
+acceptance. Focus-loss stutter remains closed.

@@ -7,9 +7,12 @@ history.
 ## Current VR quality development checkpoint
 
 The horizon-lock audit found full-pose world reference capture on startup/recenter.
-World capture now uses heading only; natural head tilt, scripted cameras and the
-separate full-gaze HUD anchor remain. [Complete horizon-lock acceptance](vr-horizon-lock.md)
-and the stereo vignette still require CV1 visual testing.
+World capture now uses heading only; the owner confirmed the world fix. HUD
+recenter now uses heading only too after the owner reported remaining panel tilt.
+Natural head tracking and scripted cameras remain. The VR vignette was reported
+barely visible; its maximum fade now spans 20-40 degrees instead of 35-55.
+[HUD horizon-lock acceptance](vr-horizon-lock.md) and the revised stereo vignette
+still require CV1 visual testing.
 
 After owner acceptance of controller/menu behavior, Balanced (100%) is the default.
 The temporary Current profile option is removed; four runtime-scaled presets remain.
@@ -343,7 +346,9 @@ reinstall lifecycle after settings-migration removal. All four profiles returned
 to fresh defaults and saves were retained. Desktop/VR startup and restart passed;
 Oculus/CV1 initialized in IDLE, without headset visual acceptance. The local
 package records base revision `d2eda30` and a dirty tree including the separately
-reviewed music changes. No new publication or push is authorized or performed.
+reviewed music changes. That package predates the subsequent upright-HUD and
+stronger-vignette follow-up, which is deployed only to the development runtime.
+No new publication or push is authorized or performed.
 
 The spatial UI milestone was user-accepted on 2026-09-10: complete desktop-like
 HUD/menu layout on one upright OpenXR panel, explicit UI recenter, and stable,

@@ -417,10 +417,11 @@ std::string FileResource::readAllText(const std::string& filename)
 							ray += VRVignetteEyeToHead.w * twiceCross + cross(VRVignetteEyeToHead.xyz, twiceCross);
 							float angle = atan2(length(ray.xy), -ray.z);
 							// One head-centered angular fade for both eyes. Keep a broad clear
-							// center: at full strength the transition spans 35 to 55 degrees.
+							// center: at full strength the transition spans 20 to 40 degrees.
+							// Bring the fade inside the visible CV1 field rather than its fringe.
 							float amount = smoothstep(0.0, 1.0, VignetteIntensity);
-							vignette = smoothstep(lerp(0.9599311, 0.6108652, amount),
-								lerp(1.3089969, 0.9599311, amount), angle);
+							vignette = smoothstep(lerp(0.6981317, 0.3490659, amount),
+								lerp(1.0471976, 0.6981317, amount), angle);
 						}
 						processedWorld *= 1.0 - vignette * VignetteIntensity;
 					}

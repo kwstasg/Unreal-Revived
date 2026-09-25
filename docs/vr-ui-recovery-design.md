@@ -27,9 +27,9 @@ restore the older visible-but-clipped `f767139c` experiment.
 - HUD, menu and intro use the same panel dimensions and pose. Opening or closing
   menus must not change position, size or orientation.
 - The initial anchor is upright at eye height, using horizontal heading only.
-  Explicit Recenter VR View captures full gaze orientation (yaw, pitch and roll)
-  so the panel faces the user even when looking up or tilting their head. It then
-  stays fixed; menu transitions and sliders do not recapture it. The low-level
+  Explicit Recenter VR View now also captures horizontal heading only, keeping
+  the panel level when recentering while looking up/down or tilting sideways.
+  It stays fixed; menu transitions and sliders do not recapture it. The low-level
   UI-only reset still uses an upright anchor and retains heading near vertical gaze.
 
 ## Projection ownership: the decisive fix
@@ -81,16 +81,19 @@ settings without invalidating the anchor. `D3D12 RESETVRUIANCHOR` explicitly
 recenters the UI only. The Preferences button now uses `D3D12 RECENTERVR` to level
 software view tilt, adopt horizontal gaze as forward and refresh both view/UI
 references between frames. User testing accepted yaw but found that the upright
-panel appeared oppositely pitched/rolled. Explicit view recenter now captures
-full head orientation for the HUD panel; the user accepted this correction, its quick bindings,
-and the corrected UI colors on 2026-09-11. Script
+panel appeared oppositely pitched/rolled. Full head orientation for the HUD panel
+was accepted on 2026-09-11 together with quick bindings and UI colors. On September
+25 the owner confirmed the world horizon fix but reported the remaining HUD tilt;
+explicit panel recenter now uses heading only too. This supersedes full-pose panel
+capture; size, distance, shared layout and explicit anchoring remain. Script
 callers use plain `BEGINVRUIPASS`/`ENDVRUIPASS`; old suffixes
 are harmless compatibility input and no longer select a separate layout.
 
 The world reference is independent of that panel anchor. The September 25
 [horizon-lock audit](vr-horizon-lock.md) changed world capture to heading only,
 so recentering with head tilt cannot store pitch/roll in the environment. Natural
-head pitch/roll remains tracked. Full horizon-lock CV1 acceptance is pending.
+head pitch/roll remains tracked. The owner confirmed the world fix; upright HUD
+recenter now awaits CV1 validation.
 
 ## Rules for future changes
 

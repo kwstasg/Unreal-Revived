@@ -794,7 +794,7 @@ VR follow-up checks:
 - Follow [the horizon-lock cases](vr-horizon-lock.md): recenter upright, looking
   up/down and with sideways head tilt, then straighten and turn. Software tilt
   must clear while natural head tilt remains tracked and the world reference
-  stays level. The separate panel faces the captured full gaze;
+  stays level. The separate panel stays upright at eye height along the captured heading;
   opening/closing menus must still leave its anchor unchanged.
 - Start through each shortcut and use Preferences Restart. Confirm the same
   requested normal/VR mode, including VR-runtime-unavailable fallback.

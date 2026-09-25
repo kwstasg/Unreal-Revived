@@ -11,6 +11,17 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Owner confirmed the world horizon fix but reported HUD tilt and a barely
+  visible VR vignette. Explicit recenter now captures heading only for the HUD
+  too, keeping the panel upright at eye height without changing size/distance,
+  menu transitions or natural tracking. Increased only VR angular coverage:
+  maximum fade now spans 20-40 degrees off head-forward (30-50 at half strength).
+  Shared stereo rays, clear center, UI exclusion, zero default and desktop falloff
+  remain. Canonical renderer build, nine native suites and desktop intro/NyLeve
+  smoke checks passed; deployed to `local/game` for CV1 acceptance. Evidence:
+  `local/logs/hud-vignette-20260925` and `local/logs/automated-20260925-105727`.
+  The existing installer predates this follow-up; music edits remain separate.
+
 - Packaged current source through `local/build` and passed the isolated validation
   installer lifecycle after migration removal: fresh install, production fixture
   exclusion, payload/host hashes, desktop/VR startup and restart, exact backups,

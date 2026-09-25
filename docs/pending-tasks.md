@@ -5,17 +5,15 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **Horizon-lock investigation:** audit mouse input, recenter, remount and save
-  loading. Existing software-pitch prevention/recovery is accepted, but complete
-  horizon lock is unverified. Test recenter looking up/down and with sideways
-  head tilt; check full-pose reference capture for persistent world tilt. Retain
-  natural headset tracking, yaw turning and scripted cameras; treat the accepted
-  full-gaze HUD anchor separately. The audit found full-pose world capture;
-  heading-only capture now passes native regressions. See [audit and CV1 cases](vr-horizon-lock.md).
-  CV1 visual validation remains required.
+- **HUD horizon-lock acceptance:** owner confirmed the world fix but reported
+  remaining HUD tilt. Explicit panel recenter now captures heading only too.
+  Test looking up/down and tilting sideways, then straighten: panel stays upright
+  at eye height while natural head motion remains tracked. Preserve yaw, authored
+  cameras and panel size/distance. See [audit and CV1 cases](vr-horizon-lock.md).
 - **VR vignette acceptance:** shared head-relative angular masking is implemented
   and passes production shader tests for asymmetric/canted eyes. Desktop falloff
-  is preserved. Check 0/50/100% in CV1 for visibility and a single aligned fade,
+  is preserved. Owner reported the 35-55-degree maximum barely visible; maximum
+  coverage now fades over 20-40 degrees. Check 0/50/100% in CV1 for visibility and a single aligned fade,
   including head rotation, menus and quality changes. Hardware comfort/appearance
   is not established by the automated tests.
 - **Other headsets/controllers:** obtain hardware reports for the profiles and

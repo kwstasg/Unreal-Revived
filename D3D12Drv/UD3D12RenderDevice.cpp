@@ -1862,10 +1862,9 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 				Viewport->Actor->aLookUp = Viewport->Actor->aMouseY = 0;
 			}
 			OpenXRBaseOrientationValid = 0;
-			// Explicit recenter faces the current gaze in all three axes. A
-			// yaw-only anchor appears oppositely pitched/rolled in headset space.
-			// Capture once; later head movement and menu transitions do not follow.
-			OpenXRUIAnchorPose.orientation = OpenXRHeadOrientation;
+			// Keep the HUD horizon level too: capture horizontal heading, never
+			// the pitch/roll held during recenter. Later head motion stays tracked.
+			OpenXRUIAnchorPose.orientation = WorldHeading;
 			OpenXRUIAnchorHeadPosition = {
 				(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
 				(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
@@ -2036,7 +2035,7 @@ void UD3D12RenderDevice::UpdateOpenXRUIAnchor()
 	if (!OpenXRUIAnchorValid && OpenXRViews.size() == 2)
 	{
 		// Start with an upright, eye-level anchor for HUD, menus and intro.
-		// Explicit view recenter captures full gaze above; neither follows menus.
+		// Explicit view recenter also stays upright; neither follows menus.
 		const FVector Forward = RotateOpenXRVector(
 			NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation), FVector(0.0f, 0.0f, -1.0f));
 		const auto& Previous = OpenXRUIAnchorPose.orientation;

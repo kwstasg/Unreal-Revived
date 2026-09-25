@@ -294,7 +294,7 @@ int main()
 	const float Unfiltered = SampleRay(0,0,-1,0,false);
 	Parameters[9] = 1;
 	Check(std::abs(SampleRay(0,0,-1,-0.2f,false)-Unfiltered) < 0.005f, "head-forward stays clear with asymmetric canted eyes");
-	for (float Angle : {0.0f, 0.6981317f, 0.7853982f})
+	for (float Angle : {0.0f, 0.5235988f, 0.6108652f, 0.6981317f, 0.7853982f})
 		for (float Sign : {-1.0f,1.0f})
 			for (bool Vertical : {false,true}) {
 				const float X = Vertical ? 0 : Sign*std::sin(Angle);
@@ -305,11 +305,17 @@ int main()
 				Check(std::abs(L-R) < 0.005f, "same angular ray fades equally in both eyes");
 				if (Angle > 0.7f) Check(L < Unfiltered*0.6f, "maximum vignette is visibly darker at 45 degrees");
 			}
-	Check(std::abs(SampleRay(0,0.7071068f,-0.7071068f,-0.15f,false,true) -
-		SampleRay(0,0.7071068f,-0.7071068f,0.15f,true,true)) < 0.005f, "vertical cant respects presentation Y convention");
+	Check(std::abs(SampleRay(0,0.5f,-0.8660254f,-0.15f,false,true) -
+		SampleRay(0,0.5f,-0.8660254f,0.15f,true,true)) < 0.005f, "vertical cant respects presentation Y convention within the fade");
 	Parameters[9] = 0.5f;
+	const float FortyDegrees = 0.6981317f;
+	const float MidFade = SampleRay(std::sin(FortyDegrees),0,-std::cos(FortyDegrees),0,false);
+	Check(MidFade < Unfiltered*0.8f && MidFade > Unfiltered*0.7f, "half strength visibly dims the 40 degree periphery");
 	const float Gentle = SampleRay(0.7071068f,0,-0.7071068f,0,true);
 	Parameters[9] = 1;
+	Check(std::abs(SampleRay(std::sin(0.34906585f),0,-std::cos(0.34906585f),0,false)-Unfiltered) < 0.005f, "maximum strength keeps the central 20 degrees clear");
+	Check(SampleRay(std::sin(0.6108652f),0,-std::cos(0.6108652f),0,false) < Unfiltered*0.2f, "maximum strength is prominent at 35 degrees");
+	Check(SampleRay(std::sin(FortyDegrees),0,-std::cos(FortyDegrees),0,false) < 0.005f, "maximum strength reaches black at 40 degrees");
 	Check(SampleRay(0.7071068f,0,-0.7071068f,0,true) < Gentle, "one slider increases angular coverage and opacity");
 	// Existing UI-mask exclusion must still win over the VR world fade.
 	for (size_t Index = 0; Index < Mask.size(); Index += 2) Mask[Index] = 255;
