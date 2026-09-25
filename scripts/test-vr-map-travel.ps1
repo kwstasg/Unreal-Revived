@@ -25,6 +25,7 @@ try {
     $log = Get-Content -LiteralPath $logPath -Raw
     if ($testProcess.ExitCode -ne 0 -or $log -notmatch 'VRTRAVEL repeated map changes and hook rebinding completed' -or
         $log -notmatch 'VRTRAVEL save load and production hook rebinding completed' -or
+        $log -notmatch 'VRTRAVEL all 14 gaze weapon profiles stable after motion/save/load' -or
         $log -match 'ScriptWarning|Critical Error|Assertion failed|invalid outer|broken pointer|VRTRAVEL FAIL') {
         throw "VR map travel failed: $logPath"
     }

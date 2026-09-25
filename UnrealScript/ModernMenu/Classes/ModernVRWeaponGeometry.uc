@@ -199,18 +199,25 @@ function GetGeometry(Weapon W, out float DrawScale, out vector Muzzle, out vecto
 	SavedFrame = W.AnimFrame;
 	W.Mesh = W.PlayerViewMesh;
 	W.DrawScale = W.PlayerViewScale;
-	// Only the stock pistol meshes: measure the existing resting pose rather
-	// than permanently caching a pickup/reload/twirl pose. Do not use the
-	// whole-animation bounds, which change its accepted size and grip.
-	if (ClassIsChildOf(W.Class, class'AutoMag')
-		&& (W.PlayerViewMesh == mesh'AutoMagL' || W.PlayerViewMesh == mesh'AutoMagR'))
+	W.SetRotation(rot(0,0,0));
+	// Stock barrel sampling selects the family's resting pose. Measure bounds
+	// in that same pose, never the equip/fire frame encountered on first use.
+	// Otherwise a motion-mode cache can change gaze size/centering after load.
+	bStockBarrel = GetStockBarrel(W, Barrel);
+	if (!bStockBarrel)
+	{
+		W.AnimSequence = SavedSequence;
+		W.AnimFrame = SavedFrame;
+	}
+	// Keep the pistol's base size independent of its upgrade animation. Its
+	// power-specific muzzle is refreshed separately below, as before.
+	if (DispersionPistol(W) != None
+		&& W.PlayerViewMesh == class'DispersionPistol'.default.PlayerViewMesh)
 	{
 		W.AnimSequence = 'Still';
 		W.AnimFrame = 0;
 	}
-	W.SetRotation(rot(0,0,0));
 	Bounds = W.GetBoundingBox(True);
-	bStockBarrel = GetStockBarrel(W, Barrel);
 	W.SetRotation(SavedRotation);
 	W.AnimSequence = SavedSequence;
 	W.AnimFrame = SavedFrame;

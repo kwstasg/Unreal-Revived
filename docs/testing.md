@@ -1,5 +1,22 @@
 # Testing
 
+## Motion-to-gaze weapon geometry after loading
+
+`test-vr-motion-regressions.ps1` now compares fresh geometry caches across available
+idle/equip/fire/lower/reload/sway poses for all 14 stock/UPak families and the two
+Old Weapons pistols. Size and grip must be independent of the initial animation;
+physical-length checks measure the reference resting pose. Existing firing,
+animated muzzle, calibration and replacement-mesh tests remain required.
+`test-vr-map-travel.ps1` warms motion geometry, saves all 14 stock/UPak weapon actors,
+selects gaze and loads the save. It rebuilds the cache and compares gaze scale and
+right/center/left offsets against the stored values using injected head poses.
+These tests use disposable profiles/saves and do not establish headset appearance.
+
+On CV1, start with motion controls, switch to gaze/gamepad and load the affected
+save. Check RocketLauncher and every stock/UPak family against a fresh gaze launch,
+including weapon switching, firing, handedness and repeated loading. Confirm
+unchanged personal calibration and aligned muzzle/crosshair in both aiming modes.
+
 ## Automatic HUD follow and recenter height
 
 Follow [the shared seated/standing behavior](vr-standing-and-turning.md). Native

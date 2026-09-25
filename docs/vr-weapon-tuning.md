@@ -75,6 +75,17 @@ apply through `ReloadVRWeapons`.
 
 ## Weapon compatibility
 
+On September 25 a motion-to-gaze/save-load report exposed first-use animation
+dependence in shared geometry caching. Bounds were measured before the stock
+resting-pose muzzle sample. A cache first populated while selecting or firing a
+weapon could therefore retain a different scale and derived barrel placement.
+Stock bounds now use the same resting pose as their muzzle sample; DispersionPistol
+uses Still for base size and retains power-specific muzzle sampling. Live animation,
+mesh, rotation and scale are restored afterward. Replacement meshes retain their
+existing fallback. This preserves profile values and family lengths, but may
+correct sizes previously derived from a non-resting frame. CV1 confirmation of
+the reported offset remains pending; the earlier accepted calibration is not retuned.
+
 The shared baseline covers stock weapons and Return to Na Pali's CARifle,
 GrenadeLauncher and RocketLauncher. Existing physical lengths are retained.
 Weapon subclasses inherit their family length; unrelated custom classes use
