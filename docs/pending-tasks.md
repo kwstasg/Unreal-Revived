@@ -5,6 +5,14 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
+- **Motion-to-gaze weapon offsets after save load:** unresolved owner report,
+  especially UPak.RocketLauncher. The fixed-reference geometry attempt `d267b77`
+  worsened more weapons and was reverted by `129c000`. Do not retune the accepted
+  physical sizes or calibration based only on pose-cache tests. Reproduce the
+  actual equipped/rendered offset and distinguish position from size before a
+  replacement fix. A disposable copy of the owner's Save12 was inspected;
+  unequipped weapons can have uninitialized hand offsets, which alone does not
+  establish a defect because normal weapon selection calls SetHand.
 - **Other headsets/controllers:** obtain hardware reports for the profiles and
   headsets in [the compatibility guide](vr-controller-compatibility.md), including
   canted/wide-FOV optics, per-eye resolution, bindings and disconnect behavior.

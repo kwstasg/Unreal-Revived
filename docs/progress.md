@@ -11,6 +11,25 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Owner rejected `d267b77`: it did not resolve motion-to-gaze offsets and made
+  more weapons wrong. Reverted the entire attempt in `129c000` and redeployed the
+  previous ModernMenu through `local/build`. The pose-cache test exposed a
+  variability but did not prove the owner's reported failure; fixed resting
+  measurements changed the previously calibrated appearance. Do not repeat this
+  broad reference-pose change without headset evidence.
+- Inspected a disposable copy of Save12, identified in the owner's launch log,
+  using a temporary development console. Several unequipped inventory weapons,
+  including RocketLauncher, retain class-default unscaled view offsets; previously
+  equipped weapons have SetHand-scaled offsets. Normal selection calls SetHand,
+  so this observation alone is not a proven cause. The original save and profiles
+  were not modified. Removed the temporary diagnostic class and copied save after
+  retaining `VRGazeOwnerProbe.log`. The original issue remains open pending more
+  precise observed position/size and weapon-switch behavior.
+- Restored build compiled with zero warnings; weapon-motion and save/load/travel
+  regressions passed. Repository safety and whitespace checks passed. The original
+  save hash matched the diagnostic copy before cleanup. Recovery evidence is in
+  `local/logs/vr-gaze-recovery-20260925/`. No replacement weapon fix is claimed.
+
 - Owner accepted automatic HUD recovery and the recenter-height fix at `b69ae2c`
   ("wow looks awsome"). Recorded the new CV1 baseline and closed pending overall
   visual acceptance while retaining individual regression scenarios. Reviewed

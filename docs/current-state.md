@@ -6,6 +6,12 @@ history.
 
 ## Current VR quality development checkpoint
 
+The owner rejected the motion-to-gaze weapon fix `d267b77`: the original offset
+remained and more weapons were affected. `129c000` reverts that attempt, including
+its changed geometry reference poses. The previous weapon behavior is restored;
+the original save-load offset remains unresolved. Preserve existing calibration
+and establish the equipped/rendered failure before another change.
+
 Preferences > VR now offers Smooth (unchanged default), Instant Snap and Smooth
 Snap, with a 15-90-degree snap-angle slider defaulting to 30 degrees. The owner
 accepted turning behavior as perfect and requested these snap-mode names.
