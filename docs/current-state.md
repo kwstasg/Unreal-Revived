@@ -11,7 +11,7 @@ looks correct in game. [End-user highlights](release-0.9.0.md) and the changelog
 describe changes since 0.8.0. Built from `local/build`, the installer is
 `local/package/offline-installer/output/UnrealRevived-Setup-0.9.0.exe`.
 The isolated 0.9.0 installation lifecycle passed; installed-build owner visual
-acceptance remains pending. See [validation record](release-0.9.0-validation.md).
+acceptance is complete. See [validation record](release-0.9.0-validation.md).
 0.8.0 remains the published release; rebuilding disposable staging replaced its
 previous local installer. No push/publication.
 
@@ -333,7 +333,7 @@ checks are recorded in [`branded-launchers.md`](branded-launchers.md).
 The validated local 0.9.0 installer is
 `local/package/offline-installer/output/UnrealRevived-Setup-0.9.0.exe`, with
 its base source revision and working-tree dirty flag in `payload-manifest.json`.
-The installer is unsigned; installed-build owner acceptance remains pending. See
+The installer is unsigned; the owner accepted the installed build. See
 [release notes](release-0.9.0.md) and [validation evidence](release-0.9.0-validation.md). The
 preserved 0.6.0 publication and validation record remains in
 [`release-0.6.0.md`](release-0.6.0.md).
@@ -375,7 +375,7 @@ hardware reports remain pending.
 The 0.9.0 installer from clean source `ae367b82` passed the isolated lifecycle,
 including fresh settings, retained saves and desktop/VR startup/restart. It
 includes upright HUD recovery, turning and the stronger vignette. Installed-build
-owner acceptance is next; automated CV1 initialization remained in IDLE. Artifact
+owner acceptance is complete; automated CV1 initialization remained in IDLE. Artifact
 identity and evidence are in [the validation record](release-0.9.0-validation.md).
 No new publication or push is authorized or performed.
 

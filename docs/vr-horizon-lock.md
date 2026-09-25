@@ -67,5 +67,6 @@ turn left/right: world verticals must stay aligned with physical gravity, while
 natural head motion stays visible. Check mouse yaw and vertical mouse movement,
 the intro flyby and view-target cameras. The HUD should remain upright at eye
 height along the captured horizontal heading. Small seated menu transitions stay
-fixed; subsequent automatic recovery has a separate pending acceptance checklist.
+fixed; automatic recovery is accepted too, with regression scenarios recorded
+in [seated and standing behavior](vr-standing-and-turning.md).
 World and HUD behavior have CV1 owner acceptance. Focus-loss stutter remains closed.

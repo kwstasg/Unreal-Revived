@@ -57,8 +57,7 @@ Quality 125% or Ultra 150%** without restarting. Balanced is the default. Each
 preset scales the per-eye resolution recommended by your OpenXR runtime;
 desktop resolution and the HUD/menu layout remain independent.
 
-The VR tab is simpler, with the temporary Epic, Current profile and menu-sharpness
-options removed. **F11** reports VR application FPS and per-eye scene resolution
+**F11** reports VR application FPS and per-eye scene resolution
 when the headset is active, with desktop statistics when it is inactive.
 Desktop resolution labels now include readable aspect ratios.
 
@@ -99,7 +98,7 @@ regression testing. No measured FPS increase is claimed. Existing weapon calibra
 change was reverted and is **not** part of 0.9.0.
 
 **Release status:** the 0.9.0 installer build and isolated lifecycle validation
-have passed; installed-build owner acceptance remains pending. Automatic HUD
+have passed, and the owner accepted the installed build. Publication remains pending. Automatic HUD
 recovery does not add room-scale player-body movement/collision. Remote-client VR firing and custom weapon compatibility remain
 limited. An intermittent motion-save/load-to-gaze weapon-offset report has not
 recurred in the latest owner retest and has no confirmed fix.

@@ -1,6 +1,6 @@
 # Unreal Revived 0.9.0
 
-*Release candidate: installer lifecycle passed; final owner check pending.*
+*Release candidate: installer lifecycle passed and installed build accepted by the owner. Not yet published.*
 
 Version 0.9.0 extends seated VR with standing play, automatic HUD positioning,
 recentering and turning improvements,
@@ -36,7 +36,7 @@ play and controller mappings are retained.
   desktop resolution labels.
 - **VR bloom correction.** Corrected bloom behavior in VR.
 
-Read [changes since 0.8.0](../CHANGELOG.md) for the full changelog.
+Read [full changelog](../CHANGELOG.md).
 
 ## Installing and updating
 
@@ -49,19 +49,3 @@ start fresh; uninstall backs up settings and weapon calibration to a timestamped
 **Unreal Revived Backup** folder in Documents. Reapply your preferences or restore
 chosen profile files yourself. Existing weapon calibration encountered during
 deployment is preserved; fresh installs receive the accepted defaults.
-
-## Tested boundary
-
-The current owner-tested VR baseline is **Oculus Rift CV1 with Touch and Xbox**.
-Other headsets are not universally certified. Automatic HUD follow and standing
-height preservation do not add full room-scale player-body movement/collision.
-Remote-client VR firing and some custom weapons remain unsupported. The
-intermittent motion-save/load-to-gaze offset report is currently not reproducing;
-this release does not claim a confirmed fix or include the rejected sizing change.
-
-Source cleanup has passed native, menu, gameplay, save/load and desktop-renderer
-checks, and the owner confirmed the in-game result. The isolated 0.9.0 installer
-lifecycle also passed fresh settings, save retention,
-production fixture exclusion and desktop/OpenXR startup. Installed-build headset
-visual acceptance remains pending. See the [local validation record](release-0.9.0-validation.md).
-No public 0.9.0 release is claimed yet.

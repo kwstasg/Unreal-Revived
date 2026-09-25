@@ -14,7 +14,7 @@ Validated 25 September 2026. Not published or pushed.
 
 The lifecycle used the same payload and installer script with `ValidationBuild`
 enabled, giving it an isolated application identity, registration and shortcuts.
-Production installation itself has not been exercised by the owner yet.
+The owner subsequently tested the installed 0.9.0 build and accepted it.
 
 ## Passed checks
 
@@ -29,12 +29,15 @@ Production installation itself has not been exercised by the owner yet.
 - Reinstall restoring fresh profile hashes while retaining saves.
 - Final uninstall removing isolated registration, shortcuts and test backups.
 
-## Remaining acceptance and preservation note
+## Owner acceptance and preservation note
 
-The owner should check desktop and CV1 visuals from the installed 0.9.0 build.
-Initialization in IDLE does not verify headset rendering or comfort. Previously
-accepted gameplay, turning, horizon lock, vignette and HUD behavior remain the
-baseline. Other headset compatibility and clean-machine testing remain unverified.
+On 25 September 2026, after the requested installed-build desktop/CV1 check,
+the owner reported: "tested it and everything is in order". This closes the
+installed-build acceptance task. It records overall manual acceptance, not an
+individual result for every suggested scenario. The automated session remained
+in IDLE; the owner report provides separate acceptance evidence. Other headset
+compatibility and clean-machine testing remain unverified. Publication and push
+have not been authorized.
 
 Pre/post-build hashes matched for 22 of 23 development INI/save files. The menu
 build reapplied defaults to `D3D12Test.ini`; the original bytes were not backed

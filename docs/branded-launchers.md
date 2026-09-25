@@ -108,8 +108,8 @@ are not migrated. Saves and the existing uninstall backup remain preserved.
 folder without running Setup. The 0.9.0 installer subsequently passed the full
 isolated lifecycle after migration removal: fresh defaults for all four files,
 exact uninstall backups, retained saves, fixture exclusion and desktop/VR
-startup/restart. CV1 OpenXR initialized in IDLE; installed-build owner visual
-acceptance remains pending. See [the validation record](release-0.9.0-validation.md).
+startup/restart. Automated CV1 OpenXR initialization remained in IDLE. The owner
+subsequently accepted the installed 0.9.0 build after manual testing. See [the validation record](release-0.9.0-validation.md).
 
 The lifecycle results below are historical and include superseded migration
 behavior. Their binary/log paths do not imply that those artifacts remain on disk.

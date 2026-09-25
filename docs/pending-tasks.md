@@ -5,10 +5,9 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **0.9.0 installed-build acceptance:** production installer built and isolated
-  installation/uninstallation/reinstallation passed. See the
-  [validation record](release-0.9.0-validation.md). Owner desktop/CV1 visual smoke
-  check of this installer remains; publication and push are not authorized.
+- **0.9.0 publication:** installer lifecycle and installed-build owner acceptance
+  are complete. Release notes are prepared; publication and push remain
+  unauthorized. See the [validation record](release-0.9.0-validation.md).
 - **Motion-to-gaze weapon offsets after save load:** intermittent report,
   clarified as motion gameplay/save, process restart, load in motion, then gaze.
   Owner repeated the intended sequence without recurrence after rollback. Logs
@@ -41,6 +40,9 @@ release notes are historical evidence, not a second backlog.
 - RTX and a Vulkan renderer remain future projects; see [roadmap](roadmap.md).
 
 ## Closed or removed
+
+- 0.9.0 installed-build acceptance: owner tested the installed build and reported
+  everything in order on 25 September 2026, following the desktop/CV1 checklist.
 
 - Maintenance cleanup: owner confirmed in-game behavior remains in order after
   `12fb86d`. Version 0.9.0 source metadata and end-user release notes are prepared;

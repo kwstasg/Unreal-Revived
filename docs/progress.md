@@ -11,6 +11,13 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Owner tested the installed 0.9.0 build after the requested desktop/CV1 checklist
+  and reported "tested it and everything is in order". Closed installed-build
+  acceptance and synchronized active release/status documents. This is overall
+  owner acceptance, separate from automated OpenXR initialization in IDLE.
+  Preserved and checkpointed the owner's release-note wording/removals. The
+  accepted installer is unchanged; no new publication, tag or push is authorized.
+
 - Follow-up documentation audit corrected remaining old executable instructions,
   settings-migration claims and pre-0.9.0 package provenance in the active handoff.
   Marked removed milestone backups as historical and linked current lifecycle
