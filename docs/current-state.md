@@ -13,8 +13,9 @@ The [automatic HUD recovery](vr-standing-and-turning.md) retains a stable anchor
 for small seated motion and follows sustained larger translations/turns without
 a new option. Open menus remain stationary after conditional opening recovery.
 Recenter preserves tracked height across sitting/standing within the running XR
-session. These new changes need CV1 acceptance; full room-scale support is not
-claimed. Installer rebuilding remains deferred by the owner.
+session. The owner accepted the result as looking awesome on CV1 at `b69ae2c`.
+Preserve this automatic behavior; full room-scale support is not claimed.
+Installer rebuilding remains deferred by the owner.
 
 The horizon-lock audit found full-pose world reference capture on startup/recenter.
 World capture now uses heading only; the owner confirmed the world fix. HUD

@@ -4,8 +4,9 @@
 
 CV1 world/HUD horizon lock and vignette were accepted at `232f768`. Automatic HUD
 recovery now builds on that upright shared panel without a seated/standing option.
-Small seated movements remain fixed. The new follow and recenter-height changes
-pass automated tests but still need CV1 acceptance. Full room-scale gameplay is
+Small seated movements remain fixed. The follow and recenter-height changes
+pass automated tests and were accepted by the owner on CV1 at `b69ae2c`.
+Full room-scale gameplay is
 not claimed. Turning choices do not change headset pitch/roll tracking.
 
 ## Automatic standing HUD
@@ -108,7 +109,9 @@ snap modes in both directions at 30 and 90 degrees, hold the stick, return neutr
 and turn again. Open/close menus or recenter during Smooth Snap, remount, and
 disconnect/reconnect with a held stick. Confirm no leftover turn, unchanged
 natural pitch/roll, stable HUD, firing alignment and persistent preferences.
-Automatic HUD recovery and recenter-height acceptance remain pending. Test small
+The owner accepted automatic HUD recovery and recenter height at `b69ae2c`, saying
+the result looks awesome. This is overall visual acceptance, not a report that
+every regression scenario below was individually exercised. For future changes, test small
 seated motion, sustained standing/stepping/turning, menu recovery and frozen menu
 interaction. Recenter seated, stand and recenter, then sit and recenter repeatedly:
 the world viewpoint must retain physical height changes without drops or drift.

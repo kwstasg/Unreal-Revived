@@ -106,8 +106,8 @@ over 20 cm or yaw over 35 degrees for 0.3 seconds starts bounded upright follow;
 small seated motions stay fixed. Opening a menu beyond either threshold summons
 the panel once, then freezes it throughout interaction. Both eyes share the same
 pose update. Recenter preserves the world's initial vertical reference while
-placing the independent panel at current eye height. These changes still need
-CV1 visual acceptance; accepted geometry and projection remain unchanged.
+placing the independent panel at current eye height. The owner accepted the CV1
+result at `b69ae2c`; accepted geometry and projection remain unchanged.
 
 1. Start from this accepted milestone and preserve a recoverable source/binary
    baseline before experiments. Do not combine unrelated fixes in one test build.

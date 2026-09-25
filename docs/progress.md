@@ -11,6 +11,13 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Owner accepted automatic HUD recovery and the recenter-height fix at `b69ae2c`
+  ("wow looks awsome"). Recorded the new CV1 baseline and closed pending overall
+  visual acceptance while retaining individual regression scenarios. Reviewed
+  follow dead zones, bounded easing, menu freeze, yaw wrapping and tracking-gap
+  handling; no further tuning change is justified by the current feedback.
+  This acceptance update changes documentation only; no rebuild or publication.
+
 - Implemented automatic upright HUD recovery without a seated/standing option,
   as requested. Small seated motion stays fixed; displacement over 20 cm or yaw
   over 35 degrees for 0.3 seconds starts bounded follow. Both eyes share one

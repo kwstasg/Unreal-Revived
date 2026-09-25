@@ -5,13 +5,6 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **Automatic HUD and recenter height:** implemented without a new setting;
-  small seated motion stays stable, sustained displacement/turning brings the
-  upright panel along, and open menus stay stationary. Recenter now preserves
-  the running session's vertical reference instead of erasing standing height.
-  Eleven native suites and runtime regressions pass; CV1 seated/standing,
-  menu-interaction and repeated recenter acceptance remains pending. Full
-  room-scale gameplay is separate. See [design and scope](vr-standing-and-turning.md).
 - **Other headsets/controllers:** obtain hardware reports for the profiles and
   headsets in [the compatibility guide](vr-controller-compatibility.md), including
   canted/wide-FOV optics, per-eye resolution, bindings and disconnect behavior.
@@ -31,6 +24,10 @@ release notes are historical evidence, not a second backlog.
 
 ## Closed or removed
 
+- Automatic HUD recovery and recenter-height fix: owner accepted the result on
+  CV1 at `b69ae2c`. No seated/standing option is needed. Retain the focused
+  [regression checklist](vr-standing-and-turning.md); acceptance does not certify
+  every listed scenario or full room-scale gameplay.
 - Turning modes: owner accepted behavior as perfect at `f995a53`; display names
   are Instant Snap and Smooth Snap. Smooth remains default; snap angle defaults
   to 30 degrees. Retain [the regression checklist](vr-standing-and-turning.md).

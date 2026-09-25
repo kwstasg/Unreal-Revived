@@ -8,7 +8,9 @@ freeze/recovery, yaw wrapping and tracking gaps at varied frame rates.
 `vr-pose-math` checks repeated sit/stand/crouch recentering with unchanged vertical
 displacement and horizontal reset at multiple world scales.
 
-CV1 acceptance remains pending. Recenter seated, stand, recenter again, then sit
+The owner accepted the overall CV1 result at `b69ae2c`. Retain these regression
+checks without assuming each was individually reported: recenter seated, stand,
+recenter again, then sit
 and repeat: recenter must not drop the viewpoint or accumulate a height offset.
 Check crouching, upright world/HUD during tilted recenter, natural head tracking,
 weapon alignment and save loading. Small seated motion and brief glances should
