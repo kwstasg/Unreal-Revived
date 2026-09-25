@@ -1,5 +1,22 @@
 # Testing
 
+## Automatic HUD follow and recenter height
+
+Follow [the shared seated/standing behavior](vr-standing-and-turning.md). Native
+`vr-panel-follow` checks seated stability, sustained follow, speed limits, menu
+freeze/recovery, yaw wrapping and tracking gaps at varied frame rates.
+`vr-pose-math` checks repeated sit/stand/crouch recentering with unchanged vertical
+displacement and horizontal reset at multiple world scales.
+
+CV1 acceptance remains pending. Recenter seated, stand, recenter again, then sit
+and repeat: recenter must not drop the viewpoint or accumulate a height offset.
+Check crouching, upright world/HUD during tilted recenter, natural head tracking,
+weapon alignment and save loading. Small seated motion and brief glances should
+keep the HUD stable; sustained standing/stepping/large turns should bring it back.
+Open a displaced menu and check one-time recovery, then stable pointer/slider
+interaction. Verify both eye layers align, distance/scale retain their meaning,
+and Smooth, Instant Snap, Smooth Snap and desktop remain unchanged.
+
 ## VR turning modes
 
 Follow [the turning and standing-HUD contract](vr-standing-and-turning.md).

@@ -247,7 +247,7 @@ effect-specific world/UI detection.
 | `D3D12 VRPLAYERHEIGHT <meters>` | Save and apply a vertical VR viewpoint offset from -0.75 to 1.50 m; default 0.00 preserves the original camera height. Also available as Height Offset in Preferences > VR. |
 | `D3D12 VRWORLDSCALE <factor>` | Save and apply perceived world size from 0.40 to 2.50; default 1.00 is 100%. Larger values make the world appear larger. Also available as World Size in Preferences > VR. |
 | `D3D12 RESETVRUIANCHOR` | Explicitly recapture upright heading and eye-level placement for all UI. |
-| `D3D12 RECENTERVR` | Queue combined view/UI recenter for the next valid tracking frame; level software pitch/roll and retain current horizontal gaze as forward. |
+| `D3D12 RECENTERVR` | Queue combined view/UI recenter for the next valid tracking frame; level software pitch/roll, retain horizontal gaze as forward and preserve tracked height within the running XR session. |
 | `D3D12 VRLAUNCHMODE` | Return `-vr` or `-novr` for mode-preserving restart, including unavailable-headset fallback. |
 | `D3D12 BEGINVRUIPASS` / `D3D12 ENDVRUIPASS` | Internal balanced canvas-projection boundary; world/weapon rendering stays outside it. |
 

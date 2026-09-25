@@ -3,6 +3,13 @@
 #include <cmath>
 #include <openxr/openxr.h>
 
+// Recenter horizontal position without erasing standing/crouching height.
+// The first valid pose establishes height for this session's reference space.
+inline XrVector3f OpenXRRecenterPosition(const XrVector3f& Head, const XrVector3f& Previous, bool HasReference)
+{
+	return {Head.x, HasReference ? Previous.y : Head.y, Head.z};
+}
+
 inline XrQuaternionf MultiplyOpenXRQuaternions(const XrQuaternionf& A, const XrQuaternionf& B)
 {
 	return {

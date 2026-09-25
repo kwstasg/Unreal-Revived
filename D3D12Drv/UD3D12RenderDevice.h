@@ -17,6 +17,7 @@
 #include "VRFrameStatistics.h"
 #include "VRPitchRecovery.h"
 #include "VRTurning.h"
+#include "VRPanelFollow.h"
 #include <functional>
 
 struct SceneVertex
@@ -591,6 +592,8 @@ private:
 	XrPosef OpenXRUIAnchorPose = { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f } };
 	XrVector3f OpenXRUIAnchorHeadPosition = { 0.0f, 0.0f, 0.0f };
 	UBOOL OpenXRUIAnchorValid = 0;
+	VRPanelFollow OpenXRUIFollow;
+	XrTime OpenXRUIFollowTime = 0;
 	UBOOL OpenXRUILayerReady = 0;
 	uint32_t OpenXRUIEyeMask = 0;
 	XrQuaternionf OpenXRHeadOrientation = { 0.0f, 0.0f, 0.0f, 1.0f };

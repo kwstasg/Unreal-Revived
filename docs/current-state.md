@@ -9,9 +9,12 @@ history.
 Preferences > VR now offers Smooth (unchanged default), Instant Snap and Smooth
 Snap, with a 15-90-degree snap-angle slider defaulting to 30 degrees. The owner
 accepted turning behavior as perfect and requested these snap-mode names.
-The [standing HUD strategy](vr-standing-and-turning.md)
-is documented separately; seated/fixed HUD remains unchanged and no full
-room-scale support is claimed. Installer rebuilding remains deferred by the owner.
+The [automatic HUD recovery](vr-standing-and-turning.md) retains a stable anchor
+for small seated motion and follows sustained larger translations/turns without
+a new option. Open menus remain stationary after conditional opening recovery.
+Recenter preserves tracked height across sitting/standing within the running XR
+session. These new changes need CV1 acceptance; full room-scale support is not
+claimed. Installer rebuilding remains deferred by the owner.
 
 The horizon-lock audit found full-pose world reference capture on startup/recenter.
 World capture now uses heading only; the owner confirmed the world fix. HUD

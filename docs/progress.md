@@ -11,6 +11,24 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Implemented automatic upright HUD recovery without a seated/standing option,
+  as requested. Small seated motion stays fixed; displacement over 20 cm or yaw
+  over 35 degrees for 0.3 seconds starts bounded follow. Both eyes share one
+  update. A displaced menu is summoned once on opening, then stays stationary
+  throughout interaction. Distance, scale, canvas, vignette and turning stay intact.
+- Fixed standing recenter lowering the viewpoint: full position recapture erased
+  the vertical displacement gained after seated startup. Explicit recenter now
+  preserves the running XR session's original vertical reference while refreshing
+  horizontal position/heading. The independent HUD still captures current eye
+  height. This does not introduce floor calibration or room-scale pawn movement.
+- Canonical Release build/deploy, all 11 native renderer suites, weapon-motion,
+  save/load/travel/shutdown and Unreal/NyLeve desktop smoke checks passed.
+  An initial desktop command passed both map names as one string; rerunning with
+  a PowerShell array passed both maps. Repository safety and whitespace checks
+  passed. Logs: `local/logs/vr-auto-hud-20260925/`. Removed the generated native
+  test build after retaining logs. CV1 follow/height acceptance remains pending;
+  installer rebuild remains deferred. No publication or push.
+
 - Owner accepted turning behavior as perfect at `f995a53`. Renamed the displayed
   Animated Snap option to Smooth Snap and updated its help text; Instant Snap
   remains named as requested. No turning logic, timings, defaults or angle

@@ -22,6 +22,19 @@ float Dot(Vector A, Vector B) { return A.X*B.X+A.Y*B.Y+A.Z*B.Z; }
 
 int main()
 {
+	const XrVector3f Seated = {0.1f, 1.2f, -0.2f};
+	auto PositionReference = OpenXRRecenterPosition(Seated, {0,0,0}, false);
+	Check(Near(PositionReference.y,Seated.y), "first pose establishes seated height reference");
+	for (float Height : {1.8f,1.8f,1.2f,0.8f,1.8f})
+	{
+		const XrVector3f Head = {0.5f,Height,0.4f};
+		const auto Previous = PositionReference;
+		PositionReference = OpenXRRecenterPosition(Head,PositionReference,true);
+		Check(Near(PositionReference.x,Head.x) && Near(PositionReference.z,Head.z), "recenter still resets horizontal displacement");
+		for (float Scale : {0.4f,1.0f,2.5f})
+			Check(Near((Head.y-Previous.y)*50/Scale,(Head.y-PositionReference.y)*50/Scale), "recenter preserves standing/crouching height at every world scale");
+		Check(Near(PositionReference.y,Seated.y), "repeated recenter never accumulates height drift");
+	}
 	Check(Near(OpenXRVectorToUnreal(Vector(0,0,-1)), Vector(1,0,0)), "forward coordinate conversion");
 	Check(Near(OpenXRVectorToUnreal(Vector(1,0,0)), Vector(0,1,0)), "right coordinate conversion");
 	Check(Near(OpenXRVectorToUnreal(Vector(0,1,0)), Vector(0,0,1)), "up coordinate conversion");

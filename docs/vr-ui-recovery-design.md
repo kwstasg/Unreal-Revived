@@ -24,12 +24,14 @@ restore the older visible-but-clipped `f767139c` experiment.
   Do not add VR-only root shrinking, per-widget offsets or a second HUD inset.
 - Include console messages, translator/MOTD and statistics in the VR canvas pass.
   Keep the world weapon and gaze crosshair on the eye canvas.
-- HUD, menu and intro use the same panel dimensions and pose. Opening or closing
-  menus must not change position, size or orientation.
+- HUD, menu and intro use the same panel dimensions and pose. Nearby seated menu
+  transitions retain the anchor. Opening a lost menu can recover its pose once,
+  as described below; size and layout do not change.
 - The initial anchor is upright at eye height, using horizontal heading only.
   Explicit Recenter VR View now also captures horizontal heading only, keeping
   the panel level when recentering while looking up/down or tilting sideways.
-  It stays fixed; menu transitions and sliders do not recapture it. The low-level
+  Small seated movements stay fixed; automatic recovery follows sustained larger
+  movements. Open menus and sliders freeze the anchor. The low-level
   UI-only reset still uses an upright anchor and retains heading near vertical gaze.
 
 ## Projection ownership: the decisive fix
@@ -98,9 +100,14 @@ behavior supersedes the earlier full-pose recenter baseline.
 
 ## Rules for future changes
 
-The [standing HUD strategy](vr-standing-and-turning.md) proposes an opt-in follow
-mode while retaining this seated/fixed contract as default. It is a design only;
-the implemented turning-mode choices leave this panel anchor unchanged.
+The [automatic HUD recovery](vr-standing-and-turning.md) supersedes the optional
+standing-mode proposal at the owner's request. No setting is added. Displacement
+over 20 cm or yaw over 35 degrees for 0.3 seconds starts bounded upright follow;
+small seated motions stay fixed. Opening a menu beyond either threshold summons
+the panel once, then freezes it throughout interaction. Both eyes share the same
+pose update. Recenter preserves the world's initial vertical reference while
+placing the independent panel at current eye height. These changes still need
+CV1 visual acceptance; accepted geometry and projection remain unchanged.
 
 1. Start from this accepted milestone and preserve a recoverable source/binary
    baseline before experiments. Do not combine unrelated fixes in one test build.
@@ -114,7 +121,7 @@ the implemented turning-mode choices leave this panel anchor unchanged.
    for diagnosing a positioning problem when the menu already appears.
 6. Validate flyby and playable maps, menu open/closed, and desktop mode. Ordinary
    desktop mirrors are not proof of the OpenXR composition layer's visibility.
-7. Keep recenter explicit, size independent of distance, and all UI on the same
+7. Keep world recenter explicit, size independent of distance, and all UI on the same
    panel. These are user-accepted requirements, not optional comfort experiments.
 8. Record observed headset results separately from build or smoke-test results.
    Update current documentation when behavior changes; archive superseded advice.

@@ -14,12 +14,16 @@ rolling the head remains naturally tracked, including at the instant of recenter
 Returning upright leaves no captured world tilt. Near vertical gaze, where heading
 is undefined, capture retains the previous heading (identity on first startup).
 Recenter transfers the change in horizontal heading to pawn yaw before capturing
-the new reference, preserving the facing direction. Position is still recentered.
+the new reference, preserving the facing direction. Horizontal position is
+recentered; the initial vertical reference is retained during the running session
+so recentering after standing does not erase the gained head height.
 
 The HUD anchor is separate. Following owner feedback that the world was fixed
 but the HUD still tilted, explicit recenter now captures heading only for the
 panel too. It stays upright at eye height instead of storing recenter pitch/roll.
-Its distance, size, projection and menu-transition behavior are unchanged.
+Its distance, size and projection are unchanged. The subsequent
+[automatic follow change](vr-standing-and-turning.md) retains a fixed anchor for
+small seated motions and recovers the panel after larger sustained movement.
 Scripted `PlayerCalcView` rotations still
 compose with tracking; authored flyby/view-target tilt is not flattened.
 
@@ -37,7 +41,7 @@ compose with tracking; authored flyby/view-target tilt is not flattened.
   return alone is not a recenter. Session restart captures a heading-only world
   reference; ordinary remount does not move the HUD anchor.
 - Explicit recenter: software pitch/roll and pending vertical input are cleared;
-  world heading/position and the independent upright UI reference are captured
+  world heading/horizontal position and the independent upright UI reference are captured
   between eye frames. No controller mappings changed.
 
 ## Evidence and acceptance
@@ -62,5 +66,6 @@ looking up/down and tilted sideways. Recenter in each pose, then straighten and
 turn left/right: world verticals must stay aligned with physical gravity, while
 natural head motion stays visible. Check mouse yaw and vertical mouse movement,
 the intro flyby and view-target cameras. The HUD should remain upright at eye
-height along the captured horizontal heading, and stay fixed when menus open/close.
+height along the captured horizontal heading. Small seated menu transitions stay
+fixed; subsequent automatic recovery has a separate pending acceptance checklist.
 World and HUD behavior have CV1 owner acceptance. Focus-loss stutter remains closed.

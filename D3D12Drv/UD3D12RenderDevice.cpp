@@ -1823,7 +1823,11 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 		Swapchain.ImageReady = 0;
 	OpenXRUISwapchain.ImageReady = 0;
 	if (!FrameState.shouldRender)
+	{
+		OpenXRUIFollow.Reset();
+		OpenXRUIFollowTime = 0;
 		return 1;
+	}
 
 	XrViewLocateInfo LocateInfo = { XR_TYPE_VIEW_LOCATE_INFO };
 	LocateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
@@ -1836,6 +1840,8 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 	if (XR_FAILED(Result) || ViewCount != OpenXRViews.size())
 	{
 		debugf(TEXT("Unreal Revived OpenXR: xrLocateViews failed count=%u result=%d"), ViewCount, Result);
+		OpenXRUIFollow.Reset();
+		OpenXRUIFollowTime = 0;
 		return 1;
 	}
 	if ((ViewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) != 0)
@@ -1850,6 +1856,7 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 			OpenXRHeadOrientation = NormalizeOpenXRQuaternion(HeadLocation.pose.orientation);
 		OpenXRHeadPoseValid = 1;
 		const auto WorldHeading = OpenXRWorldHeading(OpenXRHeadOrientation, OpenXRBaseOrientation);
+		const bool PreserveRecenterHeight = OpenXRBaseOrientationValid != 0;
 		if (OpenXRViewRecenterRequested &&
 			(ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) != 0)
 		{
@@ -1875,17 +1882,19 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 				(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f
 			};
 			OpenXRUIAnchorValid = 1;
+			OpenXRUIFollow.Reset();
+			OpenXRUIFollowTime = OpenXRPredictedDisplayTime;
 			OpenXRViewRecenterRequested = 0;
 		}
 		if (!OpenXRBaseOrientationValid &&
 			(ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) != 0)
 		{
 			OpenXRBaseOrientation = WorldHeading;
-			OpenXRBaseHeadPosition = {
+			OpenXRBaseHeadPosition = OpenXRRecenterPosition({
 				(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
 				(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
 				(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f
-			};
+			}, OpenXRBaseHeadPosition, PreserveRecenterHeight);
 			OpenXRBaseOrientationValid = 1;
 			debugf(TEXT("Unreal Revived OpenXR: head orientation baseline captured for PlayerCalcView"));
 		}
@@ -1897,7 +1906,11 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 		OpenXRHeadPoseValid = 0;
 	if ((ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
 		(ViewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0)
+	{
+		OpenXRUIFollow.Reset();
+		OpenXRUIFollowTime = 0;
 		return 1;
+	}
 
 	OpenXRViewsValid = 1;
 	return 1;
@@ -2038,23 +2051,41 @@ void UD3D12RenderDevice::UpdateOpenXRUIAnchor()
 {
 	if (!OpenXRUIAnchorValid && OpenXRViews.size() == 2)
 	{
-		// Start with an upright, eye-level anchor for HUD, menus and intro.
-		// Explicit view recenter also stays upright; neither follows menus.
-		const FVector Forward = RotateOpenXRVector(
-			NormalizeOpenXRQuaternion(OpenXRViews[0].pose.orientation), FVector(0.0f, 0.0f, -1.0f));
-		const auto& Previous = OpenXRUIAnchorPose.orientation;
-		const auto Upright = VRPanelGeometry::Upright(Forward.X, Forward.Z,
-			{ Previous.x, Previous.y, Previous.z, Previous.w });
-		OpenXRUIAnchorPose.orientation = { Upright.x, Upright.y, Upright.z, Upright.w };
+		// Start upright using head heading, not an individual eye's optical cant.
+		OpenXRUIAnchorPose.orientation = OpenXRWorldHeading(OpenXRHeadOrientation, OpenXRUIAnchorPose.orientation);
 		OpenXRUIAnchorHeadPosition = {
 			(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
 			(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
 			(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f
 		};
 		OpenXRUIAnchorValid = 1;
+		OpenXRUIFollow.Reset();
+		OpenXRUIFollowTime = OpenXRPredictedDisplayTime;
 	}
 	if (OpenXRUIAnchorValid)
 	{
+		// This function is reached for both eye slices. Advance follow only once
+		// per predicted frame so the two composition layers share the exact pose.
+		if (OpenXRViewsValid && OpenXRUIFollowTime != OpenXRPredictedDisplayTime)
+		{
+			const float Seconds = OpenXRUIFollowTime != 0
+				? static_cast<float>((OpenXRPredictedDisplayTime - OpenXRUIFollowTime) * 1.0e-9) : 0;
+			OpenXRUIFollowTime = OpenXRPredictedDisplayTime;
+			const bool Menu = Viewport && Viewport->Console && (Viewport->Console->GetbTyping() ||
+				(Viewport->Console->GetStateFrame() && Viewport->Console->GetStateFrame()->StateNode &&
+				Viewport->Console->GetStateFrame()->StateNode->GetFName() == FName(TEXT("Menuing"))));
+			const auto Heading = OpenXRWorldHeading(OpenXRHeadOrientation, OpenXRUIAnchorPose.orientation);
+			float Yaw = 2.0f * std::atan2(OpenXRUIAnchorPose.orientation.y, OpenXRUIAnchorPose.orientation.w);
+			VRPanelFollow::Position Anchor = {OpenXRUIAnchorHeadPosition.x, OpenXRUIAnchorHeadPosition.y, OpenXRUIAnchorHeadPosition.z};
+			const VRPanelFollow::Position Head = {
+				(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
+				(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
+				(OpenXRViews[0].pose.position.z + OpenXRViews[1].pose.position.z) * 0.5f};
+			OpenXRUIFollow.Update(Seconds, OpenXRSessionState == XR_SESSION_STATE_FOCUSED && OpenXRHeadPoseValid,
+				Menu, Head, 2.0f * std::atan2(Heading.y, Heading.w), Anchor, Yaw);
+			OpenXRUIAnchorHeadPosition = {Anchor.x, Anchor.y, Anchor.z};
+			OpenXRUIAnchorPose.orientation = {0, std::sin(Yaw * 0.5f), 0, std::cos(Yaw * 0.5f)};
+		}
 		const FLOAT UIDistance = Clamp(VRHUDDistance, 0.5f, 5.0f);
 		const FVector Offset = RotateOpenXRVector(OpenXRUIAnchorPose.orientation,
 			FVector(0.0f, 0.0f, -UIDistance));
@@ -2155,6 +2186,8 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 
 void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
+	OpenXRUIFollow.Reset();
+	OpenXRUIFollowTime = 0;
 	VRTurn.Reset();
 	VRTurnPlayerIndex = -1;
 	VRPitch = {};
@@ -4082,6 +4115,8 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 		else if (ParseCommand(&Cmd, TEXT("RESETVRUIANCHOR")))
 		{
 			OpenXRUIAnchorValid = 0;
+			OpenXRUIFollow.Reset();
+			OpenXRUIFollowTime = 0;
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("RECENTERVR")))

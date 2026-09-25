@@ -5,10 +5,13 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **Standing HUD strategy:** proposed optional translation-following, upright HUD
-  with delayed yaw catch-up and stable menu interaction. Seated/fixed remains
-  unchanged. Strategy is documented; follow mode and full room-scale gameplay are
-  not implemented. See [design and scope](vr-standing-and-turning.md).
+- **Automatic HUD and recenter height:** implemented without a new setting;
+  small seated motion stays stable, sustained displacement/turning brings the
+  upright panel along, and open menus stay stationary. Recenter now preserves
+  the running session's vertical reference instead of erasing standing height.
+  Eleven native suites and runtime regressions pass; CV1 seated/standing,
+  menu-interaction and repeated recenter acceptance remains pending. Full
+  room-scale gameplay is separate. See [design and scope](vr-standing-and-turning.md).
 - **Other headsets/controllers:** obtain hardware reports for the profiles and
   headsets in [the compatibility guide](vr-controller-compatibility.md), including
   canted/wide-FOV optics, per-eye resolution, bindings and disconnect behavior.

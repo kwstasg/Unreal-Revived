@@ -2,37 +2,38 @@
 
 ## Preserve the accepted seated baseline
 
-CV1 world/HUD horizon lock and vignette were accepted at `232f768`. Seated/fixed
-HUD remains the default. The standing HUD behavior below is a proposal, not an
-implemented or hardware-validated room-scale mode. Turning choices are implemented
-separately and do not move the HUD anchor or change headset pitch/roll tracking.
+CV1 world/HUD horizon lock and vignette were accepted at `232f768`. Automatic HUD
+recovery now builds on that upright shared panel without a seated/standing option.
+Small seated movements remain fixed. The new follow and recenter-height changes
+pass automated tests but still need CV1 acceptance. Full room-scale gameplay is
+not claimed. Turning choices do not change headset pitch/roll tracking.
 
-## Proposed standing HUD
+## Automatic standing HUD
 
-Offer an optional **Standing / Follow HUD** setting alongside **Seated / Fixed**.
-Keep one shared panel, the accepted symmetric canvas projection, upright heading,
-distance/scale controls and weapon/UI composition. Modify only the panel anchor.
+There is no new setting. Keep one shared panel, the accepted symmetric canvas
+projection, upright heading, distance/scale controls and weapon/UI composition.
+Only the panel anchor follows sustained physical movement.
 
-- Follow physical head-center translation so stepping sideways, standing up or
-  crouching does not leave the panel at the original seat. Preserve physical
-  distance and size; filter small positional jitter without spring overshoot.
+- After head-center displacement exceeds 20 cm for 0.3 seconds, ease the anchor
+  toward the head until within 2 cm. Translation is capped at 1.5 m/s, with no
+  overshoot. Small seated motion does not move the panel.
 - Keep yaw stable during small glances. After a sustained horizontal turn outside
   a dead zone, ease the panel back into view. Never capture pitch or roll. CV1
   has no torso tracker, so this approximates body-relative UI with horizontal
   headset heading and hysteresis, rather than claiming measured body orientation.
-- Initial tuning proposal: begin yaw catch-up after exceeding 35 degrees for
-  0.3 seconds, finish within 15 degrees of forward, and limit angular speed.
-  These numbers need CV1 testing and are not platform requirements.
-- In standing mode only, explicitly opening the menu can summon the panel once
-  in front of the player, then freeze it during interaction. Nested dialogs,
+- Begin yaw catch-up after exceeding 35 degrees for 0.3 seconds, finish within
+  15 degrees of forward, and cap speed at 90 degrees/second. These thresholds
+  need CV1 testing and are not platform requirements.
+- Explicitly opening the menu summons the panel once only if displaced beyond
+  20 cm or 35 degrees, then freezes it during interaction. Nested dialogs,
   dropdowns and slider adjustments must not recapture or move it. Recenter stays
-  available to bring it back after walking away. Seated menu transitions remain
-  exactly as accepted. Follow resumes after closing the menu.
+  available to bring it back after walking away. Nearby seated menu transitions
+  retain their anchor. Follow resumes after closing the menu.
 - Freeze on invalid tracking, reset follow timing on recenter or tracking return,
   and retain horizontal heading near vertical gaze. Do not alter the world
   reference to move the HUD.
 
-This recommendation adapts Microsoft's guidance favoring body-relative HUDs and
+This strategy adapts Microsoft's guidance favoring body-relative HUDs and
 rotation thresholds over rigid head attachment, with restrained follow movement.
 See [comfort / HUDs](https://learn.microsoft.com/en-us/windows/mixed-reality/design/comfort#heads-up-displays)
 and [tag-along guidance](https://learn.microsoft.com/en-us/windows/mixed-reality/design/billboarding-and-tag-along).
@@ -44,7 +45,19 @@ room-scale phase must reconcile physical walking with pawn collision, stairs,
 doors, crouching, save/load, motion-weapon alignment and turning around the tracked
 head rather than orbiting a displaced pawn origin. Preserve the seated path until
 these cases are established. No teleportation or movement redesign is included
-in this turning change.
+in this change.
+
+## Recenter height
+
+Previously, explicit recenter replaced all three components of the world position
+reference. Standing after seated initialization and recentering erased the gained
+head height, lowering the viewpoint back toward the seated pawn eye level.
+Recenter now refreshes horizontal position and heading while preserving the
+vertical reference established at initial tracking for the running session.
+Repeated standing, sitting and crouching recenter operations retain their tracked
+height without accumulating an offset. Eyes, head and controllers share this
+reference. The separate HUD anchor still recenters at current eye height.
+This is not floor calibration; restarting the XR session establishes a new reference.
 
 ## Implemented turning controls
 
@@ -95,5 +108,7 @@ snap modes in both directions at 30 and 90 degrees, hold the stick, return neutr
 and turn again. Open/close menus or recenter during Smooth Snap, remount, and
 disconnect/reconnect with a held stick. Confirm no leftover turn, unchanged
 natural pitch/roll, stable HUD, firing alignment and persistent preferences.
-Standing HUD implementation and its physical walk/turn/menu checks remain future
-work after agreement on the strategy.
+Automatic HUD recovery and recenter-height acceptance remain pending. Test small
+seated motion, sustained standing/stepping/turning, menu recovery and frozen menu
+interaction. Recenter seated, stand and recenter, then sit and recenter repeatedly:
+the world viewpoint must retain physical height changes without drops or drift.
