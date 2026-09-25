@@ -5,10 +5,10 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **Next package validation:** maintenance audit completed; see
-  [findings and checks](prepackage-audit-2026-09-25.md). When packaging resumes,
-  build version **0.9.0** from `local/build` and repeat the isolated installer lifecycle for the
-  newer accepted HUD/recenter/turning/vignette source. No publication or push.
+- **0.9.0 installed-build acceptance:** production installer built and isolated
+  installation/uninstallation/reinstallation passed. See the
+  [validation record](release-0.9.0-validation.md). Owner desktop/CV1 visual smoke
+  check of this installer remains; publication and push are not authorized.
 - **Motion-to-gaze weapon offsets after save load:** intermittent report,
   clarified as motion gameplay/save, process restart, load in motion, then gaze.
   Owner repeated the intended sequence without recurrence after rollback. Logs
@@ -57,7 +57,7 @@ release notes are historical evidence, not a second backlog.
 - World/HUD horizon lock and revised VR vignette: owner accepted both as perfect
   on CV1 on September 25, at checkpoint `232f768`. Preserve heading-only world/
   panel capture and the shared 20-40-degree maximum fade. Other hardware remains
-  unverified; the existing installer predates this accepted follow-up.
+  unverified; the 0.9.0 installer includes this accepted follow-up.
 - Current-source installer lifecycle: passed September 25 after settings-migration
   removal, including four fresh-profile hash comparisons, retained saves, exact
   backups, fixture exclusion and desktop/VR startup/restart. Oculus/CV1 initialized

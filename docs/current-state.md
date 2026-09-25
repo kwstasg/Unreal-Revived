@@ -8,10 +8,12 @@ history.
 
 The source version is now **0.9.0**. The owner confirmed the maintenance cleanup
 looks correct in game. [End-user highlights](release-0.9.0.md) and the changelog
-describe changes since 0.8.0. Build from `local/build`; the next installer output
-is `local/package/offline-installer/output/UnrealRevived-Setup-0.9.0.exe`.
-The 0.9.0 installer has not been built or lifecycle-validated yet; 0.8.0 remains
-the published release and its local artifact is retained. No push/publication.
+describe changes since 0.8.0. Built from `local/build`, the installer is
+`local/package/offline-installer/output/UnrealRevived-Setup-0.9.0.exe`.
+The isolated 0.9.0 installation lifecycle passed; installed-build owner visual
+acceptance remains pending. See [validation record](release-0.9.0-validation.md).
+0.8.0 remains the published release; rebuilding disposable staging replaced its
+previous local installer. No push/publication.
 
 The owner rejected the motion-to-gaze weapon fix `d267b77`: the original offset
 remained and more weapons were affected. `129c000` reverts that attempt, including
@@ -29,7 +31,7 @@ a new option. Open menus remain stationary after conditional opening recovery.
 Recenter preserves tracked height across sitting/standing within the running XR
 session. The owner accepted the result as looking awesome on CV1 at `b69ae2c`.
 Preserve this automatic behavior; full room-scale support is not claimed.
-Installer rebuilding remains deferred by the owner.
+The owner authorized the subsequent 0.9.0 installer build and lifecycle checks.
 
 The horizon-lock audit found full-pose world reference capture on startup/recenter.
 World capture now uses heading only; the owner confirmed the world fix. HUD

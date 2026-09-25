@@ -11,6 +11,22 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Built the production 0.9.0 installer from clean `ae367b82` using `local/build`.
+  Isolated installation, desktop/expansion/OldWeapons/VR startup and Preferences
+  restart, uninstall with exact profile backups/save retention, fresh-profile
+  reinstall and final cleanup passed. CV1 OpenXR stayed IDLE, so installed-build
+  visual acceptance remains pending. See [evidence](release-0.9.0-validation.md).
+  Rebuilding disposable staging replaced the older local 0.8.0 installer;
+  published releases remain untouched. No push/publication.
+- Preservation hashes found 22 of 23 development INI/save files unchanged;
+  `D3D12Test.ini` was rewritten by menu-build default application. Only hashes
+  had been captured, so exact pre-build restoration is unavailable. Removed
+  video/user-default reapplication from menu rebuilds; fresh runtime creation
+  and installer staging still seed defaults. A production menu rebuild using
+  disposable profiles preserved custom HUD distance, vignette and FOV. Saves,
+  user profile and weapon calibration hashes remain unchanged. This build-script
+  correction follows the packaged source checkpoint and changes no shipped code.
+
 - Owner confirmed the maintenance cleanup remains correct in game, then requested
   version 0.9.0 and a promotional end-user changelog before packaging. Updated
   CMake project, both launcher resources, installer versions and rebuild output

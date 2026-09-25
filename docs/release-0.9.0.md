@@ -2,7 +2,7 @@
 
 **Stay immersed. Turn your way. Make the view your own.**
 
-*Upcoming release — installer build and final installation checks pending.*
+*Release candidate: installer lifecycle passed; final owner check pending.*
 
 Return to Unreal and Na Pali with a VR experience that adapts to how you play.
 Keep your HUD nearby, choose your turning style and adjust visual quality on the
@@ -36,7 +36,7 @@ Read [everything new since 0.8.0](../CHANGELOG.md) for the full changelog.
 
 ## Installing and updating
 
-The planned installer is **UnrealRevived-Setup-0.9.0.exe**. It requires an original
+The installer is **UnrealRevived-Setup-0.9.0.exe**. It requires an original
 Unreal Gold installation and creates a separate Unreal Revived installation.
 Use **Unreal Revived** for desktop or **Unreal Revived VR** for VR.
 
@@ -56,6 +56,8 @@ intermittent motion-save/load-to-gaze offset report is currently not reproducing
 this release does not claim a confirmed fix or include the rejected sizing change.
 
 Source cleanup has passed native, menu, gameplay, save/load and desktop-renderer
-checks, and the owner confirmed the in-game result. Those checks do not replace
-the pending 0.9.0 installer lifecycle. No 0.9.0 download, checksum or publication
-is claimed yet.
+checks, and the owner confirmed the in-game result. The isolated 0.9.0 installer
+lifecycle also passed fresh settings, save retention,
+production fixture exclusion and desktop/OpenXR startup. Installed-build headset
+visual acceptance remains pending. See the [local validation record](release-0.9.0-validation.md).
+No public 0.9.0 release is claimed yet.

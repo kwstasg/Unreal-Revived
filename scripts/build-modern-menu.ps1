@@ -59,14 +59,14 @@ if (-not ($iniLines -match '^bShowFPS=')) {
 if (-not ($iniLines -match '^bShowGameBehindMenus=')) {
     $iniLines = Set-UnrealRevivedIniValue $iniLines 'ModernMenu.ModernHUDConfigCW' 'bShowGameBehindMenus' 'True'
 }
-$iniLines = Set-UnrealRevivedVideoDefaults $iniLines
+# Fresh runtime creation and installer staging seed video defaults. Rebuilding
+# the menu must preserve the owner's existing graphics and VR preferences.
 $iniLines = Add-UnrealRevivedIniValue $iniLines 'Editor.EditorEngine' 'EditPackages' 'ModernMenu'
 Set-Content -LiteralPath $iniPath -Value $iniLines -Encoding ASCII
 
 if (Test-Path -LiteralPath $userIniPath -PathType Leaf) {
     $userIniLines = Get-Content -LiteralPath $userIniPath
     $userIniLines = Set-UnrealRevivedIniValue $userIniLines 'Engine.Input' 'F11' 'ToggleFPSStatistics'
-    $userIniLines = Set-UnrealRevivedUserVideoDefaults $userIniLines
     Set-Content -LiteralPath $userIniPath -Value $userIniLines -Encoding ASCII
 }
 
