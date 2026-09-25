@@ -29,7 +29,7 @@ play and controller mappings are retained.
 - **Stereo VR vignette.** Shared head-relative fading across both eyes,
   stronger visible coverage and a single slider. Desktop appearance is preserved.
 - **OpenXR hardware compatibility.** Additional controller profiles and runtime-driven
-  per-eye sizing, with community hardware validation still needed.
+  per-eye sizing.
 - **Controller and music-menu navigation.** More consistent controller Back behavior and
   improved music-player navigation and playback controls.
 - **Rendering statistics and display labels.** VR-aware F11 statistics and clearer
