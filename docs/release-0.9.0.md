@@ -1,6 +1,6 @@
 # Unreal Revived 0.9.0
 
-*Release candidate: installer lifecycle passed and installed build accepted by the owner. Not yet published.*
+Released 25 September 2026. [Download installer and checksum](https://github.com/kwstasg/Unreal-Revived/releases/tag/UnrealRevived-Setup-0.9.0).
 
 Version 0.9.0 extends seated VR with standing play, automatic HUD positioning,
 recentering and turning improvements,

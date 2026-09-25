@@ -4,7 +4,7 @@ Use this page to resume work after a context reset. It records the supported
 boundary and points to the authoritative detail without depending on chat
 history.
 
-## Current 0.9.0 release candidate
+## Current 0.9.0 release
 
 The source version is now **0.9.0**. The owner confirmed the maintenance cleanup
 looks correct in game. [End-user highlights](release-0.9.0.md) and the changelog
@@ -12,8 +12,8 @@ describe changes since 0.8.0. Built from `local/build`, the installer is
 `local/package/offline-installer/output/UnrealRevived-Setup-0.9.0.exe`.
 The isolated 0.9.0 installation lifecycle passed; installed-build owner visual
 acceptance is complete. See [validation record](release-0.9.0-validation.md).
-0.8.0 remains the published release; rebuilding disposable staging replaced its
-previous local installer. No push/publication.
+[0.9.0 is published](https://github.com/kwstasg/Unreal-Revived/releases/tag/UnrealRevived-Setup-0.9.0). Rebuilding disposable staging replaced the previous
+local 0.8.0 installer; the historical published 0.8.0 release is unchanged.
 
 The owner rejected the motion-to-gaze weapon fix `d267b77`: the original offset
 remained and more weapons were affected. `129c000` reverts that attempt, including
@@ -377,7 +377,7 @@ including fresh settings, retained saves and desktop/VR startup/restart. It
 includes upright HUD recovery, turning and the stronger vignette. Installed-build
 owner acceptance is complete; automated CV1 initialization remained in IDLE. Artifact
 identity and evidence are in [the validation record](release-0.9.0-validation.md).
-No new publication or push is authorized or performed.
+The owner authorized publication and push of 0.9.0 after installed-build acceptance.
 
 The spatial UI milestone was user-accepted on 2026-09-10: complete desktop-like
 HUD/menu layout on one upright OpenXR panel, explicit UI recenter, and stable,
@@ -392,7 +392,7 @@ The ordered major additions are maintained in [`roadmap.md`](roadmap.md):
 3. A native Vulkan driver.
 
 VR began with the 0.6.0 seated milestone and the 0.6.1 Return to Na Pali HUD
-hotfix. The current 0.9.0 candidate adds standing support and the features
+hotfix. The current 0.9.0 release adds standing support and the features
 described above. Remaining compatibility work, RTX and Vulkan are separate. Continue flat-screen validation, automated regression coverage,
 installer UX, and release automation alongside them.
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.0 — Unreleased
+## 0.9.0 - 2026-09-25
 
 Version 0.9.0 adds standing VR support, automatic HUD repositioning, turning modes, runtime
 render-quality presets, and horizon-lock and recentering fixes for Unreal and
@@ -98,7 +98,7 @@ regression testing. No measured FPS increase is claimed. Existing weapon calibra
 change was reverted and is **not** part of 0.9.0.
 
 **Release status:** the 0.9.0 installer build and isolated lifecycle validation
-have passed, and the owner accepted the installed build. Publication remains pending. Automatic HUD
+have passed, and the owner accepted the installed build. [Published release](https://github.com/kwstasg/Unreal-Revived/releases/tag/UnrealRevived-Setup-0.9.0). Automatic HUD
 recovery does not add room-scale player-body movement/collision. Remote-client VR firing and custom weapon compatibility remain
 limited. An intermittent motion-save/load-to-gaze weapon-offset report has not
 recurred in the latest owner retest and has no confirmed fix.

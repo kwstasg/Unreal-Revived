@@ -11,6 +11,12 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Owner authorized the 0.9.0 source push and GitHub publication after accepting
+  the installed build. Release uses the unchanged tested installer from clean
+  `ae367b82`, SHA256 `F9B8677F06CAEE329012B65ED4EC4CE70148CC7BF2C0227D4913D6A2EB6A5DBB`,
+  plus its checksum file and approved feature notes. The release tag includes
+  final documentation and the development-only menu-build preference fix.
+
 - Owner tested the installed 0.9.0 build after the requested desktop/CV1 checklist
   and reported "tested it and everything is in order". Closed installed-build
   acceptance and synchronized active release/status documents. This is overall

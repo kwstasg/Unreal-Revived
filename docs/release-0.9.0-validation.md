@@ -1,6 +1,7 @@
 # 0.9.0 local installer validation
 
-Validated 25 September 2026. Not published or pushed.
+Validated and published 25 September 2026 with owner authorization.
+[Release and downloads](https://github.com/kwstasg/Unreal-Revived/releases/tag/UnrealRevived-Setup-0.9.0).
 
 ## Artifact
 
@@ -36,8 +37,7 @@ the owner reported: "tested it and everything is in order". This closes the
 installed-build acceptance task. It records overall manual acceptance, not an
 individual result for every suggested scenario. The automated session remained
 in IDLE; the owner report provides separate acceptance evidence. Other headset
-compatibility and clean-machine testing remain unverified. Publication and push
-have not been authorized.
+compatibility and clean-machine testing remain unverified. The owner subsequently authorized publication and push.
 
 Pre/post-build hashes matched for 22 of 23 development INI/save files. The menu
 build reapplied defaults to `D3D12Test.ini`; the original bytes were not backed
@@ -51,3 +51,8 @@ script-only correction is after the artifact source revision listed above.
 The packaging script recreates disposable staging, replacing the preceding local
 0.8.0 installer. Historical release records and the published 0.8.0 release remain
 unchanged. Current 0.9.0 installer and evidence are retained.
+
+The release tag includes finalized documentation and the development menu-build
+profile-preservation correction. The accepted binary remains the unchanged
+artifact from clean `ae367b82` recorded above; no shipped runtime source changed
+between that build and publication.
