@@ -6,6 +6,13 @@ history.
 
 ## Current VR quality development checkpoint
 
+The source version is now **0.9.0**. The owner confirmed the maintenance cleanup
+looks correct in game. [End-user highlights](release-0.9.0.md) and the changelog
+describe changes since 0.8.0. Build from `local/build`; the next installer output
+is `local/package/offline-installer/output/UnrealRevived-Setup-0.9.0.exe`.
+The 0.9.0 installer has not been built or lifecycle-validated yet; 0.8.0 remains
+the published release and its local artifact is retained. No push/publication.
+
 The owner rejected the motion-to-gaze weapon fix `d267b77`: the original offset
 remained and more weapons were affected. `129c000` reverts that attempt, including
 its changed geometry reference poses. The previous weapon behavior is restored;
@@ -321,10 +328,10 @@ selects its own engine profile (`Unreal.ini` or `UnrealVR.ini`); controls and sa
 remain shared. Native launch, restart, profile isolation, and installer lifecycle
 checks are recorded in [`branded-launchers.md`](branded-launchers.md).
 
-The current maintenance installer is built as
-`local/package/offline-installer/output/UnrealRevived-Setup-0.8.0.exe`, with
+The next maintenance installer will be built as
+`local/package/offline-installer/output/UnrealRevived-Setup-0.9.0.exe`, with
 its base source revision and working-tree dirty flag in `payload-manifest.json`.
-The binary is unsigned. See [`release-0.8.0.md`](release-0.8.0.md). The
+The installer is unsigned. See [`release-0.9.0.md`](release-0.9.0.md). The
 preserved 0.6.0 publication and validation record remains in
 [`release-0.6.0.md`](release-0.6.0.md).
 

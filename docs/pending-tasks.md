@@ -7,7 +7,7 @@ release notes are historical evidence, not a second backlog.
 
 - **Next package validation:** maintenance audit completed; see
   [findings and checks](prepackage-audit-2026-09-25.md). When packaging resumes,
-  rebuild from `local/build` and repeat the isolated installer lifecycle for the
+  build version **0.9.0** from `local/build` and repeat the isolated installer lifecycle for the
   newer accepted HUD/recenter/turning/vignette source. No publication or push.
 - **Motion-to-gaze weapon offsets after save load:** intermittent report,
   clarified as motion gameplay/save, process restart, load in motion, then gaze.
@@ -41,6 +41,9 @@ release notes are historical evidence, not a second backlog.
 
 ## Closed or removed
 
+- Maintenance cleanup: owner confirmed in-game behavior remains in order after
+  `12fb86d`. Version 0.9.0 source metadata and end-user release notes are prepared;
+  installer acceptance and publication are separate.
 - Automatic HUD recovery and recenter-height fix: owner accepted the result on
   CV1 at `b69ae2c`. No seated/standing option is needed. Retain the focused
   [regression checklist](vr-standing-and-turning.md); acceptance does not certify

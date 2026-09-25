@@ -11,6 +11,18 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Owner confirmed the maintenance cleanup remains correct in game, then requested
+  version 0.9.0 and a promotional end-user changelog before packaging. Updated
+  CMake project, both launcher resources, installer versions and rebuild output
+  expectations to 0.9.0. Retained `local/build` and the documented packaging path.
+  Added upcoming-release highlights and a full since-0.8.0 changelog, including
+  settings/save behavior and hardware limits. Historical 0.8.0 release records
+  and existing artifacts remain unchanged. No installer build or publication.
+- Canonical Release build and launcher-argument test passed. Both generated
+  launcher executables report FileVersion 0.9.0.0 and ProductVersion 0.9.0.
+  Repository safety/whitespace checks passed; evidence is under
+  `local/logs/version-0.9.0-20260925/`.
+
 - Completed the [pre-package maintenance audit](prepackage-audit-2026-09-25.md):
   removed the unused panel-heading helper and obsolete tests, skipped idle HUD
   easing math, removed a duplicate key-binding query, and isolated smoke-test user

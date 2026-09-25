@@ -121,7 +121,7 @@ try {
         'local/game/System64/openxr_loader.dll'
         'local/build/XInputWinDrv/Release/XInputWinDrv.dll'
         'local/game/System64/ModernMenu.u'
-        'local/package/offline-installer/output/UnrealRevived-Setup-0.8.0.exe'
+        'local/package/offline-installer/output/UnrealRevived-Setup-0.9.0.exe'
         'local/package/developer-bundle/UnrealRevived-DeveloperBundle-227k_15-v1.zip'
     )
 

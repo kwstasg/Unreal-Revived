@@ -6,6 +6,11 @@
 
 **[Download the latest Unreal Revived release](https://github.com/kwstasg/Unreal-Revived/releases/latest)**
 
+**Coming in 0.9.0:** a HUD that keeps up, level recentering, three turning styles
+and instant VR quality changes. [Explore the highlights](docs/release-0.9.0.md)
+or read the [full changelog](CHANGELOG.md). Installer validation is pending;
+the download link above still points to the latest published release.
+
 **Fully playable on a normal desktop or in VR.** One installation
 provides separate **Unreal Revived** desktop and **Unreal Revived VR** shortcuts.
 A headset is optional and is never required for normal desktop play.

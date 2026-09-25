@@ -1,5 +1,97 @@
 # Changelog
 
+## 0.9.0 — Unreleased
+
+**Stay immersed. Turn your way. Make the view your own.**
+
+Unreal Revived 0.9.0 brings a more adaptable VR experience to the original Unreal
+and Return to Na Pali: a HUD that stays within reach, three ways to turn, instant
+render-quality changes, and a level horizon when you recenter. Desktop play
+remains available through its own shortcut, with no headset required.
+
+### Your HUD keeps up with you
+
+Stay seated, stand up or shift your position—the shared HUD and menu panel now
+adapts automatically. Small seated movements keep it stable; sustained larger
+movements and turns gently bring it back into view. **No seated/standing setting
+to choose.** Open a menu you've moved away from and it returns within reach,
+then stays still while you navigate or adjust sliders. Your distance and size
+controls keep working as before.
+
+### Recenter without losing your bearings
+
+Recenter while looking up, down or tilting your head: the world reference and HUD
+remain level, while your natural head movement stays fully tracked. Standing
+after seated play and recentering now preserves the height you gained instead
+of lowering your viewpoint again within the same VR session. Mouse input no
+longer adds unwanted software pitch in normal first-person VR; loading saves
+and returning to the headset also recover unwanted software tilt.
+
+### Three ways to turn
+
+Choose your preferred style in **Preferences > VR**:
+
+- **Smooth:** familiar continuous turning, still the default.
+- **Instant Snap:** jump through the selected angle with one stick deflection.
+- **Smooth Snap:** ease through that same angle in a short animated turn.
+
+Snap Angle offers **15°, 30°, 45°, 60°, 75° and 90°**, with **30°** as the default.
+Both snap modes require returning the stick to neutral before the next turn.
+Changes apply immediately and work through the existing Touch/Xbox turning input.
+
+### Find your balance of detail and performance—instantly
+
+Four clear VR quality presets let you choose **Performance 75%, Balanced 100%,
+Quality 125% or Ultra 150%** without restarting. Balanced is the default. Each
+preset scales the per-eye resolution recommended by your OpenXR runtime;
+desktop resolution and the HUD/menu layout remain independent.
+
+The VR tab is simpler, with the temporary Epic, Current profile and menu-sharpness
+options removed. **F11** reports VR application FPS and per-eye scene resolution
+when the headset is active, with desktop statistics when it is inactive.
+Desktop resolution labels now include readable aspect ratios.
+
+### A clearer view of the action
+
+The VR vignette now forms a shared, head-relative fade across both eyes instead
+of separate eye borders. One slider adjusts darkness and coverage, with a more
+visible maximum effect and a clear center. Desktop vignette appearance is preserved.
+Bloom behavior in VR has also been corrected.
+
+Swimming and flying now follow your gaze, including looking up or down, while
+ordinary walking retains horizontal head-oriented movement.
+
+### Better controller and menu flow
+
+- More consistent **B/Back** navigation through menus, dropdowns and dialogs.
+- Improved keyboard/controller navigation in the music player, including playlist
+  selection, playback, Browse and empty playlists.
+- Expanded OpenXR controller profiles and runtime-driven per-eye sizing lay the
+  groundwork for more hardware. **Rift CV1 with Touch and Xbox remain the current
+  owner-tested baseline**; other headset combinations need community testing.
+- The in-game update link now opens the latest Unreal Revived release on GitHub.
+
+### A cleaner update, with your saves retained
+
+Installation starts with fresh settings rather than migrating retired options.
+The uninstall/reinstall flow can retain your saves, and uninstall backs up
+settings and weapon calibration to Documents. Reapply your preferred settings
+after reinstalling; existing calibration files encountered during deployment
+remain protected.
+
+Behind the scenes, this update removes obsolete code, avoids redundant work,
+and strengthens isolated regression testing. It does not claim a measured FPS
+increase. Existing weapon calibration is retained; the experimental weapon-size
+change was reverted and is **not** part of 0.9.0.
+
+**Release status:** source prepared; 0.9.0 installer build and lifecycle validation
+are still pending. Automatic HUD recovery does not add room-scale player-body
+movement/collision. Remote-client VR firing and custom weapon compatibility remain
+limited. An intermittent motion-save/load-to-gaze weapon-offset report has not
+recurred in the latest owner retest and has no confirmed fix.
+
+[0.9.0 highlights and installation notes](docs/release-0.9.0.md)
+
 ## 0.8.0 - 2026-09-21
 
 Changes since 0.7.0. Tested, accepted and approved for release by the owner on
