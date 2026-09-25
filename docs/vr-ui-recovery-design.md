@@ -98,6 +98,10 @@ behavior supersedes the earlier full-pose recenter baseline.
 
 ## Rules for future changes
 
+The [standing HUD strategy](vr-standing-and-turning.md) proposes an opt-in follow
+mode while retaining this seated/fixed contract as default. It is a design only;
+the implemented turning-mode choices leave this panel anchor unchanged.
+
 1. Start from this accepted milestone and preserve a recoverable source/binary
    baseline before experiments. Do not combine unrelated fixes in one test build.
 2. Identify the failing boundary: logical canvas, raster projection, texture

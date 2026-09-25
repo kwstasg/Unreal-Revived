@@ -185,6 +185,8 @@ void UD3D12RenderDevice::StaticConstructor()
 	VRHUDDistance = 1.75f;
 	VRHUDScale = 1.0f;
 	VRRenderQuality = 2; // Balanced uses the runtime-recommended eye resolution.
+	VRTurnMode = 0;
+	VRSnapAngle = 30;
 	VRPlayerHeightOffset = 0.0f;
 	VRWorldScale = 1.0f;
 	VRAimMode = 0;
@@ -250,6 +252,8 @@ void UD3D12RenderDevice::StaticConstructor()
 	new(GetClass(), TEXT("VRHUDDistance"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDDistance), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRHUDScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRHUDScale), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRRenderQuality"), RF_Public) UIntProperty(CPP_PROPERTY(VRRenderQuality), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("VRTurnMode"), RF_Public) UIntProperty(CPP_PROPERTY(VRTurnMode), TEXT("Display"), CPF_Config);
+	new(GetClass(), TEXT("VRSnapAngle"), RF_Public) UIntProperty(CPP_PROPERTY(VRSnapAngle), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRPlayerHeightOffset"), RF_Public) UFloatProperty(CPP_PROPERTY(VRPlayerHeightOffset), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRWorldScale"), RF_Public) UFloatProperty(CPP_PROPERTY(VRWorldScale), TEXT("Display"), CPF_Config);
 	new(GetClass(), TEXT("VRAimMode"), RF_Public) UIntProperty(CPP_PROPERTY(VRAimMode), TEXT("Display"), CPF_Config);
@@ -2151,6 +2155,8 @@ void UD3D12RenderDevice::FinishOpenXRFrame()
 
 void UD3D12RenderDevice::ReleaseOpenXRFoundation()
 {
+	VRTurn.Reset();
+	VRTurnPlayerIndex = -1;
 	VRPitch = {};
 	VRPresenceExtension = false;
 	VRQualityPending = false;
@@ -4080,6 +4086,7 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 		}
 		else if (ParseCommand(&Cmd, TEXT("RECENTERVR")))
 		{
+			VRTurn.Reset();
 			if (OpenXRSessionRunning)
 				OpenXRViewRecenterRequested = 1;
 			return 1;
@@ -4089,6 +4096,49 @@ UBOOL UD3D12RenderDevice::Exec(const TCHAR* Cmd, FOutputDevice& Ar)
 			const bool Requested = !ParseParam(appCmdLine(), TEXT("novr")) &&
 				(ParseParam(appCmdLine(), TEXT("vr")) || EnableVR);
 			Ar.Log(Requested ? TEXT("-vr") : TEXT("-novr"));
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRTURNMODE")))
+		{
+			VRTurnMode = VRTurning::Mode(appAtoi(Cmd));
+			VRTurn.Reset();
+			SaveConfig();
+			Ar.Logf(TEXT("%d"), VRTurnMode);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRSNAPANGLE")))
+		{
+			VRSnapAngle = VRTurning::Angle(appAtoi(Cmd));
+			VRTurn.Reset();
+			SaveConfig();
+			Ar.Logf(TEXT("%d"), VRSnapAngle);
+			return 1;
+		}
+		else if (ParseCommand(&Cmd, TEXT("VRTURNINPUT")))
+		{
+			FLOAT Axis = 0, Seconds = 0;
+			INT Enabled = 0, Reset = 0;
+			Parse(Cmd, TEXT("AXIS="), Axis);
+			Parse(Cmd, TEXT("DT="), Seconds);
+			Parse(Cmd, TEXT("ENABLED="), Enabled);
+			Parse(Cmd, TEXT("RESET="), Reset);
+			APlayerPawn* Player = Viewport ? Viewport->Actor : nullptr;
+			const INT PlayerIndex = Player ? Player->GetIndex() : -1;
+			if (PlayerIndex != VRTurnPlayerIndex) VRTurn.Reset();
+			VRTurnPlayerIndex = PlayerIndex;
+			const bool Menu = Viewport && Viewport->Console &&
+				(Viewport->Console->GetbTyping() || (Viewport->Console->GetStateFrame() &&
+				Viewport->Console->GetStateFrame()->StateNode &&
+				Viewport->Console->GetStateFrame()->StateNode->GetFName() == FName(TEXT("Menuing"))));
+			const bool Active = Enabled && Player && Player->Health > 0 &&
+				!Player->bBehindView && !Player->ViewTarget && !Player->bShowMenu && !Player->bFreeLook && !Menu &&
+				Player->Level && Player->Level->Pauser.Len() == 0 &&
+				OpenXRSessionRunning && OpenXRHeadPoseValid && VRShouldRender &&
+				OpenXRSessionState == XR_SESSION_STATE_FOCUSED && !OpenXRViewRecenterRequested;
+			const INT Delta = VRTurn.Step(Axis, Seconds, VRTurnMode, VRSnapAngle, Active && !Reset);
+			if (Delta)
+				Player->ViewRotation.Yaw = static_cast<INT>((static_cast<DWORD>(Player->ViewRotation.Yaw) + static_cast<DWORD>(Delta)) & 65535);
+			Ar.Log(Active && VRTurning::Mode(VRTurnMode) != 0 ? TEXT("1") : TEXT("0"));
 			return 1;
 		}
 		else if (ParseCommand(&Cmd, TEXT("VRHEADCOLLISION")))

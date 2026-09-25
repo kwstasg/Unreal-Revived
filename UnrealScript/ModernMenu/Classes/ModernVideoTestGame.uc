@@ -88,6 +88,23 @@ event Timer()
 	Video.ContrastSlider.SetValue(100);
 	VRSettings = ModernVRConfigCW(C.Root.CreateWindow(class'ModernVRConfigCW', 20, 20, 400, 320));
 	Check(VRSettings.RenderQualityCombo.GetValue2() == "2", "VR defaults to Balanced");
+	Check(VRSettings.TurnModeCombo.GetSelectedIndex() == 0, "VR defaults to smooth turning");
+	Check(VRSettings.SnapAngleSlider.Value == 30, "snap angle defaults to 30 degrees");
+	for (I = 1; I <= 2; I++)
+	{
+		VRSettings.TurnModeCombo.SetSelectedIndex(I);
+		VRSettings.SnapAngleSlider.SetValue(60);
+		VRSettings.LoadSettings();
+		Check(VRSettings.TurnModeCombo.GetSelectedIndex() == I && VRSettings.SnapAngleSlider.Value == 60,
+			"turn mode and snap angle persist through reload");
+		Saved = TestPlayer.ViewRotation.Yaw;
+		TestPlayer.ConsoleCommand("D3D12 VRTURNINPUT AXIS=0 DT=0.016 ENABLED=1");
+		TestPlayer.ConsoleCommand("D3D12 VRTURNINPUT AXIS=1 DT=0.016 ENABLED=1");
+		Check(TestPlayer.ViewRotation.Yaw == Saved, "snap command leaves desktop yaw unchanged");
+	}
+	VRSettings.ResetControllerSlider(VRSettings.SnapAngleSlider);
+	Check(VRSettings.SnapAngleSlider.Value == 30, "snap angle controller reset returns to 30");
+	VRSettings.TurnModeCombo.SetSelectedIndex(0);
 	VRSettings.RenderQualityCombo.SetSelectedIndex(3);
 	VRSettings.LoadSettings();
 	Check(VRSettings.RenderQualityCombo.GetValue2() == "4", "VR quality preference persists");

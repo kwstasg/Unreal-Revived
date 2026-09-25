@@ -5,6 +5,13 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
+- **Turning-mode acceptance:** Smooth remains default; Instant Snap and Animated
+  Snap plus a 15-90-degree angle slider (default 30) are implemented. CV1 Touch/
+  Xbox testing remains pending; see [turning checks](vr-standing-and-turning.md).
+- **Standing HUD strategy:** proposed optional translation-following, upright HUD
+  with delayed yaw catch-up and stable menu interaction. Seated/fixed remains
+  unchanged. Strategy is documented; follow mode and full room-scale gameplay are
+  not implemented. See [design and scope](vr-standing-and-turning.md).
 - **Other headsets/controllers:** obtain hardware reports for the profiles and
   headsets in [the compatibility guide](vr-controller-compatibility.md), including
   canted/wide-FOV optics, per-eye resolution, bindings and disconnect behavior.
@@ -16,7 +23,7 @@ release notes are historical evidence, not a second backlog.
 - Complete Advanced/Mutator controller workflows and broader controller lifecycle
   coverage (including DS4 reconnect) need hardware/manual validation.
 - Selectable desktop VR mirror and more detailed runtime status remain planned.
-- Stereo comfort options, tracked hands, snap turning and room-scale
+- Stereo comfort options, tracked hands and full room-scale
   design are not established by the current seated controller support.
 - Physical 4K output, other runtimes and a clean-machine installer test need
   external hardware/environment coverage.

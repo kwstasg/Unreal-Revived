@@ -13,6 +13,10 @@ $lines = Get-Content -LiteralPath (Join-Path $systemDir 'D3D12Test.ini')
 # Exercise the absent-key default without overwriting the user's chosen preset.
 $lines = Set-UnrealRevivedIniValue $lines 'D3D12Drv.D3D12RenderDevice' 'VRRenderQuality' '0'
 $lines = Remove-UnrealRevivedIniValue $lines 'D3D12Drv.D3D12RenderDevice' 'VRRenderQuality' '0'
+$lines = Set-UnrealRevivedIniValue $lines 'D3D12Drv.D3D12RenderDevice' 'VRTurnMode' '0'
+$lines = Remove-UnrealRevivedIniValue $lines 'D3D12Drv.D3D12RenderDevice' 'VRTurnMode' '0'
+$lines = Set-UnrealRevivedIniValue $lines 'D3D12Drv.D3D12RenderDevice' 'VRSnapAngle' '30'
+$lines = Remove-UnrealRevivedIniValue $lines 'D3D12Drv.D3D12RenderDevice' 'VRSnapAngle' '30'
 $lines = Set-UnrealRevivedIniValue $lines 'Core.System' 'NoLogBuffering' 'True'
 $lines = Set-UnrealRevivedIniValue $lines 'WinDrv.WindowsClient' 'Brightness' '0.600000'
 $lines = Set-UnrealRevivedIniValue $lines 'XInputWinDrv.WindowsClient' 'Brightness' '0.600000'

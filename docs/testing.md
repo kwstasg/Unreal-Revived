@@ -1,5 +1,13 @@
 # Testing
 
+## VR turning modes
+
+Follow [the turning and standing-HUD contract](vr-standing-and-turning.md).
+The native `vr-turning` regression exercises production turn accumulation and
+neutral/interrupt behavior. `scripts/test-video-preferences.ps1` also checks the
+new menu defaults, persistence, reset and desktop isolation. Physical Touch/Xbox
+turning and animated-snap comfort still require CV1 acceptance.
+
 ## Music menu navigation
 
 After building ModernMenu with test fixtures (omit `-Production`), launch

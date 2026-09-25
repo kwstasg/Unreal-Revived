@@ -16,6 +16,7 @@
 #include "OpenXRControllers.h"
 #include "VRFrameStatistics.h"
 #include "VRPitchRecovery.h"
+#include "VRTurning.h"
 #include <functional>
 
 struct SceneVertex
@@ -394,6 +395,10 @@ public:
 	FLOAT VRHUDDistance;
 	FLOAT VRHUDScale;
 	INT VRRenderQuality;
+	INT VRTurnMode;
+	INT VRSnapAngle;
+	VRTurning VRTurn;
+	INT VRTurnPlayerIndex = -1;
 	FLOAT VRPlayerHeightOffset;
 	FLOAT VRWorldScale;
 	INT VRAimMode;

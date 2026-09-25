@@ -7,6 +7,11 @@ class ModernVRConfigCW extends UWindowDialogClientWindow;
 var UMenuLabelControl VRHeading;
 var UWindowComboControl AimMethodCombo;
 var UWindowComboControl RenderQualityCombo;
+var UWindowComboControl TurnModeCombo;
+var UWindowHSliderControl SnapAngleSlider;
+var ModernResetButton SnapAngleResetButton;
+var localized string TurnModeText, TurnModeHelp, SmoothTurnText, InstantSnapText, AnimatedSnapText;
+var localized string SnapAngleText, SnapAngleHelp;
 var localized string RenderQualityText;
 var localized string RenderQualityHelp;
 var localized string PerformanceQualityText;
@@ -82,6 +87,24 @@ function Created()
 	RenderQualityCombo.AddItem(UltraQualityText, "4");
 	RenderQualityCombo.EditBoxWidth = 175;
 
+	TurnModeCombo = UWindowComboControl(CreateControl(class'UWindowComboControl', 20, 105, 300, 1));
+	TurnModeCombo.SetText(TurnModeText);
+	TurnModeCombo.SetHelpText(TurnModeHelp);
+	TurnModeCombo.SetFont(F_Normal);
+	TurnModeCombo.SetEditable(False);
+	TurnModeCombo.AddItem(SmoothTurnText);
+	TurnModeCombo.AddItem(InstantSnapText);
+	TurnModeCombo.AddItem(AnimatedSnapText);
+	TurnModeCombo.EditBoxWidth = 175;
+	SnapAngleSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 135, 300, 1));
+	SnapAngleSlider.SetRange(15, 90, 15);
+	SnapAngleSlider.SetHelpText(SnapAngleHelp);
+	SnapAngleSlider.SetFont(F_Normal);
+	SnapAngleSlider.SliderWidth = 110;
+	SnapAngleSlider.TrackWidth = 8;
+	SnapAngleSlider.bNoSlidingNotify = False;
+	SnapAngleResetButton = CreateSliderResetButton(SnapAngleSlider);
+
 	HUDDistanceSlider = UWindowHSliderControl(CreateControl(class'UWindowHSliderControl', 20, 45, 300, 1));
 	HUDDistanceSlider.SetRange(50, 500, 5);
 	HUDDistanceSlider.SetHelpText(HUDDistanceHelp);
@@ -126,20 +149,20 @@ function Created()
 
 	StatusLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 205, 340, 1));
 	StatusLabel.SetFont(F_Normal);
-	HUDDistanceSlider.WinTop += 60;
-	HUDScaleSlider.WinTop += 60;
-	PlayerHeightSlider.WinTop += 60;
-	WorldSizeSlider.WinTop += 60;
-	HUDDistanceResetButton.WinTop += 60;
-	HUDScaleResetButton.WinTop += 60;
-	PlayerHeightResetButton.WinTop += 60;
-	WorldSizeResetButton.WinTop += 60;
-	RecenterButton.WinTop += 60;
-	StatusLabel.WinTop += 60;
-	LeftEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 290, 340, 1));
+	HUDDistanceSlider.WinTop += 120;
+	HUDScaleSlider.WinTop += 120;
+	PlayerHeightSlider.WinTop += 120;
+	WorldSizeSlider.WinTop += 120;
+	HUDDistanceResetButton.WinTop += 120;
+	HUDScaleResetButton.WinTop += 120;
+	PlayerHeightResetButton.WinTop += 120;
+	WorldSizeResetButton.WinTop += 120;
+	RecenterButton.WinTop += 120;
+	StatusLabel.WinTop += 120;
+	LeftEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 350, 340, 1));
 	LeftEyeSizeLabel.SetFont(F_Normal);
 	LeftEyeSizeLabel.SetHelpText(EyeSizeHelp);
-	RightEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 310, 340, 1));
+	RightEyeSizeLabel = UMenuLabelControl(CreateControl(class'UMenuLabelControl', 20, 370, 340, 1));
 	RightEyeSizeLabel.SetFont(F_Normal);
 	RightEyeSizeLabel.SetHelpText(EyeSizeHelp);
 
@@ -151,9 +174,10 @@ function Created()
 	RemoveFromTabOrder(HUDScaleResetButton);
 	RemoveFromTabOrder(PlayerHeightResetButton);
 	RemoveFromTabOrder(WorldSizeResetButton);
+	RemoveFromTabOrder(SnapAngleResetButton);
 	LoadSettings();
 	bInitialized = True;
-	DesiredHeight = 340;
+	DesiredHeight = 400;
 }
 
 function ModernResetButton CreateSliderResetButton(UWindowHSliderControl Slider)
@@ -215,6 +239,7 @@ function string FormatDistance(float Value)
 
 function UpdateSliderText()
 {
+	SnapAngleSlider.SetText(SnapAngleText $ " (" $ int(SnapAngleSlider.Value) $ Chr(176) $ ")");
 	HUDDistanceSlider.SetText(HUDDistanceText $ " ("
 		$ FormatDistance(HUDDistanceSlider.Value / 100.0) $ " m)");
 	HUDScaleSlider.SetText(HUDScaleText $ " (" $ int(HUDScaleSlider.Value) $ "%)");
@@ -240,6 +265,10 @@ function LoadSettings()
 	if (Quality < 1 || Quality > 4)
 		Quality = 2;
 	RenderQualityCombo.SetSelectedIndex(Quality - 1);
+	TurnModeCombo.SetSelectedIndex(Clamp(int(GetPlayerOwner().ConsoleCommand(
+		"get ini:Engine.Engine.GameRenderDevice VRTurnMode")), 0, 2));
+	SnapAngleSlider.SetValue(Clamp(int(GetPlayerOwner().ConsoleCommand(
+		"get ini:Engine.Engine.GameRenderDevice VRSnapAngle")), 15, 90), True);
 
 	Distance = float(GetPlayerOwner().ConsoleCommand(
 		"get ini:Engine.Engine.GameRenderDevice VRHUDDistance"));
@@ -301,6 +330,9 @@ function BeforePaint(Canvas C, float X, float Y)
 	VRHeading.SetSize(ControlWidth, 1);
 	AimMethodCombo.SetSize(ControlWidth, 1);
 	RenderQualityCombo.SetSize(ControlWidth, 1);
+	TurnModeCombo.SetSize(ControlWidth, 1);
+	SnapAngleSlider.SetSize(ControlWidth - 16, 1);
+	SnapAngleResetButton.WinLeft = SnapAngleSlider.WinLeft + SnapAngleSlider.WinWidth + 2;
 	HUDDistanceSlider.SetSize(ControlWidth - 16, 1);
 	HUDScaleSlider.SetSize(ControlWidth - 16, 1);
 	PlayerHeightSlider.SetSize(ControlWidth - 16, 1);
@@ -323,6 +355,9 @@ function BeforePaint(Canvas C, float X, float Y)
 	HUDDistanceSlider.bDisabled = !bD3D12;
 	AimMethodCombo.bDisabled = !bD3D12;
 	RenderQualityCombo.SetDisabled(!bD3D12);
+	TurnModeCombo.SetDisabled(!bD3D12);
+	SnapAngleSlider.bDisabled = !bD3D12 || TurnModeCombo.GetSelectedIndex() == 0;
+	SnapAngleResetButton.bDisabled = SnapAngleSlider.bDisabled;
 	HUDScaleSlider.bDisabled = !bD3D12;
 	HUDDistanceResetButton.bDisabled = !bD3D12;
 	HUDScaleResetButton.bDisabled = !bD3D12;
@@ -370,7 +405,9 @@ function WindowShown()
 
 function bool ResetControllerSlider(UWindowHSliderControl Slider)
 {
-	if (Slider == HUDDistanceSlider)
+	if (Slider == SnapAngleSlider)
+		Notify(SnapAngleResetButton, DE_Click);
+	else if (Slider == HUDDistanceSlider)
 		Notify(HUDDistanceResetButton, DE_Click);
 	else if (Slider == HUDScaleSlider)
 		Notify(HUDScaleResetButton, DE_Click);
@@ -393,6 +430,15 @@ function Notify(UWindowDialogControl C, byte E)
 		GetPlayerOwner().ConsoleCommand("D3D12 VRAIMMODE" @ AimMethodCombo.GetSelectedIndex());
 	else if (E == DE_Change && C == RenderQualityCombo)
 		GetPlayerOwner().ConsoleCommand("D3D12 VRRENDERQUALITY" @ RenderQualityCombo.GetValue2());
+	else if (E == DE_Change && C == TurnModeCombo)
+		GetPlayerOwner().ConsoleCommand("D3D12 VRTURNMODE" @ TurnModeCombo.GetSelectedIndex());
+	else if ((E == DE_Change && C == SnapAngleSlider) || (E == DE_Click && C == SnapAngleResetButton))
+	{
+		if (E == DE_Click)
+			SnapAngleSlider.SetValue(30, True);
+		GetPlayerOwner().ConsoleCommand("D3D12 VRSNAPANGLE" @ int(SnapAngleSlider.Value));
+		UpdateSliderText();
+	}
 	else if (E == DE_Change && C == HUDDistanceSlider)
 	{
 		ApplyDistance();
@@ -443,6 +489,13 @@ function Notify(UWindowDialogControl C, byte E)
 
 defaultproperties
 {
+	TurnModeText="Turning Mode"
+	TurnModeHelp="Smooth keeps continuous stick turning. Snap turns instantly; Animated Snap eases through the chosen angle. Release the stick between snaps."
+	SmoothTurnText="Smooth (Default)"
+	InstantSnapText="Instant Snap"
+	AnimatedSnapText="Animated Snap"
+	SnapAngleText="Snap Angle"
+	SnapAngleHelp="Angle per snap: 15 to 90 degrees, in 15-degree steps. Default is 30 degrees. Used by both snap modes."
 	VRHeadingText="Virtual Reality"
 	LeftEyeSizeText="Left eye: "
 	RightEyeSizeText="Right eye: "

@@ -6,6 +6,12 @@ history.
 
 ## Current VR quality development checkpoint
 
+Preferences > VR now offers Smooth (unchanged default), Instant Snap and Animated
+Snap, with a 15-90-degree snap-angle slider defaulting to 30 degrees. CV1 Touch/
+Xbox acceptance is pending. The [standing HUD strategy](vr-standing-and-turning.md)
+is documented separately; seated/fixed HUD remains unchanged and no full
+room-scale support is claimed. Installer rebuilding remains deferred by the owner.
+
 The horizon-lock audit found full-pose world reference capture on startup/recenter.
 World capture now uses heading only; the owner confirmed the world fix. HUD
 recenter now uses heading only too after the owner reported remaining panel tilt.

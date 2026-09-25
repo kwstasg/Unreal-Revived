@@ -55,6 +55,17 @@ namespace
 	}
 
 	constexpr DWORD XINPUT_LEFT_TRIGGER_BUTTON = 0x00010000;
+	bool ApplyVRTurning(UWindowsViewport* Viewport, float Axis, float Seconds, bool Enabled, bool Reset = false)
+	{
+		if (!Viewport || !Viewport->RenDev || !Viewport->Input || GIsEditor) return false;
+		FLOAT Speed = 1;
+		// Preserve custom aliases, compound commands and non-turn bindings.
+		Enabled = Enabled && ReadAxisSpeed(*Viewport->Input->Bindings[IK_JoyU], TEXT("aTurn"), Speed);
+		FStringOutputDevice Result;
+		const FString Command = FString::Printf(TEXT("D3D12 VRTURNINPUT AXIS=%.6f DT=%.6f ENABLED=%d RESET=%d"),
+			Speed < 0 ? -Axis : Axis, Seconds, Enabled ? 1 : 0, Reset ? 1 : 0);
+		return Viewport->RenDev->Exec(*Command, Result) && Result == TEXT("1");
+	}
 	constexpr DWORD XINPUT_RIGHT_TRIGGER_BUTTON = 0x00020000;
 	constexpr BYTE XINPUT_TRIGGER_RELEASE_THRESHOLD = 24;
 
@@ -399,6 +410,8 @@ UBOOL FXInputController::ReadMotionState(UWindowsViewport* Viewport, FController
 UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client, BYTE* Processed)
 {
 	const FTime CurrentPollTime = appSeconds();
+	const bool FreshPoll = LastPollTime == FTime();
+	const FLOAT TurnSeconds = FreshPoll ? 0.0f : CurrentPollTime - LastPollTime;
 	const FLOAT StickFrameScale = LastPollTime != FTime()
 		? Min((CurrentPollTime - LastPollTime) * 60.0f, 6.0f)
 		: 1.0f;
@@ -433,6 +446,7 @@ UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client
 	if (HasGamepad) VRControllerInput::Merge(State, Gamepad);
 	if (!UseMotion && !HasGamepad)
 	{
+		ApplyVRTurning(Viewport, 0, 0, false);
 		EmitButtons(Viewport, 0, Processed);
 		Viewport->CauseInputEvent(IK_JoyX, IST_Axis, 0.0f);
 		Viewport->CauseInputEvent(IK_JoyY, IST_Axis, 0.0f);
@@ -489,6 +503,9 @@ UBOOL FXInputController::Poll(UWindowsViewport* Viewport, UWindowsClient* Client
 	Viewport->CauseInputEvent(IK_JoyY, IST_Axis, MoveY);
 	Viewport->CauseInputEvent(IK_JoyZ, IST_Axis, Client->ScaleXYZ * LeftX);
 	Viewport->CauseInputEvent(IK_JoyR, IST_Axis, Client->ScaleXYZ * LeftY);
+	if (ApplyVRTurning(Viewport, Client->ScaleRUV < 0 ? -RightX : RightX,
+		TurnSeconds, Client->ScaleRUV != 0, FreshPoll))
+		RightX = 0;
 	Viewport->CauseInputEvent(IK_JoyU, IST_Axis, Client->ScaleRUV * RightX * std::fabs(RightX) * StickFrameScale);
 	Viewport->CauseInputEvent(IK_JoyV, IST_Axis, Client->ScaleRUV * RightY * std::fabs(RightY) * StickFrameScale * (Client->InvertVertical ? -1.0f : 1.0f));
 	return TRUE;

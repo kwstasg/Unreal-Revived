@@ -11,6 +11,21 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Added VR turning choices: existing Smooth remains default, Instant Snap rotates
+  once per deflection, and Animated Snap eases over 150 ms. Both snap modes share
+  a 15-90-degree slider in 15-degree steps, default/reset 30. Settings apply live
+  and persist; Touch/Xbox share the existing merged input path. Neutral rearming,
+  frame-independent angle accumulation and cancellation protect menu/pause,
+  tracking/input resets and recenter; desktop/custom bindings retain their path.
+  Canonical renderer/input/menu builds passed with zero script warnings. Ten
+  renderer tests, two input tests, video preferences, menu-back and gameplay
+  regressions passed. Evidence: `local/logs/vr-turning-20260925`,
+  `VideoPreferences-20260925-124135.log`, `MenuBack-20260925-123819.log`,
+  `VRMotionRegression-20260925-123825.log`. Deployed to `local/game`; physical
+  CV1 Touch/Xbox acceptance remains pending. Documented a separate optional
+  standing-HUD follow strategy grounded in primary VR UI guidance; no HUD anchor
+  behavior or room-scale collision was changed. Packaging remains deferred.
+
 - Completed the separate music-navigation checkpoint after source review and the
   successful `MusicReview-20260925.log` regression. Includes the stock music
   control/tab sequence, playlist/browser navigation and selected-track playback,
