@@ -99,6 +99,7 @@ function ControllerConfirm()
 	local UWindowListBox ListBox;
 	local UWindowMessageBox MessageBox;
 	local UWindowSmallButton MessageButton;
+	local UWindowGrid MusicGrid;
 
 	Player = GetPlayerOwner();
 	MessageBox = FindActiveMessageBox(Self);
@@ -117,6 +118,16 @@ function ControllerConfirm()
 	if (MenuBar != None && MenuBar.Selected != None && MenuBar.Selected.Menu != None)
 	{
 		MenuBar.Selected.Menu.KeyDown(Player.EInputKey.IK_Enter, 0, 0);
+		return;
+	}
+	MusicGrid = GetFocusedMusicGrid();
+	if (MusicGrid != None)
+	{
+		if (MusicGridRowCount(MusicGrid) > 0)
+		{
+			MoveMusicSelection(MusicGrid, 0);
+			MusicGrid.DoubleClickRow(MusicGridSelectedRow(MusicGrid));
+		}
 		return;
 	}
 	ListBox = GetFocusedListBox();
@@ -194,7 +205,7 @@ function bool CanKeyboardConfirmFocusedControl()
 		return True;
 	if (MenuBar != None && MenuBar.Selected != None && MenuBar.Selected.Menu != None)
 		return True;
-	if (GetFocusedCombo() != None || GetFocusedListBox() != None)
+	if (GetFocusedCombo() != None || GetFocusedListBox() != None || GetFocusedMusicGrid() != None)
 		return True;
 	for (Window = KeyFocusWindow; Window != None && Window != Self; Window = Window.ParentWindow)
 		if (UWindowButton(Window) != None || UWindowCheckbox(Window) != None)
@@ -270,6 +281,7 @@ function ControllerNavigate(int Direction)
 	local UWindowMessageBox MessageBox;
 	local UWindowListBox ListBox;
 	local UWindowHSliderControl Slider;
+	local UWindowGrid MusicGrid;
 
 	Player = GetPlayerOwner();
 	MessageBox = FindActiveMessageBox(Self);
@@ -278,6 +290,17 @@ function ControllerNavigate(int Direction)
 		if (MenuBar != None && MenuBar.Selected != None)
 			MenuBar.CloseUp();
 		FocusAdjacentMessageButton(UWindowMessageBoxCW(MessageBox.ClientArea), Direction == 1 || Direction == 3);
+		return;
+	}
+	MusicGrid = GetFocusedMusicGrid();
+	if (MusicGrid != None && (MenuBar == None || MenuBar.Selected == None))
+	{
+		if (Direction == 0)
+			MoveMusicSelection(MusicGrid, -1);
+		else if (Direction == 1)
+			MoveMusicSelection(MusicGrid, 1);
+		else
+			FocusAdjacentControl(Direction == 3);
 		return;
 	}
 	Combo = GetFocusedCombo();
@@ -557,6 +580,19 @@ function FocusAdjacentControl(bool bForward)
 	local UMenuSlotClientWindow SlotClient;
 	local UMenuBotmatchClientWindow BotmatchClient;
 	local UMenuMutatorCW MutatorClient;
+	local MMMainClientWindow MusicClient;
+
+	// Stock music buttons use CreateWindow, so they never join a tab ring.
+	if (MMMainWindow(ActiveWindow) != None)
+	{
+		MusicClient = MMMainClientWindow(MMMainWindow(ActiveWindow).ClientArea);
+		if (MusicClient != None)
+		{
+			ConfigureMusicTabOrder(MusicClient.ClientControls);
+			if (FocusMusicBoundary(MusicClient, bForward))
+				return;
+		}
+	}
 
 	NewGameClient = FindActiveNewGameClient(Self);
 	if (NewGameClient != None)
@@ -604,6 +640,124 @@ function FocusAdjacentControl(bool bForward)
 		Candidate.ActivateWindow(0, False);
 		RevealControllerControl(Candidate);
 	}
+}
+
+function UWindowGrid GetFocusedMusicGrid()
+{
+	local UWindowWindow W;
+	for (W = KeyFocusWindow; W != None && W != Self; W = W.ParentWindow)
+		if (MMMusicListGrid(W) != None || MMMusicFilesGrid(W) != None)
+			return UWindowGrid(W);
+	return None;
+}
+
+function int MusicGridRowCount(UWindowGrid Grid)
+{
+	if (MMMusicListGrid(Grid) != None)
+		return MMMusicListGrid(Grid).ListCount;
+	return MMMusicFilesGrid(Grid).ListCount;
+}
+
+function int MusicGridSelectedRow(UWindowGrid Grid)
+{
+	if (MMMusicListGrid(Grid) != None)
+		return MMMusicListGrid(Grid).SelectedRow;
+	return MMMusicFilesGrid(Grid).SelectedRow;
+}
+
+function MoveMusicSelection(UWindowGrid Grid, int Step)
+{
+	local int Row, Count;
+	Count = MusicGridRowCount(Grid);
+	if (Count <= 0)
+		return;
+	Row = MusicGridSelectedRow(Grid);
+	if (Row < 0 || Row >= Count)
+		Row = 0;
+	else
+		Row = Clamp(Row + Step, 0, Count - 1);
+	Grid.SelectRow(Row);
+	Grid.VertSB.Show(Row);
+}
+
+function FocusMusicWindow(UWindowWindow W)
+{
+	W.SetAcceptsFocus();
+	W.ActivateWindow(0, False);
+	if (UWindowGrid(W) != None)
+		MoveMusicSelection(UWindowGrid(W), 0);
+}
+
+// Grids are windows rather than dialog controls: bridge the ends of the
+// controls' tab ring to the playlist and the optional package browser.
+function bool FocusMusicBoundary(MMMainClientWindow Client, bool bForward)
+{
+	local UWindowWindow W;
+	local UWindowGrid Grid;
+	local bool bFirst, bLast;
+	for (W = KeyFocusWindow; W != None && W != Self; W = W.ParentWindow)
+	{
+		bFirst = bFirst || W == Client.ClientControls.PlayButton;
+		bLast = bLast || W == Client.ClientControls.AddMusicEdit;
+	}
+	Grid = GetFocusedMusicGrid();
+	if (Grid == Client.Grid)
+	{
+		if (!bForward)
+			FocusMusicWindow(Client.ClientControls.AddMusicEdit);
+		else if (Client.bMusicFBrowsOpen)
+			FocusMusicWindow(Client.FGrid);
+		else
+			FocusMusicWindow(Client.ClientControls.PlayButton);
+	}
+	else if (Grid != None && Grid == Client.FGrid)
+	{
+		if (bForward)
+			FocusMusicWindow(Client.ClientControls.PlayButton);
+		else
+			FocusMusicWindow(Client.Grid);
+	}
+	else if (bForward && bLast)
+		FocusMusicWindow(Client.Grid);
+	else if (!bForward && bFirst)
+	{
+		if (Client.bMusicFBrowsOpen)
+			FocusMusicWindow(Client.FGrid);
+		else
+			FocusMusicWindow(Client.Grid);
+	}
+	else
+		return False;
+	return True;
+}
+
+function ConfigureMusicTabOrder(MMControlsClient Client)
+{
+	local UWindowDialogControl Controls[12];
+	local int Index;
+
+	if (Client == None)
+		return;
+	Controls[0] = Client.PlayButton;
+	Controls[1] = Client.StopButton;
+	Controls[2] = Client.PriorButton;
+	Controls[3] = Client.NextButton;
+	Controls[4] = Client.MusicVolumeSlider;
+	Controls[5] = Client.SectionEdit;
+	Controls[6] = Client.TimeLimitEdit;
+	Controls[7] = Client.MusicShuffleCBox;
+	Controls[8] = Client.BrowseButton;
+	Controls[9] = Client.AddAllButton;
+	Controls[10] = Client.AddMusicButton;
+	Controls[11] = Client.AddMusicEdit;
+
+	for (Index = 0; Index < ArrayCount(Controls); Index++)
+	{
+		Controls[Index].SetAcceptsFocus();
+		Controls[Index].TabNext = Controls[(Index + 1) % ArrayCount(Controls)];
+		Controls[Index].TabPrev = Controls[(Index + ArrayCount(Controls) - 1) % ArrayCount(Controls)];
+	}
+	Client.TabLast = Controls[11];
 }
 
 function bool IsControllerFocusable(UWindowDialogControl Control)

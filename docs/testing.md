@@ -1,5 +1,17 @@
 # Testing
 
+## Music menu navigation
+
+After building ModernMenu with test fixtures (omit `-Production`), launch
+`NyLeve?Game=ModernMenu.ModernMusicTestGame` using disposable engine/user INIs
+and `-novr`. Require `MUSICTEST completed` with no `MUSICTEST FAIL` or script
+warnings. This exercises Tab through the twelve music controls and playlist,
+reverse navigation, disabled-button skipping, Browse activation/toggling and
+list selection. It also checks actual selected-track playback through gamepad
+confirm and Enter, plus harmless confirmation on an empty playlist. Use
+up/down to select rows and left/right or Tab to leave a focused list. Rebuild
+with `-Production` afterward to exclude test classes from the shipped menu.
+
 ## VR hook lifecycle and production packaging
 
 Build the fixture-enabled development menu before running these checks:

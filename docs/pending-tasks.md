@@ -9,9 +9,6 @@ release notes are historical evidence, not a second backlog.
   headsets in [the compatibility guide](vr-controller-compatibility.md), including
   canted/wide-FOV optics, per-eye resolution, bindings and disconnect behavior.
   CV1 Touch and Xbox remain the owner's accepted baseline.
-- **Uncommitted music work:** existing menu navigation changes, its regression
-  fixture and documentation remain intact and outside the VR/installer commits.
-  Reviewed and regression-tested again on September 25; still uncommitted.
 
 ## Broader coverage and future work
 
@@ -27,6 +24,9 @@ release notes are historical evidence, not a second backlog.
 
 ## Closed or removed
 
+- Music menu navigation: reviewed and committed separately with its regression
+  fixture and documentation. September 25 regression passed for focus navigation,
+  playlist playback and empty-list handling; production fixture exclusion passed.
 - World/HUD horizon lock and revised VR vignette: owner accepted both as perfect
   on CV1 on September 25, at checkpoint `232f768`. Preserve heading-only world/
   panel capture and the shared 20-40-degree maximum fade. Other hardware remains

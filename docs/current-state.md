@@ -342,7 +342,8 @@ preserved 0.6.0 publication and validation record remains in
 
 The authoritative current checklist is [pending tasks](pending-tasks.md).
 World/HUD horizon lock and the stereo vignette have CV1 owner acceptance at
-`232f768`; the separate music checkpoint and community hardware reports remain.
+`232f768`; music navigation is reviewed and separately checkpointed. Community
+hardware reports remain pending.
 The September 25 current-source installer passed the isolated install/uninstall/
 reinstall lifecycle after settings-migration removal. All four profiles returned
 to fresh defaults and saves were retained. Desktop/VR startup and restart passed;

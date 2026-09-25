@@ -11,6 +11,13 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Completed the separate music-navigation checkpoint after source review and the
+  successful `MusicReview-20260925.log` regression. Includes the stock music
+  control/tab sequence, playlist/browser navigation and selected-track playback,
+  its development-only fixture and the original acceptance/testing documentation.
+  Production exclusion passed during the installer lifecycle. No music code
+  changed after those checks; removed the uncommitted-music backlog item.
+
 - Owner accepted both world/HUD horizon lock and the revised VR vignette as
   perfect on CV1 at checkpoint `232f768`. Closed both visual-acceptance tasks and
   preserved heading-only world/panel recenter plus the shared 20-40-degree maximum
@@ -182,6 +189,16 @@ and the disposable runtime; committed milestones preserve the history.
   the session. This is CV1 acceptance, not validation of other headsets or a
   published release. The separately deferred focus-loss stutter issue has not
   been claimed fixed.
+
+## 2026-09-22
+
+- Owner accepted music-menu keyboard/gamepad navigation and playlist playback.
+  Added the stock playback, Browse and Add buttons to the focus sequence and
+  bridged it to the playlist and optional package browser. Up/down selects rows;
+  confirm/Enter plays the selected track; left/right or Tab leaves a list.
+  The in-game regression passed with no script warnings, including actual
+  playback and empty-list handling. Production menu compilation excludes the
+  regression fixture. Evidence: `local/game/System64/MusicTest-20260922-155332.log`.
 
 ## 2026-09-21
 
