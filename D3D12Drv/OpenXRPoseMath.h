@@ -29,6 +29,20 @@ inline XrQuaternionf OpenXREyeToHeadOrientation(const XrQuaternionf& Head, const
 		NormalizeOpenXRQuaternion(Eye)));
 }
 
+// The world reference removes heading only. Capturing pitch/roll would make
+// physical gravity tilt in game space after the user straightens their head.
+inline XrQuaternionf OpenXRWorldHeading(const XrQuaternionf& Head, const XrQuaternionf& Previous)
+{
+	const auto Q = NormalizeOpenXRQuaternion(Head);
+	const float ForwardX = -2.0f * (Q.x * Q.z + Q.w * Q.y);
+	const float ForwardZ = 2.0f * (Q.x * Q.x + Q.y * Q.y) - 1.0f;
+	// Heading is undefined near vertical gaze. Retain the previous yaw.
+	if (ForwardX * ForwardX + ForwardZ * ForwardZ <= 0.0001f)
+		return NormalizeOpenXRQuaternion({0.0f, Previous.y, 0.0f, Previous.w});
+	const float HalfYaw = 0.5f * std::atan2(-ForwardX, -ForwardZ);
+	return {0.0f, std::sin(HalfYaw), 0.0f, std::cos(HalfYaw)};
+}
+
 inline bool OpenXREyesHaveDifferentOrientations(const XrQuaternionf& Left, const XrQuaternionf& Right)
 {
 	const auto A = NormalizeOpenXRQuaternion(Left);

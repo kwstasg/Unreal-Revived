@@ -11,6 +11,18 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Audited horizon lock and found full-head world-reference capture could store
+  pitch/roll on startup or recenter. World capture now uses heading only, retaining
+  previous heading near vertical gaze. Natural tracking, yaw transfer, authored
+  cameras and the independent full-gaze HUD anchor remain. Nine native suites,
+  the canonical Release build, menu compilation, gameplay regression and desktop
+  preferences passed. Evidence: `local/logs/horizon-20260925`,
+  `VRMotionRegression-20260925-102650.log`, `VideoPreferences-20260925-102657.log`.
+  OpenXR still reports runtime unavailable (-51) in `VRQuality-20260925-102704-2.log`;
+  horizon-lock and vignette CV1 optical acceptance remain pending. See
+  [the audit and hardware cases](vr-horizon-lock.md). Separately reviewed the
+  existing music navigation changes/fixture/docs; they remain uncommitted.
+
 - Implemented shared head-relative VR vignette rays using runtime asymmetric FOV
   and the eye-to-head quaternion, preserving accepted desktop falloff. One slider
   controls opacity and angular coverage; at 100% the clear/faded boundaries are

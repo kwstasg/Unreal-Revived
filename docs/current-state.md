@@ -6,6 +6,11 @@ history.
 
 ## Current VR quality development checkpoint
 
+The horizon-lock audit found full-pose world reference capture on startup/recenter.
+World capture now uses heading only; natural head tilt, scripted cameras and the
+separate full-gaze HUD anchor remain. [Complete horizon-lock acceptance](vr-horizon-lock.md)
+and the stereo vignette still require CV1 visual testing.
+
 After owner acceptance of controller/menu behavior, Balanced (100%) is the default.
 The temporary Current profile option is removed; four runtime-scaled presets remain.
 

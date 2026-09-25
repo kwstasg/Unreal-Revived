@@ -5,6 +5,14 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
+- **Horizon-lock investigation:** audit mouse input, recenter, remount and save
+  loading. Existing software-pitch prevention/recovery is accepted, but complete
+  horizon lock is unverified. Test recenter looking up/down and with sideways
+  head tilt; check full-pose reference capture for persistent world tilt. Retain
+  natural headset tracking, yaw turning and scripted cameras; treat the accepted
+  full-gaze HUD anchor separately. The audit found full-pose world capture;
+  heading-only capture now passes native regressions. See [audit and CV1 cases](vr-horizon-lock.md).
+  CV1 visual validation remains required.
 - **VR vignette acceptance:** shared head-relative angular masking is implemented
   and passes production shader tests for asymmetric/canted eyes. Desktop falloff
   is preserved. Check 0/50/100% in CV1 for visibility and a single aligned fade,
@@ -27,7 +35,7 @@ release notes are historical evidence, not a second backlog.
 - Complete Advanced/Mutator controller workflows and broader controller lifecycle
   coverage (including DS4 reconnect) need hardware/manual validation.
 - Selectable desktop VR mirror and more detailed runtime status remain planned.
-- Stereo comfort options, tracked hands, teleportation, snap turning and room-scale
+- Stereo comfort options, tracked hands, snap turning and room-scale
   design are not established by the current seated controller support.
 - Physical 4K output, other runtimes and a clean-machine installer test need
   external hardware/environment coverage.

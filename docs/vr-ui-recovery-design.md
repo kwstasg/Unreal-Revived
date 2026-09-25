@@ -82,10 +82,15 @@ recenters the UI only. The Preferences button now uses `D3D12 RECENTERVR` to lev
 software view tilt, adopt horizontal gaze as forward and refresh both view/UI
 references between frames. User testing accepted yaw but found that the upright
 panel appeared oppositely pitched/rolled. Explicit view recenter now captures
-full head orientation; the user accepted this correction, its quick bindings,
+full head orientation for the HUD panel; the user accepted this correction, its quick bindings,
 and the corrected UI colors on 2026-09-11. Script
 callers use plain `BEGINVRUIPASS`/`ENDVRUIPASS`; old suffixes
 are harmless compatibility input and no longer select a separate layout.
+
+The world reference is independent of that panel anchor. The September 25
+[horizon-lock audit](vr-horizon-lock.md) changed world capture to heading only,
+so recentering with head tilt cannot store pitch/roll in the environment. Natural
+head pitch/roll remains tracked. Full horizon-lock CV1 acceptance is pending.
 
 ## Rules for future changes
 

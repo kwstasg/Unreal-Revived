@@ -791,9 +791,11 @@ VR follow-up checks:
 - Run `cmake -S D3D12Drv/tests -B local/build-vr-panel-tests -A x64`, build
   Release, then `ctest --test-dir local/build-vr-panel-tests -C Release` for
   upright orientation, vertical-look fallback and source aspect preservation.
-- In the headset, introduce software pitch/roll, then use Recenter VR View.
-  Confirm level view, retained horizontal gaze and a centered upright panel;
-  opening/closing menus must still leave the anchor unchanged.
+- Follow [the horizon-lock cases](vr-horizon-lock.md): recenter upright, looking
+  up/down and with sideways head tilt, then straighten and turn. Software tilt
+  must clear while natural head tilt remains tracked and the world reference
+  stays level. The separate panel faces the captured full gaze;
+  opening/closing menus must still leave its anchor unchanged.
 - Start through each shortcut and use Preferences Restart. Confirm the same
   requested normal/VR mode, including VR-runtime-unavailable fallback.
 - Confirm desktop logs report VR UI buffers disabled, then a successful VR

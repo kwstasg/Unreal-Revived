@@ -36,6 +36,35 @@ int main()
 	Check(Near(Parallel.y,LeftEye.y) && Near(Parallel.w,LeftEye.w), "parallel-eye baseline unchanged");
 	const XrQuaternionf NegativeRight = {-RightEye.x,-RightEye.y,-RightEye.z,-RightEye.w};
 	Check(Near(OpenXRHeadOrientationFromViews(LeftEye,NegativeRight).w,1), "head midpoint accepts opposite quaternion signs");
+	for (float Yaw : {-2.0f, 0.0f, 1.5f})
+		for (float Pitch : {-1.2f, 0.0f, 1.2f})
+			for (float Roll : {-0.7f, 0.0f, 0.7f})
+			{
+				const XrQuaternionf Heading = {0,std::sin(Yaw/2),0,std::cos(Yaw/2)};
+				const auto Tilt = MultiplyOpenXRQuaternions(
+					{std::sin(Pitch/2),0,0,std::cos(Pitch/2)},
+					{0,0,std::sin(Roll/2),std::cos(Roll/2)});
+				const auto Head = MultiplyOpenXRQuaternions(Heading,Tilt);
+				const auto Base = OpenXRWorldHeading(Head,Identity);
+				Check(Near(RotateOpenXRVector(Base,Vector(0,1,0)),Vector(0,1,0)), "recenter reference preserves gravity");
+				const auto Relative = OpenXREyeToHeadOrientation(Base,Head);
+				Check(Near(RotateOpenXRVector(Relative,Vector(0,1,0)),RotateOpenXRVector(Tilt,Vector(0,1,0))), "recenter retains natural pitch and roll");
+				const auto Straightened = OpenXREyeToHeadOrientation(Base,Heading);
+				Check(Near(RotateOpenXRVector(Straightened,Vector(0,0,-1)),Vector(0,0,-1)) &&
+					Near(RotateOpenXRVector(Straightened,Vector(0,1,0)),Vector(0,1,0)), "straightening after tilted recenter leaves no world tilt");
+				const XrQuaternionf Turn = {0,std::sin(0.3f),0,std::cos(0.3f)};
+				const auto Turned = OpenXREyeToHeadOrientation(Base,MultiplyOpenXRQuaternions(Heading,Turn));
+				Check(Near(RotateOpenXRVector(Turned,Vector(0,0,-1)),RotateOpenXRVector(Turn,Vector(0,0,-1))), "yaw turning survives recenter");
+				const auto Scripted = MultiplyOpenXRQuaternions(Tilt,Straightened);
+				Check(Near(RotateOpenXRVector(Scripted,Vector(0,1,0)),RotateOpenXRVector(Tilt,Vector(0,1,0))), "authored camera tilt remains in base-camera composition");
+				for (float Vertical : {-1.570796327f,1.570796327f})
+				{
+					const auto LookingVertical = MultiplyOpenXRQuaternions(Heading,
+						{std::sin(Vertical/2),0,0,std::cos(Vertical/2)});
+					const auto Stable = OpenXRWorldHeading(LookingVertical,Base);
+					Check(Near(RotateOpenXRVector(Stable,Vector(0,0,-1)),RotateOpenXRVector(Base,Vector(0,0,-1))), "vertical recenter retains previous heading");
+				}
+			}
 	for (float Yaw : {-2.0f,0.0f,1.5f})
 		for (float Pitch : {-0.8f,0.0f,0.8f})
 			for (float Cant : {-0.2f,-0.08726646f,0.0f,0.08726646f,0.2f})

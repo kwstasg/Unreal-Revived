@@ -1845,6 +1845,7 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 			(HeadLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT))
 			OpenXRHeadOrientation = NormalizeOpenXRQuaternion(HeadLocation.pose.orientation);
 		OpenXRHeadPoseValid = 1;
+		const auto WorldHeading = OpenXRWorldHeading(OpenXRHeadOrientation, OpenXRBaseOrientation);
 		if (OpenXRViewRecenterRequested &&
 			(ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) != 0)
 		{
@@ -1855,7 +1856,7 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 				FRotator ViewRotation = Viewport->Actor->ViewRotation;
 				if (OpenXRBaseOrientationValid)
 					ViewRotation.Yaw = static_cast<INT>((static_cast<DWORD>(ViewRotation.Yaw) +
-						static_cast<DWORD>(RelativeOpenXRRotation(OpenXRBaseOrientation, OpenXRHeadOrientation).Yaw)) & 65535);
+						static_cast<DWORD>(RelativeOpenXRRotation(OpenXRBaseOrientation, WorldHeading).Yaw)) & 65535);
 				ViewRotation.Pitch = ViewRotation.Roll = 0;
 				Viewport->Actor->ViewRotation = ViewRotation;
 				Viewport->Actor->aLookUp = Viewport->Actor->aMouseY = 0;
@@ -1876,7 +1877,7 @@ UBOOL UD3D12RenderDevice::PrepareOpenXRFrame()
 		if (!OpenXRBaseOrientationValid &&
 			(ViewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) != 0)
 		{
-			OpenXRBaseOrientation = OpenXRHeadOrientation;
+			OpenXRBaseOrientation = WorldHeading;
 			OpenXRBaseHeadPosition = {
 				(OpenXRViews[0].pose.position.x + OpenXRViews[1].pose.position.x) * 0.5f,
 				(OpenXRViews[0].pose.position.y + OpenXRViews[1].pose.position.y) * 0.5f,
