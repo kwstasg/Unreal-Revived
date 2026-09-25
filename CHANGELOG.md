@@ -15,6 +15,18 @@ seated/standing mode switch. Physical walking moves the tracked viewpoint but
 does not move the player's gameplay collision body; full room-scale locomotion
 is not implemented.
 
+### VR turning modes
+
+Available in **Preferences > VR**:
+
+- **Smooth:** continuous turning; the default.
+- **Instant Snap:** jump through the selected angle with one stick deflection.
+- **Smooth Snap:** ease through that same angle in a short animated turn.
+
+Snap Angle offers **15°, 30°, 45°, 60°, 75° and 90°**, with **30°** as the default.
+Both snap modes require returning the stick to neutral before the next turn.
+Changes apply immediately and work through the existing Touch/Xbox turning input.
+
 ### Automatic HUD repositioning
 
 The HUD anchor remains stable during small seated movements and automatically
@@ -32,18 +44,6 @@ of lowering your viewpoint again within the same VR session. Mouse input no
 longer adds unwanted software pitch in normal first-person VR; loading saves
 and returning to the headset also recover unwanted software tilt.
 
-### VR turning modes
-
-Available in **Preferences > VR**:
-
-- **Smooth:** continuous turning; the default.
-- **Instant Snap:** jump through the selected angle with one stick deflection.
-- **Smooth Snap:** ease through that same angle in a short animated turn.
-
-Snap Angle offers **15°, 30°, 45°, 60°, 75° and 90°**, with **30°** as the default.
-Both snap modes require returning the stick to neutral before the next turn.
-Changes apply immediately and work through the existing Touch/Xbox turning input.
-
 ### VR render-quality presets and statistics
 
 VR quality presets provide **Performance 75%, Balanced 100%,
@@ -56,17 +56,17 @@ options removed. **F11** reports VR application FPS and per-eye scene resolution
 when the headset is active, with desktop statistics when it is inactive.
 Desktop resolution labels now include readable aspect ratios.
 
+### Gaze-directed swimming and flying
+
+Swimming and flying now follow your gaze, including looking up or down, while
+ordinary walking retains horizontal head-oriented movement.
+
 ### VR vignette and bloom
 
 The VR vignette now forms a shared, head-relative fade across both eyes instead
 of separate eye borders. One slider adjusts darkness and coverage, with a more
 visible maximum effect and a clear center. Desktop vignette appearance is preserved.
 Bloom behavior in VR has also been corrected.
-
-### Gaze-directed swimming and flying
-
-Swimming and flying now follow your gaze, including looking up or down, while
-ordinary walking retains horizontal head-oriented movement.
 
 ### Controller support and menu navigation
 
