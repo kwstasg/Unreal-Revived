@@ -5,8 +5,9 @@
 Follow [the turning and standing-HUD contract](vr-standing-and-turning.md).
 The native `vr-turning` regression exercises production turn accumulation and
 neutral/interrupt behavior. `scripts/test-video-preferences.ps1` also checks the
-new menu defaults, persistence, reset and desktop isolation. Physical Touch/Xbox
-turning and animated-snap comfort still require CV1 acceptance.
+new menu defaults, persistence, reset and desktop isolation. The owner accepted
+turning behavior at `f995a53`; final names are Instant Snap and Smooth Snap.
+Retain physical input/comfort checks for future changes and other hardware.
 
 ## Music menu navigation
 

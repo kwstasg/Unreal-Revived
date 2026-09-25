@@ -5,9 +5,6 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **Turning-mode acceptance:** Smooth remains default; Instant Snap and Animated
-  Snap plus a 15-90-degree angle slider (default 30) are implemented. CV1 Touch/
-  Xbox testing remains pending; see [turning checks](vr-standing-and-turning.md).
 - **Standing HUD strategy:** proposed optional translation-following, upright HUD
   with delayed yaw catch-up and stable menu interaction. Seated/fixed remains
   unchanged. Strategy is documented; follow mode and full room-scale gameplay are
@@ -31,6 +28,9 @@ release notes are historical evidence, not a second backlog.
 
 ## Closed or removed
 
+- Turning modes: owner accepted behavior as perfect at `f995a53`; display names
+  are Instant Snap and Smooth Snap. Smooth remains default; snap angle defaults
+  to 30 degrees. Retain [the regression checklist](vr-standing-and-turning.md).
 - Music menu navigation: reviewed and committed separately with its regression
   fixture and documentation. September 25 regression passed for focus navigation,
   playlist playback and empty-list handling; production fixture exclusion passed.

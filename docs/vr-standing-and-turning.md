@@ -54,12 +54,12 @@ Preferences > VR offers:
 | --- | --- |
 | Smooth (Default) | Existing continuous right-stick turning, unchanged |
 | Instant Snap | One immediate turn through the chosen angle |
-| Animated Snap | The same angle eased over 150 ms |
+| Smooth Snap | The same angle eased over 150 ms |
 
 **Snap Angle** is a slider with 15/30/45/60/75/90-degree choices; default/reset is
 30 degrees. It is disabled in Smooth mode. Both settings apply immediately and
 persist in `[D3D12Drv.D3D12RenderDevice]` as `VRTurnMode=0/1/2` and
-`VRSnapAngle=30`. Animated snap is a preference, not a comfort guarantee.
+`VRSnapAngle=30`. Smooth Snap is a preference, not a comfort guarantee.
 
 Touch and Xbox share the existing merged right-stick path. Snap triggers at 70%
 normalized horizontal deflection and requires return below 25% before another
@@ -80,6 +80,10 @@ also places view turning on the right stick; our existing mapping is retained.
 
 ## Validation
 
+The owner accepted turning behavior as perfect at `f995a53`, requesting only
+the final display names Instant Snap and Smooth Snap. The rename does not change
+turning behavior. The checks below remain for future regressions and other hardware.
+
 Native `vr-turning` tests cover neutral arming, threshold/hysteresis, no held-stick
 repeat, direction, exact animated angles at 30/72/90/144/1000 updates per second,
 interruption, long input gaps, invalid input and Smooth bypass. Production menu
@@ -88,7 +92,7 @@ change. These checks do not establish headset comfort or physical input behavior
 
 In CV1 with Touch and Xbox, compare Smooth to the accepted baseline; try both
 snap modes in both directions at 30 and 90 degrees, hold the stick, return neutral,
-and turn again. Open/close menus or recenter during animated snap, remount, and
+and turn again. Open/close menus or recenter during Smooth Snap, remount, and
 disconnect/reconnect with a held stick. Confirm no leftover turn, unchanged
 natural pitch/roll, stable HUD, firing alignment and persistent preferences.
 Standing HUD implementation and its physical walk/turn/menu checks remain future

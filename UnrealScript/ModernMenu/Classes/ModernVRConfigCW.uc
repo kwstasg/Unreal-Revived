@@ -490,10 +490,10 @@ function Notify(UWindowDialogControl C, byte E)
 defaultproperties
 {
 	TurnModeText="Turning Mode"
-	TurnModeHelp="Smooth keeps continuous stick turning. Snap turns instantly; Animated Snap eases through the chosen angle. Release the stick between snaps."
+	TurnModeHelp="Smooth keeps continuous stick turning. Instant Snap turns instantly; Smooth Snap eases through the chosen angle. Release the stick between snaps."
 	SmoothTurnText="Smooth (Default)"
 	InstantSnapText="Instant Snap"
-	AnimatedSnapText="Animated Snap"
+	AnimatedSnapText="Smooth Snap"
 	SnapAngleText="Snap Angle"
 	SnapAngleHelp="Angle per snap: 15 to 90 degrees, in 15-degree steps. Default is 30 degrees. Used by both snap modes."
 	VRHeadingText="Virtual Reality"

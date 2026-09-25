@@ -11,6 +11,11 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Owner accepted turning behavior as perfect at `f995a53`. Renamed the displayed
+  Animated Snap option to Smooth Snap and updated its help text; Instant Snap
+  remains named as requested. No turning logic, timings, defaults or angle
+  choices changed. Updated acceptance/backlog records.
+
 - Added VR turning choices: existing Smooth remains default, Instant Snap rotates
   once per deflection, and Animated Snap eases over 150 ms. Both snap modes share
   a 15-90-degree slider in 15-degree steps, default/reset 30. Settings apply live
