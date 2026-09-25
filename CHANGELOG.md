@@ -2,9 +2,18 @@
 
 ## 0.9.0 — Unreleased
 
-Version 0.9.0 adds automatic HUD repositioning, VR turning modes, runtime
+Version 0.9.0 adds standing VR support, automatic HUD repositioning, turning modes, runtime
 render-quality presets, and horizon-lock and recentering fixes for Unreal and
 Return to Na Pali. Desktop play remains available through its own shortcut.
+
+### Seated and standing VR support
+
+VR now accommodates standing play alongside the existing seated implementation.
+The HUD follows sustained physical stepping and turning, and recentering retains
+changes in head height within the session. This works automatically without a
+seated/standing mode switch. Physical walking moves the tracked viewpoint but
+does not move the player's gameplay collision body; full room-scale locomotion
+is not implemented.
 
 ### Automatic HUD repositioning
 

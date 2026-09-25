@@ -11,6 +11,10 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Promoted seated and standing VR support to a leading 0.9.0 release highlight.
+  Retained the distinction between tracked physical movement/HUD recovery and
+  full room-scale locomotion with gameplay-body collision.
+
 - Replaced promotional 0.9.0 slogans and headings with standard feature names
   in the changelog, release highlights and README at the owner's request. Updated
   remaining installer-status summaries to reflect the completed lifecycle checks.

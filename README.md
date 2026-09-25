@@ -6,8 +6,8 @@
 
 **[Download the latest Unreal Revived release](https://github.com/kwstasg/Unreal-Revived/releases/latest)**
 
-**0.9.0 release candidate:** automatic HUD repositioning, horizon lock, VR turning
-modes and runtime render-quality presets. See the [release highlights](docs/release-0.9.0.md)
+**0.9.0 release candidate:** seated and standing VR support, automatic HUD
+repositioning, horizon lock, turning modes and runtime render-quality presets. See the [release highlights](docs/release-0.9.0.md)
 or [full changelog](CHANGELOG.md). Installer lifecycle validation has passed;
 installed-build owner acceptance remains pending. The download link above points
 to the latest published release.

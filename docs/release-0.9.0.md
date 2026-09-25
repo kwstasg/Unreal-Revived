@@ -2,12 +2,16 @@
 
 *Release candidate: installer lifecycle passed; final owner check pending.*
 
-Version 0.9.0 includes VR HUD positioning, recentering and turning improvements,
+Version 0.9.0 extends seated VR with standing play, automatic HUD positioning,
+recentering and turning improvements,
 runtime render-quality settings, and controller and menu fixes. Existing desktop
 play and controller mappings are retained.
 
 ## Highlights
 
+- **Seated and standing VR support.** Stand, step or turn physically while the HUD
+  automatically follows larger movements. Recenter preserves changes in head
+  height during the session. No seated/standing mode switch is required.
 - **Automatic HUD repositioning.** Stable during small seated movements, with gentle
   automatic recovery when you stand, step or turn farther away. No mode selection
   needed. Menus stay stationary while you interact.
