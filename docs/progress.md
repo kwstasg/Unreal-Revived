@@ -11,6 +11,13 @@ and the disposable runtime; committed milestones preserve the history.
 
 ## 2026-09-25
 
+- Owner retested the intended motion/save/restart/load/gaze sequence and saw no
+  offset. Reviewed the 14:04:46 local Unreal.log: CV1 submitted stereo frames,
+  Save12 loaded into Noork and the game shut down normally; no script warnings,
+  assertions or critical errors. Final profile selects gaze. Mode transition
+  timing is not logged, and Save12 still has its September 24 timestamp. Recorded
+  non-reproduction with these limits; no gameplay/build/calibration changes.
+
 - Audited the clarified motion-save/restart/load/then-gaze order. No direct motion
   calibration leak was found in render or firing restoration. Shared first-use
   geometry and restored hand offsets remain hypotheses requiring equipped-state

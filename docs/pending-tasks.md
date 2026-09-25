@@ -5,11 +5,13 @@ release notes are historical evidence, not a second backlog.
 
 ## Current issues and acceptance
 
-- **Motion-to-gaze weapon offsets after save load:** unresolved owner report,
+- **Motion-to-gaze weapon offsets after save load:** intermittent report,
   clarified as motion gameplay/save, process restart, load in motion, then gaze.
-  Currently not reproducing after rollback; [code audit](vr-weapon-mode-load-audit.md)
-  records the remaining hypotheses and why earlier tests missed this sequence.
-  especially UPak.RocketLauncher. The fixed-reference geometry attempt `d267b77`
+  Owner repeated the intended sequence without recurrence after rollback. Logs
+  confirm CV1 rendering, Save12 loading and clean shutdown, but not mode timing
+  or a newly written save. [Code audit](vr-weapon-mode-load-audit.md) records the
+  evidence and remaining hypotheses. Originally most visible on UPak.RocketLauncher.
+  The fixed-reference geometry attempt `d267b77`
   worsened more weapons and was reverted by `129c000`. Do not retune the accepted
   physical sizes or calibration based only on pose-cache tests. Reproduce the
   actual equipped/rendered offset and distinguish position from size before a

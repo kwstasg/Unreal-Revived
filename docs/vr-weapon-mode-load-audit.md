@@ -4,6 +4,15 @@ The owner's clarified sequence is: play using motion controllers, save, exit,
 start again, load that save while still using motion, then select gaze. The issue
 did not recur after reverting `d267b77`, but is not established as fixed.
 
+The owner repeated the intended sequence and reported no recurrence. The latest
+September 25 log (14:04:46 local) confirms CV1 stereo rendering, loading Save12
+into Noork, and normal shutdown without script warnings, assertions or critical
+errors. The resulting renderer profile selects gaze (`VRAimMode=0`). The log does
+not record mode-change timing or weapon appearance; Save12 retains its September
+24 timestamp, so this evidence confirms loading an existing save, not creation
+of a new motion-mode save during this run. Keep the current build unchanged and
+record this as owner-observed non-reproduction rather than a verified root-cause fix.
+
 ## Findings
 
 - `ModernVRConfigCW.Notify` sends `D3D12 VRAIMMODE`. The renderer updates its
